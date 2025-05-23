@@ -12,6 +12,14 @@ import SeguimientoGlobal from '../SeguimientoGlobal';
 import { useRef } from 'react';
 import useNeuroState from '../../store/useNeuroState';
 
+interface Props {
+  progreso: number;
+  estado: string;
+  xp: number;
+  neurocoin: number;
+  avatarUrl: string;
+}
+
 export default function SegundoCerebroPage() {
   const headerRef = useRef<HTMLDivElement>(null);
   const iaModules = useNeuroState(state => state.iaModules);
