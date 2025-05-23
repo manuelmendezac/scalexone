@@ -373,7 +373,6 @@ const NeuroCloneCore: React.FC = () => {
 
   const handleStartListening = () => {
     if (!recognitionRef.current || !voiceSettings.enabled) return;
-    
     try {
       recognitionRef.current.start();
       setIsListening(true);
@@ -385,7 +384,6 @@ const NeuroCloneCore: React.FC = () => {
 
   const handleStopListening = () => {
     if (!recognitionRef.current) return;
-    
     try {
       recognitionRef.current.stop();
       setIsListening(false);
