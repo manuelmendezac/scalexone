@@ -18,9 +18,7 @@ const ASSETS_TO_CACHE = [
 // Instalación del Service Worker
 self.addEventListener('install', (event: ExtendableEvent) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(ASSETS_TO_CACHE);
-    })
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS_TO_CACHE))
   );
   self.skipWaiting();
 });
@@ -28,13 +26,11 @@ self.addEventListener('install', (event: ExtendableEvent) => {
 // Activación y limpieza de cachés antiguas
 self.addEventListener('activate', (event: ExtendableEvent) => {
   event.waitUntil(
-    caches.keys().then((cacheNames) => {
-      return Promise.all(
-        cacheNames
-          .filter((name) => name !== CACHE_NAME)
-          .map((name) => caches.delete(name))
-      );
-    })
+    caches.keys().then((cacheNames) =>
+      Promise.all(
+        cacheNames.filter((name) => name !== CACHE_NAME).map((name) => caches.delete(name))
+      )
+    )
   );
   self.clients.claim();
 });
@@ -42,9 +38,7 @@ self.addEventListener('activate', (event: ExtendableEvent) => {
 // Estrategia de caché: Network First, fallback a caché
 self.addEventListener('fetch', (event: FetchEvent) => {
   event.respondWith(
-    caches.match(event.request).then((response) => {
-      return response || fetch(event.request);
-    })
+    caches.match(event.request).then((response) => response || fetch(event.request))
   );
 });
 
@@ -63,5 +57,16 @@ self.addEventListener('push', (event: PushEvent) => {
 // Manejo de clics en notificaciones
 self.addEventListener('notificationclick', (event: NotificationEvent) => {
   event.notification.close();
-  event.waitUntil(self.clients.openWindow('/'));
+  // Redirige a la URL almacenada en la notificación, o a la raíz si no existe
+  const url = (event.notification.data as string) || '/';
+  event.waitUntil(
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
+      for (const client of clientList) {
+        if ('focus' in client && (client as WindowClient).url === url) {
+          return (client as WindowClient).focus();
+        }
+      }
+      return self.clients.openWindow(url);
+    })
+  );
 }); 
