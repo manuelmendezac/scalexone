@@ -86,55 +86,6 @@ interface VoiceSettings {
   language: string;
 }
 
-// Definiciones de tipos para la API Web Speech
-interface SpeechRecognitionEvent extends Event {
-  results: SpeechRecognitionResultList;
-  resultIndex: number;
-  interpretation: any;
-}
-
-interface SpeechRecognitionErrorEvent extends Event {
-  error: string;
-  message: string;
-}
-
-interface SpeechRecognitionResultList {
-  length: number;
-  item(index: number): SpeechRecognitionResult;
-  [index: number]: SpeechRecognitionResult;
-}
-
-interface SpeechRecognitionResult {
-  isFinal: boolean;
-  length: number;
-  item(index: number): SpeechRecognitionAlternative;
-  [index: number]: SpeechRecognitionAlternative;
-}
-
-interface SpeechRecognitionAlternative {
-  transcript: string;
-  confidence: number;
-}
-
-interface SpeechRecognition extends EventTarget {
-  continuous: boolean;
-  interimResults: boolean;
-  lang: string;
-  onresult: (event: SpeechRecognitionEvent) => void;
-  onerror: (event: SpeechRecognitionErrorEvent) => void;
-  onend: () => void;
-  start: () => void;
-  stop: () => void;
-  abort: () => void;
-}
-
-declare global {
-  interface Window {
-    SpeechRecognition?: new () => SpeechRecognition;
-    webkitSpeechRecognition?: new () => SpeechRecognition;
-  }
-}
-
 // Componente Principal
 const NeuroCloneCore: React.FC = () => {
   // Estados
@@ -219,7 +170,7 @@ const NeuroCloneCore: React.FC = () => {
   const [isListening, setIsListening] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [availableVoices, setAvailableVoices] = useState<SpeechSynthesisVoice[]>([]);
-  const recognitionRef = useRef<SpeechRecognition | null>(null);
+  const recognitionRef = useRef<any>(null);
   const synthesisRef = useRef<SpeechSynthesis | null>(null);
 
   // Inicializar reconocimiento de voz y síntesis
@@ -258,14 +209,14 @@ const NeuroCloneCore: React.FC = () => {
           recognitionRef.current.interimResults = false;
           recognitionRef.current.lang = voiceSettings.language;
 
-          recognitionRef.current.onresult = (event: SpeechRecognitionEvent) => {
+          recognitionRef.current.onresult = (event: any) => {
             const transcript = event.results[0][0].transcript;
             // Aquí puedes manejar el texto reconocido
             console.log('Texto reconocido:', transcript);
             setIsListening(false);
           };
 
-          recognitionRef.current.onerror = (event: SpeechRecognitionErrorEvent) => {
+          recognitionRef.current.onerror = (event: any) => {
             console.error('Error en reconocimiento de voz:', event.error);
             setIsListening(false);
             toast.error('Error al reconocer la voz');

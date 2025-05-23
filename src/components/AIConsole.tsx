@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Send, Mic, MicOff, Loader2, Brain, Target, Moon } from 'lucide-react';
 import useNeuroState from '../store/useNeuroState';
 import { useModeEffects } from '../hooks/useModeEffects';
+import type { Message } from '../store/useNeuroState';
 
 const RESPUESTAS_POR_MODO = {
   productivity: [
@@ -81,8 +82,8 @@ const AIConsole = () => {
       }
       
       addMessage({
-        type: 'ai',
-        content: response
+        text: response,
+        from: 'ai'
       });
       setIsProcessing(false);
     }, 1000);
@@ -128,11 +129,11 @@ const AIConsole = () => {
               initial={shouldShowAnimations ? { opacity: 0, y: 10 } : undefined}
               animate={shouldShowAnimations ? { opacity: 1, y: 0 } : undefined}
               exit={shouldShowAnimations ? { opacity: 0, y: -10 } : undefined}
-              className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}
+              className={`flex ${message.text === 'user' ? 'justify-end' : 'justify-start'}`}
             >
               <div
                 className={`max-w-[80%] p-3 rounded-lg ${
-                  message.type === 'user'
+                  message.text === 'user'
                     ? 'bg-neurolink-matrixGreen/20 text-coldWhite'
                     : `bg-neurolink-background/80 text-coldWhite border ${
                         isFocusMode
@@ -145,7 +146,7 @@ const AIConsole = () => {
                       }`
                 }`}
               >
-                {message.content}
+                {message.text}
               </div>
             </motion.div>
           ))}
