@@ -27,6 +27,7 @@ import PersonalizarAgente from './pages/personalizar-agente/[id]';
 import ConfiguracionProyecto from './components/ConfiguracionProyecto';
 import Login from './pages/login';
 import Register from './pages/register';
+import ProtectedRoute from './components/ProtectedRoute';
 
 export const router = createBrowserRouter([
   {
@@ -51,8 +52,12 @@ export const router = createBrowserRouter([
       },
       {
         path: 'dashboard',
-        element: <Dashboard />,
+        element: <ProtectedRoute><Dashboard /></ProtectedRoute>,
         children: [
+          {
+            index: true,
+            element: <Inicio />
+          },
           {
             path: 'console',
             element: <AIConsole />

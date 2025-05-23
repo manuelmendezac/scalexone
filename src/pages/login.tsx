@@ -1,11 +1,19 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { supabase } from '../supabase';
+import useNeuroState from '../store/useNeuroState';
 
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const { userName } = useNeuroState();
+
+  useEffect(() => {
+    if (userName && userName !== 'Invitado') {
+      window.location.href = '/dashboard';
+    }
+  }, [userName]);
 
   // Login con email/contraseña
   const handleLogin = async (e: React.FormEvent) => {
