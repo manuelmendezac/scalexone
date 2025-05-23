@@ -3,7 +3,7 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 import React from 'react';
 import { supabase } from '../supabase';
 
-interface Message {
+export interface Message {
   id: string;
   text: string;
   from: 'user' | 'ai' | 'assistant';

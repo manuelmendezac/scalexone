@@ -1,13 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Send, Loader2, Brain } from 'lucide-react';
-
-interface Message {
-  id: string;
-  text: string;
-  from: 'user' | 'ai' | 'assistant';
-  timestamp: Date;
-}
+import type { Message } from '../store/useNeuroState';
 
 const KnowledgeAssistant = () => {
   const [question, setQuestion] = useState('');
