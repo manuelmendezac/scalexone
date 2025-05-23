@@ -56,7 +56,7 @@ function App() {
   // Simulación de login (ajusta según tu lógica real)
   const isLoggedIn = userName !== 'Invitado';
   const location = useLocation();
-  const hideMenu = location.pathname === '/login' || location.pathname === '/registro';
+  const hideMenu = location.pathname === '/login' || location.pathname === '/register';
 
   const handleThemeToggle = () => setDarkMode((prev) => !prev);
 
