@@ -4,6 +4,7 @@ import { Send, Trash2, Volume2, VolumeX, HelpCircle } from 'lucide-react';
 import { useStore } from '../store/store';
 import ReactMarkdown from 'react-markdown';
 import emoji from 'emoji-toolkit';
+import type { Message } from '../store/useNeuroState';
 
 interface Mensaje {
   id: string;

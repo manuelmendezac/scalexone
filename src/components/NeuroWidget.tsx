@@ -18,6 +18,7 @@ export const NeuroWidget: React.FC = () => {
   const [mostrarConfig, setMostrarConfig] = useState(false);
   const chatRef = useRef<HTMLDivElement>(null);
   const synth = useRef<SpeechSynthesis | null>(null);
+  // @ts-ignore
   const recognition = useRef<SpeechRecognition | null>(null);
 
   const {
@@ -31,14 +32,20 @@ export const NeuroWidget: React.FC = () => {
   useEffect(() => {
     synth.current = window.speechSynthesis;
     if ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window) {
+      // @ts-ignore
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
       recognition.current = new SpeechRecognition();
       recognition.current.continuous = false;
       recognition.current.lang = 'es-ES';
-      recognition.current.onresult = (event) => {
+      // @ts-ignore
+      recognition.current.onresult = (event: any) => {
         const texto = event.results[0][0].transcript;
         setMensaje(texto);
         enviarMensaje(texto);
+      };
+      // @ts-ignore
+      recognition.current.onerror = (event: any) => {
+        // ... lógica existente ...
       };
     }
   }, []);

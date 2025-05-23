@@ -3,6 +3,7 @@ import useNeuroState from '../store/useNeuroState';
 import RoutineGenerator from './RoutineGenerator';
 import AIConsole from './AIConsole';
 import { motion, AnimatePresence } from 'framer-motion';
+import type { Message } from '../store/useNeuroState';
 
 interface Idea {
   id: string;

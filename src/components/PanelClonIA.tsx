@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Brain, Edit2, Zap, MessageSquare, BookOpen, Settings, ChevronRight } from 'lucide-react';
 import useNeuroState from '../store/useNeuroState';
+import type { Message } from '../store/useNeuroState';
 
 interface Habilidad {
   id: string;
@@ -22,7 +23,7 @@ interface EstadoClon {
 }
 
 const PanelClonIA = () => {
-  const { user } = useNeuroState();
+  const { from } = useNeuroState();
   const [isEditing, setIsEditing] = useState(false);
   const [estadoClon, setEstadoClon] = useState<EstadoClon>({
     nombre: 'NeuroLink Alpha',
@@ -37,7 +38,7 @@ const PanelClonIA = () => {
       { id: '4', nombre: 'Visión por Computadora', nivel: 70, categoria: 'IA' }
     ],
     ultimaConversacion: 'Análisis de tendencias en IA generativa',
-    mensajeMotivador: `¡Estoy listo para ayudarte hoy, ${user?.nombre || 'Usuario'}!`
+    mensajeMotivador: `¡Estoy listo para ayudarte hoy, ${from?.nombre || 'Usuario'}!`
   });
 
   const handleNombreChange = (e: React.ChangeEvent<HTMLInputElement>) => {
