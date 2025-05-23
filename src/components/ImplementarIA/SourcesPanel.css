@@ -1,0 +1,125 @@
+.sources-panel-main {
+  display: flex;
+  min-height: 500px;
+  background: #181c23;
+  border-radius: 0;
+  box-shadow: none;
+  width: 100vw;
+  max-width: 100vw;
+  margin: 0;
+  overflow: hidden;
+}
+
+.sources-sidebar {
+  width: 260px;
+  background: #23283a;
+  padding: 2rem 1rem 2rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2rem;
+  min-height: 100vh;
+}
+
+.sources-title {
+  color: #7ee0ff;
+  font-size: 1.5rem;
+  font-family: 'Orbitron', 'Inter', Arial, sans-serif;
+  font-weight: 700;
+  margin-bottom: 1.5rem;
+  letter-spacing: 0.03em;
+}
+
+.sources-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  width: 100%;
+}
+
+.sources-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  width: 100%;
+  background: transparent;
+  border: 2px solid transparent;
+  color: #b6c2e0;
+  font-size: 1.08rem;
+  font-weight: 600;
+  border-radius: 12px;
+  padding: 0.8rem 1.2rem;
+  cursor: pointer;
+  transition: background 0.18s, color 0.18s, border 0.18s;
+  outline: none;
+}
+
+.sources-btn.active {
+  background: #181c23;
+  color: #7ee0ff;
+  border: 2px solid #7ee0ff;
+  box-shadow: 0 0 0 2px #7ee0ff33;
+}
+
+.sources-btn:hover:not(.active) {
+  background: #23283a;
+  color: #fff;
+}
+
+.sources-btn-icon {
+  font-size: 1.3rem;
+  display: flex;
+  align-items: center;
+}
+
+.sources-content-panel {
+  flex: 1;
+  background: #10131a;
+  padding: 2.5rem 2.5rem;
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+  min-height: 100vh;
+}
+
+.sources-content {
+  color: #b6c2e0;
+  font-size: 1.15rem;
+  font-family: 'Inter', Arial, sans-serif;
+  background: #181c23;
+  border-radius: 12px;
+  padding: 2rem 2.5rem;
+  min-width: 350px;
+  min-height: 200px;
+  box-shadow: 0 1px 8px #0002;
+}
+
+@media (max-width: 900px) {
+  .sources-panel-main {
+    flex-direction: column;
+    max-width: 100vw;
+    width: 100vw;
+  }
+  .sources-sidebar {
+    width: 100%;
+    flex-direction: row;
+    gap: 1rem;
+    padding: 1rem 0.5rem;
+    align-items: center;
+    justify-content: flex-start;
+    min-height: auto;
+  }
+  .sources-menu {
+    flex-direction: row;
+    gap: 0.5rem;
+    width: auto;
+  }
+  .sources-content-panel {
+    padding: 1.5rem 1rem;
+    min-height: auto;
+  }
+  .sources-content {
+    min-width: 200px;
+    padding: 1.2rem 1rem;
+  }
+} 

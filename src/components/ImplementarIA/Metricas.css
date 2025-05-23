@@ -1,0 +1,14 @@
+.ia-metricas-placeholder {
+  background: #23283a;
+  border-radius: 18px;
+  box-shadow: 0 2px 12px #00eaff22;
+  padding: 2.5rem 2rem;
+  margin: 2rem auto;
+  max-width: 480px;
+  text-align: center;
+  color: #eaf6ff;
+}
+.ia-metricas-placeholder h2 {
+  color: #00eaff;
+  margin-bottom: 1rem;
+} 

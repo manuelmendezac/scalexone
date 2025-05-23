@@ -1,0 +1,120 @@
+/* Panel principal */
+.leads-panel-main {
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 2px 24px #0001;
+  padding: 2.5rem 2rem 2rem 2rem;
+  max-width: 700px;
+  margin: 2.5rem auto;
+  font-family: 'Inter', 'Orbitron', Arial, sans-serif;
+}
+
+.leads-panel-main h2 {
+  color: #23283a;
+  font-size: 2rem;
+  margin-bottom: 1.7rem;
+  font-weight: 700;
+}
+
+.leads-panel-note {
+  font-size: 0.98rem;
+  color: #6b7280;
+  margin-bottom: 1.5rem;
+}
+
+.leads-panel-section {
+  margin-bottom: 1.7rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+.leads-panel-section label {
+  font-weight: 600;
+  color: #23283a;
+  font-size: 1.05rem;
+  margin-bottom: 0.2rem;
+}
+.leads-panel-title-row {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+.leads-panel-title-row input[type="text"] {
+  flex: 1;
+  border-radius: 8px;
+  border: 1px solid #e0e7ef;
+  padding: 0.7rem 1rem;
+  font-size: 1rem;
+  background: #f7fafd;
+  color: #23283a;
+  font-family: inherit;
+}
+.leads-panel-reset {
+  background: #f7fafd;
+  color: #e53e3e;
+  border: 1px solid #e0e7ef;
+  border-radius: 8px;
+  padding: 0.45rem 1.1rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.leads-panel-reset:hover {
+  background: #ffeaea;
+}
+.leads-panel-switch-row {
+  flex-direction: row;
+  align-items: center;
+  gap: 1.2rem;
+  font-size: 1.05rem;
+  color: #23283a;
+}
+.leads-panel-switch-row input[type="checkbox"] {
+  width: 22px;
+  height: 22px;
+  accent-color: #7b61ff;
+  margin-left: 0.5rem;
+}
+.leads-panel-actions {
+  display: flex;
+  gap: 1.2rem;
+  justify-content: flex-end;
+  margin-top: 1.5rem;
+}
+.leads-panel-save {
+  background: #2563eb;
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: 0.8rem 2.2rem;
+  font-size: 1.1rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 1px 4px #0001;
+  letter-spacing: 0.01em;
+  transition: background 0.2s;
+}
+.leads-panel-save:hover {
+  background: #1746a2;
+}
+
+.leads-panel-edit-row {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  margin-bottom: 1.2rem;
+}
+.leads-panel-edit-row input[type="text"] {
+  flex: 1;
+  border-radius: 8px;
+  border: 1px solid #e0e7ef;
+  padding: 0.7rem 1rem;
+  font-size: 1rem;
+  background: #f7fafd;
+  color: #23283a;
+  font-family: inherit;
+}
+.leads-panel-edit-row .leads-panel-reset {
+  margin-left: 0;
+} 
