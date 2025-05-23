@@ -25,6 +25,8 @@ import SuenoMaximoGame from './components/aspiracional/SuenoMaximoGame';
 import ImplementarIAPage from './pages/ImplementarIA';
 import PersonalizarAgente from './pages/personalizar-agente/[id]';
 import ConfiguracionProyecto from './components/ConfiguracionProyecto';
+import Login from './pages/login';
+import Register from './pages/register';
 
 export const router = createBrowserRouter([
   {
@@ -136,6 +138,14 @@ export const router = createBrowserRouter([
       {
         path: 'configuracion',
         element: <ConfiguracionProyecto />,
+      },
+      {
+        path: 'login',
+        element: <Login />
+      },
+      {
+        path: 'register',
+        element: <Register />
       },
     ]
   },
