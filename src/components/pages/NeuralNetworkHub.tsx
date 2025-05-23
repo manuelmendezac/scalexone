@@ -20,6 +20,8 @@ interface KnowledgePacket {
   attachment?: File;
   visibility: 'public' | 'private';
   createdAt: Date;
+  type: 'text' | 'link' | 'file';
+  content: string;
 }
 
 interface Room {
@@ -115,13 +117,11 @@ const PacketForm: React.FC<{
     onSubmit({
       title,
       summary,
-      content,
-      type,
       tags,
       visibility,
-      attachment: attachment || undefined,
-      from: 'current-user'
-    });
+      type,
+      content
+    } as any);
     onClose();
   };
 
@@ -443,8 +443,6 @@ const NeuralNetworkHub: React.FC = () => {
     rooms,
     createRoom,
     joinRoom,
-    activeRoom,
-    setActiveRoom,
     viewMode,
     setViewMode
   } = useNeuroHubStore();
@@ -669,7 +667,6 @@ const NeuralNetworkHub: React.FC = () => {
                 <button
                   onClick={() => {
                     joinRoom(room.id);
-                    setActiveRoom(room.id);
                   }}
                   className="w-full px-4 py-2 rounded-lg bg-cyan-600/30 text-cyan-100 hover:bg-cyan-600/50"
                 >
@@ -710,27 +707,6 @@ const NeuralNetworkHub: React.FC = () => {
                   onSubmit={addPacket}
                   onClose={() => setShowPacketForm(false)}
                 />
-              </motion.div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* Modal para chat de sala */}
-        <AnimatePresence>
-          {activeRoom && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center"
-            >
-              <motion.div
-                initial={{ scale: 0.9, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                exit={{ scale: 0.9, opacity: 0 }}
-                className="bg-[#181a2a] rounded-xl border border-cyan-700/30 p-8 w-full max-w-4xl shadow-2xl"
-              >
-                <RoomChat roomId={activeRoom} />
               </motion.div>
             </motion.div>
           )}
