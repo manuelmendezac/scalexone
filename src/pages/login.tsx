@@ -15,6 +15,14 @@ const Login = () => {
     }
   }, [userName]);
 
+  // Handlers para login social
+  const handleGoogle = async () => {
+    await supabase.auth.signInWithOAuth({ provider: 'google' });
+  };
+  const handleFacebook = async () => {
+    await supabase.auth.signInWithOAuth({ provider: 'facebook' });
+  };
+
   // Login con email/contraseña
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -56,10 +64,22 @@ const Login = () => {
           </button>
           {error && <div className="text-red-400 text-sm mt-2">{error}</div>}
         </form>
-        {/* Iconos sociales debajo del formulario */}
+        {/* Botones sociales debajo del formulario */}
         <div className="flex gap-6 mt-8">
-          <span title="Google" className="w-10 h-10 bg-cyan-400 rounded-full flex items-center justify-center text-black text-2xl font-bold cursor-pointer">G</span>
-          <span title="Facebook" className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white text-2xl font-bold cursor-pointer">f</span>
+          <button
+            title="Google"
+            onClick={handleGoogle}
+            className="w-10 h-10 bg-cyan-400 rounded-full flex items-center justify-center text-black text-2xl font-bold cursor-pointer"
+          >
+            G
+          </button>
+          <button
+            title="Facebook"
+            onClick={handleFacebook}
+            className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white text-2xl font-bold cursor-pointer"
+          >
+            f
+          </button>
         </div>
       </div>
     </div>
