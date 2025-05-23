@@ -4,8 +4,8 @@ import { Send, Loader2, Brain } from 'lucide-react';
 
 interface Message {
   id: string;
-  type: 'user' | 'assistant';
-  content: string;
+  text: string;
+  from: 'user' | 'ai' | 'assistant';
   timestamp: Date;
 }
 
@@ -38,8 +38,8 @@ const KnowledgeAssistant = () => {
     // Agregar pregunta del usuario
     const userMessage: Message = {
       id: Date.now().toString(),
-      type: 'user',
-      content: question,
+      text: question,
+      from: 'user',
       timestamp: new Date()
     };
     setMessages(prev => [...prev, userMessage]);
@@ -51,8 +51,8 @@ const KnowledgeAssistant = () => {
       const randomResponse = exampleResponses[Math.floor(Math.random() * exampleResponses.length)];
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
-        type: 'assistant',
-        content: randomResponse,
+        text: randomResponse,
+        from: 'assistant',
         timestamp: new Date()
       };
       setMessages(prev => [...prev, assistantMessage]);
@@ -89,16 +89,16 @@ const KnowledgeAssistant = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
-                className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}
+                className={`flex ${message.from === 'user' ? 'justify-end' : 'justify-start'}`}
               >
                 <div
                   className={`max-w-[80%] p-4 rounded-lg ${
-                    message.type === 'user'
+                    message.from === 'user'
                       ? 'bg-neurolink-cyberBlue/20 text-neurolink-coldWhite'
                       : 'bg-neurolink-matrixGreen/20 text-neurolink-coldWhite'
                   }`}
                 >
-                  <p className="text-sm">{message.content}</p>
+                  <p className="text-sm">{message.text}</p>
                   <p className="text-xs text-neurolink-coldWhite/40 mt-2">
                     {message.timestamp.toLocaleTimeString()}
                   </p>

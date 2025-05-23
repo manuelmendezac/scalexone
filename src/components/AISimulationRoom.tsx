@@ -5,7 +5,7 @@ import useNeuroState from '../store/useNeuroState';
 interface Message {
   id: string;
   text: string;
-  sender: 'user' | 'ai';
+  from: 'user' | 'ai' | 'assistant';
   timestamp: Date;
 }
 
@@ -42,7 +42,7 @@ const AISimulationRoom = () => {
     const userMessage: Message = {
       id: Date.now().toString(),
       text: inputText,
-      sender: 'user',
+      from: 'user',
       timestamp: new Date()
     };
 
@@ -55,7 +55,7 @@ const AISimulationRoom = () => {
       const aiResponse: Message = {
         id: (Date.now() + 1).toString(),
         text: aiResponses[Math.floor(Math.random() * aiResponses.length)],
-        sender: 'ai',
+        from: 'ai',
         timestamp: new Date()
       };
       setMessages(prev => [...prev, aiResponse]);
@@ -108,11 +108,11 @@ const AISimulationRoom = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
-                className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
+                className={`flex ${message.from === 'user' ? 'justify-end' : 'justify-start'}`}
               >
                 <div
                   className={`max-w-[80%] p-4 rounded-lg ${
-                    message.sender === 'user'
+                    message.from === 'user'
                       ? 'bg-neurolink-cyberBlue/20 text-neurolink-coldWhite'
                       : 'bg-neurolink-matrixGreen/20 text-neurolink-coldWhite'
                   }`}
