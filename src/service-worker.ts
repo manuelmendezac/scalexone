@@ -1,5 +1,7 @@
 /// <reference lib="webworker" />
 
+declare var self: ServiceWorkerGlobalScope;
+
 const CACHE_NAME = 'neurolink-cache-v1';
 const ASSETS_TO_CACHE = [
   '/',
@@ -13,16 +15,17 @@ const ASSETS_TO_CACHE = [
 ];
 
 // Instalación del Service Worker
-self.addEventListener('install', (event: ExtendableMessageEvent) => {
+self.addEventListener('install', (event: ExtendableEvent) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
       return cache.addAll(ASSETS_TO_CACHE);
     })
   );
+  self.skipWaiting();
 });
 
 // Activación y limpieza de cachés antiguas
-self.addEventListener('activate', (event: ExtendableMessageEvent) => {
+self.addEventListener('activate', (event: ExtendableEvent) => {
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
@@ -32,78 +35,45 @@ self.addEventListener('activate', (event: ExtendableMessageEvent) => {
       );
     })
   );
+  self.clients.claim();
 });
 
 // Estrategia de caché: Network First, fallback a caché
 self.addEventListener('fetch', (event: FetchEvent) => {
   event.respondWith(
-    fetch(event.request)
-      .then((response) => {
-        // Si la respuesta es exitosa, actualizar la caché
-        if (response.status === 200) {
-          const responseClone = response.clone();
-          caches.open(CACHE_NAME).then((cache) => {
-            cache.put(event.request, responseClone);
-          });
-        }
-        return response;
-      })
-      .catch(() => {
-        // Si falla la red, intentar servir desde caché
-        return caches.match(event.request).then((response) => {
-          if (response) {
-            return response;
-          }
-          // Si no está en caché, mostrar página offline
-          if (event.request.mode === 'navigate') {
-            return caches.match('/offline.html');
-          }
-          return new Response('', {
-            status: 408,
-            statusText: 'Request timed out.'
-          });
-        });
-      })
+    caches.match(event.request).then((response) => {
+      return response || fetch(event.request);
+    })
   );
 });
 
 // Manejo de notificaciones push
 self.addEventListener('push', (event: PushEvent) => {
+  const data = event.data?.json() || {};
+  const title = data.title || 'Notificación';
   const options = {
-    body: event.data?.text() ?? 'Nueva notificación de NeuroLink AI',
-    icon: '/icons/icon-192.png',
-    badge: '/icons/badge-72.png',
-    vibrate: [100, 50, 100],
-    data: {
-      dateOfArrival: Date.now(),
-      primaryKey: 1
-    },
-    actions: [
-      {
-        action: 'explore',
-        title: 'Ver más',
-        icon: '/icons/checkmark.png'
-      },
-      {
-        action: 'close',
-        title: 'Cerrar',
-        icon: '/icons/close.png'
-      }
-    ]
+    body: data.body || '',
+    icon: data.icon || '/icons/icon-192.png',
+    data: data.url || '/',
   };
-
-  event.waitUntil(
-    self.registration.showNotification('NeuroLink AI', options)
-  );
+  event.waitUntil(self.registration.showNotification(title, options));
 });
 
 // Manejo de clics en notificaciones
 self.addEventListener('notificationclick', (event: NotificationEvent) => {
   event.notification.close();
-
-  if (event.action === 'explore') {
-    event.waitUntil(
-      clients.openWindow('/hub')
-    );
-  }
+  const url = event.notification.data || '/';
+  event.waitUntil(
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
+      for (const client of clientList) {
+        if ('focus' in client) {
+          // @ts-ignore
+          if ((client as WindowClient).url === url && 'focus' in client) return (client as WindowClient).focus();
+        }
+      }
+      if (self.clients.openWindow) {
+        return self.clients.openWindow(url);
+      }
+    })
+  );
 }); 
