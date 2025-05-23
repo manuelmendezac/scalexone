@@ -1,0 +1,124 @@
+.metricas-panel-root {
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 2px 16px 0 rgba(0,0,0,0.07);
+  padding: 32px 28px 28px 28px;
+  max-width: 900px;
+  margin: 32px auto;
+  font-family: 'Inter', sans-serif;
+}
+.metricas-panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+.metricas-panel-header h2 {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #23272f;
+  margin: 0;
+}
+.metricas-panel-selectores {
+  display: flex;
+  gap: 16px;
+}
+.metricas-panel-select {
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+  font-size: 1rem;
+  background: #f7f7fa;
+  color: #23272f;
+}
+.metricas-panel-metricas {
+  display: flex;
+  gap: 24px;
+  margin-bottom: 32px;
+}
+.metrica-card {
+  background: #f7f7fa;
+  border-radius: 12px;
+  padding: 18px 22px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  box-shadow: 0 1px 4px 0 rgba(0,0,0,0.04);
+}
+.metrica-titulo {
+  font-size: 1rem;
+  color: #6b7280;
+  margin-bottom: 6px;
+}
+.metrica-valor {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #23272f;
+}
+.metrica-estado.activo {
+  color: #22c55e;
+}
+.metrica-estado.mantenimiento {
+  color: #f59e42;
+}
+.metricas-panel-grafica {
+  margin-bottom: 32px;
+}
+.metricas-panel-grafica h3 {
+  font-size: 1.1rem;
+  color: #23272f;
+  margin-bottom: 12px;
+}
+.grafica-barras {
+  display: flex;
+  align-items: flex-end;
+  gap: 16px;
+  height: 180px;
+  background: #f7f7fa;
+  border-radius: 10px;
+  padding: 18px 16px 0 16px;
+}
+.barra-outer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 28px;
+}
+.barra-inner {
+  width: 100%;
+  min-height: 8px;
+  background: linear-gradient(180deg, #6366f1 0%, #60a5fa 100%);
+  border-radius: 8px 8px 0 0;
+  transition: height 0.3s;
+}
+.barra-label {
+  font-size: 0.9rem;
+  color: #6b7280;
+  margin-top: 6px;
+}
+.metricas-panel-acciones {
+  display: flex;
+  gap: 18px;
+  margin-top: 18px;
+}
+.metricas-btn {
+  background: #6366f1;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 22px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.metricas-btn:hover {
+  background: #4f46e5;
+}
+.metricas-btn-reset {
+  background: #f43f5e;
+}
+.metricas-btn-reset:hover {
+  background: #be123c;
+} 

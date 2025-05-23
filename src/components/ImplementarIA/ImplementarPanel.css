@@ -1,0 +1,189 @@
+/* Panel principal */
+.panel-ia-config {
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 2px 24px #0001;
+  padding: 2.5rem 2rem 2rem 2rem;
+  max-width: 700px;
+  margin: 2.5rem auto;
+  font-family: 'Inter', 'Orbitron', Arial, sans-serif;
+}
+
+.panel-ia-header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  margin-bottom: 1.7rem;
+}
+.panel-ia-model-label {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #23283a;
+  margin-bottom: 0.2rem;
+}
+.panel-ia-model-select-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+}
+.panel-ia-model-warning {
+  color: #7b61ff;
+  background: #f3f0ff;
+  border-radius: 8px;
+  padding: 0.2rem 0.8rem;
+  font-size: 0.98rem;
+  font-weight: 500;
+}
+.panel-ia-model-select {
+  padding: 0.5rem 1.2rem;
+  border-radius: 8px;
+  border: 1px solid #e0e7ef;
+  font-size: 1rem;
+  background: #f7fafd;
+  color: #23283a;
+  font-weight: 600;
+}
+
+/* Instrucciones */
+.panel-ia-instructions-section {
+  margin-bottom: 2.2rem;
+}
+.panel-ia-instructions-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 0.7rem;
+}
+.panel-ia-instructions-header span {
+  font-size: 1.08rem;
+  font-weight: 600;
+  color: #23283a;
+}
+.panel-ia-prompt-dropdown {
+  position: relative;
+}
+.panel-ia-prompt-btn {
+  background: #f7fafd;
+  color: #2563eb;
+  border: 1px solid #e0e7ef;
+  border-radius: 8px;
+  padding: 0.45rem 1.1rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.panel-ia-prompt-btn:hover {
+  background: #eaf1ff;
+}
+.panel-ia-prompt-menu {
+  position: absolute;
+  top: 110%;
+  left: 0;
+  background: #fff;
+  border: 1px solid #e0e7ef;
+  border-radius: 10px;
+  box-shadow: 0 4px 24px #2563eb22;
+  min-width: 220px;
+  z-index: 10;
+  padding: 0.5rem 0;
+}
+.panel-ia-prompt-menu-title {
+  font-size: 0.98rem;
+  font-weight: 700;
+  color: #2563eb;
+  padding: 0.4rem 1.2rem 0.2rem 1.2rem;
+}
+.panel-ia-prompt-menu-item {
+  padding: 0.5rem 1.2rem;
+  cursor: pointer;
+  color: #23283a;
+  font-size: 1rem;
+  transition: background 0.18s;
+}
+.panel-ia-prompt-menu-item:hover {
+  background: #f3f7ff;
+  color: #2563eb;
+}
+.panel-ia-reset-btn {
+  background: #f7fafd;
+  color: #e53e3e;
+  border: 1px solid #e0e7ef;
+  border-radius: 8px;
+  padding: 0.45rem 1.1rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.panel-ia-reset-btn:hover {
+  background: #ffeaea;
+}
+.panel-ia-instructions-textarea {
+  width: 100%;
+  min-height: 120px;
+  border-radius: 10px;
+  border: 1px solid #e0e7ef;
+  padding: 1rem;
+  font-size: 1.05rem;
+  color: #23283a;
+  background: #f7fafd;
+  margin-bottom: 0.7rem;
+  resize: vertical;
+  font-family: inherit;
+}
+.panel-ia-instructions-desc {
+  font-size: 0.98rem;
+  color: #6b7280;
+  margin-top: 0.2rem;
+}
+
+/* Temperatura */
+.panel-ia-temp-section {
+  margin-bottom: 2.2rem;
+}
+.panel-ia-temp-section > span {
+  font-size: 1.08rem;
+  font-weight: 600;
+  color: #23283a;
+}
+.panel-ia-temp-slider-row {
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+  margin: 0.7rem 0 0.2rem 0;
+}
+.panel-ia-temp-label {
+  font-size: 0.98rem;
+  color: #6b7280;
+}
+.panel-ia-temp-slider {
+  flex: 1;
+  accent-color: #2563eb;
+  height: 4px;
+}
+.panel-ia-temp-value {
+  font-size: 0.98rem;
+  color: #2563eb;
+  font-weight: 600;
+  margin-left: 0.2rem;
+}
+
+/* Entrenamiento */
+.panel-ia-training-section {
+  background: #f7fafd;
+  border-radius: 12px;
+  padding: 1.2rem 1.5rem;
+  margin-top: 2.2rem;
+  text-align: left;
+}
+.panel-ia-training-title {
+  font-size: 1.08rem;
+  font-weight: 600;
+  color: #23283a;
+}
+.panel-ia-training-date {
+  font-size: 1rem;
+  color: #23283a;
+  margin-top: 0.5rem;
+} 

@@ -1,0 +1,81 @@
+.ia-personalizacion-placeholder {
+  background: #23283a;
+  border-radius: 18px;
+  box-shadow: 0 2px 12px #00eaff22;
+  padding: 2.5rem 2rem;
+  margin: 2rem auto;
+  max-width: 480px;
+  text-align: center;
+  color: #eaf6ff;
+}
+.ia-personalizacion-placeholder h2 {
+  color: #00eaff;
+  margin-bottom: 1rem;
+}
+
+.ia-personalizacion-galeria {
+  max-width: 900px;
+  margin: 2.5rem auto;
+  padding: 2rem 1rem;
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 2px 24px #0001;
+  text-align: center;
+}
+.ia-personalizacion-galeria h2 {
+  color: #2563eb;
+  font-size: 2rem;
+  margin-bottom: 2rem;
+}
+.ia-personalizacion-lista {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2.5rem;
+  justify-content: center;
+}
+.ia-personalizacion-card {
+  background: #f7fafd;
+  border-radius: 16px;
+  box-shadow: 0 1px 8px #2563eb11;
+  padding: 2rem 1.5rem 1.5rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 220px;
+  transition: box-shadow 0.2s, transform 0.2s;
+}
+.ia-personalizacion-card:hover {
+  box-shadow: 0 4px 24px #2563eb33;
+  transform: translateY(-4px) scale(1.03);
+}
+.ia-personalizacion-avatar {
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  border: 3px solid #2563eb;
+  background: #fff;
+  margin-bottom: 1.2rem;
+}
+.ia-personalizacion-nombre {
+  font-size: 1.13rem;
+  font-weight: 600;
+  color: #23283a;
+  margin-bottom: 1.1rem;
+}
+.ia-personalizacion-btn {
+  background: #2563eb;
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: 0.7rem 1.5rem;
+  font-size: 1.05rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+  box-shadow: 0 1px 4px #0001;
+  letter-spacing: 0.01em;
+}
+.ia-personalizacion-btn:hover {
+  background: #1746a2;
+  color: #fff;
+} 

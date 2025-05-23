@@ -1,0 +1,152 @@
+/* Panel principal */
+.webhooks-panel-main {
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 2px 24px #0001;
+  padding: 2.5rem 2rem 2rem 2rem;
+  max-width: 700px;
+  margin: 2.5rem auto;
+  font-family: 'Inter', 'Orbitron', Arial, sans-serif;
+}
+
+.webhooks-panel-main h2 {
+  color: #23283a;
+  font-size: 2rem;
+  margin-bottom: 1.7rem;
+  font-weight: 700;
+}
+
+.webhooks-panel-list {
+  margin-bottom: 2.2rem;
+}
+.webhooks-panel-list h3 {
+  font-size: 1.15rem;
+  color: #2563eb;
+  margin-bottom: 1rem;
+}
+.webhooks-panel-empty {
+  color: #6b7280;
+  font-size: 1rem;
+  margin-bottom: 1.2rem;
+}
+.webhooks-panel-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  background: #f7fafd;
+  border-radius: 10px;
+  padding: 1rem 1.2rem;
+  margin-bottom: 1rem;
+  box-shadow: 0 1px 4px #0001;
+  font-size: 1rem;
+}
+.webhooks-panel-actions-row {
+  display: flex;
+  gap: 0.7rem;
+  align-items: center;
+}
+.webhooks-panel-actions-row button {
+  background: #2563eb;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 0.4rem 1.1rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.webhooks-panel-actions-row .webhooks-panel-del {
+  background: #e53e3e;
+}
+.webhooks-panel-actions-row button:hover {
+  background: #1746a2;
+}
+.webhooks-panel-actions-row .webhooks-panel-del:hover {
+  background: #b91c1c;
+}
+
+.webhooks-panel-form {
+  background: #f7fafd;
+  border-radius: 12px;
+  padding: 1.5rem 1.2rem;
+  margin-top: 2.2rem;
+  box-shadow: 0 1px 4px #0001;
+}
+.webhooks-panel-form h3 {
+  color: #23283a;
+  font-size: 1.13rem;
+  margin-bottom: 1.2rem;
+}
+.webhooks-panel-form label {
+  font-weight: 600;
+  color: #23283a;
+  font-size: 1.05rem;
+  margin-bottom: 0.2rem;
+}
+.webhooks-panel-form input[type="text"],
+.webhooks-panel-form select {
+  border-radius: 8px;
+  border: 1px solid #e0e7ef;
+  padding: 0.7rem 1rem;
+  font-size: 1rem;
+  background: #fff;
+  color: #23283a;
+  font-family: inherit;
+  margin-bottom: 1rem;
+  width: 100%;
+}
+.webhooks-panel-switch-row {
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+  margin-bottom: 1.2rem;
+}
+.webhooks-panel-switch-row input[type="checkbox"] {
+  width: 22px;
+  height: 22px;
+  accent-color: #7b61ff;
+  margin-left: 0.5rem;
+}
+.webhooks-panel-form-actions {
+  display: flex;
+  gap: 1.2rem;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+.webhooks-panel-save {
+  background: #2563eb;
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: 0.7rem 1.7rem;
+  font-size: 1.05rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 1px 4px #0001;
+  letter-spacing: 0.01em;
+  transition: background 0.2s;
+}
+.webhooks-panel-save:hover {
+  background: #1746a2;
+}
+.webhooks-panel-cancel {
+  background: #f7fafd;
+  color: #e53e3e;
+  border: 1px solid #e0e7ef;
+  border-radius: 8px;
+  padding: 0.45rem 1.1rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.webhooks-panel-cancel:hover {
+  background: #ffeaea;
+}
+.webhooks-panel-msg {
+  color: #2563eb;
+  font-size: 1rem;
+  margin-top: 0.7rem;
+  font-weight: 600;
+} 

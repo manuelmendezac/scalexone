@@ -1,0 +1,31 @@
+.ia-tabs-menu {
+  display: flex;
+  gap: 1.5rem;
+  padding: 0.75rem 2rem;
+  background: #181c24;
+  border-bottom: 1px solid #23283a;
+}
+
+.ia-tab-btn {
+  background: none;
+  border: none;
+  color: #b0c4d8;
+  font-size: 1.1rem;
+  font-weight: 500;
+  padding: 0.5rem 1.2rem;
+  border-radius: 8px 8px 0 0;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+
+.ia-tab-btn.active {
+  background: #23283a;
+  color: #00eaff;
+  font-weight: 700;
+  box-shadow: 0 2px 8px rgba(0,234,255,0.08);
+}
+
+.ia-tab-btn:hover:not(.active) {
+  background: #23283a44;
+  color: #eaf6ff;
+} 

@@ -1,0 +1,96 @@
+.ia-estado-clon-panel {
+  background: #f7fafd;
+  border-radius: 18px;
+  box-shadow: 0 2px 12px #0001;
+  padding: 1.5rem 2rem;
+  margin-top: 1.5rem;
+  color: #111;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1.2rem;
+  position: relative;
+}
+.ia-estado-stats {
+  display: flex;
+  gap: 2.5rem;
+  font-size: 1.18rem;
+  font-weight: 600;
+  color: #111;
+}
+.ia-estado-xp, .ia-estado-monedas {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.ia-estado-acciones {
+  display: flex;
+  gap: 1.2rem;
+  width: 100%;
+}
+.ia-accion-btn {
+  flex: 1;
+  background: #fff;
+  color: #111;
+  border: 1.5px solid #e0e7ef;
+  border-radius: 12px;
+  padding: 1rem 0.5rem;
+  font-size: 1.13rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s, border 0.2s;
+  box-shadow: 0 1px 4px #0001;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.7rem;
+}
+.ia-accion-btn:hover {
+  background: #e0f2fe;
+  color: #2563eb;
+  border-color: #2563eb;
+}
+.ia-accion-btn.activar {
+  background: #2563eb;
+  color: #fff;
+  border-color: #2563eb;
+}
+.ia-accion-btn.activar:hover {
+  background: #1746a2;
+  color: #fff;
+  border-color: #1746a2;
+}
+@media (max-width: 600px) {
+  .ia-estado-clon-panel {
+    padding: 1rem 0.5rem;
+  }
+  .ia-estado-acciones {
+    flex-direction: column;
+    gap: 0.7rem;
+  }
+}
+.energia-anim {
+  animation: energiaPulse 0.7s;
+}
+@keyframes energiaPulse {
+  0% { box-shadow: 0 0 0 0 #00eaff44; }
+  70% { box-shadow: 0 0 16px 8px #00eaff44; }
+  100% { box-shadow: 0 0 0 0 #00eaff00; }
+}
+.ia-toast-clon {
+  position: absolute;
+  top: -2.2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #2563eb;
+  color: #fff;
+  padding: 0.7rem 1.5rem;
+  border-radius: 12px;
+  font-size: 1.08rem;
+  font-weight: 600;
+  box-shadow: 0 2px 12px #0002;
+  z-index: 10;
+  opacity: 0.95;
+  pointer-events: none;
+  transition: opacity 0.2s;
+} 

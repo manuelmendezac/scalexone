@@ -1,0 +1,299 @@
+.ia-actividad-placeholder {
+  background: #23283a;
+  border-radius: 18px;
+  box-shadow: 0 2px 12px #00eaff22;
+  padding: 2.5rem 2rem;
+  margin: 2rem auto;
+  max-width: 480px;
+  text-align: center;
+  color: #eaf6ff;
+}
+.ia-actividad-placeholder h2 {
+  color: #00eaff;
+  margin-bottom: 1rem;
+}
+.actividad-root {
+  display: flex;
+  width: 100%;
+  min-height: 70vh;
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 2px 16px 0 rgba(0,0,0,0.07);
+  margin: 32px auto;
+  max-width: 1200px;
+}
+.actividad-sidebar {
+  min-width: 220px;
+  background: #f7f7fa;
+  border-radius: 18px 0 0 18px;
+  padding: 2.5rem 1.5rem 1.5rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2.5rem;
+  border-right: 1.5px solid #e0e0e0;
+}
+.actividad-sidebar h2 {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #23272f;
+  margin-bottom: 1.5rem;
+}
+.actividad-tab {
+  background: none;
+  border: none;
+  color: #6366f1;
+  font-size: 1.1rem;
+  font-weight: 500;
+  padding: 0.7rem 1.2rem;
+  border-radius: 8px;
+  margin-bottom: 0.5rem;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+  width: 100%;
+  text-align: left;
+}
+.actividad-tab.active {
+  background: #6366f1;
+  color: #fff;
+}
+.actividad-main {
+  flex: 1;
+  padding: 2.5rem 2.5rem 2rem 2.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+.actividad-panel {
+  background: #f7f7fa;
+  border-radius: 14px;
+  box-shadow: 0 1px 8px #6366f111;
+  padding: 2rem 2rem 1.5rem 2rem;
+  min-height: 400px;
+  display: flex;
+  flex-direction: column;
+}
+.actividad-panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+.actividad-panel-header h3 {
+  font-size: 1.3rem;
+  color: #23272f;
+  font-weight: 700;
+}
+.actividad-panel-actions {
+  display: flex;
+  gap: 1rem;
+}
+.actividad-panel-actions button {
+  background: #6366f1;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 0.6rem 1.3rem;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.actividad-panel-actions button:hover {
+  background: #4f46e5;
+}
+.actividad-chat-logs {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+.actividad-chat-log {
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 1px 4px #6366f111;
+  padding: 1.2rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+.actividad-chat-log-pregunta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 1.08rem;
+  font-weight: 600;
+  color: #23272f;
+}
+.actividad-chat-log-fecha {
+  color: #6b7280;
+  font-size: 0.98rem;
+  font-weight: 400;
+}
+.actividad-chat-log-respuesta {
+  display: flex;
+  align-items: flex-start;
+  gap: 1.2rem;
+}
+.actividad-chat-log-avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #6366f1;
+}
+.actividad-chat-log-score {
+  background: #f3f4f6;
+  color: #6366f1;
+  font-size: 0.98rem;
+  font-weight: 600;
+  border-radius: 8px;
+  padding: 0.2rem 0.7rem;
+  display: inline-block;
+  margin-bottom: 0.3rem;
+}
+.actividad-chat-log-fuente {
+  color: #6b7280;
+  font-size: 0.95rem;
+  margin-top: 0.3rem;
+}
+.actividad-leads-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 1px 4px #6366f111;
+}
+.actividad-leads-table th, .actividad-leads-table td {
+  padding: 1rem 1.2rem;
+  text-align: left;
+}
+.actividad-leads-table th {
+  background: #f3f4f6;
+  color: #6366f1;
+  font-weight: 700;
+  font-size: 1.05rem;
+}
+.actividad-leads-table td {
+  color: #23272f;
+  font-size: 1.05rem;
+  border-bottom: 1px solid #f3f4f6;
+}
+.actividad-leads-table tr:last-child td {
+  border-bottom: none;
+}
+@media (max-width: 900px) {
+  .actividad-root {
+    flex-direction: column;
+    max-width: 100vw;
+    border-radius: 0;
+    box-shadow: none;
+  }
+  .actividad-sidebar, .actividad-main {
+    border-radius: 0;
+    padding: 1.2rem 0.7rem;
+  }
+  .actividad-panel {
+    padding: 1.2rem 0.7rem;
+  }
+}
+.actividad-mejorar-btn {
+  margin-top: 0.7rem;
+  background: #6366f1;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 0.5rem 1.2rem;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.actividad-mejorar-btn:hover {
+  background: #4f46e5;
+}
+.actividad-modal-bg {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.35);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.actividad-modal {
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 4px 32px #6366f133;
+  padding: 2.2rem 2.2rem 1.5rem 2.2rem;
+  min-width: 350px;
+  max-width: 95vw;
+  width: 420px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+}
+.actividad-modal-close {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  background: #6366f1;
+  color: #fff;
+  border: none;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  font-size: 1.2rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+}
+.actividad-modal-close:hover {
+  background: #4f46e5;
+}
+.actividad-modal-section label {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #23272f;
+  margin-bottom: 0.3rem;
+  display: block;
+}
+.actividad-modal-section textarea {
+  width: 100%;
+  min-height: 60px;
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+  padding: 0.7rem 1rem;
+  font-size: 1rem;
+  color: #23272f;
+  background: #f7f7fa;
+  resize: vertical;
+  margin-top: 0.2rem;
+}
+.actividad-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 0.5rem;
+}
+.actividad-modal-actions button {
+  background: #e5e7eb;
+  color: #23272f;
+  border: none;
+  border-radius: 8px;
+  padding: 0.6rem 1.3rem;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.actividad-modal-actions button.guardar {
+  background: #6366f1;
+  color: #fff;
+}
+.actividad-modal-actions button.guardar:hover {
+  background: #4f46e5;
+} 
