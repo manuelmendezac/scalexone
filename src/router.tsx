@@ -35,7 +35,11 @@ export const router = createBrowserRouter([
     children: [
       {
         index: true,
-        element: <Navigate to="/inicio" replace />
+        element: <Login />
+      },
+      {
+        path: 'registro',
+        element: <Register />
       },
       {
         path: 'inicio',
@@ -138,14 +142,6 @@ export const router = createBrowserRouter([
       {
         path: 'configuracion',
         element: <ConfiguracionProyecto />,
-      },
-      {
-        path: 'login',
-        element: <Login />
-      },
-      {
-        path: 'register',
-        element: <Register />
       },
     ]
   },
