@@ -1,7 +1,7 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 import DashboardLayout from '../components/DashboardLayout';
 import AIConsole from '../components/AIConsole';
-import FocusMode from '../components/pages/FocusMode';
+import FocusMode from '../components/dashboard/FocusMode';
 import HabitIntelligence from '../components/pages/HabitIntelligence';
 import ProgressTracker from '../components/pages/ProgressTracker';
 import SettingsPanel from '../components/pages/SettingsPanel';

@@ -16,7 +16,7 @@ import {
 import EmotionTuner from '../components/emotions/EmotionTuner';
 import MindSyncLab from '../components/labs/MindSyncLab';
 import ProjectTimeline from '../components/dashboard/ProjectTimeline';
-import FocusMode from '../components/focus/FocusMode';
+import FocusMode from '../components/dashboard/FocusMode';
 import NeuroLinkMentor from '../components/mentor/NeuroLinkMentor';
 
 interface Widget {

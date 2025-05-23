@@ -16,7 +16,6 @@ import {
   Zap,
   RefreshCcw
 } from 'lucide-react';
-import { useUserStore } from '../../stores/userStore';
 
 interface PaymentMethod {
   id: string;
@@ -36,7 +35,7 @@ interface Transaction {
 }
 
 const SubscriptionPanel: React.FC = () => {
-  const { user } = useUserStore();
+  // const { user } = useUserStore();
   const [expandedSections, setExpandedSections] = useState<{
     paymentHistory: boolean;
     paymentMethods: boolean;
