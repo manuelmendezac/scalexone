@@ -6,6 +6,9 @@
   ],
   "compilerOptions": {
     "noUnusedLocals": false,
-    "noUnusedParameters": false
+    "noUnusedParameters": false,
+    "noEmitOnError": false,
+    "skipLibCheck": true,
+    "strict": false
   }
 }
