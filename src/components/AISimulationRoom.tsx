@@ -1,13 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import useNeuroState from '../store/useNeuroState';
-
-interface Message {
-  id: string;
-  text: string;
-  from: 'user' | 'ai' | 'assistant';
-  timestamp: Date;
-}
+import type { Message } from '../store/useNeuroState';
 
 const AISimulationRoom = () => {
   const { userName } = useNeuroState();
@@ -159,19 +153,6 @@ const AISimulationRoom = () => {
           </button>
         </div>
       </div>
-
-      <style jsx>{`
-        .typing-animation::after {
-          content: '...';
-          animation: typing 1.5s infinite;
-        }
-
-        @keyframes typing {
-          0% { content: '.'; }
-          33% { content: '..'; }
-          66% { content: '...'; }
-        }
-      `}</style>
     </div>
   );
 };
