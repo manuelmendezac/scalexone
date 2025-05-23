@@ -1,6 +1,7 @@
 /// <reference lib="webworker" />
 
 declare var self: ServiceWorkerGlobalScope;
+export {};
 
 const CACHE_NAME = 'neurolink-cache-v1';
 const ASSETS_TO_CACHE = [
@@ -62,18 +63,5 @@ self.addEventListener('push', (event: PushEvent) => {
 // Manejo de clics en notificaciones
 self.addEventListener('notificationclick', (event: NotificationEvent) => {
   event.notification.close();
-  const url = event.notification.data || '/';
-  event.waitUntil(
-    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
-      for (const client of clientList) {
-        if ('focus' in client) {
-          // @ts-ignore
-          if ((client as WindowClient).url === url && 'focus' in client) return (client as WindowClient).focus();
-        }
-      }
-      if (self.clients.openWindow) {
-        return self.clients.openWindow(url);
-      }
-    })
-  );
+  event.waitUntil(self.clients.openWindow('/'));
 }); 
