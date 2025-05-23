@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useTheme } from '../context/themeContext';
 import useNeuroState from '../store/useNeuroState';
+import type { Message } from '../store/useNeuroState';
 
 interface ModeEffects {
   isInputEnabled: boolean;
@@ -42,7 +43,8 @@ export function useModeEffects(): ModeEffects {
           {
             id: Date.now().toString(),
             type: 'ai',
-            content: '🎯 Tareas Sugeridas para Máxima Productividad:\n\n1. Prioriza tus objetivos del día\n2. Toma descansos programados\n3. Mantén un registro de tu progreso',
+            text: '🎯 Tareas Sugeridas para Máxima Productividad:\n\n1. Prioriza tus objetivos del día\n2. Toma descansos programados\n3. Mantén un registro de tu progreso',
+            from: 'ai',
             timestamp: new Date()
           }
         ]);
@@ -62,7 +64,8 @@ export function useModeEffects(): ModeEffects {
           {
             id: Date.now().toString(),
             type: 'ai',
-            content: '🌙 Modo Descanso Activado\n\nLa IA está en modo de baja actividad para permitir tu descanso. Puedes volver a activar el modo normal cuando lo desees.',
+            text: '🌙 Modo Descanso Activado\n\nLa IA está en modo de baja actividad para permitir tu descanso. Puedes volver a activar el modo normal cuando lo desees.',
+            from: 'ai',
             timestamp: new Date()
           }
         ]);
