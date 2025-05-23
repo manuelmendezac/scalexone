@@ -5,8 +5,8 @@ import { supabase } from '../supabase';
 
 interface Message {
   id: string;
-  type: 'user' | 'ai';
-  content: string;
+  text: string;
+  from: 'user' | 'ai' | 'assistant';
   timestamp: Date;
 }
 
@@ -381,8 +381,8 @@ const useNeuroState = create<NeuroState>()(
         set((state) => ({
           messages: [{
             id: 'ai',
-            type: 'ai',
-            content: 'Conversación reiniciada. ¿En qué puedo ayudarte?',
+            text: 'Conversación reiniciada. ¿En qué puedo ayudarte?',
+            from: 'assistant',
             timestamp: new Date()
           }]
         }));
