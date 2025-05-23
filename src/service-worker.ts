@@ -57,7 +57,6 @@ self.addEventListener('push', (event: PushEvent) => {
 // Manejo de clics en notificaciones
 self.addEventListener('notificationclick', (event: NotificationEvent) => {
   event.notification.close();
-  // Redirige a la URL almacenada en la notificación, o a la raíz si no existe
   const url = (event.notification.data as string) || '/';
   event.waitUntil(
     self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
