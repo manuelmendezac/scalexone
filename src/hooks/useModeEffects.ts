@@ -42,7 +42,6 @@ export function useModeEffects(): ModeEffects {
           ...prev,
           {
             id: Date.now().toString(),
-            type: 'ai',
             text: '🎯 Tareas Sugeridas para Máxima Productividad:\n\n1. Prioriza tus objetivos del día\n2. Toma descansos programados\n3. Mantén un registro de tu progreso',
             from: 'ai',
             timestamp: new Date()
@@ -63,7 +62,6 @@ export function useModeEffects(): ModeEffects {
           ...prev,
           {
             id: Date.now().toString(),
-            type: 'ai',
             text: '🌙 Modo Descanso Activado\n\nLa IA está en modo de baja actividad para permitir tu descanso. Puedes volver a activar el modo normal cuando lo desees.',
             from: 'ai',
             timestamp: new Date()
