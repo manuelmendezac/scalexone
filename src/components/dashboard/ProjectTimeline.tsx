@@ -66,7 +66,7 @@ const ProjectTimeline = () => {
 
   const sugerirFases = () => {
     const objetivo = objetivoGeneral.toLowerCase();
-    let fasesSugeridas = [];
+    let fasesSugeridas: { nombre: string; duracion: number }[] = [];
 
     if (objetivo.includes('curso')) {
       fasesSugeridas = FASES_SUGERIDAS.lanzar_curso;
@@ -80,7 +80,7 @@ const ProjectTimeline = () => {
       const hoy = new Date();
       let fechaActual = new Date(hoy);
 
-      const nuevasFases = fasesSugeridas.map((fase, index) => {
+      const nuevasFases: Fase[] = fasesSugeridas.map((fase, index) => {
         const fechaInicio = new Date(fechaActual);
         fechaActual.setDate(fechaActual.getDate() + fase.duracion);
         const fechaFin = new Date(fechaActual);
@@ -251,13 +251,10 @@ const ProjectTimeline = () => {
                           index={tareaIndex}
                         >
                           {(provided) => (
-                            <motion.div
+                            <div
                               ref={provided.innerRef}
                               {...provided.draggableProps}
                               {...provided.dragHandleProps}
-                              initial={{ opacity: 0, scale: 0.9 }}
-                              animate={{ opacity: 1, scale: 1 }}
-                              exit={{ opacity: 0, scale: 0.9 }}
                               className="p-3 rounded-lg bg-neurolink-background/30 border border-neurolink-matrixGreen/20"
                             >
                               <div className="flex items-start justify-between gap-2">
@@ -285,7 +282,7 @@ const ProjectTimeline = () => {
                                   <X size={16} />
                                 </button>
                               </div>
-                            </motion.div>
+                            </div>
                           )}
                         </Draggable>
                       ))}
