@@ -28,7 +28,7 @@ import OnboardingModal from './components/OnboardingModal'
 import WelcomeHero from './components/WelcomeHero'
 import SmartOnboardingTour from './components/SmartOnboardingTour'
 import OnboardingAssistant from './components/OnboardingAssistant'
-import { Outlet, useNavigate } from 'react-router-dom';
+import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import Topbar from './components/Topbar';
 import SecondNavbar from './components/SecondNavbar';
 import { BibliotecaProvider } from './context/BibliotecaContext';
@@ -55,6 +55,8 @@ function App() {
   const [darkMode, setDarkMode] = useState(false);
   // Simulación de login (ajusta según tu lógica real)
   const isLoggedIn = userName !== 'Invitado';
+  const location = useLocation();
+  const hideMenu = location.pathname === '/login' || location.pathname === '/registro';
 
   const handleThemeToggle = () => setDarkMode((prev) => !prev);
 
@@ -82,15 +84,19 @@ function App() {
   return (
     <BibliotecaProvider>
       <div className="min-h-screen w-full" style={{background: 'transparent'}}>
-        <Topbar
-          userAvatar={avatarUrl}
-          notificationsCount={notifications.length}
-          onThemeToggle={handleThemeToggle}
-          darkMode={darkMode}
-          isLoggedIn={isLoggedIn}
-        />
-        <SecondNavbar />
-        <main className="pt-20 w-full flex flex-col items-center gap-12" style={{background: 'transparent'}}>
+        {!hideMenu && (
+          <>
+            <Topbar
+              userAvatar={avatarUrl}
+              notificationsCount={notifications.length}
+              onThemeToggle={handleThemeToggle}
+              darkMode={darkMode}
+              isLoggedIn={isLoggedIn}
+            />
+            <SecondNavbar />
+          </>
+        )}
+        <main className={!hideMenu ? "pt-20 w-full flex flex-col items-center gap-12" : "w-full min-h-screen flex items-center justify-center"} style={{background: 'transparent'}}>
           <Outlet />
         </main>
       </div>
