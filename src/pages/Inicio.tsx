@@ -71,8 +71,8 @@ const Inicio: React.FC = () => {
 
 export default Inicio; 
 
-export function VoiceVisualizer({ audioUrl }) {
-  const wavesurferRef = useRef(null);
+export function VoiceVisualizer({ audioUrl }: { audioUrl: string }) {
+  const wavesurferRef = useRef<WaveSurfer | null>(null);
 
   useEffect(() => {
     if (wavesurferRef.current && audioUrl) {

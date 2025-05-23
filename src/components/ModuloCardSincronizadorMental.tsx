@@ -11,6 +11,7 @@ interface Props {
   imagen?: string;
   onOrganizarMente: () => void;
   ideaCentral: string;
+  avatarUrl?: string;
 }
 
 const estados = {
@@ -345,6 +346,7 @@ export default function ModuloCardSincronizadorMental({
   imagen,
   onOrganizarMente,
   ideaCentral,
+  avatarUrl,
 }: Props) {
   // Estado para modales
   const [modal, setModal] = useState<null | 'tareas' | 'agrupar'>(null);
@@ -520,7 +522,7 @@ export default function ModuloCardSincronizadorMental({
           </div>
         </div>
         {/* Modal de tareas IA */}
-        <ModalFuturista open={modal === 'tareas'} onClose={() => setModal(null)} avatarUrl={imagen} progreso={progreso}>
+        <ModalFuturista open={modal === 'tareas'} onClose={() => setModal(null)} avatarUrl={avatarUrl} progreso={progreso}>
           <div className="flex flex-col items-center gap-4">
             <span className="text-2xl text-[#aef1ff] font-bold mb-2">Sincronizar tareas IA</span>
             <span className="text-[#b6eaff] text-center mb-2">Aquí irá la lógica de input de tareas y respuesta IA futurista.</span>
@@ -539,7 +541,7 @@ export default function ModuloCardSincronizadorMental({
           />
         )}
         {/* Modal de agrupar pensamientos como modal ancho y bajo */}
-        <ModalFuturista open={modal === 'agrupar'} onClose={() => setModal(null)} avatarUrl={imagen} progreso={progreso}>
+        <ModalFuturista open={modal === 'agrupar'} onClose={() => setModal(null)} avatarUrl={avatarUrl} progreso={progreso}>
           <div className="w-full max-w-3xl mx-auto">
             <ModuloCardAgruparPensamientos />
           </div>

@@ -35,7 +35,6 @@ interface Transaction {
 }
 
 const SubscriptionPanel: React.FC = () => {
-  // const { user } = useUserStore();
   const [expandedSections, setExpandedSections] = useState<{
     paymentHistory: boolean;
     paymentMethods: boolean;
