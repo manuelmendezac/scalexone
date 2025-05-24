@@ -82,9 +82,23 @@ const Login = () => {
             boxShadow: '0 0 32px #0ff2',
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 32 }}>
-            <img src="/logo.png" alt="Logo" style={{ width: 48, height: 48, borderRadius: 12 }} />
-            <span style={{ color: '#0ff', fontWeight: 700, fontSize: 28, fontFamily: 'Orbitron, sans-serif', letterSpacing: 1 }}>Neuroclon.AI</span>
+          <div style={{ marginBottom: 32, width: '100%', display: 'flex', justifyContent: 'center' }}>
+            <video
+              src="/videos/introneuroclon.mp4"
+              autoPlay
+              muted
+              playsInline
+              style={{
+                width: '100%',
+                maxWidth: 220,
+                aspectRatio: '1/1',
+                borderRadius: 16,
+                boxShadow: '0 0 24px #0ff4',
+                background: '#000',
+                objectFit: 'cover',
+                display: 'block',
+              }}
+            />
           </div>
           <button onClick={handleGoogle} style={{ width: '100%', background: '#fff', color: '#222', border: 'none', borderRadius: 8, padding: 12, fontWeight: 700, fontSize: 16, marginBottom: 18, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, boxShadow: '0 2px 8px #0002', cursor: 'pointer' }}>
             <img src="/images/google.svg" alt="Google" style={{ width: 22, height: 22 }} /> Ingresar con Google
