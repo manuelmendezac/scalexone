@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import useNeuroState from '../store/useNeuroState';
 import { supabase } from '../supabase';
 
 const Perfil = () => {
-  const { userName, userInfo, avatarUrl } = useNeuroState();
+  const { userName, userInfo, avatarUrl, setAvatarUrl } = useNeuroState();
   const [showChangePass, setShowChangePass] = useState(false);
   const [showChangeEmail, setShowChangeEmail] = useState(false);
   const [newPass, setNewPass] = useState('');
@@ -46,6 +46,10 @@ const Perfil = () => {
     setShowChangeEmail(false);
     setNewEmail('');
   };
+
+  useEffect(() => {
+    setAvatarUrl('');
+  }, []);
 
   return (
     <div style={{ minHeight: '100vh', background: '#0a1a2f', width: '100vw', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
