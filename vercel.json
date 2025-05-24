@@ -3,5 +3,8 @@
     "env": {
       "TSC_COMPILE_ON_ERROR": "true"
     }
-  }
+  },
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/" }
+  ]
 } 
