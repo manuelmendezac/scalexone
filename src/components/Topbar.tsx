@@ -100,7 +100,7 @@ const Topbar: React.FC<TopbarProps> = ({
     <header className="w-full bg-gray-900 text-white font-orbitron px-2 sm:px-4 py-2 flex items-center justify-between shadow-lg z-50 border-b border-cyan-900">
       {/* Logo solo imagen */}
       <div className="flex items-center">
-        <img src="/logo.png" alt="NeuroLink Logo" className="h-9 w-9 object-contain" />
+        <img src="/images/logoneurohorizontal.svg" alt="NeuroLink Logo" className="h-10 w-auto object-contain" />
       </div>
 
       {/* Iconos a la derecha */}
