@@ -1,4 +1,5 @@
 import React, { useRef, useState } from 'react';
+import { supabase } from '../supabase';
 
 interface AvatarUploaderProps {
   onUpload: (url: string) => void;
@@ -26,19 +27,21 @@ const AvatarUploader: React.FC<AvatarUploaderProps> = ({ onUpload, label = 'Sube
     setPreview(URL.createObjectURL(file));
     setLoading(true);
 
-    const formData = new FormData();
-    formData.append('avatar', file);
-
     try {
-      const res = await fetch('/api/avatar-upload', {
-        method: 'POST',
-        body: formData,
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Error al subir la imagen');
-      onUpload(data.url); // Llama al callback con la URL
+      const fileExt = file.name.split('.').pop();
+      const fileName = `avatar_${Date.now()}.${fileExt}`;
+      const { data, error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(fileName, file, {
+          contentType: file.type,
+          upsert: true,
+        });
+      if (uploadError) throw new Error(uploadError.message);
+      const { data: publicUrlData } = supabase.storage.from('avatars').getPublicUrl(fileName);
+      if (!publicUrlData?.publicUrl) throw new Error('No se pudo obtener la URL pública');
+      onUpload(publicUrlData.publicUrl);
     } catch (err: any) {
-      setError(err.message);
+      setError(err.message || 'Error al subir la imagen');
     } finally {
       setLoading(false);
     }
