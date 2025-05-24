@@ -30,7 +30,7 @@ const OnboardingMentor: React.FC = () => {
   useEffect(() => {
     // Solo reproducir una vez por sesión
     if (sessionStorage.getItem('bienvenidaReproducida')) return;
-    const url = '/sounds/synthesis.wav';
+    const url = '/sounds/synthesis.mp3';
     setAudioUrl(url);
     if (audioInstance.current) {
       audioInstance.current.pause();
