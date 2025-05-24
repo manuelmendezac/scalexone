@@ -32,12 +32,8 @@ const OnboardingMentor: React.FC = () => {
     if (sessionStorage.getItem('bienvenidaReproducida')) return;
     const reproducirBienvenida = async () => {
       const nombre = userName || 'Invitado';
-      // Formatear la fecha en español
-      const fecha = new Date();
-      const opciones = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' } as const;
-      const fechaStr = fecha.toLocaleDateString('es-ES', opciones);
-      // Texto completo del onboarding
-      const texto = `Hola ${nombre}, soy tu clon IA.\nBienvenido a tu portal de inteligencia aumentada.\nHoy es un gran día para crear lo imposible 🚀.\n${fechaStr}.\n\nExplora tu Segundo Cerebro.\nPersonaliza tu clon en el Centro de Entrenamiento.\nActiva el modo Focus.\nConecta tu clon fuera de la plataforma.\nConsulta tu Dashboard.\n\n¿Estás listo para comenzar?`;
+      // Texto corto de prueba
+      const texto = `Hola ${nombre}, bienvenido a la plataforma.`;
       setLoadingAudio(true);
       try {
         const response = await fetch("https://neuro-audio-server.onrender.com/api/generarAudio", {
@@ -49,12 +45,10 @@ const OnboardingMentor: React.FC = () => {
         const blob = await response.blob();
         const url = URL.createObjectURL(blob);
         setAudioUrl(url);
-        // Detener cualquier audio anterior
         if (audioInstance.current) {
           audioInstance.current.pause();
           audioInstance.current.currentTime = 0;
         }
-        // Crear solo una instancia de audio y reproducirla
         const audio = new Audio(url);
         audioInstance.current = audio;
         audio.play();
@@ -69,7 +63,6 @@ const OnboardingMentor: React.FC = () => {
       setLoadingAudio(false);
     };
     reproducirBienvenida();
-    // Cleanup: detener audio si el componente se desmonta
     return () => {
       if (audioInstance.current) {
         audioInstance.current.pause();
@@ -77,7 +70,6 @@ const OnboardingMentor: React.FC = () => {
       }
       if (audioUrl) URL.revokeObjectURL(audioUrl);
     };
-    // eslint-disable-next-line
   }, [userName]);
 
   // Simular avance de pasos con delay
