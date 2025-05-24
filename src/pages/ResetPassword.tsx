@@ -10,7 +10,12 @@ const ResetPassword = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
-  const accessToken = searchParams.get('access_token');
+  // Lee el token de query o de hash
+  const accessToken =
+    searchParams.get('access_token') ||
+    (typeof window !== 'undefined' && window.location.hash.includes('access_token=')
+      ? window.location.hash.split('access_token=')[1].split('&')[0]
+      : null);
 
   const handleReset = async (e: React.FormEvent) => {
     e.preventDefault();
