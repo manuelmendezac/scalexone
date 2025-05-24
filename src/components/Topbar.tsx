@@ -252,23 +252,24 @@ const Topbar: React.FC<TopbarProps> = ({
           <AnimatePresence>
             {openMenu && isLoggedIn && (
               <motion.div
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                transition={{ duration: 0.2 }}
-                className="absolute right-0 mt-2 w-44 bg-gray-900 border border-cyan-400 rounded-lg shadow-lg z-50"
+                initial={{ opacity: 0, y: 0 }}
+                animate={{ opacity: 1, y: 8 }}
+                exit={{ opacity: 0, y: 0 }}
+                transition={{ duration: 0.18 }}
+                className="absolute right-0 top-12 w-40 bg-black border border-cyan-400 rounded-xl shadow-xl z-50"
+                style={{ minWidth: 160 }}
               >
                 <button
-                  className="w-full flex items-center gap-2 px-4 py-3 hover:bg-cyan-900 text-left text-white font-orbitron text-base transition"
+                  className="w-full flex items-center gap-2 px-4 py-2 hover:bg-cyan-900 text-left text-white font-orbitron text-base transition rounded-t-xl"
                   onClick={() => navigate('/perfil')}
                 >
                   <FiUser className="w-5 h-5" /> {t('Mi Perfil') || 'Mi Perfil'}
                 </button>
                 <button
-                  className="w-full flex items-center gap-2 px-4 py-3 hover:bg-red-700 text-left text-white font-orbitron text-base transition"
+                  className="w-full flex items-center gap-2 px-4 py-2 hover:bg-red-700 text-left text-white font-orbitron text-base transition rounded-b-xl"
                   onClick={() => {
                     localStorage.removeItem('token');
-                    window.location.reload();
+                    window.location.href = '/';
                   }}
                 >
                   <FiLogOut className="w-5 h-5" /> {t('Cerrar Sesión') || 'Cerrar Sesión'}
