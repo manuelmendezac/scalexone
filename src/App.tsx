@@ -76,9 +76,9 @@ function App() {
           name: session.user.user_metadata?.nombre || '',
           email: session.user.email || '',
         });
-        // Redirige al dashboard si no está ahí
-        if (!window.location.pathname.startsWith('/dashboard')) {
-          window.location.href = '/dashboard';
+        // Redirige a /home si no está ahí
+        if (!window.location.pathname.startsWith('/home')) {
+          window.location.href = '/home';
         }
       }
     });

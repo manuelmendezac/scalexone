@@ -256,18 +256,17 @@ const Topbar: React.FC<TopbarProps> = ({
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
                 transition={{ duration: 0.2 }}
-                className="absolute right-0 mt-2 w-40 bg-gray-800 border border-cyan-400 rounded-lg shadow-lg z-50"
+                className="absolute right-0 mt-2 w-44 bg-gray-900 border border-cyan-400 rounded-lg shadow-lg z-50"
               >
                 <button
-                  className="w-full flex items-center gap-2 px-4 py-2 hover:bg-gray-700 text-left"
+                  className="w-full flex items-center gap-2 px-4 py-3 hover:bg-cyan-900 text-left text-white font-orbitron text-base transition"
                   onClick={() => navigate('/perfil')}
                 >
                   <FiUser className="w-5 h-5" /> {t('Mi Perfil') || 'Mi Perfil'}
                 </button>
                 <button
-                  className="w-full flex items-center gap-2 px-4 py-2 hover:bg-gray-700 text-left"
+                  className="w-full flex items-center gap-2 px-4 py-3 hover:bg-red-700 text-left text-white font-orbitron text-base transition"
                   onClick={() => {
-                    // Aquí deberías limpiar el estado de sesión/token
                     localStorage.removeItem('token');
                     window.location.reload();
                   }}
