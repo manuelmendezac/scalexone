@@ -27,6 +27,7 @@
   display: flex;
   gap: 0.5rem;
   margin: 2.5rem 0 1.5rem 0;
+  align-items: center;
 }
 .ia-playground-tabs button {
   background: var(--color-card);
@@ -45,6 +46,42 @@
   color: var(--color-accent);
   border-bottom: 2.5px solid var(--color-accent);
   z-index: 2;
+}
+
+.ia-exportar-historial {
+  margin-left: auto;
+  background: #f7fafd;
+  color: #2563eb;
+  border: 1px solid #e0e7ef;
+  border-radius: 8px;
+  padding: 0.4rem 1.1rem;
+  font-size: 0.98rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-right: 0.5rem;
+}
+
+.ia-exportar-historial:hover {
+  background: #eaf1ff;
+  border-color: #2563eb;
+}
+
+.ia-limpiar-historial {
+  background: #f7fafd;
+  color: #e53e3e;
+  border: 1px solid #e0e7ef;
+  border-radius: 8px;
+  padding: 0.4rem 1.1rem;
+  font-size: 0.98rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.ia-limpiar-historial:hover {
+  background: #ffeaea;
+  border-color: #e53e3e;
 }
 
 .ia-playground-tabs-content {
@@ -133,11 +170,63 @@
   word-break: break-word;
   line-height: 1.5;
 }
+
+.ia-msg-text {
+  margin-bottom: 0.3rem;
+}
+
+.ia-msg-procesando {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.3rem;
+}
+
+.ia-msg-dots {
+  display: flex;
+  gap: 0.3rem;
+}
+
+.ia-msg-dots span {
+  width: 6px;
+  height: 6px;
+  background: currentColor;
+  border-radius: 50%;
+  animation: dots 1.4s infinite ease-in-out both;
+}
+
+.ia-msg-dots span:nth-child(1) { animation-delay: -0.32s; }
+.ia-msg-dots span:nth-child(2) { animation-delay: -0.16s; }
+
+@keyframes dots {
+  0%, 80%, 100% { transform: scale(0); }
+  40% { transform: scale(1); }
+}
+
+.ia-msg-error {
+  color: #e53e3e;
+  margin-top: 0.3rem;
+  font-size: 1.1rem;
+}
+
+.ia-msg-timestamp {
+  font-size: 0.8rem;
+  color: var(--color-secondary);
+  opacity: 0.7;
+  margin-top: 0.3rem;
+  text-align: right;
+}
+
+.ia-msg-pro-clon .ia-msg-timestamp {
+  text-align: left;
+}
+
 .ia-msg-pro-clon {
   background: var(--color-agent);
   color: var(--color-agent-text);
   align-self: flex-start;
 }
+
 .ia-msg-pro-user {
   background: var(--color-user);
   color: var(--color-user-text);
