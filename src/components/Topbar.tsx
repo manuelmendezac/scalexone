@@ -5,6 +5,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import useNeuroState from '../store/useNeuroState';
+import { supabase } from '../supabase';
 
 interface TopbarProps {
   userAvatar?: string;
@@ -260,14 +261,15 @@ const Topbar: React.FC<TopbarProps> = ({
                 style={{ minWidth: 160 }}
               >
                 <button
-                  className="w-full flex items-center gap-2 px-4 py-2 hover:bg-cyan-900 text-left text-white font-orbitron text-base transition rounded-t-xl"
+                  className="w-full flex items-center gap-2 px-4 py-2 hover:bg-cyan-900 text-left text-white font-orbitron text-base transition rounded-t-xl bg-black"
                   onClick={() => navigate('/perfil')}
                 >
                   <FiUser className="w-5 h-5" /> {t('Mi Perfil') || 'Mi Perfil'}
                 </button>
                 <button
-                  className="w-full flex items-center gap-2 px-4 py-2 hover:bg-red-700 text-left text-white font-orbitron text-base transition rounded-b-xl"
-                  onClick={() => {
+                  className="w-full flex items-center gap-2 px-4 py-2 hover:bg-red-700 text-left text-white font-orbitron text-base transition rounded-b-xl bg-black"
+                  onClick={async () => {
+                    await supabase.auth.signOut();
                     localStorage.removeItem('token');
                     window.location.href = '/';
                   }}
