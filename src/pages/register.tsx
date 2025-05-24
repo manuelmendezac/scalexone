@@ -25,16 +25,13 @@ const Register = () => {
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
-      options: { data: { nombre } }
+      options: { data: { nombre }, emailRedirectTo: undefined }
     });
     setLoading(false);
     if (error) {
       setError(error.message);
     } else {
-      setSuccess('¡Registro exitoso! Redirigiendo...');
-      setTimeout(() => {
-        window.location.href = '/dashboard';
-      }, 1000);
+      window.location.href = '/dashboard';
     }
   };
 
