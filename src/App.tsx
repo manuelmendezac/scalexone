@@ -75,11 +75,12 @@ function App() {
           name: session.user.user_metadata?.nombre || '',
           email: session.user.email || '',
         });
-        // Refuerzo: no redirigir si está en /reset-password o si el hash contiene access_token
+        // Refuerzo: no redirigir si está en /reset-password o si el hash contiene access_token o type=recovery
         if (
           !window.location.pathname.startsWith('/home') &&
           window.location.pathname !== '/reset-password' &&
-          !window.location.hash.includes('access_token=')
+          !window.location.hash.includes('access_token=') &&
+          !window.location.hash.includes('type=recovery')
         ) {
           window.location.href = '/home';
         }
