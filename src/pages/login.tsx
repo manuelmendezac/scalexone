@@ -46,10 +46,41 @@ const Login = () => {
   };
 
   return (
-    <div style={{ minHeight: '100vh', width: '100vw', display: 'flex', flexDirection: 'row', background: '#0a1a2f' }}>
+    <div
+      style={{
+        minHeight: '100vh',
+        width: '100vw',
+        display: 'flex',
+        flexDirection: 'row',
+        background: '#0a1a2f',
+      }}
+    >
       {/* Columna izquierda: formulario */}
-      <div style={{ flex: 1, minWidth: 350, maxWidth: 480, background: 'rgba(10,20,40,0.92)', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', zIndex: 2 }}>
-        <div style={{ width: '100%', maxWidth: 340, margin: '0 auto', padding: 32, borderRadius: 18, background: 'rgba(20,20,30,0.92)', boxShadow: '0 0 32px #0ff2' }}>
+      <div
+        className="login-form-col"
+        style={{
+          flex: 1,
+          minWidth: 350,
+          maxWidth: 480,
+          background: 'rgba(10,20,40,0.92)',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+          alignItems: 'center',
+          zIndex: 2,
+        }}
+      >
+        <div
+          style={{
+            width: '100%',
+            maxWidth: 340,
+            margin: '0 auto',
+            padding: 32,
+            borderRadius: 18,
+            background: 'rgba(20,20,30,0.92)',
+            boxShadow: '0 0 32px #0ff2',
+          }}
+        >
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 32 }}>
             <img src="/logo.png" alt="Logo" style={{ width: 48, height: 48, borderRadius: 12 }} />
             <span style={{ color: '#0ff', fontWeight: 700, fontSize: 28, fontFamily: 'Orbitron, sans-serif', letterSpacing: 1 }}>Neuroclon.AI</span>
@@ -76,18 +107,77 @@ const Login = () => {
         </div>
       </div>
       {/* Columna derecha: video */}
-      <div style={{ flex: 2, position: 'relative', height: '100vh', overflow: 'hidden', minWidth: 0 }}>
+      <div
+        className="login-video-col"
+        style={{
+          flex: 2,
+          position: 'relative',
+          height: '100vh',
+          overflow: 'hidden',
+          minWidth: 0,
+        }}
+      >
         <video
           src="/videos/videologinactual.mp4"
           autoPlay
           loop
           muted
           playsInline
-          style={{ width: '100%', height: '100%', objectFit: 'cover', position: 'absolute', top: 0, left: 0 }}
+          style={{
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
+            objectPosition: 'center top',
+            position: 'absolute',
+            top: 0,
+            left: 0,
+          }}
         />
-        {/* Overlay para oscurecer el video si se desea */}
-        <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', background: 'linear-gradient(90deg, #0a1a2f 0%, #0a1a2f88 40%, #0000 100%)', pointerEvents: 'none' }} />
+        {/* Overlay para oscurecer el video y tapar el logo */}
+        <div
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            background:
+              'linear-gradient(90deg, #0a1a2f 0%, #0a1a2f88 40%, #0000 100%), linear-gradient(0deg, #0a1a2f 0%, #0000 80%)',
+            pointerEvents: 'none',
+          }}
+        />
       </div>
+      <style>{`
+        @media (max-width: 900px) {
+          .login-form-col {
+            max-width: 100vw !important;
+            min-width: 0 !important;
+            flex: 1 1 100%;
+          }
+          .login-video-col {
+            flex: 1 1 100%;
+            height: 40vh !important;
+            min-height: 220px;
+            max-height: 320px;
+          }
+        }
+        @media (max-width: 600px) {
+          div[style*='flex-direction: row'] {
+            flex-direction: column !important;
+          }
+          .login-video-col {
+            width: 100vw !important;
+            height: 32vh !important;
+            min-height: 140px;
+            max-height: 200px;
+          }
+          .login-form-col {
+            min-width: 0 !important;
+            max-width: 100vw !important;
+            padding: 0 !important;
+          }
+        }
+      `}</style>
     </div>
   );
 };
