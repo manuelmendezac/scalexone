@@ -51,7 +51,8 @@ const AvatarUploader: React.FC<AvatarUploaderProps> = ({ onUpload, label = 'Sube
           <img
             src={preview}
             alt="avatar-preview"
-            className="w-24 h-24 rounded-full border-2 border-cyan-400 object-cover shadow"
+            className="w-24 h-24 rounded-full border-2 border-cyan-400 object-cover shadow cursor-pointer"
+            onClick={() => fileInputRef.current?.click()}
           />
         ) : (
           <button
