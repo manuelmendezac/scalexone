@@ -42,6 +42,7 @@ const Register = () => {
 
   return (
     <div
+      className="login-main-container"
       style={{
         minHeight: '100vh',
         width: '100vw',
@@ -156,8 +157,8 @@ const Register = () => {
           }
         }
         @media (max-width: 600px) {
-          div[style*='flex-direction: row'] {
-            flex-direction: column !important;
+          .login-main-container {
+            flex-direction: column-reverse !important;
           }
           .login-video-col {
             width: 100vw !important;
