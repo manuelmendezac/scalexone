@@ -30,47 +30,28 @@ const OnboardingMentor: React.FC = () => {
   useEffect(() => {
     // Solo reproducir una vez por sesión
     if (sessionStorage.getItem('bienvenidaReproducida')) return;
-    const reproducirBienvenida = async () => {
-      const nombre = userName || 'Invitado';
-      // Texto corto de prueba
-      const texto = `Hola ${nombre}, bienvenido a la plataforma.`;
-      setLoadingAudio(true);
-      try {
-        const response = await fetch("https://neuro-audio-server.onrender.com/api/generarAudio", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ nombre, texto }),
-        });
-        if (!response.ok) throw new Error('Error generando audio');
-        const blob = await response.blob();
-        const url = URL.createObjectURL(blob);
-        setAudioUrl(url);
-        if (audioInstance.current) {
-          audioInstance.current.pause();
-          audioInstance.current.currentTime = 0;
-        }
-        const audio = new Audio(url);
-        audioInstance.current = audio;
-        audio.play();
-        setIsPlaying(true);
-        audio.onended = () => setIsPlaying(false);
-        audio.onpause = () => setIsPlaying(false);
-        audio.onplay = () => setIsPlaying(true);
-        sessionStorage.setItem('bienvenidaReproducida', 'true');
-      } catch (e) {
-        setAudioUrl(null);
-      }
-      setLoadingAudio(false);
-    };
-    reproducirBienvenida();
+    const url = '/audio/bienvenida.mp3';
+    setAudioUrl(url);
+    if (audioInstance.current) {
+      audioInstance.current.pause();
+      audioInstance.current.currentTime = 0;
+    }
+    const audio = new Audio(url);
+    audioInstance.current = audio;
+    audio.play();
+    setIsPlaying(true);
+    audio.onended = () => setIsPlaying(false);
+    audio.onpause = () => setIsPlaying(false);
+    audio.onplay = () => setIsPlaying(true);
+    sessionStorage.setItem('bienvenidaReproducida', 'true');
+    // Cleanup
     return () => {
       if (audioInstance.current) {
         audioInstance.current.pause();
         audioInstance.current.currentTime = 0;
       }
-      if (audioUrl) URL.revokeObjectURL(audioUrl);
     };
-  }, [userName]);
+  }, []);
 
   // Simular avance de pasos con delay
   useEffect(() => {
