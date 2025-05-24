@@ -70,16 +70,16 @@ function App() {
   useEffect(() => {
     const { data: listener } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (session && session.user) {
-        // Actualiza el estado global con el usuario autenticado
         setUserName(session.user.user_metadata?.nombre || session.user.email || 'Usuario');
         updateUserInfo({
           name: session.user.user_metadata?.nombre || '',
           email: session.user.email || '',
         });
-        // Redirige a /home si no está ahí y NO está en /reset-password
+        // Refuerzo: no redirigir si está en /reset-password o si el hash contiene access_token
         if (
           !window.location.pathname.startsWith('/home') &&
-          window.location.pathname !== '/reset-password'
+          window.location.pathname !== '/reset-password' &&
+          !window.location.hash.includes('access_token=')
         ) {
           window.location.href = '/home';
         }
