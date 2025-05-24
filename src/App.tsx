@@ -34,6 +34,7 @@ import SecondNavbar from './components/SecondNavbar';
 import { BibliotecaProvider } from './context/BibliotecaContext';
 import ModuloCardBibliotecaConocimiento from './components/ModuloCardBibliotecaConocimiento';
 import ModuloCardConsejeroInteligente from './components/ModuloCardConsejeroInteligente';
+import { supabase } from './supabase';
 
 // Definición de tipos para las vistas
 type ViewType = 'inicio' | 'simulacion' | 'dashboard' | 'perfil' | 'configuracion' | 'panel' | 'uploader' | 'knowledge' | 'nicho' | 'modules' | 'train';
@@ -50,7 +51,7 @@ function App() {
   const { t } = useTranslation();
   const [showOnboarding, setShowOnboarding] = useState(false);
   const navigate = useNavigate();
-  const { avatarUrl, notifications, userName } = useNeuroState();
+  const { avatarUrl, notifications, userName, setHydrated, setMessages, setNotifications, setUserName, updateUserInfo } = useNeuroState();
   // Estado para modo oscuro (puedes mejorarlo según tu lógica global)
   const [darkMode, setDarkMode] = useState(false);
   // Simulación de login (ajusta según tu lógica real)
@@ -65,6 +66,26 @@ function App() {
     const onboardingCompleted = localStorage.getItem('neurolink_onboarding_completed') === 'true';
     setShowOnboarding(!onboardingCompleted);
   }, []);
+
+  useEffect(() => {
+    const { data: listener } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (session && session.user) {
+        // Actualiza el estado global con el usuario autenticado
+        setUserName(session.user.user_metadata?.nombre || session.user.email || 'Usuario');
+        updateUserInfo({
+          name: session.user.user_metadata?.nombre || '',
+          email: session.user.email || '',
+        });
+        // Redirige al dashboard si no está ahí
+        if (!window.location.pathname.startsWith('/dashboard')) {
+          window.location.href = '/dashboard';
+        }
+      }
+    });
+    return () => {
+      listener?.subscription.unsubscribe();
+    };
+  }, [setUserName, updateUserInfo]);
 
   const handleOnboardingClose = () => {
     setShowOnboarding(false);
