@@ -8,7 +8,7 @@ const tips = [
   'Consulta el Dashboard para ver tu progreso diario.',
 ];
 
-const audioUrl = '/audio/bienvenida.mp3'; // Simulado, puedes cambiarlo
+const audioUrl = '/sounds/synthesis.mp3'; // Usar solo el audio local
 
 const OnboardingLateral: React.FC = () => {
   const [playing, setPlaying] = useState(false);

@@ -13,30 +13,24 @@ const steps = [
   'Consulta tu Dashboard',
 ];
 
-const audioUrl = '/audio/bienvenida.mp3';
+const audioUrl = '/sounds/synthesis.mp3';
 const defaultAvatar = 'https://i.imgur.com/NOIpTwj.png';
 
 const OnboardingMentor: React.FC = () => {
   const { avatarUrl, userName } = useNeuroState();
   const [currentStep, setCurrentStep] = useState(0);
   const [finished, setFinished] = useState(false);
-  const [audioUrl, setAudioUrl] = useState<string | null>(null);
-  const [loadingAudio, setLoadingAudio] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const navigate = useNavigate();
   const audioInstance = useRef<HTMLAudioElement | null>(null);
 
-  // Obtener audio al montar
   useEffect(() => {
-    // Solo reproducir una vez por sesión
     if (sessionStorage.getItem('bienvenidaReproducida')) return;
-    const url = '/sounds/synthesis.mp3';
-    setAudioUrl(url);
     if (audioInstance.current) {
       audioInstance.current.pause();
       audioInstance.current.currentTime = 0;
     }
-    const audio = new Audio(url);
+    const audio = new Audio(audioUrl);
     audioInstance.current = audio;
     audio.play();
     setIsPlaying(true);
@@ -44,7 +38,6 @@ const OnboardingMentor: React.FC = () => {
     audio.onpause = () => setIsPlaying(false);
     audio.onplay = () => setIsPlaying(true);
     sessionStorage.setItem('bienvenidaReproducida', 'true');
-    // Cleanup
     return () => {
       if (audioInstance.current) {
         audioInstance.current.pause();
