@@ -31,7 +31,7 @@ const Register = () => {
     if (error) {
       setError(error.message);
     } else {
-      window.location.href = '/dashboard';
+      window.location.href = '/home';
     }
   };
 
