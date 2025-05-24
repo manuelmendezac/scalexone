@@ -29,6 +29,7 @@ import Login from './pages/login';
 import Register from './pages/register';
 import ProtectedRoute from './components/ProtectedRoute';
 import ResetPassword from './pages/ResetPassword';
+import Perfil from './pages/Perfil';
 
 export const router = createBrowserRouter([
   {
@@ -152,6 +153,10 @@ export const router = createBrowserRouter([
       {
         path: 'reset-password',
         element: <ResetPassword />
+      },
+      {
+        path: 'perfil',
+        element: <Perfil />
       },
     ]
   },
