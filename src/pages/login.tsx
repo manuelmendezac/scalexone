@@ -5,8 +5,10 @@ import useNeuroState from '../store/useNeuroState';
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const { userName } = useNeuroState();
 
   useEffect(() => {
@@ -15,73 +17,61 @@ const Login = () => {
     }
   }, [userName]);
 
-  // Handlers para login social
-  const handleGoogle = async () => {
-    await supabase.auth.signInWithOAuth({ provider: 'google' });
-  };
-  const handleFacebook = async () => {
-    await supabase.auth.signInWithOAuth({ provider: 'facebook' });
-  };
-
   // Login con email/contraseña
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError('');
+    setSuccess('');
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     setLoading(false);
     if (error) setError(error.message);
     else window.location.href = '/dashboard';
   };
 
+  // Recuperar contraseña
+  const handleForgotPassword = async () => {
+    if (!email) {
+      setError('Ingresa tu correo para recuperar la contraseña');
+      return;
+    }
+    const { error } = await supabase.auth.resetPasswordForEmail(email);
+    if (error) setError(error.message);
+    else setSuccess('Revisa tu correo para restablecer la contraseña.');
+  };
+
+  // Login con Google
+  const handleGoogle = async () => {
+    await supabase.auth.signInWithOAuth({ provider: 'google' });
+  };
+  // Login con Facebook
+  const handleFacebook = async () => {
+    await supabase.auth.signInWithOAuth({ provider: 'facebook' });
+  };
+
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-black">
-      <div className="w-full max-w-md p-8 rounded-2xl bg-black flex flex-col items-center justify-center shadow-2xl">
-        <h1 className="text-cyan-400 font-orbitron text-3xl font-bold mb-2 text-center">CENTRO DE ENTRENAMIENTO IA</h1>
-        <h2 className="text-neurolink-coldWhite text-2xl font-semibold mb-2 text-center">Inicia sesión para transformar tu mente</h2>
-        <form className="flex flex-col gap-4 w-full mt-6" onSubmit={handleLogin}>
-          <input
-            type="email"
-            placeholder="Correo electrónico"
-            className="w-full px-4 py-3 rounded-lg bg-[#181828] border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-cyan-400"
-            value={email}
-            onChange={e => setEmail(e.target.value)}
-            required
-          />
-          <input
-            type="password"
-            placeholder="Contraseña"
-            className="w-full px-4 py-3 rounded-lg bg-[#181828] border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-cyan-400"
-            value={password}
-            onChange={e => setPassword(e.target.value)}
-            required
-          />
-          <div className="flex justify-end">
-            <a href="#" className="text-cyan-400 text-sm hover:underline">¿Olvidaste tu contraseña?</a>
-          </div>
-          <button type="submit" disabled={loading} className="w-full py-3 rounded-lg bg-gradient-to-r from-cyan-400 to-blue-600 text-white font-bold text-lg shadow-lg hover:from-cyan-500 hover:to-blue-700 transition">
-            {loading ? 'Cargando...' : 'Comienza a aprender'}
-          </button>
-          {error && <div className="text-red-400 text-sm mt-2">{error}</div>}
-        </form>
-        {/* Botones sociales debajo del formulario */}
-        <div className="flex gap-6 mt-8">
-          <button
-            title="Google"
-            onClick={handleGoogle}
-            className="w-10 h-10 bg-cyan-400 rounded-full flex items-center justify-center text-black text-2xl font-bold cursor-pointer"
-          >
-            G
-          </button>
-          <button
-            title="Facebook"
-            onClick={handleFacebook}
-            className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white text-2xl font-bold cursor-pointer"
-          >
-            f
-          </button>
+    <div style={{ minHeight: '100vh', background: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <form onSubmit={handleLogin} style={{ width: 320, background: 'rgba(20,20,30,0.9)', borderRadius: 12, padding: 32, boxShadow: '0 0 24px #0ff2' }}>
+        <h2 style={{ color: '#0ff', textAlign: 'center', marginBottom: 16 }}>CENTRO DE ENTRENAMIENTO IA</h2>
+        <p style={{ color: '#fff', textAlign: 'center', marginBottom: 24 }}>Inicia sesión para transformar tu mente</p>
+        <input type="email" placeholder="Correo electrónico" value={email} onChange={e => setEmail(e.target.value)} style={{ width: '100%', marginBottom: 12, padding: 10, borderRadius: 6, border: 'none', background: '#181828', color: '#fff' }} required />
+        <div style={{ position: 'relative', marginBottom: 12 }}>
+          <input type={showPassword ? 'text' : 'password'} placeholder="Contraseña" value={password} onChange={e => setPassword(e.target.value)} style={{ width: '100%', padding: 10, borderRadius: 6, border: 'none', background: '#181828', color: '#fff' }} required />
+          <span onClick={() => setShowPassword(v => !v)} style={{ position: 'absolute', right: 10, top: 12, cursor: 'pointer', color: '#0ff' }}>{showPassword ? '🙈' : '👁️'}</span>
         </div>
-      </div>
+        <div style={{ textAlign: 'right', marginBottom: 12 }}>
+          <span onClick={handleForgotPassword} style={{ color: '#0ff', cursor: 'pointer', fontSize: 13 }}>¿Olvidaste tu contraseña?</span>
+        </div>
+        {error && <div style={{ color: 'red', marginBottom: 8 }}>{error}</div>}
+        {success && <div style={{ color: '#0f0', marginBottom: 8 }}>{success}</div>}
+        <button type="submit" disabled={loading} style={{ width: '100%', background: '#0ff', color: '#000', border: 'none', borderRadius: 6, padding: 12, fontWeight: 700, fontSize: 16, marginBottom: 16 }}>
+          {loading ? 'Ingresando...' : 'Comienza a aprender'}
+        </button>
+        <div style={{ display: 'flex', justifyContent: 'center', gap: 16 }}>
+          <button type="button" onClick={handleGoogle} style={{ background: 'none', border: 'none', cursor: 'pointer' }}><span style={{ fontSize: 28 }}>G</span></button>
+          <button type="button" onClick={handleFacebook} style={{ background: 'none', border: 'none', cursor: 'pointer' }}><span style={{ fontSize: 28 }}>f</span></button>
+        </div>
+      </form>
     </div>
   );
 };
