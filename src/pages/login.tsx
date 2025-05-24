@@ -10,6 +10,7 @@ const Login = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const { userName } = useNeuroState();
+  const [remember, setRemember] = useState(false);
 
   useEffect(() => {
     if (userName && userName !== 'Invitado') {
@@ -105,6 +106,10 @@ const Login = () => {
             <button onClick={handleGoogle} style={{ width: '100%', background: '#fff', color: '#222', border: 'none', borderRadius: 8, padding: 12, fontWeight: 700, fontSize: 16, marginBottom: 18, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, boxShadow: '0 2px 8px #0002', cursor: 'pointer' }}>
               <img src="/images/google.svg" alt="Google" style={{ width: 22, height: 22 }} /> Ingresar con Google
             </button>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 18 }}>
+              <input type="checkbox" id="remember" checked={remember} onChange={e => setRemember(e.target.checked)} style={{ accentColor: '#0ff', width: 18, height: 18 }} />
+              <label htmlFor="remember" style={{ color: '#b6eaff', fontSize: 15, cursor: 'pointer', userSelect: 'none' }}>Recordar sesión</label>
+            </div>
             <div style={{ textAlign: 'center', color: '#b6eaff', margin: '18px 0 10px 0', fontWeight: 600 }}>o ingresa con tu correo</div>
             <form onSubmit={handleLogin} style={{ width: '100%' }}>
               <input type="email" placeholder="Correo electrónico" value={email} onChange={e => setEmail(e.target.value)} style={{ width: '100%', marginBottom: 12, padding: 12, borderRadius: 7, border: 'none', background: '#181828', color: '#fff', fontSize: 16 }} required />
