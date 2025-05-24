@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../supabase';
 import useNeuroState from '../store/useNeuroState';
+import { useLocation } from 'react-router-dom';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -11,15 +12,20 @@ const Login = () => {
   const [success, setSuccess] = useState('');
   const { userName } = useNeuroState();
   const [remember, setRemember] = useState(false);
+  const location = useLocation();
 
   useEffect(() => {
-    if (userName && userName !== 'Invitado') {
+    if (
+      userName &&
+      userName !== 'Invitado' &&
+      location.pathname !== '/reset-password'
+    ) {
       window.location.href = '/home';
     }
     // Recuperar email si está guardado
     const savedEmail = localStorage.getItem('rememberedEmail');
     if (savedEmail) setEmail(savedEmail);
-  }, [userName]);
+  }, [userName, location.pathname]);
 
   // Login con email/contraseña
   const handleLogin = async (e: React.FormEvent) => {
