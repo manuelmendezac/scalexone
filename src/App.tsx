@@ -76,8 +76,11 @@ function App() {
           name: session.user.user_metadata?.nombre || '',
           email: session.user.email || '',
         });
-        // Redirige a /home si no está ahí
-        if (!window.location.pathname.startsWith('/home')) {
+        // Redirige a /home si no está ahí y NO está en /reset-password
+        if (
+          !window.location.pathname.startsWith('/home') &&
+          window.location.pathname !== '/reset-password'
+        ) {
           window.location.href = '/home';
         }
       }
