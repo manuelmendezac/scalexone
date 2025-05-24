@@ -30,7 +30,7 @@ const OnboardingMentor: React.FC = () => {
   useEffect(() => {
     // Solo reproducir una vez por sesión
     if (sessionStorage.getItem('bienvenidaReproducida')) return;
-    const url = '/audio/bienvenida.mp3';
+    const url = '/sounds/synthesis.wav';
     setAudioUrl(url);
     if (audioInstance.current) {
       audioInstance.current.pause();
@@ -126,7 +126,8 @@ const OnboardingMentor: React.FC = () => {
           {audioUrl && <VoiceVisualizer audioUrl={audioUrl} />}
           {audioUrl && (
             <button
-              className="mt-2 px-4 py-2 rounded bg-cyan-600 text-white font-bold"
+              className="mt-2 px-2 py-1 rounded bg-cyan-600 text-white font-bold text-sm flex items-center justify-center"
+              style={{ minWidth: 32, minHeight: 32, borderRadius: '50%', width: 36, height: 36, padding: 0 }}
               onClick={() => {
                 if (audioInstance.current) {
                   audioInstance.current.currentTime = 0;
@@ -134,9 +135,10 @@ const OnboardingMentor: React.FC = () => {
                   setIsPlaying(true);
                 }
               }}
-              disabled={loadingAudio}
+              disabled={isPlaying}
+              title="Reproducir bienvenida"
             >
-              {loadingAudio ? 'Cargando audio...' : 'Escuchar bienvenida'}
+              <span style={{ fontSize: 18, lineHeight: 1 }}>&#9654;</span>
             </button>
           )}
         </div>
