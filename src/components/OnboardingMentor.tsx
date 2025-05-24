@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import useNeuroState from '../store/useNeuroState';
 import { useNavigate } from 'react-router-dom';
 import { WaveSurfer, WaveForm } from 'wavesurfer-react';
+import AvatarUploader from './AvatarUploader';
 
 const steps = [
   'Explora tu Segundo Cerebro',
@@ -17,12 +18,14 @@ const audioUrl = '/sounds/synthesis.mp3';
 const defaultAvatar = 'https://i.imgur.com/NOIpTwj.png';
 
 const OnboardingMentor: React.FC = () => {
-  const { avatarUrl, userName } = useNeuroState();
+  const { avatarUrl, userName, setUserName, setAvatarUrl } = useNeuroState();
   const [currentStep, setCurrentStep] = useState(0);
   const [finished, setFinished] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const navigate = useNavigate();
   const audioInstance = useRef<HTMLAudioElement | null>(null);
+  const [editingName, setEditingName] = useState(false);
+  const [nameInput, setNameInput] = useState(userName);
 
   useEffect(() => {
     if (sessionStorage.getItem('bienvenidaReproducida')) return;
@@ -86,34 +89,11 @@ const OnboardingMentor: React.FC = () => {
       {/* Avatar IA con halo y visualizador de voz */}
       <div className="flex flex-col items-center justify-center mb-6">
         <div className="relative mb-4 flex flex-col items-center">
-          {/* Halo animado parlante avanzado y ondas SIEMPRE visibles */}
-          <span
-            className="absolute w-56 h-56 rounded-full z-0 halo-animado"
-            style={{
-              left: '-32px',
-              top: '-32px',
-              background: 'radial-gradient(circle, #22d3ee33 60%, transparent 100%)',
-              filter: 'blur(18px)',
-            }}
-          />
-          {/* Ondas de voz parlante (efecto realidad aumentada) */}
-          <span
-            className="absolute w-64 h-64 rounded-full border-2 border-cyan-400 voz-parlante-onda"
-            style={{ left: '-48px', top: '-48px' }}
-          />
-          <span
-            className="absolute w-72 h-72 rounded-full border-2 border-purple-400 voz-parlante-onda voz-parlante-onda-2"
-            style={{ left: '-80px', top: '-80px' }}
-          />
-          <span
-            className="absolute w-80 h-80 rounded-full border-2 border-cyan-300 voz-parlante-onda voz-parlante-onda-3"
-            style={{ left: '-112px', top: '-112px' }}
-          />
-          <img
-            src={avatarUrl || defaultAvatar}
-            alt="avatar"
-            className="w-36 h-36 md:w-44 md:h-44 rounded-full border-4 border-cyan-400 shadow-cyan-400/40 shadow-lg object-cover z-10 relative ring-4 ring-cyan-300 animate-avatar-float bg-black"
-            style={{ background: '#111827', objectFit: 'cover' }}
+          {/* AvatarUploader reemplaza el <img> actual */}
+          <AvatarUploader
+            onUpload={setAvatarUrl}
+            initialUrl={avatarUrl || defaultAvatar}
+            label="Sube tu foto de perfil principal"
           />
           {/* Visualizador de audio real debajo del avatar */}
           {audioUrl && <VoiceVisualizer audioUrl={audioUrl} />}
@@ -135,7 +115,35 @@ const OnboardingMentor: React.FC = () => {
             </button>
           )}
         </div>
-        <h2 className="text-2xl md:text-3xl font-orbitron text-cyan-300 mb-1 text-center">Bienvenido, {userName || 'Invitado'} AI</h2>
+        {/* Input editable para el nombre */}
+        <div className="flex flex-col items-center gap-2 mt-2">
+          {editingName ? (
+            <div className="flex gap-2 items-center">
+              <input
+                type="text"
+                value={nameInput}
+                onChange={e => setNameInput(e.target.value)}
+                className="px-3 py-1 rounded border border-cyan-400 bg-black text-cyan-200 text-lg font-bold text-center"
+                placeholder="Tu nombre"
+              />
+              <button
+                className="px-2 py-1 bg-cyan-600 text-white rounded font-bold"
+                onClick={() => {
+                  setUserName(nameInput.trim() || 'Invitado');
+                  setEditingName(false);
+                }}
+              >Guardar</button>
+            </div>
+          ) : (
+            <div className="flex gap-2 items-center">
+              <span className="text-2xl md:text-3xl font-orbitron text-cyan-300 mb-1 text-center">{userName || 'Invitado'} AI</span>
+              <button
+                className="px-2 py-1 bg-cyan-600 text-white rounded font-bold"
+                onClick={() => setEditingName(true)}
+              >Editar</button>
+            </div>
+          )}
+        </div>
         <div className="text-cyan-200 text-lg font-light italic mb-1 text-center">"Hoy es un gran día para crear lo imposible 🚀"</div>
         <div className="text-cyan-400 text-base font-medium mb-2 text-center">{dateStr}</div>
       </div>
