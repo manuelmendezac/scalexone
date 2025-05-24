@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../supabase';
 
 const ResetPassword = () => {
@@ -9,6 +9,7 @@ const ResetPassword = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const navigate = useNavigate();
 
   // Lee el token de query o de hash
   const accessToken =
@@ -29,7 +30,10 @@ const ResetPassword = () => {
     const { error } = await supabase.auth.updateUser({ password });
     setLoading(false);
     if (error) setError(error.message);
-    else setSuccess('¡Contraseña actualizada! Ahora puedes iniciar sesión.');
+    else {
+      setSuccess('¡Contraseña actualizada! Ahora puedes iniciar sesión.');
+      await supabase.auth.signOut();
+    }
   };
 
   if (!accessToken) {
@@ -47,6 +51,11 @@ const ResetPassword = () => {
         <button type="submit" disabled={loading} style={{ width: '100%', background: '#0ff', color: '#000', border: 'none', borderRadius: 6, padding: 12, fontWeight: 700, fontSize: 16, marginBottom: 16 }}>
           {loading ? 'Actualizando...' : 'Actualizar contraseña'}
         </button>
+        {success && (
+          <button type="button" onClick={() => navigate('/')} style={{ width: '100%', background: '#fff', color: '#0a1a2f', border: 'none', borderRadius: 6, padding: 12, fontWeight: 700, fontSize: 16, marginTop: 8 }}>
+            Ir a login
+          </button>
+        )}
       </form>
     </div>
   );
