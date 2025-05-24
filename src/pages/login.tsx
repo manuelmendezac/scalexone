@@ -76,49 +76,52 @@ const Login = () => {
             width: '100%',
             maxWidth: 340,
             margin: '0 auto',
-            padding: 32,
+            padding: 0,
             borderRadius: 18,
-            background: 'rgba(20,20,30,0.92)',
+            background: '#000',
             boxShadow: '0 0 32px #0ff2',
+            overflow: 'hidden',
+            display: 'flex',
+            flexDirection: 'column',
           }}
         >
-          <div style={{ marginBottom: 32, width: '100%', display: 'flex', justifyContent: 'center' }}>
-            <video
-              src="/videos/introneuroclon.mp4"
-              autoPlay
-              muted
-              playsInline
-              style={{
-                width: '100%',
-                maxWidth: 220,
-                aspectRatio: '1/1',
-                borderRadius: 16,
-                boxShadow: '0 0 24px #0ff4',
-                background: '#000',
-                objectFit: 'cover',
-                display: 'block',
-              }}
-            />
-          </div>
-          <button onClick={handleGoogle} style={{ width: '100%', background: '#fff', color: '#222', border: 'none', borderRadius: 8, padding: 12, fontWeight: 700, fontSize: 16, marginBottom: 18, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, boxShadow: '0 2px 8px #0002', cursor: 'pointer' }}>
-            <img src="/images/google.svg" alt="Google" style={{ width: 22, height: 22 }} /> Ingresar con Google
-          </button>
-          <div style={{ textAlign: 'center', color: '#b6eaff', margin: '18px 0 10px 0', fontWeight: 600 }}>o ingresa con tu correo</div>
-          <form onSubmit={handleLogin} style={{ width: '100%' }}>
-            <input type="email" placeholder="Correo electrónico" value={email} onChange={e => setEmail(e.target.value)} style={{ width: '100%', marginBottom: 12, padding: 12, borderRadius: 7, border: 'none', background: '#181828', color: '#fff', fontSize: 16 }} required />
-            <div style={{ position: 'relative', marginBottom: 12 }}>
-              <input type={showPassword ? 'text' : 'password'} placeholder="Contraseña" value={password} onChange={e => setPassword(e.target.value)} style={{ width: '100%', padding: 12, borderRadius: 7, border: 'none', background: '#181828', color: '#fff', fontSize: 16 }} required />
-              <span onClick={() => setShowPassword(v => !v)} style={{ position: 'absolute', right: 12, top: 14, cursor: 'pointer', color: '#0ff', fontSize: 18 }}>{showPassword ? '🙈' : '👁️'}</span>
-            </div>
-            <div style={{ textAlign: 'right', marginBottom: 12 }}>
-              <span onClick={handleForgotPassword} style={{ color: '#0ff', cursor: 'pointer', fontSize: 13 }}>¿Olvidaste tu contraseña?</span>
-            </div>
-            {error && <div style={{ color: 'red', marginBottom: 8, textAlign: 'center', fontWeight: 600 }}>{error}</div>}
-            {success && <div style={{ color: '#0f0', marginBottom: 8, textAlign: 'center', fontWeight: 600 }}>{success}</div>}
-            <button type="submit" disabled={loading} style={{ width: '100%', background: '#0ff', color: '#000', border: 'none', borderRadius: 7, padding: 12, fontWeight: 700, fontSize: 16, marginBottom: 8, marginTop: 8, cursor: 'pointer' }}>
-              {loading ? 'Ingresando...' : 'Comienza a aprender'}
+          <video
+            src="/videos/introneuroclon.mp4"
+            autoPlay
+            muted
+            playsInline
+            style={{
+              width: '100%',
+              height: '180px',
+              minHeight: '120px',
+              maxHeight: '220px',
+              objectFit: 'cover',
+              background: '#000',
+              display: 'block',
+              borderRadius: 0,
+            }}
+          />
+          <div style={{ padding: 32, paddingTop: 24, width: '100%' }}>
+            <button onClick={handleGoogle} style={{ width: '100%', background: '#fff', color: '#222', border: 'none', borderRadius: 8, padding: 12, fontWeight: 700, fontSize: 16, marginBottom: 18, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, boxShadow: '0 2px 8px #0002', cursor: 'pointer' }}>
+              <img src="/images/google.svg" alt="Google" style={{ width: 22, height: 22 }} /> Ingresar con Google
             </button>
-          </form>
+            <div style={{ textAlign: 'center', color: '#b6eaff', margin: '18px 0 10px 0', fontWeight: 600 }}>o ingresa con tu correo</div>
+            <form onSubmit={handleLogin} style={{ width: '100%' }}>
+              <input type="email" placeholder="Correo electrónico" value={email} onChange={e => setEmail(e.target.value)} style={{ width: '100%', marginBottom: 12, padding: 12, borderRadius: 7, border: 'none', background: '#181828', color: '#fff', fontSize: 16 }} required />
+              <div style={{ position: 'relative', marginBottom: 12 }}>
+                <input type={showPassword ? 'text' : 'password'} placeholder="Contraseña" value={password} onChange={e => setPassword(e.target.value)} style={{ width: '100%', padding: 12, borderRadius: 7, border: 'none', background: '#181828', color: '#fff', fontSize: 16 }} required />
+                <span onClick={() => setShowPassword(v => !v)} style={{ position: 'absolute', right: 12, top: 14, cursor: 'pointer', color: '#0ff', fontSize: 18 }}>{showPassword ? '🙈' : '👁️'}</span>
+              </div>
+              <div style={{ textAlign: 'right', marginBottom: 12 }}>
+                <span onClick={handleForgotPassword} style={{ color: '#0ff', cursor: 'pointer', fontSize: 13 }}>¿Olvidaste tu contraseña?</span>
+              </div>
+              {error && <div style={{ color: 'red', marginBottom: 8, textAlign: 'center', fontWeight: 600 }}>{error}</div>}
+              {success && <div style={{ color: '#0f0', marginBottom: 8, textAlign: 'center', fontWeight: 600 }}>{success}</div>}
+              <button type="submit" disabled={loading} style={{ width: '100%', background: '#0ff', color: '#000', border: 'none', borderRadius: 7, padding: 12, fontWeight: 700, fontSize: 16, marginBottom: 8, marginTop: 8, cursor: 'pointer' }}>
+                {loading ? 'Ingresando...' : 'Comienza a aprender'}
+              </button>
+            </form>
+          </div>
         </div>
       </div>
       {/* Columna derecha: video */}
