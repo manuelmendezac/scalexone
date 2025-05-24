@@ -69,19 +69,19 @@ function App() {
 
   useEffect(() => {
     const { data: listener } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (session && session.user) {
+      // Evitamos actualizar el estado global y redirigir si estamos en el flujo de recuperación de contraseña
+      const isRecoveryFlow =
+        window.location.pathname === '/reset-password' ||
+        window.location.hash.includes('access_token=') ||
+        window.location.hash.includes('type=recovery');
+
+      if (session && session.user && !isRecoveryFlow) {
         setUserName(session.user.user_metadata?.nombre || session.user.email || 'Usuario');
         updateUserInfo({
           name: session.user.user_metadata?.nombre || '',
           email: session.user.email || '',
         });
-        // Refuerzo: no redirigir si está en /reset-password o si el hash contiene access_token o type=recovery
-        if (
-          !window.location.pathname.startsWith('/home') &&
-          window.location.pathname !== '/reset-password' &&
-          !window.location.hash.includes('access_token=') &&
-          !window.location.hash.includes('type=recovery')
-        ) {
+        if (!window.location.pathname.startsWith('/home')) {
           window.location.href = '/home';
         }
       }
