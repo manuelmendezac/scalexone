@@ -27,28 +27,7 @@ const Inicio: React.FC = () => {
   const dateStr = today.toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 
   useEffect(() => {
-    async function reproducirAudio(nombre: string) {
-      try {
-        const response = await fetch("https://neuro-audio-server.onrender.com/api/generarAudio", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ nombre }),
-        });
-
-        if (!response.ok) throw new Error("Error al generar el audio");
-
-        const audioBlob = await response.blob();
-        const audioUrl = URL.createObjectURL(audioBlob);
-
-        const audio = new Audio(audioUrl);
-        audio.play();
-      } catch (error) {
-        console.error("Error:", error);
-      }
-    }
-    reproducirAudio(userName || "Invitado");
+    // Eliminar reproducción automática de audio remoto
   }, [userName]);
 
   return (
