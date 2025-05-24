@@ -28,6 +28,7 @@ import ConfiguracionProyecto from './components/ConfiguracionProyecto';
 import Login from './pages/login';
 import Register from './pages/register';
 import ProtectedRoute from './components/ProtectedRoute';
+import ResetPassword from './pages/ResetPassword';
 
 export const router = createBrowserRouter([
   {
@@ -147,6 +148,10 @@ export const router = createBrowserRouter([
       {
         path: 'configuracion',
         element: <ConfiguracionProyecto />,
+      },
+      {
+        path: 'reset-password',
+        element: <ResetPassword />
       },
     ]
   },
