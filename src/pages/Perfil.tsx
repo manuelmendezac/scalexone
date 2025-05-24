@@ -35,12 +35,12 @@ const Perfil = () => {
   };
 
   return (
-    <div style={{ minHeight: '100vh', background: '#0a1a2f', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <div style={{ width: 400, background: '#181828', borderRadius: 16, padding: 32, boxShadow: '0 0 32px #0ff2', color: '#fff' }}>
+    <div style={{ minHeight: '100vh', background: '#0a1a2f', width: '100vw', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div style={{ width: '100%', maxWidth: 420, background: '#181828', borderRadius: 16, padding: 32, boxShadow: '0 0 32px #0ff2', color: '#fff', margin: 0 }}>
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: 24 }}>
           <img src={avatarUrl || '/avatar.png'} alt="avatar" style={{ width: 90, height: 90, borderRadius: '50%', border: '3px solid #0ff', marginBottom: 12, objectFit: 'cover' }} />
-          <div style={{ fontSize: 22, fontWeight: 700, color: '#0ff', marginBottom: 4 }}>{userName}</div>
-          <div style={{ fontSize: 15, color: '#b6eaff', marginBottom: 2 }}>{userInfo.email}</div>
+          <div style={{ fontSize: 22, fontWeight: 700, color: '#0ff', marginBottom: 4, textAlign: 'center' }}>{userName}</div>
+          <div style={{ fontSize: 15, color: '#b6eaff', marginBottom: 2, textAlign: 'center' }}>{userInfo.email}</div>
         </div>
         <div style={{ background: '#10131e', borderRadius: 10, padding: 16, marginBottom: 18 }}>
           <div style={{ fontWeight: 600, color: '#9EFFC9', marginBottom: 6 }}>Tipo de suscripción</div>
