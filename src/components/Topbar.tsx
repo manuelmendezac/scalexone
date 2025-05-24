@@ -33,7 +33,7 @@ const Topbar: React.FC<TopbarProps> = ({
   const { i18n, t } = useTranslation();
   const language = i18n.language === 'en' ? 'en' : 'es';
   const navigate = useNavigate();
-  const { notifications, avatarUrl } = useNeuroState();
+  const { notifications, avatarUrl, setUserName, updateUserInfo } = useNeuroState();
 
   // Cerrar el dropdown de afiliado al hacer clic fuera
   useEffect(() => {
@@ -270,6 +270,8 @@ const Topbar: React.FC<TopbarProps> = ({
                   className="w-full flex items-center gap-2 px-4 py-2 hover:bg-red-700 text-left text-white font-orbitron text-base transition rounded-b-xl bg-black"
                   onClick={async () => {
                     await supabase.auth.signOut();
+                    setUserName('Invitado');
+                    updateUserInfo({ name: '', email: '' });
                     localStorage.removeItem('token');
                     window.location.href = '/';
                   }}
