@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './Playground.css';
 import AvatarUploader from '../AvatarUploader';
 import { useNavigate } from 'react-router-dom';
@@ -26,6 +26,15 @@ const AGENTE_DEFAULT = {
   id: 1,
 };
 
+interface Mensaje {
+  id: string;
+  from: 'user' | 'clon';
+  text: string;
+  agenteId: number;
+  timestamp: number;
+  estado?: 'procesando' | 'completado' | 'error';
+}
+
 const Playground: React.FC = () => {
   // Estado de agentes
   const [agentes, setAgentes] = useState([
@@ -37,8 +46,15 @@ const Playground: React.FC = () => {
 
   // Chat
   const [modo, setModo] = useState<'manual' | 'ia'>('manual');
-  const [mensajes, setMensajes] = useState<{from: string, text: string, agenteId: number}[]>([
-    { from: 'clon', text: agentes[0].bienvenida, agenteId: agentes[0].id }
+  const [mensajes, setMensajes] = useState<Mensaje[]>([
+    { 
+      id: '1',
+      from: 'clon', 
+      text: agentes[0].bienvenida, 
+      agenteId: agentes[0].id,
+      timestamp: Date.now(),
+      estado: 'completado'
+    }
   ]);
   const [input, setInput] = useState('');
 
@@ -46,6 +62,41 @@ const Playground: React.FC = () => {
   const isProUser = false; // Cambia a true para probar el modo pro
 
   const navigate = useNavigate();
+
+  // Cargar historial de chat
+  useEffect(() => {
+    const historialGuardado = localStorage.getItem(`chat_historial_${agenteActivo}`);
+    if (historialGuardado) {
+      try {
+        const historial = JSON.parse(historialGuardado);
+        setMensajes(historial);
+      } catch (error) {
+        console.error('Error al cargar historial:', error);
+      }
+    }
+  }, [agenteActivo]);
+
+  // Guardar historial de chat
+  useEffect(() => {
+    if (mensajes.length > 0) {
+      localStorage.setItem(`chat_historial_${agenteActivo}`, JSON.stringify(mensajes));
+    }
+  }, [mensajes, agenteActivo]);
+
+  // Limpiar historial
+  const handleLimpiarHistorial = () => {
+    if (window.confirm('¿Estás seguro de que quieres limpiar el historial de chat?')) {
+      setMensajes([{
+        id: Date.now().toString(),
+        from: 'clon',
+        text: agentes[0].bienvenida,
+        agenteId: agenteActivo,
+        timestamp: Date.now(),
+        estado: 'completado'
+      }]);
+      localStorage.removeItem(`chat_historial_${agenteActivo}`);
+    }
+  };
 
   // Crear nuevo agente
   const handleNuevoAgente = () => {
@@ -57,7 +108,14 @@ const Playground: React.FC = () => {
     };
     setAgentes([...agentes, nuevo]);
     setAgenteActivo(nuevo.id);
-    setMensajes([...mensajes, { from: 'clon', text: nuevo.bienvenida, agenteId: nuevo.id }]);
+    setMensajes([...mensajes, { 
+      id: Date.now().toString(),
+      from: 'clon', 
+      text: nuevo.bienvenida, 
+      agenteId: nuevo.id,
+      timestamp: Date.now(),
+      estado: 'completado'
+    }]);
     setTab('config');
   };
 
@@ -68,7 +126,14 @@ const Playground: React.FC = () => {
     // Si no hay mensajes, agregar bienvenida
     if (!mensajes.find(m => m.agenteId === id)) {
       const agente = agentes.find(a => a.id === id);
-      if (agente) setMensajes([...mensajes, { from: 'clon', text: agente.bienvenida, agenteId: id }]);
+      if (agente) setMensajes([...mensajes, { 
+        id: Date.now().toString(),
+        from: 'clon', 
+        text: agente.bienvenida, 
+        agenteId: id,
+        timestamp: Date.now(),
+        estado: 'completado'
+      }]);
     }
   };
 
@@ -91,28 +156,88 @@ const Playground: React.FC = () => {
   };
 
   // Chat: enviar mensaje
-  const handleSend = (msg?: string) => {
+  const handleSend = async (msg?: string) => {
     const texto = msg || input;
     if (!texto.trim()) return;
-    setMensajes([...mensajes, { from: 'user', text: texto, agenteId: agenteActivo }]);
+
+    const mensajeUsuario: Mensaje = {
+      id: Date.now().toString(),
+      from: 'user',
+      text: texto,
+      agenteId: agenteActivo,
+      timestamp: Date.now(),
+      estado: 'completado'
+    };
+
+    const mensajeProcesando: Mensaje = {
+      id: (Date.now() + 1).toString(),
+      from: 'clon',
+      text: 'Procesando tu mensaje...',
+      agenteId: agenteActivo,
+      timestamp: Date.now(),
+      estado: 'procesando'
+    };
+
+    setMensajes(prev => [...prev, mensajeUsuario, mensajeProcesando]);
     setInput('');
-    setTimeout(() => {
-      if (modo === 'manual') {
-        setMensajes(msgs => [
-          ...msgs,
-          { from: 'clon', text: 'Aún no tengo información sobre eso. ¡Aliméntame con más datos!', agenteId: agenteActivo }
-        ]);
-      } else {
-        setMensajes(msgs => [
-          ...msgs,
-          { from: 'clon', text: '🤖 [IA Real] Respuesta generada automáticamente.', agenteId: agenteActivo }
-        ]);
-      }
-    }, 800);
+
+    try {
+      // Simular procesamiento
+      await new Promise(resolve => setTimeout(resolve, 800));
+
+      const respuesta = modo === 'manual' 
+        ? 'Aún no tengo información sobre eso. ¡Aliméntame con más datos!'
+        : '🤖 [IA Real] Respuesta generada automáticamente.';
+
+      setMensajes(prev => prev.map(m => 
+        m.id === mensajeProcesando.id 
+          ? { ...m, text: respuesta, estado: 'completado' }
+          : m
+      ));
+    } catch (error) {
+      setMensajes(prev => prev.map(m => 
+        m.id === mensajeProcesando.id 
+          ? { ...m, text: 'Lo siento, hubo un error al procesar tu mensaje.', estado: 'error' }
+          : m
+      ));
+    }
   };
 
   const agente = agentes.find(a => a.id === agenteActivo)!;
   const mensajesAgente = mensajes.filter(m => m.agenteId === agenteActivo);
+
+  // Exportar historial
+  const handleExportarHistorial = () => {
+    const historial = mensajesAgente.map(msg => ({
+      tipo: msg.from === 'user' ? 'Usuario' : 'IA',
+      mensaje: msg.text,
+      timestamp: new Date(msg.timestamp).toLocaleString(),
+      estado: msg.estado
+    }));
+
+    const blob = new Blob([JSON.stringify(historial, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `chat_historial_${agente.nombre}_${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  // Copiar mensaje
+  const handleCopiarMensaje = (texto: string) => {
+    navigator.clipboard.writeText(texto).then(() => {
+      const toast = document.createElement('div');
+      toast.className = 'ia-toast';
+      toast.textContent = 'Mensaje copiado';
+      document.body.appendChild(toast);
+      setTimeout(() => {
+        toast.remove();
+      }, 2000);
+    });
+  };
 
   return (
     <div className="ia-dashboard-wrapper">
@@ -143,6 +268,16 @@ const Playground: React.FC = () => {
         <div className="ia-playground-tabs">
           <button className={tab === 'chat' ? 'active' : ''} onClick={() => setTab('chat')}>Chat</button>
           <button className={tab === 'config' ? 'active' : ''} onClick={() => setTab('config')}>Configurar agente</button>
+          {tab === 'chat' && (
+            <>
+              <button className="ia-exportar-historial" onClick={handleExportarHistorial}>
+                📥 Exportar historial
+              </button>
+              <button className="ia-limpiar-historial" onClick={handleLimpiarHistorial}>
+                🗑️ Limpiar historial
+              </button>
+            </>
+          )}
         </div>
         <div className="ia-playground-tabs-content">
           {tab === 'chat' && (
@@ -157,7 +292,33 @@ const Playground: React.FC = () => {
               </div>
               <div className="ia-chat-mensajes-pro">
                 {mensajesAgente.map((msg, idx) => (
-                  <div key={idx} className={`ia-msg-pro ia-msg-pro-${msg.from}`}>{msg.text}</div>
+                  <div key={msg.id} className={`ia-msg-pro ia-msg-pro-${msg.from}`}>
+                    <div className="ia-msg-text">{msg.text}</div>
+                    {msg.estado === 'procesando' && (
+                      <div className="ia-msg-procesando">
+                        <div className="ia-msg-dots">
+                          <span></span>
+                          <span></span>
+                          <span></span>
+                        </div>
+                      </div>
+                    )}
+                    {msg.estado === 'error' && (
+                      <div className="ia-msg-error">❌</div>
+                    )}
+                    <div className="ia-msg-actions">
+                      <button 
+                        className="ia-msg-copy" 
+                        onClick={() => handleCopiarMensaje(msg.text)}
+                        title="Copiar mensaje"
+                      >
+                        📋
+                      </button>
+                      <div className="ia-msg-timestamp">
+                        {new Date(msg.timestamp).toLocaleTimeString()}
+                      </div>
+                    </div>
+                  </div>
                 ))}
               </div>
               <div className="ia-chat-sugerencias-pro">

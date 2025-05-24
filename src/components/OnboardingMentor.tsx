@@ -28,8 +28,10 @@ const OnboardingMentor: React.FC = () => {
 
   // Obtener audio al montar
   useEffect(() => {
+    // Solo reproducir una vez por sesión
+    if (sessionStorage.getItem('bienvenidaReproducida')) return;
     const reproducirBienvenida = async () => {
-      const nombre = 'Manuel'; // Reemplazar dinámicamente en el futuro si aplica
+      const nombre = userName || 'Invitado';
       // Formatear la fecha en español
       const fecha = new Date();
       const opciones = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' } as const;
@@ -60,6 +62,7 @@ const OnboardingMentor: React.FC = () => {
         audio.onended = () => setIsPlaying(false);
         audio.onpause = () => setIsPlaying(false);
         audio.onplay = () => setIsPlaying(true);
+        sessionStorage.setItem('bienvenidaReproducida', 'true');
       } catch (e) {
         setAudioUrl(null);
       }
@@ -75,7 +78,7 @@ const OnboardingMentor: React.FC = () => {
       if (audioUrl) URL.revokeObjectURL(audioUrl);
     };
     // eslint-disable-next-line
-  }, []);
+  }, [userName]);
 
   // Simular avance de pasos con delay
   useEffect(() => {
