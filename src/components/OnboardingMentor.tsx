@@ -104,6 +104,24 @@ const OnboardingMentor: React.FC = () => {
     checkAndInsertUser();
   }, []);
 
+  useEffect(() => {
+    async function debugAuthAndUserTable() {
+      const { data: { user } } = await supabase.auth.getUser();
+      console.log('auth.uid:', user?.id, typeof user?.id);
+      if (user?.id) {
+        const { data, error } = await supabase
+          .from('usuarios')
+          .select('id')
+          .eq('id', user.id)
+          .single();
+        console.log('usuario en tabla:', data, typeof data?.id, 'error:', error);
+      } else {
+        console.log('No hay usuario autenticado');
+      }
+    }
+    debugAuthAndUserTable();
+  }, []);
+
   // Simular avance de pasos con delay
   useEffect(() => {
     if (currentStep < steps.length) {
