@@ -308,7 +308,22 @@ const OnboardingMentor: React.FC = () => {
             <button className="absolute top-2 right-2 text-cyan-400 text-2xl" onClick={() => setShowEditModal(false)}>&times;</button>
             <h2 className="text-2xl font-orbitron text-cyan-300 mb-4">Nombre de tu clon</h2>
             <AvatarUploader
-              onUpload={url => setAvatarInput(url)}
+              onUpload={async url => {
+                setAvatarInput(url);
+                setAvatarUrl(url);
+                // Actualizar avatar_url en la tabla usuarios
+                const { data: { user } } = await supabase.auth.getUser();
+                if (user) {
+                  const { error } = await supabase
+                    .from('usuarios')
+                    .update({ avatar_url: url })
+                    .eq('id', user.id);
+                  if (error) {
+                    console.error('Error actualizando avatar_url en usuarios:', error);
+                    alert('Error actualizando tu foto de perfil: ' + error.message);
+                  }
+                }
+              }}
               initialUrl={avatarInput || defaultAvatar}
               label="Sube tu foto de perfil principal"
             />
