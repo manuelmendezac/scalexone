@@ -5,6 +5,7 @@ import useNeuroState from '../store/useNeuroState';
 import { useNavigate } from 'react-router-dom';
 import { WaveSurfer, WaveForm } from 'wavesurfer-react';
 import AvatarUploader from './AvatarUploader';
+import { supabase } from '../supabase';
 
 const steps = [
   'Explora tu Segundo Cerebro',
@@ -15,7 +16,7 @@ const steps = [
 ];
 
 const audioUrl = '/sounds/synthesis.mp3';
-const defaultAvatar = 'https://i.imgur.com/NOIpTwj.png';
+const defaultAvatar = '/images/silueta-perfil.svg';
 
 const OnboardingMentor: React.FC = () => {
   const { avatarUrl, userName, setUserName, setAvatarUrl } = useNeuroState();
@@ -28,6 +29,7 @@ const OnboardingMentor: React.FC = () => {
   const [nameInput, setNameInput] = useState(userName);
   const [showEditModal, setShowEditModal] = useState(false);
   const [avatarInput, setAvatarInput] = useState(avatarUrl);
+  const [userMetadata, setUserMetadata] = useState<any>(null);
 
   useEffect(() => {
     if (sessionStorage.getItem('bienvenidaReproducida')) return;
@@ -49,6 +51,57 @@ const OnboardingMentor: React.FC = () => {
         audioInstance.current.currentTime = 0;
       }
     };
+  }, []);
+
+  useEffect(() => {
+    async function fetchUserMetadata() {
+      const { data: { user } } = await supabase.auth.getUser();
+      setUserMetadata(user?.user_metadata || null);
+      if (user?.user_metadata?.full_name || user?.user_metadata?.name) {
+        setNameInput(user.user_metadata.full_name || user.user_metadata.name);
+      } else if (user?.email) {
+        setNameInput(user.email);
+      } else {
+        setNameInput('Invitado');
+      }
+      // Forzar avatar por defecto si no hay avatar
+      if (!user?.user_metadata?.avatar_url) {
+        setAvatarInput(defaultAvatar);
+      } else {
+        setAvatarInput(user.user_metadata.avatar_url);
+      }
+    }
+    fetchUserMetadata();
+  }, []);
+
+  useEffect(() => {
+    async function checkAndInsertUser() {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        // Reutiliza la función ya definida en login/register
+        if (typeof ensureUserInUsuariosTable === 'function') {
+          await ensureUserInUsuariosTable(user);
+        } else {
+          // Lógica directa si la función no está disponible
+          const { data: existing } = await supabase
+            .from('usuarios')
+            .select('id')
+            .eq('id', user.id)
+            .single();
+          if (!existing) {
+            await supabase.from('usuarios').insert([
+              {
+                id: user.id,
+                name: user.user_metadata?.nombre || user.user_metadata?.full_name || '',
+                avatar_url: user.user_metadata?.avatar_url || '',
+                created_at: new Date().toISOString(),
+              },
+            ]);
+          }
+        }
+      }
+    }
+    checkAndInsertUser();
   }, []);
 
   // Simular avance de pasos con delay
@@ -79,11 +132,43 @@ const OnboardingMentor: React.FC = () => {
           url={audioUrl}
           interact={false}
           cursorWidth={0}
+          plugins={[]}
+          onMount={() => {}}
+          container="onboarding-voice-waveform-container"
         >
           <WaveForm id="onboarding-voice-waveform" />
         </WaveSurfer>
       </div>
     );
+  }
+
+  // Función para crear el usuario en la tabla 'usuarios' si no existe
+  async function ensureUserInUsuariosTable(user: any) {
+    if (!user) return;
+    console.log('Intentando insertar usuario:', user);
+    const { data: existing, error: selectError } = await supabase
+      .from('usuarios')
+      .select('id')
+      .eq('id', user.id)
+      .single();
+    if (!existing) {
+      const { error } = await supabase.from('usuarios').insert([
+        {
+          id: user.id,
+          name: user.user_metadata?.nombre || user.user_metadata?.full_name || '',
+          avatar_url: user.user_metadata?.avatar_url || '',
+          created_at: new Date().toISOString(),
+        },
+      ]);
+      if (error) {
+        console.error('Error insertando usuario en tabla usuarios:', error);
+        alert('Error insertando usuario en tabla usuarios: ' + error.message);
+      } else {
+        alert('Usuario insertado correctamente en la tabla usuarios');
+      }
+    } else {
+      console.log('El usuario ya existe en la tabla usuarios');
+    }
   }
 
   return (
@@ -115,11 +200,14 @@ const OnboardingMentor: React.FC = () => {
             style={{ left: '-112px', top: '-112px' }}
           />
           <img
-            src={avatarUrl || defaultAvatar}
+            src={avatarInput || defaultAvatar}
             alt="avatar"
-            className="w-36 h-36 md:w-44 md:h-44 rounded-full border-4 border-cyan-400 shadow-cyan-400/40 shadow-lg object-cover z-10 relative ring-4 ring-cyan-300 animate-avatar-float bg-black"
-            style={{ background: '#111827', objectFit: 'cover' }}
+            style={{ cursor: 'pointer', width: 120, height: 120, borderRadius: '50%' }}
+            onClick={() => document.getElementById('avatar-upload-input')?.click()}
           />
+          <div style={{ textAlign: 'center', color: '#b6eaff', marginTop: 8, marginBottom: 8 }}>
+            Haz clic en la imagen para subir tu foto de perfil
+          </div>
           {/* Visualizador de audio real debajo del avatar */}
           {audioUrl && <VoiceVisualizer audioUrl={audioUrl} />}
           {audioUrl && (
@@ -148,7 +236,9 @@ const OnboardingMentor: React.FC = () => {
             setShowEditModal(true);
           }}
         >Editar perfil</button>
-        <div className="text-2xl md:text-3xl font-orbitron text-cyan-300 mb-1 text-center">{userName || 'Invitado'} AI</div>
+        <div className="text-2xl md:text-3xl font-orbitron text-cyan-300 mb-1 text-center">
+          {nameInput || 'Invitado'} AI
+        </div>
         <div className="text-cyan-200 text-lg font-light italic mb-1 text-center">"Hoy es un gran día para crear lo imposible 🚀"</div>
         <div className="text-cyan-400 text-base font-medium mb-2 text-center">{dateStr}</div>
       </div>

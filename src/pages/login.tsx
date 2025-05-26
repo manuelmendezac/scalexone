@@ -27,6 +27,35 @@ const Login = () => {
     if (savedEmail) setEmail(savedEmail);
   }, [userName, location.pathname]);
 
+  // Función para crear el usuario en la tabla 'usuarios' si no existe
+  async function ensureUserInUsuariosTable(user: any) {
+    if (!user) return;
+    console.log('Intentando insertar usuario (login):', user);
+    const { data: existing, error: selectError } = await supabase
+      .from('usuarios')
+      .select('id')
+      .eq('id', user.id)
+      .single();
+    if (!existing) {
+      const { error } = await supabase.from('usuarios').insert([
+        {
+          id: user.id,
+          name: user.user_metadata?.nombre || user.user_metadata?.full_name || user.email || '',
+          avatar_url: user.user_metadata?.avatar_url || '/images/silueta-perfil.svg',
+          created_at: new Date().toISOString(),
+        },
+      ]);
+      if (error) {
+        console.error('Error insertando usuario en tabla usuarios (login):', error);
+        alert('Error insertando usuario en tabla usuarios (login): ' + error.message);
+      } else {
+        alert('Usuario insertado correctamente en la tabla usuarios (login)');
+      }
+    } else {
+      console.log('El usuario ya existe en la tabla usuarios (login)');
+    }
+  }
+
   // Login con email/contraseña
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,10 +67,15 @@ const Login = () => {
     } else {
       localStorage.removeItem('rememberedEmail');
     }
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     setLoading(false);
     if (error) setError(error.message);
-    else window.location.href = '/home';
+    else {
+      // Obtener el usuario autenticado
+      const { data: userData } = await supabase.auth.getUser();
+      await ensureUserInUsuariosTable(userData.user);
+      window.location.href = '/home';
+    }
   };
 
   // Recuperar contraseña
