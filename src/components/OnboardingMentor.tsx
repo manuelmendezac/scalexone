@@ -324,15 +324,13 @@ const OnboardingMentor: React.FC = () => {
                   .select('id')
                   .eq('id', user.id)
                   .single();
-                console.log('Usuario autenticado:', user);
-                console.log('Avatar URL a guardar:', url);
                 if (selectError && selectError.code !== 'PGRST116') {
                   alert('Error consultando la tabla usuarios: ' + selectError.message);
                   console.error('Error consultando la tabla usuarios:', selectError);
                   return;
                 }
                 if (existing) {
-                  // UPDATE
+                  // SOLO UPDATE
                   const { error: updateError } = await supabase
                     .from('usuarios')
                     .update({ avatar_url: url })
@@ -344,7 +342,7 @@ const OnboardingMentor: React.FC = () => {
                     console.log('Avatar actualizado correctamente en usuarios.');
                   }
                 } else {
-                  // INSERT
+                  // SOLO INSERT si no existe
                   const { error: insertError } = await supabase
                     .from('usuarios')
                     .insert([
