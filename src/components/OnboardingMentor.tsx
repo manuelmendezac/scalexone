@@ -174,79 +174,58 @@ const OnboardingMentor: React.FC = () => {
   return (
     <div className="w-full max-w-xl mx-auto flex flex-col items-center justify-center bg-gradient-to-b from-[#0a0a0a] to-[#111827] rounded-2xl p-8 shadow-xl border border-cyan-700 animate-fade-in">
       {/* Avatar IA con halo y visualizador de voz */}
-      <div className="relative flex flex-col items-center justify-center mb-6" style={{ minHeight: 260 }}>
-        <div style={{
-          position: 'absolute',
-          left: '50%',
-          top: '50%',
-          width: 240,
-          height: 240,
-          transform: 'translate(-50%, -50%)',
-          zIndex: 1,
-          pointerEvents: 'none',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}>
-          {/* Halo animado centrado */}
-          <span style={{
-            position: 'absolute',
-            width: 240,
-            height: 240,
-            borderRadius: '50%',
-            border: '4px solid #22d3ee',
-            boxShadow: '0 0 64px #0ff4',
-            left: 0,
-            top: 0,
-            zIndex: 1,
-            background: 'radial-gradient(circle, #22d3ee33 60%, transparent 100%)',
-            filter: 'blur(10px)'
-          }} />
-          {/* Puedes agregar más círculos para más efecto */}
-          <span style={{
-            position: 'absolute',
-            width: 200,
-            height: 200,
-            borderRadius: '50%',
-            border: '2px solid #a78bfa',
-            left: 20,
-            top: 20,
-            zIndex: 1,
-            opacity: 0.7
-          }} />
-          <span style={{
-            position: 'absolute',
-            width: 280,
-            height: 280,
-            borderRadius: '50%',
-            border: '2px solid #67e8f9',
-            left: -20,
-            top: -20,
-            zIndex: 1,
-            opacity: 0.5
-          }} />
-        </div>
-        <img
-          src={avatarInput || defaultAvatar}
-          alt="avatar"
-          style={{
-            cursor: 'pointer',
-            width: 180,
-            height: 180,
-            borderRadius: '50%',
-            objectFit: 'cover',
-            display: 'block',
-            margin: '0 auto',
-            boxShadow: '0 0 32px #0ff4',
-            border: '4px solid #22d3ee',
-            background: '#e5e7eb',
-            position: 'relative',
-            zIndex: 2
-          }}
-          onClick={() => document.getElementById('avatar-upload-input')?.click()}
-        />
-        <div style={{ textAlign: 'center', color: '#b6eaff', marginTop: 8, marginBottom: 8 }}>
-          Haz clic en la imagen para subir tu foto de perfil
+      <div className="flex flex-col items-center justify-center mb-6">
+        <div className="relative mb-4 flex flex-col items-center">
+          {/* Halo animado parlante avanzado y ondas SIEMPRE visibles */}
+          <span
+            className="absolute w-56 h-56 rounded-full z-0 halo-animado"
+            style={{
+              left: '-32px',
+              top: '-32px',
+              background: 'radial-gradient(circle, #22d3ee33 60%, transparent 100%)',
+              filter: 'blur(18px)',
+            }}
+          />
+          {/* Ondas de voz parlante (efecto realidad aumentada) */}
+          <span
+            className="absolute w-64 h-64 rounded-full border-2 border-cyan-400 voz-parlante-onda"
+            style={{ left: '-48px', top: '-48px' }}
+          />
+          <span
+            className="absolute w-72 h-72 rounded-full border-2 border-purple-400 voz-parlante-onda voz-parlante-onda-2"
+            style={{ left: '-80px', top: '-80px' }}
+          />
+          <span
+            className="absolute w-80 h-80 rounded-full border-2 border-cyan-300 voz-parlante-onda voz-parlante-onda-3"
+            style={{ left: '-112px', top: '-112px' }}
+          />
+          <img
+            src={avatarInput || defaultAvatar}
+            alt="avatar"
+            style={{
+              cursor: 'pointer',
+              width: 180,
+              height: 180,
+              borderRadius: '50%',
+              objectFit: 'cover',
+              display: 'block',
+              margin: '0 auto',
+              boxShadow: '0 0 32px #0ff4',
+              border: '4px solid #22d3ee',
+              background: '#e5e7eb',
+              position: 'relative',
+              zIndex: 2
+            }}
+            onClick={() => document.getElementById('avatar-upload-input')?.click()}
+          />
+          <style>{`
+            @media (max-width: 600px) {
+              img[alt="avatar"] {
+                width: 120px !important;
+                height: 120px !important;
+              }
+            }
+          `}</style>
         </div>
         {/* Visualizador de audio real debajo del avatar */}
         {audioUrl && <VoiceVisualizer audioUrl={audioUrl} />}
@@ -351,18 +330,6 @@ const OnboardingMentor: React.FC = () => {
           </div>
         </div>
       )}
-      <style>{`
-        @media (max-width: 600px) {
-          img[alt="avatar"] {
-            width: 120px !important;
-            height: 120px !important;
-          }
-          div[style*="width: 240px"] {
-            width: 160px !important;
-            height: 160px !important;
-          }
-        }
-      `}</style>
     </div>
   );
 };
