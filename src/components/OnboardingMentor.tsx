@@ -311,11 +311,9 @@ const OnboardingMentor: React.FC = () => {
               onUpload={async url => {
                 setAvatarInput(url);
                 setAvatarUrl(url);
-                // Flujo robusto: obtener usuario autenticado
                 const { data: { user }, error: userError } = await supabase.auth.getUser();
                 if (!user || userError) {
                   alert('No se pudo obtener el usuario autenticado.');
-                  console.error('No se pudo obtener el usuario autenticado:', userError);
                   return;
                 }
                 // Verificar si el registro ya existe
@@ -324,9 +322,8 @@ const OnboardingMentor: React.FC = () => {
                   .select('id')
                   .eq('id', user.id)
                   .single();
-                if (selectError && selectError.code !== 'PGRST116') {
+                if (selectError) {
                   alert('Error consultando la tabla usuarios: ' + selectError.message);
-                  console.error('Error consultando la tabla usuarios:', selectError);
                   return;
                 }
                 if (existing) {
@@ -337,28 +334,9 @@ const OnboardingMentor: React.FC = () => {
                     .eq('id', user.id);
                   if (updateError) {
                     alert('Error actualizando tu foto de perfil: ' + updateError.message);
-                    console.error('Error actualizando avatar_url en usuarios:', updateError);
-                  } else {
-                    console.log('Avatar actualizado correctamente en usuarios.');
                   }
                 } else {
-                  // SOLO INSERT si no existe
-                  const { error: insertError } = await supabase
-                    .from('usuarios')
-                    .insert([
-                      {
-                        id: user.id,
-                        name: user.user_metadata?.nombre || user.user_metadata?.full_name || user.email || '',
-                        avatar_url: url,
-                        created_at: new Date().toISOString(),
-                      },
-                    ]);
-                  if (insertError) {
-                    alert('Error insertando tu usuario: ' + insertError.message);
-                    console.error('Error insertando usuario en tabla usuarios:', insertError);
-                  } else {
-                    console.log('Usuario insertado correctamente en la tabla usuarios.');
-                  }
+                  alert('Tu usuario no existe en la tabla usuarios. Por favor, recarga la página o vuelve a iniciar sesión.');
                 }
               }}
               initialUrl={avatarInput || defaultAvatar}
