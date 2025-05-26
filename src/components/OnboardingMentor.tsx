@@ -134,7 +134,7 @@ const OnboardingMentor: React.FC = () => {
           cursorWidth={0}
           plugins={[]}
           onMount={() => {}}
-          container="onboarding-voice-waveform-container"
+          container=""
         >
           <WaveForm id="onboarding-voice-waveform" />
         </WaveSurfer>
