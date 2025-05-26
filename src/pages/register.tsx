@@ -11,6 +11,35 @@ const Register = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
+  // Función para crear el usuario en la tabla 'usuarios' si no existe
+  async function ensureUserInUsuariosTable(user: any) {
+    if (!user) return;
+    console.log('Intentando insertar usuario (register):', user);
+    const { data: existing, error: selectError } = await supabase
+      .from('usuarios')
+      .select('id')
+      .eq('id', user.id)
+      .single();
+    if (!existing) {
+      const { error } = await supabase.from('usuarios').insert([
+        {
+          id: user.id,
+          name: user.user_metadata?.nombre || user.user_metadata?.full_name || user.email || '',
+          avatar_url: user.user_metadata?.avatar_url || '/images/silueta-perfil.svg',
+          created_at: new Date().toISOString(),
+        },
+      ]);
+      if (error) {
+        console.error('Error insertando usuario en tabla usuarios (register):', error);
+        alert('Error insertando usuario en tabla usuarios (register): ' + error.message);
+      } else {
+        alert('Usuario insertado correctamente en la tabla usuarios (register)');
+      }
+    } else {
+      console.log('El usuario ya existe en la tabla usuarios (register)');
+    }
+  }
+
   // Registro con email/contraseña
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,6 +60,9 @@ const Register = () => {
     if (error) {
       setError(error.message);
     } else {
+      // Esperar a que el usuario esté disponible (puede estar en data.user o data.session.user)
+      const user = data.user || data.session?.user;
+      await ensureUserInUsuariosTable(user);
       window.location.href = '/home';
     }
   };
