@@ -3,6 +3,7 @@ import { supabase } from '../supabase';
 import useNeuroState from '../store/useNeuroState';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CheckCircle, Edit2, UploadCloud } from 'lucide-react';
+import defaultAvatar from '/images/silueta-perfil.svg';
 
 const moduloColors = [
   '#3ec6f7', // Sincronizador Mental
@@ -110,6 +111,22 @@ export default function SegundoCerebroHeader() {
   );
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Sincronizar avatar y nombre como en onboarding
+  React.useEffect(() => {
+    async function syncUserProfile() {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        if (!avatarUrl || avatarUrl === '' || avatarUrl === '/images/modulos/diseñofinalavatar.png') {
+          setAvatarUrl(user.user_metadata?.avatar_url || defaultAvatar);
+        }
+        if (!userName || userName === user.email) {
+          setUserName(user.user_metadata?.nombre || user.user_metadata?.full_name || 'Invitado');
+        }
+      }
+    }
+    syncUserProfile();
+  }, []);
+
   type Modulo = { key: string; nombreAmigable: string; progreso: number; estado: string };
   const modulos: Modulo[] = Object.values(iaModules).slice(0, 7) as Modulo[];
   const total = modulos.length > 0
@@ -158,7 +175,7 @@ export default function SegundoCerebroHeader() {
         {/* Avatar */}
         <div className="relative group">
           <img
-            src={avatarUrl || '/images/modulos/diseñofinalavatar.png'}
+            src={avatarUrl || defaultAvatar}
             alt="Avatar IA"
             className="w-40 h-40 rounded-full object-cover border-4 border-[#3ec6f7] shadow-xl bg-[#0a1a2f]"
           />
@@ -197,46 +214,23 @@ export default function SegundoCerebroHeader() {
       </div>
 
       {/* Columna Derecha */}
-      <div className="flex-1 flex flex-col gap-6">
+      <div className="flex-1 flex flex-col gap-6 items-start md:items-start sm:items-center">
         {/* Nombre y Estado */}
-        <div className="flex flex-col gap-4">
-          <div className="flex flex-row items-center gap-3">
-            {editName ? (
-              <>
-                <input
-                  className="text-4xl font-extrabold font-orbitron bg-[#0a1a2f] border border-[#3ec6f7] rounded-xl px-4 py-2 text-[#aef1ff] shadow focus:outline-none"
-                  value={nameInput}
-                  onChange={e => setNameInput(e.target.value)}
-                  onKeyDown={e => e.key === 'Enter' && handleNameSave()}
-                  autoFocus
-                  maxLength={32}
-                />
-                <button 
-                  className="ml-2 px-3 py-2 rounded-lg bg-[#3ec6f7] text-[#101c2c] font-bold hover:bg-[#aef1ff] transition" 
-                  onClick={handleNameSave}
-                >
-                  <CheckCircle className="w-6 h-6" />
-                </button>
-              </>
-            ) : (
-              <>
-                <span className="text-4xl font-extrabold font-orbitron text-[#aef1ff] drop-shadow-lg tracking-wide">
-                  {userName || 'Tu IA'}
-                </span>
-                <button 
-                  className="ml-2 px-2 py-1 rounded-lg bg-[#3ec6f7] text-[#101c2c] font-bold hover:bg-[#aef1ff] transition" 
-                  onClick={() => setEditName(true)} 
-                  title="Editar nombre"
-                >
-                  <Edit2 className="w-5 h-5" />
-                </button>
-              </>
-            )}
-          </div>
-          
-          <div className="text-xl text-[#b6eaff] font-semibold">
-            Dale forma, nómbralo y desbloquea tu potencial cognitivo aumentado.
-          </div>
+        <div className="flex items-center gap-3 flex-wrap">
+          <span className="text-3xl md:text-4xl font-bold font-orbitron text-[#3ec6f7] break-all text-center md:text-left">
+            {userName || 'Invitado'}
+          </span>
+          <button
+            className="bg-[#3ec6f7] text-[#101c2c] p-2 rounded-lg shadow hover:bg-[#aef1ff] transition"
+            onClick={() => setEditName(true)}
+            title="Editar nombre"
+          >
+            <Edit2 className="w-5 h-5" />
+          </button>
+        </div>
+        
+        <div className="text-xl text-[#b6eaff] font-semibold">
+          Dale forma, nómbralo y desbloquea tu potencial cognitivo aumentado.
         </div>
 
         {/* Estado y Botón de Activación */}
@@ -282,4 +276,13 @@ export default function SegundoCerebroHeader() {
       </div>
     </div>
   );
-} 
+}
+
+<style>{`
+  @media (max-width: 700px) {
+    .w-40 { width: 120px !important; height: 120px !important; }
+    .text-3xl, .md\:text-4xl { font-size: 1.5rem !important; }
+    .p-8 { padding: 1rem !important; }
+    .gap-12 { gap: 1.5rem !important; }
+  }
+`}</style> 
