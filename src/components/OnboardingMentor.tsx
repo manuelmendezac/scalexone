@@ -202,7 +202,20 @@ const OnboardingMentor: React.FC = () => {
           <img
             src={avatarInput || defaultAvatar}
             alt="avatar"
-            style={{ cursor: 'pointer', width: 120, height: 120, borderRadius: '50%' }}
+            style={{
+              cursor: 'pointer',
+              width: 180,
+              height: 180,
+              borderRadius: '50%',
+              objectFit: 'cover',
+              display: 'block',
+              margin: '0 auto',
+              boxShadow: '0 0 32px #0ff4',
+              border: '4px solid #22d3ee',
+              background: '#e5e7eb',
+              position: 'relative',
+              zIndex: 2
+            }}
             onClick={() => document.getElementById('avatar-upload-input')?.click()}
           />
           <div style={{ textAlign: 'center', color: '#b6eaff', marginTop: 8, marginBottom: 8 }}>
@@ -312,6 +325,14 @@ const OnboardingMentor: React.FC = () => {
           </div>
         </div>
       )}
+      <style>{`
+        @media (max-width: 600px) {
+          img[alt="avatar"] {
+            width: 120px !important;
+            height: 120px !important;
+          }
+        }
+      `}</style>
     </div>
   );
 };
