@@ -311,16 +311,55 @@ const OnboardingMentor: React.FC = () => {
               onUpload={async url => {
                 setAvatarInput(url);
                 setAvatarUrl(url);
-                // Actualizar avatar_url en la tabla usuarios
-                const { data: { user } } = await supabase.auth.getUser();
-                if (user) {
-                  const { error } = await supabase
+                // Flujo robusto: obtener usuario autenticado
+                const { data: { user }, error: userError } = await supabase.auth.getUser();
+                if (!user || userError) {
+                  alert('No se pudo obtener el usuario autenticado.');
+                  console.error('No se pudo obtener el usuario autenticado:', userError);
+                  return;
+                }
+                // Verificar si el registro ya existe
+                const { data: existing, error: selectError } = await supabase
+                  .from('usuarios')
+                  .select('id')
+                  .eq('id', user.id)
+                  .single();
+                console.log('Usuario autenticado:', user);
+                console.log('Avatar URL a guardar:', url);
+                if (selectError && selectError.code !== 'PGRST116') {
+                  alert('Error consultando la tabla usuarios: ' + selectError.message);
+                  console.error('Error consultando la tabla usuarios:', selectError);
+                  return;
+                }
+                if (existing) {
+                  // UPDATE
+                  const { error: updateError } = await supabase
                     .from('usuarios')
                     .update({ avatar_url: url })
                     .eq('id', user.id);
-                  if (error) {
-                    console.error('Error actualizando avatar_url en usuarios:', error);
-                    alert('Error actualizando tu foto de perfil: ' + error.message);
+                  if (updateError) {
+                    alert('Error actualizando tu foto de perfil: ' + updateError.message);
+                    console.error('Error actualizando avatar_url en usuarios:', updateError);
+                  } else {
+                    console.log('Avatar actualizado correctamente en usuarios.');
+                  }
+                } else {
+                  // INSERT
+                  const { error: insertError } = await supabase
+                    .from('usuarios')
+                    .insert([
+                      {
+                        id: user.id,
+                        name: user.user_metadata?.nombre || user.user_metadata?.full_name || user.email || '',
+                        avatar_url: url,
+                        created_at: new Date().toISOString(),
+                      },
+                    ]);
+                  if (insertError) {
+                    alert('Error insertando tu usuario: ' + insertError.message);
+                    console.error('Error insertando usuario en tabla usuarios:', insertError);
+                  } else {
+                    console.log('Usuario insertado correctamente en la tabla usuarios.');
                   }
                 }
               }}
