@@ -4,7 +4,7 @@ import useNeuroState from '../store/useNeuroState';
 
 const Header = () => {
   const [showProfile, setShowProfile] = useState(false);
-  const { userName } = useNeuroState();
+  const { userName, avatarUrl } = useNeuroState();
 
   return (
     <>
@@ -19,6 +19,18 @@ const Header = () => {
               <span className="text-neurolink-coldWhite font-futuristic">
                 {userName}
               </span>
+              {avatarUrl ? (
+                <img
+                  src={avatarUrl}
+                  alt="avatar"
+                  className="w-10 h-10 rounded-full object-cover border-2 border-cyan-400 shadow"
+                  style={{ background: '#e5e7eb' }}
+                />
+              ) : (
+                <div className="w-10 h-10 rounded-full bg-cyan-900 flex items-center justify-center border-2 border-cyan-400">
+                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#67e8f9" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4"/><path d="M6 20v-2a4 4 0 0 1 4-4h0a4 4 0 0 1 4 4v2"/></svg>
+                </div>
+              )}
               <button
                 onClick={() => setShowProfile(!showProfile)}
                 className="px-4 py-2 bg-neurolink-cyberBlue bg-opacity-10 text-neurolink-coldWhite font-futuristic border-2 border-neurolink-cyberBlue rounded-lg hover:bg-opacity-20 transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-neurolink-cyberBlue focus:ring-opacity-50"
