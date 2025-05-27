@@ -539,24 +539,24 @@ export default function ModuloCardSincronizadorMental({
         </div>
         {/* Modal de tareas IA */}
         <ModalFuturista open={modal === 'tareas'} onClose={() => setModal(null)} avatarUrl={avatarUrl} progreso={progreso}>
-          <div className="flex flex-row items-center justify-center gap-8 w-full px-8 pb-8 responsive-tareas-mentales">
+          <div className="flex flex-col items-center justify-center gap-8 w-full px-4 pb-8">
             {/* Mapa mental */}
-            <div className="flex flex-col items-center gap-3 bg-[#3ec6f7]/10 rounded-2xl p-8 border-2 border-[#3ec6f7]/30 shadow-xl animate-glow w-72 min-w-[220px]">
+            <div className="flex flex-col items-center gap-3 bg-[#3ec6f7]/10 rounded-2xl p-8 border-2 border-[#3ec6f7]/30 shadow-xl animate-glow w-full max-w-md">
               <img src="/images/modulos/mapamentalactual.svg" alt="Mapa Mental" className="w-16 h-16 mb-1 drop-shadow-glow" />
               <span className="text-[#aef1ff] font-bold text-xl text-center">Mapa mental rápido</span>
-              <button className="mt-4 px-8 py-3 rounded-xl bg-gradient-to-r from-[#3ec6f7] to-[#aef1ff] text-[#101c2c] font-bold text-lg shadow-lg border border-[#3ec6f7]" onClick={() => setOpenMapaMental(true)}>Sincronizar</button>
+              <button className="mt-4 px-8 py-3 rounded-xl bg-gradient-to-r from-[#3ec6f7] to-[#aef1ff] text-[#101c2c] font-bold text-lg shadow-lg border border-[#3ec6f7] w-full max-w-xs" onClick={() => setOpenMapaMental(true)}>Sincronizar</button>
             </div>
             {/* Sincronizar tareas IA */}
-            <div className="flex flex-col items-center gap-3 bg-[#3ec6f7]/10 rounded-2xl p-8 border-2 border-[#3ec6f7]/30 shadow-xl animate-glow w-72 min-w-[220px]">
+            <div className="flex flex-col items-center gap-3 bg-[#3ec6f7]/10 rounded-2xl p-8 border-2 border-[#3ec6f7]/30 shadow-xl animate-glow w-full max-w-md">
               <img src="/images/modulos/sincronizadordetareas.svg" alt="Sincronizar IA" className="w-16 h-16 mb-1 drop-shadow-glow" />
               <span className="text-[#aef1ff] font-bold text-xl text-center">Sincronizar tareas IA</span>
-              <button className="mt-4 px-8 py-3 rounded-xl bg-gradient-to-r from-[#3ec6f7] to-[#aef1ff] text-[#101c2c] font-bold text-lg shadow-lg border border-[#3ec6f7]" onClick={handleSincronizarTareasIA}>Sincronizar</button>
+              <button className="mt-4 px-8 py-3 rounded-xl bg-gradient-to-r from-[#3ec6f7] to-[#aef1ff] text-[#101c2c] font-bold text-lg shadow-lg border border-[#3ec6f7] w-full max-w-xs" onClick={handleSincronizarTareasIA}>Sincronizar</button>
             </div>
             {/* Agrupar pensamientos */}
-            <div className="flex flex-col items-center gap-3 bg-[#3ec6f7]/10 rounded-2xl p-8 border-2 border-[#3ec6f7]/30 shadow-xl animate-glow w-72 min-w-[220px]">
+            <div className="flex flex-col items-center gap-3 bg-[#3ec6f7]/10 rounded-2xl p-8 border-2 border-[#3ec6f7]/30 shadow-xl animate-glow w-full max-w-md">
               <img src="/images/modulos/agruparpensamientos.svg" alt="Agrupar Pensamientos" className="w-16 h-16 mb-1 drop-shadow-glow" />
               <span className="text-[#aef1ff] font-bold text-xl text-center">Agrupar pensamientos</span>
-              <button className="mt-4 px-8 py-3 rounded-xl bg-gradient-to-r from-[#3ec6f7] to-[#aef1ff] text-[#101c2c] font-bold text-lg shadow-lg border border-[#3ec6f7]" onClick={() => setModal('agrupar')}>Sincronizar</button>
+              <button className="mt-4 px-8 py-3 rounded-xl bg-gradient-to-r from-[#3ec6f7] to-[#aef1ff] text-[#101c2c] font-bold text-lg shadow-lg border border-[#3ec6f7] w-full max-w-xs" onClick={() => setModal('agrupar')}>Sincronizar</button>
             </div>
           </div>
         </ModalFuturista>
