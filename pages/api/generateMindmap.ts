@@ -30,14 +30,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }),
     });
 
-    const data = await response.json();
+    const data = await response.json().catch(() => null);
 
     if (!response.ok) {
-      return res.status(response.status).json({ error: data.error?.message || 'Error desconocido de OpenAI' });
+      return res.status(response.status).json({ error: data?.error?.message || 'Error desconocido de OpenAI' });
+    }
+
+    if (!data || !data.choices || !data.choices[0]?.message?.content) {
+      return res.status(500).json({ error: 'Respuesta inesperada o vacía de OpenAI' });
     }
 
     return res.status(200).json({ result: data.choices[0].message.content });
-  } catch (error) {
-    return res.status(500).json({ error: 'Error generando respuesta desde OpenAI' });
+  } catch (error: any) {
+    return res.status(500).json({ error: error?.message || 'Error generando respuesta desde OpenAI' });
   }
 }
