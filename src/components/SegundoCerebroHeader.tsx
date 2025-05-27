@@ -169,7 +169,7 @@ export default function SegundoCerebroHeader() {
   }
 
   return (
-    <div className="w-full flex flex-row items-start justify-between gap-12 bg-gradient-to-r from-[#181a2f]/80 via-[#23234a]/70 to-[#181a2f]/80 rounded-2xl p-8 mb-8 shadow-xl border border-[#a259f7]/30">
+    <div className="w-full flex flex-row items-start justify-between gap-12 bg-gradient-to-r from-[#181a2f]/80 via-[#23234a]/70 to-[#181a2f]/80 rounded-2xl p-8 mb-8 shadow-xl border border-[#a259f7]/30 responsive-segundo-cerebro-header">
       {/* Columna Izquierda */}
       <div className="flex flex-col items-center gap-6">
         {/* Avatar */}
@@ -180,11 +180,21 @@ export default function SegundoCerebroHeader() {
             className="w-40 h-40 rounded-full object-cover border-4 border-[#3ec6f7] shadow-xl bg-[#0a1a2f]"
           />
         </div>
-        
+        <AnimatePresence>
+          {uploading && (
+            <motion.div 
+              initial={{ opacity: 0 }} 
+              animate={{ opacity: 1 }} 
+              exit={{ opacity: 0 }} 
+              className="text-sm text-[#3ec6f7]"
+            >
+              Subiendo...
+            </motion.div>
+          )}
+        </AnimatePresence>
         {/* Barra de Progreso Circular */}
         <NeonProgressCircle percentage={total} />
       </div>
-
       {/* Columna Derecha */}
       <div className="flex-1 flex flex-col gap-6 items-start md:items-start sm:items-center">
         {/* Nombre y Estado */}
@@ -200,11 +210,9 @@ export default function SegundoCerebroHeader() {
             <Edit2 className="w-5 h-5" />
           </button>
         </div>
-        
         <div className="text-xl text-[#b6eaff] font-semibold">
           Dale forma, nómbralo y desbloquea tu potencial cognitivo aumentado.
         </div>
-
         {/* Estado y Botón de Activación */}
         <div className="flex flex-row gap-4 items-center">
           <span className={`px-4 py-2 rounded-full font-bold text-lg flex items-center gap-2 ${
@@ -224,9 +232,8 @@ export default function SegundoCerebroHeader() {
             {activated ? '¡Activado!' : 'Activar mi Segundo Cerebro'}
           </motion.button>
         </div>
-
         {/* Lista de Módulos */}
-        <div className="grid grid-cols-2 gap-4 mt-4">
+        <div className="grid grid-cols-2 gap-4 mt-4 responsive-modulos">
           {modulos.map((m, i) => (
             <div 
               key={m.key} 
@@ -246,15 +253,19 @@ export default function SegundoCerebroHeader() {
           ))}
         </div>
       </div>
+      <style>{`
+        @media (max-width: 700px) {
+          .responsive-segundo-cerebro-header {
+            flex-direction: column !important;
+            gap: 1.5rem !important;
+            padding: 1rem !important;
+            align-items: center !important;
+          }
+          .w-40 { width: 100px !important; height: 100px !important; }
+          .text-3xl, .md\:text-4xl { font-size: 1.2rem !important; }
+          .responsive-modulos { grid-template-columns: 1fr !important; }
+        }
+      `}</style>
     </div>
   );
-}
-
-<style>{`
-  @media (max-width: 700px) {
-    .w-40 { width: 120px !important; height: 120px !important; }
-    .text-3xl, .md\:text-4xl { font-size: 1.5rem !important; }
-    .p-8 { padding: 1rem !important; }
-    .gap-12 { gap: 1.5rem !important; }
-  }
-`}</style> 
+} 
