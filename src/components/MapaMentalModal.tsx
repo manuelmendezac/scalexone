@@ -91,7 +91,7 @@ function activarVoz(setIdeaCentral: (text: string) => void) {
 }
 
 // Llamada a OpenAI para generar el mapa mental
-async function generarMapaMentalIA(ideaCentral: string, ramas: string[]): Promise<MindMapData | null> {
+async function generarMapaMentalIA(ideaCentral: string, ramas: string[]): Promise<MindMapData | { error: string } | null> {
   const prompt = `
 Estoy creando un mapa mental y necesito que lo estructures en formato de árbol para visualizarlo y trabajarlo con IA.
 
@@ -113,25 +113,31 @@ Formato esperado:
 Solo responde con el JSON. No agregues explicación adicional ni encabezados.
 `;
 
-  const response = await fetch('/api/generateMindmap', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ prompt })
-  });
-
-  const data = await response.json();
-  if (!data.result) return null;
-  const text = data.result.trim();
-  const jsonStart = text.indexOf('{');
-  const jsonEnd = text.lastIndexOf('}');
-  if (jsonStart === -1 || jsonEnd === -1) return null;
-  const jsonString = text.substring(jsonStart, jsonEnd + 1);
   try {
-    return JSON.parse(jsonString);
-  } catch {
-    return null;
+    const response = await fetch('/api/generateMindmap', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ prompt })
+    });
+    const data = await response.json();
+    if (!response.ok) {
+      return { error: data.error || 'Error desconocido del backend' };
+    }
+    if (!data.result) return { error: 'No se recibió resultado de la IA' };
+    const text = data.result.trim();
+    const jsonStart = text.indexOf('{');
+    const jsonEnd = text.lastIndexOf('}');
+    if (jsonStart === -1 || jsonEnd === -1) return { error: 'No se encontró JSON en la respuesta de la IA' };
+    const jsonString = text.substring(jsonStart, jsonEnd + 1);
+    try {
+      return JSON.parse(jsonString);
+    } catch (e) {
+      return { error: 'Error al parsear JSON: ' + (e as Error).message };
+    }
+  } catch (e: any) {
+    return { error: e?.message || 'Error desconocido al llamar a la API' };
   }
 }
 
@@ -191,15 +197,20 @@ export default function MapaMentalModal({ open, onClose, avatarUrl, progreso = 0
     setMapaGenerado(null);
     try {
       const resultado = await generarMapaMentalIA(idea, ramas);
-      setMapaGenerado(resultado);
+      if ((resultado as any)?.error) {
+        setMensaje('Error: ' + (resultado as any).error);
+        setLoading(false);
+        return;
+      }
+      setMapaGenerado(resultado as MindMapData);
       setLoading(false);
       setXp((prev) => prev + 30);
       setMensaje('¡Mapa mental sincronizado! +30 XP');
-      if (resultado && resultado.ramas && resultado.ramas.length > 3 && resultado.ramas.every(r => r.subtemas && r.subtemas.length > 2)) {
+      if ((resultado as MindMapData)?.ramas && (resultado as MindMapData).ramas.length > 3 && (resultado as MindMapData).ramas.every(r => r.subtemas && r.subtemas.length > 2)) {
         setBadge(true);
       }
-    } catch {
-      setMensaje('Error al generar el mapa mental. Intenta de nuevo.');
+    } catch (e: any) {
+      setMensaje('Error inesperado: ' + (e?.message || 'Intenta de nuevo.'));
       setLoading(false);
     }
   };
