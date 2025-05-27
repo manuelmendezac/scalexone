@@ -171,7 +171,7 @@ function PopupSincronizadorVisual({ open, onClose, avatarUrl, progreso, xp, neur
           </button>
         </div>
         {/* Tareas */}
-        <div className="flex flex-row items-center justify-center gap-8 w-full px-8 pb-8">
+        <div className="flex flex-row items-center justify-center gap-8 w-full px-8 pb-8 responsive-tareas-mentales">
           {/* Mapa mental */}
           <div className="flex flex-col items-center gap-3 bg-[#3ec6f7]/10 rounded-2xl p-8 border-2 border-[#3ec6f7]/30 shadow-xl animate-glow w-72 min-w-[220px]">
             <img src="/images/modulos/mapamentalactual.svg" alt="Mapa Mental" className="w-16 h-16 mb-1 drop-shadow-glow" />
@@ -191,6 +191,22 @@ function PopupSincronizadorVisual({ open, onClose, avatarUrl, progreso, xp, neur
             <button className="mt-4 px-8 py-3 rounded-xl bg-gradient-to-r from-[#3ec6f7] to-[#aef1ff] text-[#101c2c] font-bold text-lg shadow-lg border border-[#3ec6f7] opacity-70 cursor-not-allowed">Sincronizar</button>
           </div>
         </div>
+        <style>{`
+          @media (max-width: 900px) {
+            .responsive-tareas-mentales {
+              flex-direction: column !important;
+              gap: 1.5rem !important;
+              align-items: center !important;
+              padding-left: 0 !important;
+              padding-right: 0 !important;
+            }
+            .responsive-tareas-mentales > div {
+              width: 90vw !important;
+              max-width: 340px !important;
+              min-width: 0 !important;
+            }
+          }
+        `}</style>
       </div>
     </div>
   );
