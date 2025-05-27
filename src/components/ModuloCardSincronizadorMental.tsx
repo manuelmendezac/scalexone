@@ -502,35 +502,35 @@ export default function ModuloCardSincronizadorMental({
           </button>
         </div>
         {/* Funcionalidades horizontales */}
-        <div className="relative z-10 flex flex-row items-center gap-10 px-2 md:px-10 py-8 bg-[#162232]/80 border-t border-[#3ec6f7]/30 justify-between overflow-x-auto">
+        <div className="relative z-10 flex flex-col items-center gap-8 px-2 md:px-10 py-8 bg-[#162232]/80 border-t border-[#3ec6f7]/30">
           {/* Mapa mental rápido */}
-          <div className="flex flex-col items-center gap-3 bg-[#3ec6f7]/10 rounded-2xl p-8 hover:bg-[#3ec6f7]/30 transition group border-2 border-[#3ec6f7]/30 shadow-xl animate-glow w-80 min-w-[320px]">
+          <div className="flex flex-col items-center gap-3 bg-[#3ec6f7]/10 rounded-2xl p-8 hover:bg-[#3ec6f7]/30 transition group border-2 border-[#3ec6f7]/30 shadow-xl animate-glow w-full max-w-md">
             <img src="/images/modulos/mapamentalactual.svg" alt="Mapa Mental" className="w-20 h-20 mb-1 group-hover:scale-110 transition-all drop-shadow-glow" />
             <span className="text-[#aef1ff] font-bold text-2xl text-center">Mapa mental rápido</span>
             <button
-              className="mt-4 px-8 py-3 rounded-xl bg-gradient-to-r from-[#3ec6f7] to-[#aef1ff] text-[#101c2c] font-bold text-lg shadow-lg hover:from-[#4fd1fa] hover:to-[#aef1ff] transition-all animate-bounce border border-[#3ec6f7]"
+              className="mt-4 px-8 py-3 rounded-xl bg-gradient-to-r from-[#3ec6f7] to-[#aef1ff] text-[#101c2c] font-bold text-lg shadow-lg hover:from-[#4fd1fa] hover:to-[#aef1ff] transition-all animate-bounce border border-[#3ec6f7] w-full max-w-xs"
               onClick={() => setOpenMapaMental(true)}
             >
               Sincronizar
             </button>
           </div>
           {/* Sincronizar tareas IA */}
-          <div className="flex flex-col items-center gap-3 bg-[#3ec6f7]/10 rounded-2xl p-8 hover:bg-[#3ec6f7]/30 transition group border-2 border-[#3ec6f7]/30 shadow-xl animate-glow w-80 min-w-[320px]">
+          <div className="flex flex-col items-center gap-3 bg-[#3ec6f7]/10 rounded-2xl p-8 hover:bg-[#3ec6f7]/30 transition group border-2 border-[#3ec6f7]/30 shadow-xl animate-glow w-full max-w-md">
             <img src="/images/modulos/sincronizadordetareas.svg" alt="Sincronizar IA" className="w-20 h-20 mb-1 group-hover:scale-110 transition-all drop-shadow-glow" />
             <span className="text-[#aef1ff] font-bold text-2xl text-center">Sincronizar tareas IA</span>
             <button
-              className="mt-4 px-8 py-3 rounded-xl bg-gradient-to-r from-[#3ec6f7] to-[#aef1ff] text-[#101c2c] font-bold text-lg shadow-lg hover:from-[#4fd1fa] hover:to-[#aef1ff] transition-all animate-bounce border border-[#3ec6f7]"
+              className="mt-4 px-8 py-3 rounded-xl bg-gradient-to-r from-[#3ec6f7] to-[#aef1ff] text-[#101c2c] font-bold text-lg shadow-lg hover:from-[#4fd1fa] hover:to-[#aef1ff] transition-all animate-bounce border border-[#3ec6f7] w-full max-w-xs"
               onClick={handleSincronizarTareasIA}
             >
               Sincronizar
             </button>
           </div>
           {/* Agrupar pensamientos por tema */}
-          <div className="flex flex-col items-center gap-3 bg-[#3ec6f7]/10 rounded-2xl p-8 hover:bg-[#3ec6f7]/30 transition group border-2 border-[#3ec6f7]/30 shadow-xl animate-glow w-80 min-w-[320px]">
+          <div className="flex flex-col items-center gap-3 bg-[#3ec6f7]/10 rounded-2xl p-8 hover:bg-[#3ec6f7]/30 transition group border-2 border-[#3ec6f7]/30 shadow-xl animate-glow w-full max-w-md">
             <img src="/images/modulos/agruparpensamientos.svg" alt="Agrupar Pensamientos" className="w-20 h-20 mb-1 group-hover:scale-110 transition-all drop-shadow-glow" />
             <span className="text-[#aef1ff] font-bold text-2xl text-center">Agrupar pensamientos</span>
             <button
-              className="mt-4 px-8 py-3 rounded-xl bg-gradient-to-r from-[#3ec6f7] to-[#aef1ff] text-[#101c2c] font-bold text-lg shadow-lg hover:from-[#4fd1fa] hover:to-[#aef1ff] transition-all animate-bounce border border-[#3ec6f7]"
+              className="mt-4 px-8 py-3 rounded-xl bg-gradient-to-r from-[#3ec6f7] to-[#aef1ff] text-[#101c2c] font-bold text-lg shadow-lg hover:from-[#4fd1fa] hover:to-[#aef1ff] transition-all animate-bounce border border-[#3ec6f7] w-full max-w-xs"
               onClick={() => setModal('agrupar')}
             >
               Sincronizar
