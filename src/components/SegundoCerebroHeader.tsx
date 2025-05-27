@@ -179,35 +179,7 @@ export default function SegundoCerebroHeader() {
             alt="Avatar IA"
             className="w-40 h-40 rounded-full object-cover border-4 border-[#3ec6f7] shadow-xl bg-[#0a1a2f]"
           />
-          <button
-            className="absolute bottom-2 right-2 bg-[#3ec6f7] text-[#101c2c] p-2 rounded-full shadow-lg hover:bg-[#aef1ff] transition"
-            onClick={() => fileInputRef.current?.click()}
-            disabled={uploading}
-            title="Cambiar avatar"
-          >
-            <UploadCloud className="w-5 h-5" />
-          </button>
-          <input
-            type="file"
-            accept="image/*"
-            className="hidden"
-            ref={fileInputRef}
-            onChange={handleAvatarChange}
-            disabled={uploading}
-          />
         </div>
-        <AnimatePresence>
-          {uploading && (
-            <motion.div 
-              initial={{ opacity: 0 }} 
-              animate={{ opacity: 1 }} 
-              exit={{ opacity: 0 }} 
-              className="text-sm text-[#3ec6f7]"
-            >
-              Subiendo...
-            </motion.div>
-          )}
-        </AnimatePresence>
         
         {/* Barra de Progreso Circular */}
         <NeonProgressCircle percentage={total} />
