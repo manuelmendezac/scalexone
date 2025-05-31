@@ -226,7 +226,7 @@ const Topbar: React.FC<TopbarProps> = ({
                   <img
                     src={avatarUrl}
                     alt="avatar"
-                    className="w-9 h-9 rounded-full object-cover border-2 border-cyan-400 shadow"
+                    className="w-9 h-9 rounded-full object-cover border-2 border-cyan-400 shadow bg-transparent"
                   />
                 ) : (
                   <div className="w-9 h-9 rounded-full bg-cyan-900 flex items-center justify-center border-2 border-cyan-400">
