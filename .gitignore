@@ -1,24 +1,28 @@
+# Node
+node_modules/
+
+# Build
+/dist/
+/dev-dist/
+
+# Env
+.env
+.env.*
+
 # Logs
-logs
-*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-pnpm-debug.log*
-lerna-debug.log*
 
-node_modules
-dist
-dist-ssr
-*.local
-
-# Editor directories and files
-.vscode/*
-!.vscode/extensions.json
-.idea
+# Sistema
 .DS_Store
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
+
+# Audios y videos grandes
+*.mp3
+*.wav
+*.mp4
+*.mov
+
+# Otros
+.idea/
+.vscode/
