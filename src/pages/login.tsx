@@ -74,7 +74,7 @@ const Login = () => {
       // Obtener el usuario autenticado
       const { data: userData } = await supabase.auth.getUser();
       await ensureUserInUsuariosTable(userData.user);
-      window.location.href = '/home';
+      window.location.href = '/dashboard';
     }
   };
 
