@@ -74,7 +74,7 @@ const Login = () => {
       // Obtener el usuario autenticado
       const { data: userData } = await supabase.auth.getUser();
       await ensureUserInUsuariosTable(userData.user);
-      window.location.href = '/dashboard';
+      window.location.href = 'https://www.scalexone.app/home';
     }
   };
 
