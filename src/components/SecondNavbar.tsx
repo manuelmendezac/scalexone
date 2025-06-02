@@ -18,16 +18,6 @@ const menu = [
     to: '/dashboard',
   },
   {
-    label: 'Mi Segundo Cerebro',
-    icon: <FaBrain />,
-    to: '/segundo-cerebro',
-  },
-  {
-    label: 'Centro de Entrenamiento',
-    icon: <MdOutlineSchool />,
-    to: '/centro-entrenamiento',
-  },
-  {
     label: 'Implementar Mi IA',
     icon: <FiGlobe />,
     to: '/implementar-ia',
