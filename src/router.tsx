@@ -8,7 +8,6 @@ import UploaderDocsIA from './components/UploaderDocsIA';
 import PanelIA from './components/PanelIA';
 import SelectorNicho from './components/SelectorNicho';
 import Inicio from './pages/Inicio';
-import SegundoCerebro from './pages/SegundoCerebro';
 import PlanificadorMetas from './pages/PlanificadorMetas';
 import { KnowledgeVaultQuiz } from './components/vault';
 import DynamicExpertProfile from './components/expert/DynamicExpertProfile';
