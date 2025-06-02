@@ -1,6 +1,7 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import LandingBePartnex from "../../components/templates/LandingBePartnex";
+import LandingSenalesPro from "../../components/templates/LandingSenalesPro";
 
 const templates = [
   {
@@ -8,6 +9,23 @@ const templates = [
     name: "Landing BePartnex",
     component: LandingBePartnex,
     description: "Plantilla moderna para landings de IA, comunidad y embudos."
+  },
+  {
+    id: "senales-pro",
+    name: "Señales Pro",
+    component: (props: any) => (
+      <LandingSenalesPro
+        logo="/logo.svg"
+        title="SEÑALES PRO VICFOREX"
+        subtitle="Recibe 3 meses gratis hoy mismo!"
+        button1Text="Quiero Ser Parte"
+        button1Link="#join"
+        button2Text="Ver Cómo Funciona"
+        button2Link="#how"
+        {...props}
+      />
+    ),
+    description: "Landing personalizable para servicios de señales profesionales."
   }
 ];
 
