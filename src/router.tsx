@@ -27,6 +27,8 @@ import ProtectedRoute from './components/ProtectedRoute';
 import ResetPassword from './pages/ResetPassword';
 import Perfil from './pages/Perfil';
 import Error404 from './components/Error404';
+import TemplatesIndex from './pages/templates/index';
+import TemplateEditor from './pages/templates/editor/[templateId]';
 
 export const router = createBrowserRouter([
   {
@@ -134,6 +136,13 @@ export const router = createBrowserRouter([
       {
         path: 'perfil',
         element: <Perfil />
+      },
+      {
+        path: 'templates',
+        children: [
+          { index: true, element: <TemplatesIndex /> },
+          { path: 'editor/:templateId', element: <TemplateEditor /> }
+        ]
       },
     ]
   },
