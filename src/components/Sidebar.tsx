@@ -12,8 +12,8 @@ import {
 } from 'lucide-react';
 import { useTheme } from '../context/themeContext';
 
-const navItems = [
-  { path: '/centro-entrenamiento', label: 'Centro de Entrenamiento', icon: <LayoutDashboard className="w-5 h-5" /> },
+const navItems: { path: string; label: string; icon: JSX.Element }[] = [
+  // { path: '/centro-entrenamiento', label: 'Centro de Entrenamiento', icon: <LayoutDashboard className="w-5 h-5" /> },
 ];
 
 const Sidebar = () => {

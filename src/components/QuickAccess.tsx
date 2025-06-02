@@ -4,8 +4,8 @@ import { FiBookOpen, FiGlobe, FiUsers } from 'react-icons/fi';
 import { NavLink } from 'react-router-dom';
 
 const access = [
-  { label: 'Mi Segundo Cerebro', icon: <FaBrain />, to: '/mind-sync', color: 'from-cyan-700 to-cyan-400' },
-  { label: 'Centro de Entrenamiento', icon: <FiBookOpen />, to: '/knowledge-vault', color: 'from-purple-700 to-cyan-400' },
+  // { label: 'Mi Segundo Cerebro', icon: <FaBrain />, to: '/mind-sync', color: 'from-cyan-700 to-cyan-400' },
+  // { label: 'Centro de Entrenamiento', icon: <FiBookOpen />, to: '/knowledge-vault', color: 'from-purple-700 to-cyan-400' },
   { label: 'Implementar mi IA', icon: <FiGlobe />, to: '/embed-js', color: 'from-pink-700 to-cyan-400' },
   { label: 'Dashboard de Afiliación', icon: <FiUsers />, to: '/afiliados', color: 'from-yellow-700 to-cyan-400' },
 ];
