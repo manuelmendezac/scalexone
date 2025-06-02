@@ -81,8 +81,8 @@ function App() {
           name: session.user.user_metadata?.nombre || '',
           email: session.user.email || '',
         });
-        if (!window.location.pathname.startsWith('/home')) {
-          window.location.href = '/home';
+        if (!window.location.pathname.startsWith('/dashboard')) {
+          window.location.href = '/dashboard';
         }
       }
     });

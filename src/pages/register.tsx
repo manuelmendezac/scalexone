@@ -63,7 +63,7 @@ const Register = () => {
       // Esperar a que el usuario esté disponible (puede estar en data.user o data.session.user)
       const user = data.user || data.session?.user;
       await ensureUserInUsuariosTable(user);
-      window.location.href = '/home';
+      window.location.href = '/dashboard';
     }
   };
 
