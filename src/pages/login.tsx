@@ -151,8 +151,11 @@ const Login = () => {
             }}
           />
           <div style={{ padding: 32, paddingTop: 24, width: '100%' }}>
-            <button onClick={handleGoogle} style={{ width: '100%', background: '#fff', color: '#222', border: 'none', borderRadius: 8, padding: 12, fontWeight: 700, fontSize: 16, marginBottom: 18, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, boxShadow: '0 2px 8px #0002', cursor: 'pointer' }}>
-              <img src="/images/google.svg" alt="Google" style={{ width: 22, height: 22 }} /> Ingresar con Google
+            <div style={{ textAlign: 'center', color: '#00ffe0', fontWeight: 700, fontSize: 22, marginBottom: 18 }}>
+              ¡Bienvenido a ScalexOne! Plataforma para escalar ventas, comunidad y automatización con IA 🚀
+            </div>
+            <button onClick={handleGoogle} style={{ width: '100%', background: '#00ffe0', color: '#181828', border: 'none', borderRadius: 8, padding: 12, fontWeight: 700, fontSize: 16, marginBottom: 18, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, boxShadow: '0 2px 8px #0002', cursor: 'pointer' }}>
+              <img src="/images/google.svg" alt="Google" style={{ width: 22, height: 22 }} /> Registrarse o ingresar con Google
             </button>
             <div style={{ textAlign: 'center', color: '#b6eaff', margin: '18px 0 10px 0', fontWeight: 600 }}>o ingresa con tu correo</div>
             <form onSubmit={handleLogin} style={{ width: '100%' }}>
