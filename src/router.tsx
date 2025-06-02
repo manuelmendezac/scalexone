@@ -26,6 +26,7 @@ import Register from './pages/register';
 import ProtectedRoute from './components/ProtectedRoute';
 import ResetPassword from './pages/ResetPassword';
 import Perfil from './pages/Perfil';
+import Error404 from './components/Error404';
 
 export const router = createBrowserRouter([
   {
@@ -143,5 +144,9 @@ export const router = createBrowserRouter([
   {
     path: '/planificador-metas',
     element: <PlanificadorMetas />,
+  },
+  {
+    path: '*',
+    element: <Error404 />
   },
 ]); 
