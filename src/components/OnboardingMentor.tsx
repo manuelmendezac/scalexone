@@ -8,11 +8,12 @@ import AvatarUploader from './AvatarUploader';
 import { supabase } from '../supabase';
 
 const steps = [
-  'Explora tu Segundo Cerebro',
-  'Personaliza tu clon en el Centro de Entrenamiento',
-  'Activa el modo Focus',
-  'Conecta tu clon fuera de la plataforma',
-  'Consulta tu Dashboard',
+  'Lanza tu primer producto o servicio',
+  'Accede a cursos y recursos exclusivos',
+  'Únete y participa en la comunidad',
+  'Activa tu agente IA para ventas y soporte',
+  'Configura automatizaciones para tu negocio',
+  'Consulta tu dashboard de crecimiento',
 ];
 
 const audioUrl = '/sounds/synthesis.mp3';
