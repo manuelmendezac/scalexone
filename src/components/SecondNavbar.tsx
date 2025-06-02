@@ -24,6 +24,12 @@ const menu = [
     description: 'Despliega y gestiona tu clon IA',
   },
   {
+    label: 'Plantillas',
+    icon: <FiGlobe />,
+    to: '/templates',
+    description: 'Explora y personaliza plantillas web',
+  },
+  {
     label: 'Configuración',
     icon: <FiSettings />,
     to: '/configuracion',
