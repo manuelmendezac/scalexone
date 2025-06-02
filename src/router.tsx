@@ -10,11 +10,7 @@ import SelectorNicho from './components/SelectorNicho';
 import Inicio from './pages/Inicio';
 import SegundoCerebro from './pages/SegundoCerebro';
 import PlanificadorMetas from './pages/PlanificadorMetas';
-import CentroEntrenamientoPage from './components/pages/CentroEntrenamientoPage';
 import { KnowledgeVaultQuiz } from './components/vault';
-import EntrenamientoDiarioMemoryMatch from './components/centro/EntrenamientoDiarioMemoryMatch';
-import InteligenciaHabitos from './components/centro/InteligenciaHabitos';
-import PerfilCognitivo from './components/centro/PerfilCognitivo';
 import DynamicExpertProfile from './components/expert/DynamicExpertProfile';
 import MetaGalaxyMap from './components/aspiracional/MetaGalaxyMap';
 import MisionPersonalGame from './components/aspiracional/MisionPersonalGame';
@@ -83,28 +79,8 @@ export const router = createBrowserRouter([
         ]
       },
       {
-        path: 'segundo-cerebro',
-        element: <SegundoCerebro />
-      },
-      {
-        path: 'centro-entrenamiento',
-        element: <CentroEntrenamientoPage />
-      },
-      {
         path: 'knowledge-vault',
         element: <KnowledgeVaultQuiz />
-      },
-      {
-        path: 'entrenamiento-diario',
-        element: <EntrenamientoDiarioMemoryMatch />
-      },
-      {
-        path: 'inteligencia-habitos',
-        element: <InteligenciaHabitos />
-      },
-      {
-        path: 'perfil-cognitivo',
-        element: <PerfilCognitivo />
       },
       {
         path: 'dynamic-expert-profile',
