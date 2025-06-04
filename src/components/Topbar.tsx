@@ -34,6 +34,11 @@ const Topbar: React.FC<TopbarProps> = ({
   const language = i18n.language === 'en' ? 'en' : 'es';
   const navigate = useNavigate();
   const { notifications, avatarUrl, setUserName, updateUserInfo } = useNeuroState();
+  const [affiliateMode, setAffiliateMode] = useState(() => {
+    // Persistencia en localStorage
+    const saved = localStorage.getItem('affiliateMode');
+    return saved === 'IB' ? 'IB' : 'Client';
+  });
 
   // Cerrar el dropdown de afiliado al hacer clic fuera
   useEffect(() => {
@@ -95,6 +100,16 @@ const Topbar: React.FC<TopbarProps> = ({
       i18n.changeLanguage(savedLang);
     }
   }, [i18n]);
+
+  const handleSwitchAffiliate = (mode: 'Client' | 'IB') => {
+    setAffiliateMode(mode);
+    localStorage.setItem('affiliateMode', mode);
+    if (mode === 'IB') {
+      navigate('/afiliados');
+    } else {
+      window.location.href = 'https://www.scalexone.app/home';
+    }
+  };
 
   return (
     <header className="w-full bg-gray-900 text-white font-orbitron px-2 sm:px-4 py-2 flex items-center justify-between shadow-lg z-50 border-b border-cyan-900">
@@ -213,8 +228,20 @@ const Topbar: React.FC<TopbarProps> = ({
             <>
               {/* Switch tipo Client | IB */}
               <div className="switch-affiliate">
-                <span className="switch-label-left">Client</span>
-                <span className="switch-circle">IB</span>
+                <span
+                  className={`switch-label-left cursor-pointer ${affiliateMode === 'Client' ? 'font-bold text-cyan-600' : ''}`}
+                  onClick={() => handleSwitchAffiliate('Client')}
+                  title="Ir al área de clientes"
+                >
+                  Client
+                </span>
+                <span
+                  className={`switch-circle cursor-pointer ${affiliateMode === 'IB' ? 'bg-cyan-600' : ''}`}
+                  onClick={() => handleSwitchAffiliate('IB')}
+                  title="Ir al área de afiliados"
+                >
+                  IB
+                </span>
               </div>
               <button
                 className="flex items-center focus:outline-none"
