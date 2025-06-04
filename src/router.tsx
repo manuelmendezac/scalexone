@@ -29,6 +29,8 @@ import Error404 from './components/Error404';
 import TemplatesIndex from './pages/templates/index';
 import TemplateEditor from './pages/templates/editor/[templateId]';
 import AfiliadosPage from './pages/afiliados/index';
+import IBMarcaBlancaPage from './pages/afiliados/ib-marca-blanca';
+import IBScalexOnePage from './pages/afiliados/ib-scalexone';
 
 export const router = createBrowserRouter([
   {
@@ -149,6 +151,14 @@ export const router = createBrowserRouter([
   {
     path: '/afiliados',
     element: <AfiliadosPage />
+  },
+  {
+    path: '/afiliados/ib-marca-blanca',
+    element: <IBMarcaBlancaPage />
+  },
+  {
+    path: '/afiliados/ib-scalexone',
+    element: <IBScalexOnePage />
   },
   {
     path: '/onboarding',
