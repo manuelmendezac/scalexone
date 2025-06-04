@@ -9,6 +9,7 @@
     #whatsapp-button { background: #25d366; color: #fff; }
     #cta-button { background: #ffce00; color: #222; }
     .error-message { color: #ff4444; margin: 20px; }
+    .success-message { color: #44ff44; margin: 20px; }
   </style>
 </head>
 <body>
@@ -29,67 +30,100 @@
       }
     };
 
+    // Función para logging
+    function log(message, type = 'info') {
+      console.log(`[BePartnex] ${message}`);
+      if (type === 'error') {
+        console.error(`[BePartnex] ${message}`);
+      }
+    }
+
     // Función para obtener parámetros de la URL
     function getQueryParam(param) {
       try {
         const urlParams = new URLSearchParams(window.location.search);
-        return urlParams.get(param);
+        const value = urlParams.get(param);
+        log(`Parámetro ${param}: ${value}`);
+        return value;
       } catch (error) {
-        console.error('Error al obtener parámetros de URL:', error);
+        log(`Error al obtener parámetro ${param}: ${error.message}`, 'error');
         return null;
       }
     }
 
     // Función para validar el código de referencia
     function validarRef(ref) {
-      return ref && ref.length >= 3 && /^[a-zA-Z0-9-_]+$/.test(ref);
+      const isValid = ref && ref.length >= 3 && /^[a-zA-Z0-9-_]+$/.test(ref);
+      log(`Validación de ref ${ref}: ${isValid ? 'válido' : 'inválido'}`);
+      return isValid;
     }
 
     // Función para actualizar enlaces
     function actualizarEnlaces(ref) {
-      try {
-        // Actualizar WhatsApp
-        const whatsappBtn = document.getElementById('whatsapp-button');
-        if (whatsappBtn) {
+      log(`Actualizando enlaces con ref: ${ref}`);
+      
+      // Actualizar WhatsApp
+      const whatsappBtn = document.getElementById('whatsapp-button');
+      if (whatsappBtn) {
+        try {
           const mensaje = encodeURIComponent(`${CONFIG.whatsapp.mensajeBase} (Ref: ${ref})`);
           whatsappBtn.href = `https://wa.me/${CONFIG.whatsapp.numero}?text=${mensaje}`;
+          log('Enlace de WhatsApp actualizado');
+        } catch (error) {
+          log(`Error al actualizar WhatsApp: ${error.message}`, 'error');
         }
+      }
 
-        // Actualizar CTA
-        const ctaBtn = document.getElementById('cta-button');
-        if (ctaBtn) {
+      // Actualizar CTA
+      const ctaBtn = document.getElementById('cta-button');
+      if (ctaBtn) {
+        try {
           ctaBtn.href = `${CONFIG.cta.urlBase}?ref=${ref}`;
+          log('Enlace CTA actualizado');
+        } catch (error) {
+          log(`Error al actualizar CTA: ${error.message}`, 'error');
         }
+      }
 
-        // Guardar el ref en localStorage para futuras visitas
+      // Guardar el ref en localStorage
+      try {
         localStorage.setItem('lastRef', ref);
+        log('Ref guardado en localStorage');
       } catch (error) {
-        console.error('Error al actualizar enlaces:', error);
-        mostrarError('Hubo un error al personalizar los enlaces.');
+        log(`Error al guardar en localStorage: ${error.message}`, 'error');
       }
     }
 
-    // Función para mostrar errores
-    function mostrarError(mensaje) {
-      const errorDiv = document.createElement('div');
-      errorDiv.className = 'error-message';
-      errorDiv.textContent = mensaje;
-      document.body.appendChild(errorDiv);
+    // Función para mostrar mensajes
+    function mostrarMensaje(mensaje, tipo = 'error') {
+      const div = document.createElement('div');
+      div.className = tipo === 'error' ? 'error-message' : 'success-message';
+      div.textContent = mensaje;
+      document.body.appendChild(div);
+      log(`Mensaje mostrado: ${mensaje}`, tipo);
     }
 
     // Inicialización cuando el DOM está listo
     document.addEventListener("DOMContentLoaded", function() {
+      log('Iniciando personalización de landing');
       const ref = getQueryParam('ref');
       
       if (ref && validarRef(ref)) {
         actualizarEnlaces(ref);
+        mostrarMensaje('Landing personalizada correctamente', 'success');
       } else {
         // Intentar recuperar el último ref usado
-        const lastRef = localStorage.getItem('lastRef');
-        if (lastRef && validarRef(lastRef)) {
-          actualizarEnlaces(lastRef);
-        } else {
-          mostrarError('Código de referencia no válido o no proporcionado.');
+        try {
+          const lastRef = localStorage.getItem('lastRef');
+          if (lastRef && validarRef(lastRef)) {
+            actualizarEnlaces(lastRef);
+            mostrarMensaje('Usando último código de referencia', 'success');
+          } else {
+            mostrarMensaje('Código de referencia no válido o no proporcionado');
+          }
+        } catch (error) {
+          log(`Error al recuperar último ref: ${error.message}`, 'error');
+          mostrarMensaje('Error al cargar la personalización');
         }
       }
     });
