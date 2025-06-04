@@ -8,6 +8,7 @@
     a { display: inline-block; margin: 20px; padding: 16px 32px; border-radius: 8px; text-decoration: none; font-size: 1.2em; }
     #whatsapp-button { background: #25d366; color: #fff; }
     #cta-button { background: #ffce00; color: #222; }
+    .error-message { color: #ff4444; margin: 20px; }
   </style>
 </head>
 <body>
@@ -15,27 +16,80 @@
   <a id="whatsapp-button" href="#" target="_blank">Contactar por WhatsApp</a>
   <a id="cta-button" href="#" target="_blank">Comprar ahora</a>
 
-  <!-- Script para personalizar los enlaces -->
+  <!-- Script mejorado para personalizar los enlaces -->
   <script>
+    // Configuración de enlaces por defecto
+    const CONFIG = {
+      whatsapp: {
+        numero: '51999999999', // Cambia por tu número
+        mensajeBase: '¡Hola! Me gustaría más información sobre BePartnex.'
+      },
+      cta: {
+        urlBase: 'https://tupago.com/checkout'
+      }
+    };
+
+    // Función para obtener parámetros de la URL
     function getQueryParam(param) {
-      const urlParams = new URLSearchParams(window.location.search);
-      return urlParams.get(param);
+      try {
+        const urlParams = new URLSearchParams(window.location.search);
+        return urlParams.get(param);
+      } catch (error) {
+        console.error('Error al obtener parámetros de URL:', error);
+        return null;
+      }
     }
 
-    document.addEventListener("DOMContentLoaded", function() {
-      const ref = getQueryParam('ref');
-      if (ref) {
-        // Personalizar WhatsApp
+    // Función para validar el código de referencia
+    function validarRef(ref) {
+      return ref && ref.length >= 3 && /^[a-zA-Z0-9-_]+$/.test(ref);
+    }
+
+    // Función para actualizar enlaces
+    function actualizarEnlaces(ref) {
+      try {
+        // Actualizar WhatsApp
         const whatsappBtn = document.getElementById('whatsapp-button');
         if (whatsappBtn) {
-          const numero = '51999999999'; // Cambia por tu número
-          const mensaje = encodeURIComponent(`¡Hola! Soy el referido: ${ref}`);
-          whatsappBtn.href = `https://wa.me/${numero}?text=${mensaje}`;
+          const mensaje = encodeURIComponent(`${CONFIG.whatsapp.mensajeBase} (Ref: ${ref})`);
+          whatsappBtn.href = `https://wa.me/${CONFIG.whatsapp.numero}?text=${mensaje}`;
         }
-        // Personalizar CTA
+
+        // Actualizar CTA
         const ctaBtn = document.getElementById('cta-button');
         if (ctaBtn) {
-          ctaBtn.href = `https://tupago.com/checkout?ref=${ref}`;
+          ctaBtn.href = `${CONFIG.cta.urlBase}?ref=${ref}`;
+        }
+
+        // Guardar el ref en localStorage para futuras visitas
+        localStorage.setItem('lastRef', ref);
+      } catch (error) {
+        console.error('Error al actualizar enlaces:', error);
+        mostrarError('Hubo un error al personalizar los enlaces.');
+      }
+    }
+
+    // Función para mostrar errores
+    function mostrarError(mensaje) {
+      const errorDiv = document.createElement('div');
+      errorDiv.className = 'error-message';
+      errorDiv.textContent = mensaje;
+      document.body.appendChild(errorDiv);
+    }
+
+    // Inicialización cuando el DOM está listo
+    document.addEventListener("DOMContentLoaded", function() {
+      const ref = getQueryParam('ref');
+      
+      if (ref && validarRef(ref)) {
+        actualizarEnlaces(ref);
+      } else {
+        // Intentar recuperar el último ref usado
+        const lastRef = localStorage.getItem('lastRef');
+        if (lastRef && validarRef(lastRef)) {
+          actualizarEnlaces(lastRef);
+        } else {
+          mostrarError('Código de referencia no válido o no proporcionado.');
         }
       }
     });
