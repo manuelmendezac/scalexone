@@ -19,7 +19,8 @@ const AfiliadosLayout: React.FC<AfiliadosLayoutProps> = ({ children }) => {
 
   const menuItems = [
     { name: 'Panel de Control', icon: HomeIcon, path: '/afiliados' },
-    { name: 'Informe IB', icon: ChartBarIcon, path: '/afiliados/informe' },
+    { name: 'Comisiones Marca Blanca', icon: ChartBarIcon, path: '/afiliados/ib-marca-blanca' },
+    { name: 'Comisiones ScalexOne', icon: ChartBarIcon, path: '/afiliados/ib-scalexone' },
     { name: 'Multinivel IB', icon: UserGroupIcon, path: '/afiliados/multinivel' },
     { name: 'Cuentas IB', icon: UserGroupIcon, path: '/afiliados/cuentas' },
     { name: 'Historial', icon: ClockIcon, path: '/afiliados/historial' },
