@@ -5,6 +5,7 @@
     }
   },
   "rewrites": [
+    { "source": "/static-templates/(.*)", "destination": "/static-templates/$1" },
     { "source": "/(.*)", "destination": "/" }
   ],
   "headers": [
