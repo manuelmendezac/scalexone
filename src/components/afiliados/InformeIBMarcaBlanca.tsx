@@ -16,6 +16,7 @@ const InformeIBMarcaBlanca: React.FC = () => {
   const [fondos, setFondos] = useState<any[]>([]);
   const [comisiones, setComisiones] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+  const [totalAfiliados, setTotalAfiliados] = useState(0);
 
   useEffect(() => {
     async function fetchData() {
@@ -31,6 +32,13 @@ const InformeIBMarcaBlanca: React.FC = () => {
       setFondos(await fondosRes.json());
       const comisionesRes = await fetch(`/api/afiliados/comisiones?afiliado_id=${afiliado_id}`);
       setComisiones(await comisionesRes.json());
+      // Calcular total de afiliados (usuarios referidos por este afiliado)
+      const { data: sales } = await supabase
+        .from('sales')
+        .select('user_id')
+        .eq('afiliado_id', afiliado_id);
+      const afiliadosUnicos = new Set((sales || []).map(s => s.user_id));
+      setTotalAfiliados(afiliadosUnicos.size);
       setLoading(false);
     }
     fetchData();
@@ -54,12 +62,12 @@ const InformeIBMarcaBlanca: React.FC = () => {
   const totalPaginasComisiones = Math.ceil(comisionesFiltradas.length / porPagina) || 1;
   const comisionesPaginadas = comisionesFiltradas.slice((pagina - 1) * porPagina, pagina * porPagina);
 
-  // Tarjetas de resumen
+  // Tarjetas de resumen adaptadas
   const resumenFondos = {
-    financiamientoNeto: fondosFiltrados.reduce((acc, f) => acc + (Number(f.cantidad) || 0), 0),
-    depositos: fondosFiltrados.reduce((acc, f) => acc + (f.escribe === 'Deposit' ? Number(f.cantidad) : 0), 0),
-    retiros: fondosFiltrados.reduce((acc, f) => acc + (f.escribe === 'Withdraw' ? Number(f.cantidad) : 0), 0),
-    cuentasAbiertas: new Set(fondosFiltrados.map(f => f.cuenta)).size,
+    comisionesNetas: comisiones.reduce((acc, c) => acc + (Number(c.comision) || 0), 0),
+    comisionesDisponibles: comisiones.filter(c => c.estado === 'pendiente' || c.estado === 'disponible').reduce((acc, c) => acc + (Number(c.comision) || 0), 0),
+    retiros: comisiones.filter(c => c.estado === 'pagada').reduce((acc, c) => acc + (Number(c.comision) || 0), 0),
+    totalAfiliados: totalAfiliados,
   };
 
   // Cambiar de pestaña resetea la página
@@ -88,20 +96,20 @@ const InformeIBMarcaBlanca: React.FC = () => {
       {tab === 'fondos' && (
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           <div className="bg-white rounded-2xl shadow-md p-6 flex flex-col items-center border border-gray-100">
-            <span className="text-gray-500 text-sm mb-1 font-medium">Financiamiento Neto</span>
-            <span className="text-2xl font-bold text-blue-800">${resumenFondos.financiamientoNeto}</span>
+            <span className="text-gray-500 text-sm mb-1 font-medium">Comisiones Netas</span>
+            <span className="text-2xl font-bold text-blue-800">${resumenFondos.comisionesNetas}</span>
           </div>
           <div className="bg-white rounded-2xl shadow-md p-6 flex flex-col items-center border border-gray-100">
-            <span className="text-gray-500 text-sm mb-1 font-medium">Depósitos</span>
-            <span className="text-2xl font-bold text-blue-800">${resumenFondos.depositos}</span>
+            <span className="text-gray-500 text-sm mb-1 font-medium">Comisiones Disponibles</span>
+            <span className="text-2xl font-bold text-blue-800">${resumenFondos.comisionesDisponibles}</span>
           </div>
           <div className="bg-white rounded-2xl shadow-md p-6 flex flex-col items-center border border-gray-100">
             <span className="text-gray-500 text-sm mb-1 font-medium">Retiros</span>
             <span className="text-2xl font-bold text-blue-800">${resumenFondos.retiros}</span>
           </div>
           <div className="bg-white rounded-2xl shadow-md p-6 flex flex-col items-center border border-gray-100">
-            <span className="text-gray-500 text-sm mb-1 font-medium">Cuentas Abiertas</span>
-            <span className="text-2xl font-bold text-blue-800">{resumenFondos.cuentasAbiertas}</span>
+            <span className="text-gray-500 text-sm mb-1 font-medium">Total Afiliados</span>
+            <span className="text-2xl font-bold text-blue-800">{resumenFondos.totalAfiliados}</span>
           </div>
         </div>
       )}
