@@ -18,21 +18,49 @@ const menu = [
     to: '/dashboard',
   },
   {
-    label: 'Implementar Mi IA',
-    icon: <FiGlobe />,
-    to: '/implementar-ia',
-    description: 'Despliega y gestiona tu clon IA',
+    label: 'Cursos',
+    icon: <MdOutlineSchool />,
+    to: '/classroom',
   },
   {
-    label: 'Plantillas',
+    label: 'Launchpad',
+    icon: <FaBrain />,
+    to: '/launchpad',
+  },
+  {
+    label: 'Comunidad',
+    icon: <FiUser />,
+    to: '/community',
+  },
+  {
+    label: 'Gamificación',
+    icon: <FiBarChart2 />,
+    to: '/gamification',
+  },
+  {
+    label: 'Embudos',
     icon: <FiGlobe />,
-    to: '/templates',
-    description: 'Explora y personaliza plantillas web',
+    to: '/funnels',
+  },
+  {
+    label: 'IA',
+    icon: <FaBrain />,
+    to: '/agent',
+  },
+  {
+    label: 'Automatizaciones',
+    icon: <FiSettings />,
+    to: '/automations',
+  },
+  {
+    label: 'WhatsApp CRM',
+    icon: <FiGlobe />,
+    to: '/whatsapp-crm',
   },
   {
     label: 'Configuración',
     icon: <FiSettings />,
-    to: '/configuracion',
+    to: '/settings',
   },
 ];
 
