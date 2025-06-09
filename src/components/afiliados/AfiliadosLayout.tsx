@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import {
   HomeIcon,
   ChartBarIcon,
@@ -16,6 +16,7 @@ interface AfiliadosLayoutProps {
 
 const AfiliadosLayout: React.FC<AfiliadosLayoutProps> = ({ children }) => {
   const [isClientMode, setIsClientMode] = useState(false);
+  const location = useLocation();
 
   const menuItems = [
     { name: 'Panel de Control', icon: HomeIcon, path: '/afiliados' },
@@ -30,33 +31,38 @@ const AfiliadosLayout: React.FC<AfiliadosLayoutProps> = ({ children }) => {
   ];
 
   return (
-    <div className="flex h-screen bg-gray-100">
+    <div className="flex h-screen bg-[#f7f9fb]">
       {/* Sidebar */}
-      <div className="w-64 bg-blue-800 text-white">
-        <div className="p-4">
-          <h2 className="text-2xl font-bold">Portal IB</h2>
+      <div className="w-64 bg-blue-800 text-white flex flex-col shadow-lg">
+        <div className="p-6 border-b border-blue-700">
+          <h2 className="text-2xl font-bold font-orbitron tracking-wide">Portal IB</h2>
         </div>
-        <nav className="mt-4">
-          {menuItems.map((item) => (
-            <Link
-              key={item.name}
-              to={item.path}
-              className="flex items-center px-4 py-3 text-gray-100 hover:bg-blue-700"
-            >
-              <item.icon className="w-5 h-5 mr-3" />
-              {item.name}
-            </Link>
-          ))}
+        <nav className="mt-4 flex-1">
+          {menuItems.map((item) => {
+            const isActive = location.pathname === item.path;
+            return (
+              <Link
+                key={item.name}
+                to={item.path}
+                className={`flex items-center px-5 py-3 my-1 rounded-lg font-semibold transition-all
+                  ${isActive ? 'bg-white text-blue-800 shadow border-l-4 border-blue-400' : 'hover:bg-blue-700 text-gray-100'}`}
+                style={{ fontFamily: 'Orbitron, Inter, Arial, sans-serif' }}
+              >
+                <item.icon className={`w-5 h-5 mr-3 ${isActive ? 'text-blue-600' : 'text-blue-200'}`} />
+                {item.name}
+              </Link>
+            );
+          })}
         </nav>
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col overflow-hidden">
+      <div className="flex-1 flex flex-col overflow-hidden bg-[#f7f9fb]">
         {/* Top Bar */}
-        <header className="bg-white shadow-sm">
-          <div className="flex items-center justify-between px-6 py-3">
+        <header className="bg-white shadow-sm sticky top-0 z-10">
+          <div className="flex items-center justify-between px-8 py-4">
             <div className="flex items-center">
-              <h1 className="text-xl font-semibold text-gray-800">Portal de Afiliados</h1>
+              <h1 className="text-2xl font-bold text-blue-900 font-orbitron tracking-wide">Comisiones de Afiliados</h1>
             </div>
             <div className="flex items-center space-x-4">
               {/* Client/IB Switch */}
@@ -78,7 +84,7 @@ const AfiliadosLayout: React.FC<AfiliadosLayoutProps> = ({ children }) => {
         </header>
 
         {/* Main Content Area */}
-        <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100 p-6">
+        <main className="flex-1 overflow-x-hidden overflow-y-auto bg-[#f7f9fb] p-8">
           {children}
         </main>
       </div>
