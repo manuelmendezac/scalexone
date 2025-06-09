@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Calendar, Share2, MessageSquare, Info, ChevronLeft, ChevronRight, Maximize2, Menu } from 'lucide-react';
 import LaunchCalendar from '../components/launchpad/LaunchCalendar';
@@ -33,10 +33,22 @@ const sidebarItems = [
 ];
 
 const Launchpad: React.FC = () => {
-  const [isMenuOpen, setIsMenuOpen] = useState(window.innerWidth >= 1024);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<LaunchEvent | null>(null);
   const [isVideoExpanded, setIsVideoExpanded] = useState(false);
   const [selectedDate, setSelectedDate] = useState<string | undefined>(undefined);
+
+  // Ajustar barra lateral según el ancho de pantalla después del primer render
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setIsMenuOpen(window.innerWidth >= 1024);
+      const handleResize = () => {
+        setIsMenuOpen(window.innerWidth >= 1024);
+      };
+      window.addEventListener('resize', handleResize);
+      return () => window.removeEventListener('resize', handleResize);
+    }
+  }, []);
 
   // Datos de ejemplo
   const events: LaunchEvent[] = [
@@ -60,16 +72,6 @@ const Launchpad: React.FC = () => {
   const filteredEvents = selectedDate
     ? events.filter(e => e.date === selectedDate)
     : events;
-
-  // Responsive: mostrar/ocultar barra lateral en móvil
-  React.useEffect(() => {
-    const handleResize = () => {
-      if (window.innerWidth < 1024) setIsMenuOpen(false);
-      else setIsMenuOpen(true);
-    };
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
 
   return (
     <div className="min-h-screen bg-gray-900 text-white">
