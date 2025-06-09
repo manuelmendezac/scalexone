@@ -300,43 +300,6 @@ const Topbar: React.FC<TopbarProps> = ({
           </AnimatePresence>
         </div>
       </div>
-
-      {/* Menú principal ScalexOne */}
-      <nav className="flex-1 flex items-center gap-2 sm:gap-6 ml-8">
-        <button onClick={() => navigate('/home')} className="flex items-center gap-1 font-orbitron text-lg px-2 py-1 rounded transition hover:text-cyan-400 focus:outline-none" aria-label="Inicio">
-          <span className="material-icons text-cyan-400">home</span> Inicio
-        </button>
-        <button onClick={() => navigate('/dashboard')} className="flex items-center gap-1 font-orbitron text-lg px-2 py-1 rounded transition hover:text-cyan-400 focus:outline-none" aria-label="Dashboard">
-          <span className="material-icons">dashboard</span> Dashboard
-        </button>
-        <button onClick={() => navigate('/classroom')} className="flex items-center gap-1 font-orbitron text-lg px-2 py-1 rounded transition hover:text-cyan-400 focus:outline-none" aria-label="Classroom">
-          <span className="material-icons">school</span> Cursos
-        </button>
-        <button onClick={() => navigate('/launchpad')} className="flex items-center gap-1 font-orbitron text-lg px-2 py-1 rounded transition hover:text-cyan-400 focus:outline-none" aria-label="Launchpad">
-          <span className="material-icons">event</span> Launchpad
-        </button>
-        <button onClick={() => navigate('/community')} className="flex items-center gap-1 font-orbitron text-lg px-2 py-1 rounded transition hover:text-cyan-400 focus:outline-none" aria-label="Comunidad">
-          <span className="material-icons">groups</span> Comunidad
-        </button>
-        <button onClick={() => navigate('/gamification')} className="flex items-center gap-1 font-orbitron text-lg px-2 py-1 rounded transition hover:text-cyan-400 focus:outline-none" aria-label="Gamificación">
-          <span className="material-icons">emoji_events</span> Gamificación
-        </button>
-        <button onClick={() => navigate('/funnels')} className="flex items-center gap-1 font-orbitron text-lg px-2 py-1 rounded transition hover:text-cyan-400 focus:outline-none" aria-label="Embudos">
-          <span className="material-icons">tune</span> Embudos
-        </button>
-        <button onClick={() => navigate('/agent')} className="flex items-center gap-1 font-orbitron text-lg px-2 py-1 rounded transition hover:text-cyan-400 focus:outline-none" aria-label="Agente IA">
-          <span className="material-icons">smart_toy</span> IA
-        </button>
-        <button onClick={() => navigate('/automations')} className="flex items-center gap-1 font-orbitron text-lg px-2 py-1 rounded transition hover:text-cyan-400 focus:outline-none" aria-label="Automatizaciones">
-          <span className="material-icons">bolt</span> Automatizaciones
-        </button>
-        <button onClick={() => navigate('/whatsapp-crm')} className="flex items-center gap-1 font-orbitron text-lg px-2 py-1 rounded transition hover:text-cyan-400 focus:outline-none" aria-label="WhatsApp CRM">
-          <span className="material-icons">whatsapp</span> WhatsApp CRM
-        </button>
-        <button onClick={() => navigate('/settings')} className="flex items-center gap-1 font-orbitron text-lg px-2 py-1 rounded transition hover:text-cyan-400 focus:outline-none" aria-label="Configuración">
-          <span className="material-icons">settings</span> Configuración
-        </button>
-      </nav>
     </header>
   );
 };
