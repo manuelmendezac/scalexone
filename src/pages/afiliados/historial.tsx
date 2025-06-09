@@ -85,9 +85,6 @@ const HistorialTransaccionesPage = () => {
             </div>
           </div>
         </div>
-        <div className="mt-16 text-xs text-gray-400 text-center max-w-2xl mx-auto">
-          Advertencia de riesgo: operar en Forex y CFD implica un riesgo significativo y puede resultar en la pérdida de su capital. La negociación no es adecuada para todos los inversores. Antes de operar, asegúrese de comprender completamente los riesgos.
-        </div>
       </div>
     </AfiliadosLayout>
   );
