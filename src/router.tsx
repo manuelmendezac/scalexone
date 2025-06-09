@@ -42,7 +42,7 @@ import Launchpad from './pages/Launchpad';
 export const router = createBrowserRouter([
   {
     path: '/',
-    element: <ProtectedRoute><App /></ProtectedRoute>,
+    element: <App />,
     children: [
       {
         index: true,
@@ -52,110 +52,116 @@ export const router = createBrowserRouter([
         path: 'registro',
         element: <Register />
       },
+      // Rutas protegidas
       {
-        path: 'inicio',
-        element: <Inicio />
-      },
-      {
-        path: 'home',
-        element: <Inicio />
-      },
-      {
-        path: 'dashboard',
-        element: <ProtectedRoute><Dashboard /></ProtectedRoute>,
+        element: <ProtectedRoute><></></ProtectedRoute>,
         children: [
           {
-            index: true,
+            path: 'inicio',
             element: <Inicio />
           },
           {
-            path: 'console',
-            element: <AIConsole />
+            path: 'home',
+            element: <Inicio />
           },
           {
-            path: 'knowledge',
-            element: <KnowledgeAssistant />
+            path: 'dashboard',
+            element: <Dashboard />,
+            children: [
+              {
+                index: true,
+                element: <Inicio />
+              },
+              {
+                path: 'console',
+                element: <AIConsole />
+              },
+              {
+                path: 'knowledge',
+                element: <KnowledgeAssistant />
+              },
+              {
+                path: 'uploader',
+                element: <UploaderDocsIA />
+              },
+              {
+                path: 'panel',
+                element: <PanelIA />
+              },
+              {
+                path: 'nicho',
+                element: <SelectorNicho />
+              }
+            ]
           },
           {
-            path: 'uploader',
-            element: <UploaderDocsIA />
+            path: 'knowledge-vault',
+            element: <KnowledgeVaultQuiz />
           },
           {
-            path: 'panel',
-            element: <PanelIA />
+            path: 'dynamic-expert-profile',
+            element: <DynamicExpertProfile />
           },
           {
-            path: 'nicho',
-            element: <SelectorNicho />
-          }
+            path: 'meta-galaxy',
+            element: <MetaGalaxyMap />
+          },
+          {
+            path: 'meta-galaxy/mision-personal',
+            element: <MisionPersonalGame />
+          },
+          {
+            path: 'meta-galaxy/pasiones',
+            element: <PasionesGame />
+          },
+          {
+            path: 'meta-galaxy/habilidades',
+            element: <HabilidadesGame />
+          },
+          {
+            path: 'meta-galaxy/impacto',
+            element: <ImpactoGame />
+          },
+          {
+            path: 'meta-galaxy/sueno-maximo',
+            element: <SuenoMaximoGame />
+          },
+          {
+            path: 'perfil-aspiracional',
+            element: <MetaGalaxyMap />
+          },
+          {
+            path: 'implementar-ia',
+            element: <ImplementarIAPage />
+          },
+          {
+            path: 'personalizar-agente/:id',
+            element: <PersonalizarAgente />,
+          },
+          {
+            path: 'configuracion',
+            element: <ConfiguracionProyecto />,
+          },
+          {
+            path: 'reset-password',
+            element: <ResetPassword />
+          },
+          {
+            path: 'perfil',
+            element: <Perfil />
+          },
+          {
+            path: 'templates',
+            children: [
+              { index: true, element: <TemplatesIndex /> },
+              { path: 'editor/:templateId', element: <TemplateEditor /> }
+            ]
+          },
+          {
+            path: 'launchpad',
+            element: <Launchpad />
+          },
         ]
-      },
-      {
-        path: 'knowledge-vault',
-        element: <KnowledgeVaultQuiz />
-      },
-      {
-        path: 'dynamic-expert-profile',
-        element: <DynamicExpertProfile />
-      },
-      {
-        path: 'meta-galaxy',
-        element: <MetaGalaxyMap />
-      },
-      {
-        path: 'meta-galaxy/mision-personal',
-        element: <MisionPersonalGame />
-      },
-      {
-        path: 'meta-galaxy/pasiones',
-        element: <PasionesGame />
-      },
-      {
-        path: 'meta-galaxy/habilidades',
-        element: <HabilidadesGame />
-      },
-      {
-        path: 'meta-galaxy/impacto',
-        element: <ImpactoGame />
-      },
-      {
-        path: 'meta-galaxy/sueno-maximo',
-        element: <SuenoMaximoGame />
-      },
-      {
-        path: 'perfil-aspiracional',
-        element: <MetaGalaxyMap />
-      },
-      {
-        path: 'implementar-ia',
-        element: <ImplementarIAPage />
-      },
-      {
-        path: 'personalizar-agente/:id',
-        element: <PersonalizarAgente />,
-      },
-      {
-        path: 'configuracion',
-        element: <ConfiguracionProyecto />,
-      },
-      {
-        path: 'reset-password',
-        element: <ResetPassword />
-      },
-      {
-        path: 'perfil',
-        element: <Perfil />
-      },
-      {
-        path: 'templates',
-        children: [
-          { index: true, element: <TemplatesIndex /> },
-          { path: 'editor/:templateId', element: <TemplateEditor /> }
-        ]
-      },
-      {
-        path: 'launchpad',
-        element: <Launchpad />
       },
     ]
   },
