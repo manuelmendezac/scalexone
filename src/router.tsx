@@ -36,6 +36,7 @@ import CuentasIBPage from './pages/afiliados/cuentas';
 import HistorialTransaccionesPage from './pages/afiliados/historial';
 import PerfilIBPage from './pages/afiliados/perfil';
 import EnlacesAfiliadosPage from './pages/afiliados/enlaces';
+import ContactoIBPage from './pages/afiliados/contacto';
 
 export const router = createBrowserRouter([
   {
@@ -184,6 +185,10 @@ export const router = createBrowserRouter([
   {
     path: '/afiliados/enlaces',
     element: <EnlacesAfiliadosPage />
+  },
+  {
+    path: '/afiliados/contacto',
+    element: <ContactoIBPage />
   },
   {
     path: '/onboarding',
