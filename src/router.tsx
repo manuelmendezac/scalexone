@@ -37,11 +37,12 @@ import HistorialTransaccionesPage from './pages/afiliados/historial';
 import PerfilIBPage from './pages/afiliados/perfil';
 import EnlacesAfiliadosPage from './pages/afiliados/enlaces';
 import ContactoIBPage from './pages/afiliados/contacto';
+import Launchpad from './pages/Launchpad';
 
 export const router = createBrowserRouter([
   {
     path: '/',
-    element: <App />,
+    element: <ProtectedRoute><App /></ProtectedRoute>,
     children: [
       {
         index: true,
@@ -151,6 +152,10 @@ export const router = createBrowserRouter([
           { index: true, element: <TemplatesIndex /> },
           { path: 'editor/:templateId', element: <TemplateEditor /> }
         ]
+      },
+      {
+        path: 'launchpad',
+        element: <Launchpad />
       },
     ]
   },
