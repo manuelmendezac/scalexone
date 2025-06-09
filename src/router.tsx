@@ -33,6 +33,7 @@ import IBMarcaBlancaPage from './pages/afiliados/ib-marca-blanca';
 import IBScalexOnePage from './pages/afiliados/ib-scalexone';
 import MultinivelIBPage from './pages/afiliados/multinivel';
 import CuentasIBPage from './pages/afiliados/cuentas';
+import HistorialTransaccionesPage from './pages/afiliados/historial';
 
 export const router = createBrowserRouter([
   {
@@ -169,6 +170,10 @@ export const router = createBrowserRouter([
   {
     path: '/afiliados/cuentas',
     element: <CuentasIBPage />
+  },
+  {
+    path: '/afiliados/historial',
+    element: <HistorialTransaccionesPage />
   },
   {
     path: '/onboarding',
