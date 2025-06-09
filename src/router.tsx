@@ -35,6 +35,7 @@ import MultinivelIBPage from './pages/afiliados/multinivel';
 import CuentasIBPage from './pages/afiliados/cuentas';
 import HistorialTransaccionesPage from './pages/afiliados/historial';
 import PerfilIBPage from './pages/afiliados/perfil';
+import EnlacesAfiliadosPage from './pages/afiliados/enlaces';
 
 export const router = createBrowserRouter([
   {
@@ -179,6 +180,10 @@ export const router = createBrowserRouter([
   {
     path: '/afiliados/perfil',
     element: <PerfilIBPage />
+  },
+  {
+    path: '/afiliados/enlaces',
+    element: <EnlacesAfiliadosPage />
   },
   {
     path: '/onboarding',
