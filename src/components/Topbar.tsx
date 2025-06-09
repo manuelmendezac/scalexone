@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import useNeuroState from '../store/useNeuroState';
 import { supabase } from '../supabase';
+import SwitchClienteIB from './SwitchClienteIB';
 
 interface TopbarProps {
   userAvatar?: string;
@@ -227,22 +228,11 @@ const Topbar: React.FC<TopbarProps> = ({
           {isLoggedIn ? (
             <>
               {/* Switch tipo Client | IB */}
-              <div className="switch-affiliate">
-                <span
-                  className={`switch-label-left cursor-pointer ${affiliateMode === 'Client' ? 'font-bold text-cyan-600' : ''}`}
-                  onClick={() => handleSwitchAffiliate('Client')}
-                  title="Ir al área de clientes"
-                >
-                  Client
-                </span>
-                <span
-                  className={`switch-circle cursor-pointer ${affiliateMode === 'IB' ? 'bg-cyan-600' : ''}`}
-                  onClick={() => handleSwitchAffiliate('IB')}
-                  title="Ir al área de afiliados"
-                >
-                  IB
-                </span>
-              </div>
+              <SwitchClienteIB
+                mode={affiliateMode === 'IB' ? 'IB' : 'Client'}
+                onChange={handleSwitchAffiliate}
+                size="md"
+              />
               <button
                 className="flex items-center focus:outline-none"
                 onClick={() => setOpenMenu((v) => !v)}
