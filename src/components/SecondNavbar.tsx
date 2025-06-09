@@ -18,9 +18,14 @@ const menu = [
     to: '/dashboard',
   },
   {
-    label: 'Cursos',
+    label: 'Classroom',
     icon: <MdOutlineSchool />,
     to: '/classroom',
+  },
+  {
+    label: 'Cursos',
+    icon: <FiBarChart2 />,
+    to: '/cursos',
   },
   {
     label: 'Launchpad',
