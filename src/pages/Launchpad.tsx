@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Calendar, Share2, MessageSquare, Info, ChevronLeft, ChevronRight, Maximize2, Menu } from 'lucide-react';
 import LaunchCalendar from '../components/launchpad/LaunchCalendar';
+import { supabase } from '../supabase';
 
 interface LaunchEvent {
   id: string;
@@ -38,6 +39,17 @@ const Launchpad: React.FC = () => {
   const [selectedEvent, setSelectedEvent] = useState<LaunchEvent | null>(null);
   const [isVideoExpanded, setIsVideoExpanded] = useState(false);
   const [selectedDate, setSelectedDate] = useState<string | undefined>(undefined);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  // Estado para el evento destacado editable
+  const [editEvent, setEditEvent] = useState({
+    title: '',
+    description: '',
+    cta: '',
+    date: '',
+  });
+  const [loadingEvent, setLoadingEvent] = useState(false);
+  const [savingEvent, setSavingEvent] = useState(false);
 
   // Ajustar barra lateral según el ancho de pantalla después del primer render
   useEffect(() => {
@@ -51,6 +63,20 @@ const Launchpad: React.FC = () => {
       window.addEventListener('resize', handleResize);
       return () => window.removeEventListener('resize', handleResize);
     }
+  }, []);
+
+  useEffect(() => {
+    async function checkAdmin() {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const { data, error } = await supabase
+        .from('usuarios')
+        .select('rol')
+        .eq('id', user.id)
+        .single();
+      if (data?.rol === 'admin') setIsAdmin(true);
+    }
+    checkAdmin();
   }, []);
 
   // Simulación de 6 directos y 6 cápsulas
@@ -108,8 +134,82 @@ const Launchpad: React.FC = () => {
     return () => clearInterval(interval);
   }, []);
 
+  // Cargar datos del evento destacado desde Supabase al abrir el drawer
+  useEffect(() => {
+    if (!drawerOpen) return;
+    async function fetchEvent() {
+      setLoadingEvent(true);
+      const { data, error } = await supabase
+        .from('launchpad_events')
+        .select('*')
+        .order('date', { ascending: false })
+        .limit(1)
+        .single();
+      if (data) {
+        setEditEvent({
+          title: data.title || '',
+          description: data.description || '',
+          cta: data.cta || '',
+          date: data.date ? data.date.slice(0, 16) : '', // formato para input datetime-local
+        });
+      }
+      setLoadingEvent(false);
+    }
+    fetchEvent();
+  }, [drawerOpen]);
+
+  // Guardar cambios en Supabase
+  async function handleSaveEvent(e: React.FormEvent) {
+    e.preventDefault();
+    setSavingEvent(true);
+    // Buscar si ya existe un evento
+    const { data: existing } = await supabase
+      .from('launchpad_events')
+      .select('id')
+      .order('date', { ascending: false })
+      .limit(1)
+      .single();
+    let result;
+    if (existing) {
+      result = await supabase
+        .from('launchpad_events')
+        .update({
+          title: editEvent.title,
+          description: editEvent.description,
+          cta: editEvent.cta,
+          date: editEvent.date,
+        })
+        .eq('id', existing.id);
+    } else {
+      result = await supabase
+        .from('launchpad_events')
+        .insert([
+          {
+            title: editEvent.title,
+            description: editEvent.description,
+            cta: editEvent.cta,
+            date: editEvent.date,
+          },
+        ]);
+    }
+    setSavingEvent(false);
+    setDrawerOpen(false);
+    // Refrescar datos en la vista principal (puedes mejorar esto con SWR o similar)
+    window.location.reload();
+  }
+
   return (
     <div className="min-h-screen bg-gray-900 text-white">
+      {/* Botón flotante para abrir el panel de edición solo para admin */}
+      {isAdmin && (
+        <button
+          className="fixed z-50 bottom-6 right-6 bg-fuchsia-600 hover:bg-fuchsia-500 text-white p-4 rounded-full shadow-xl border-4 border-fuchsia-300 font-orbitron text-lg"
+          onClick={() => setDrawerOpen(true)}
+          aria-label="Editar Launchpad"
+        >
+          ✏️ Editar Launchpad
+        </button>
+      )}
       {/* Botón flotante para abrir barra lateral en móvil */}
       {!isMenuOpen && !isCollapsed && (
         <button
@@ -119,6 +219,67 @@ const Launchpad: React.FC = () => {
         >
           <Menu className="w-6 h-6" />
         </button>
+      )}
+      {/* Drawer lateral para edición */}
+      {drawerOpen && (
+        <div className="fixed inset-0 z-50 flex">
+          {/* Fondo oscuro semitransparente */}
+          <div className="fixed inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setDrawerOpen(false)} />
+          {/* Panel lateral */}
+          <div className="relative ml-auto w-full max-w-md h-full bg-gray-900 border-l border-fuchsia-400 shadow-2xl p-8 flex flex-col animate-slide-in-right overflow-y-auto">
+            <button
+              className="absolute top-4 right-4 text-fuchsia-400 hover:text-fuchsia-200 text-2xl font-bold"
+              onClick={() => setDrawerOpen(false)}
+              aria-label="Cerrar panel"
+            >
+              ×
+            </button>
+            <h2 className="font-orbitron text-2xl mb-6 text-fuchsia-300">Editar Launchpad</h2>
+            {/* Formulario de edición del evento destacado */}
+            <form onSubmit={handleSaveEvent} className="flex flex-col gap-4">
+              <label className="text-fuchsia-200 font-semibold">Título</label>
+              <input
+                type="text"
+                className="p-2 rounded bg-gray-800 border border-fuchsia-400 text-white"
+                value={editEvent.title}
+                onChange={e => setEditEvent(ev => ({ ...ev, title: e.target.value }))}
+                required
+              />
+              <label className="text-fuchsia-200 font-semibold">Descripción</label>
+              <textarea
+                className="p-2 rounded bg-gray-800 border border-fuchsia-400 text-white"
+                value={editEvent.description}
+                onChange={e => setEditEvent(ev => ({ ...ev, description: e.target.value }))}
+                rows={3}
+                required
+              />
+              <label className="text-fuchsia-200 font-semibold">CTA (llamada a la acción)</label>
+              <input
+                type="text"
+                className="p-2 rounded bg-gray-800 border border-fuchsia-400 text-white"
+                value={editEvent.cta}
+                onChange={e => setEditEvent(ev => ({ ...ev, cta: e.target.value }))}
+                required
+              />
+              <label className="text-fuchsia-200 font-semibold">Fecha y hora</label>
+              <input
+                type="datetime-local"
+                className="p-2 rounded bg-gray-800 border border-fuchsia-400 text-white"
+                value={editEvent.date}
+                onChange={e => setEditEvent(ev => ({ ...ev, date: e.target.value }))}
+                required
+              />
+              <button
+                type="submit"
+                className="mt-4 bg-fuchsia-600 hover:bg-fuchsia-500 text-white font-bold py-2 rounded shadow-lg border border-fuchsia-300 disabled:opacity-60"
+                disabled={savingEvent}
+              >
+                {savingEvent ? 'Guardando...' : 'Guardar cambios'}
+              </button>
+              {loadingEvent && <div className="text-center text-fuchsia-300">Cargando datos...</div>}
+            </form>
+          </div>
+        </div>
       )}
       <div className="flex">
         {/* Barra lateral con glassmorphism y animación, debajo de las barras superiores */}
