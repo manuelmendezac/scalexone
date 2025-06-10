@@ -120,7 +120,7 @@ function App() {
     <BibliotecaProvider>
       <div className="min-h-screen w-full" style={{background: 'transparent'}}>
         {/* Mostrar menú solo si está logueado, no en launchpad ni en rutas públicas */}
-        {!hideMenu && isLoggedIn && !isLaunchpad && (
+        {!hideMenu && isLoggedIn && (
           <>
             <Topbar
               userAvatar={avatarUrl}
