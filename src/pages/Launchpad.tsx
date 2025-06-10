@@ -971,31 +971,16 @@ const Launchpad: React.FC = () => {
                       <span>{new Date(selectedEvent.date).toLocaleString('es-ES', { dateStyle: 'full', timeStyle: 'short' })}</span>
                     )}
                   </div>
-                  {/* Video y chat en grid */}
-                  <div className="w-full flex flex-col lg:flex-row gap-6 justify-center items-start">
-                    {/* Video */}
-                    <div className="flex-1 flex justify-center">
-                      <div className="aspect-video w-full max-w-2xl bg-black rounded-lg overflow-hidden shadow-2xl border-4 border-cyan-400">
-                        <iframe
-                          src={selectedEvent.video_url}
-                          className="w-full h-full min-h-[300px]"
-                          allowFullScreen
-                          allow="autoplay; encrypted-media"
-                        />
-                      </div>
+                  {/* Video centrado y grande */}
+                  <div className="w-full flex justify-center">
+                    <div className="aspect-video w-full max-w-2xl bg-black rounded-lg overflow-hidden shadow-2xl border-4 border-cyan-400">
+                      <iframe
+                        src={selectedEvent.video_url}
+                        className="w-full h-full min-h-[300px]"
+                        allowFullScreen
+                        allow="autoplay; encrypted-media"
+                      />
                     </div>
-                    {/* Chat de YouTube si aplica */}
-                    {getYouTubeId(selectedEvent.video_url) && (
-                      <div className="w-full lg:w-[380px] h-[400px] bg-gray-900 rounded-lg border border-cyan-400 shadow-xl mt-6 lg:mt-0">
-                        <iframe
-                          src={`https://www.youtube.com/live_chat?v=${getYouTubeId(selectedEvent.video_url)}&embed_domain=${typeof window !== 'undefined' ? window.location.hostname : ''}`}
-                          className="w-full h-full rounded-lg"
-                          frameBorder="0"
-                          allowFullScreen
-                          title="YouTube Live Chat"
-                        />
-                      </div>
-                    )}
                   </div>
                   {/* Descripción */}
                   <div className="mt-6 w-full max-w-2xl mx-auto bg-gray-900/80 rounded-xl p-4 shadow-inner border border-cyan-400">
