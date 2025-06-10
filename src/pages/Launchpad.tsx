@@ -959,7 +959,7 @@ const Launchpad: React.FC = () => {
               {selectedEvent ? (
                 <>
                   {/* Título grande */}
-                  <h1 className="text-3xl md:text-4xl font-orbitron font-bold text-cyan-300 text-center mb-2">{selectedEvent.title}</h1>
+                  <h1 className="text-xl md:text-3xl font-orbitron font-bold text-cyan-300 text-center mb-2 mt-2 md:mt-4">{selectedEvent.title}</h1>
                   {/* Fecha y hora */}
                   <div className="text-lg text-cyan-100 font-semibold text-center mb-4">
                     {selectedEvent.date && (
