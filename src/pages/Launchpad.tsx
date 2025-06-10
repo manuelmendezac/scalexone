@@ -66,6 +66,8 @@ const Launchpad: React.FC = () => {
     description: '',
     date: '',
     cta: '',
+    start_date: '',
+    end_date: '',
   });
   const [loadingFeatured, setLoadingFeatured] = useState(true);
   // Estado para enlaces rápidos
@@ -146,6 +148,8 @@ const Launchpad: React.FC = () => {
         description: data.description || '',
         date: data.date || '',
         cta: data.cta || '',
+        start_date: data.start_date || '',
+        end_date: data.end_date || '',
       });
     }
     setLoadingFeatured(false);
@@ -585,6 +589,8 @@ const Launchpad: React.FC = () => {
                 events={videos}
                 selectedDate={selectedDate}
                 onSelectDate={setSelectedDate}
+                launchStartDate={featuredEvent.start_date}
+                launchEndDate={featuredEvent.end_date}
               />
               {/* Lista de videos */}
               <div className="bg-gray-900/70 rounded-xl p-3 mt-2 shadow-inner">

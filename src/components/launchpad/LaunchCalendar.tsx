@@ -13,12 +13,16 @@ interface LaunchCalendarProps {
   events: LaunchEvent[];
   selectedDate?: string;
   onSelectDate?: (date: string) => void;
+  launchStartDate?: string; // formato YYYY-MM-DD
+  launchEndDate?: string;   // formato YYYY-MM-DD
 }
 
 const LaunchCalendar: React.FC<LaunchCalendarProps> = ({
   events,
   selectedDate,
-  onSelectDate
+  onSelectDate,
+  launchStartDate,
+  launchEndDate
 }) => {
   // Obtener el mes actual y sus días
   const today = new Date();
@@ -59,6 +63,14 @@ const LaunchCalendar: React.FC<LaunchCalendarProps> = ({
           const dayEvents = getEventsForDay(day);
           const isSelected = date === selectedDate;
           const hasEvents = dayEvents.length > 0;
+          // Marcar si el día está dentro del rango de lanzamiento
+          let isInLaunchRange = false;
+          if (launchStartDate && launchEndDate) {
+            const d = new Date(date);
+            const start = new Date(launchStartDate);
+            const end = new Date(launchEndDate);
+            isInLaunchRange = d >= start && d <= end;
+          }
 
           return (
             <button
@@ -66,14 +78,14 @@ const LaunchCalendar: React.FC<LaunchCalendarProps> = ({
               onClick={() => onSelectDate?.(date)}
               className={`
                 aspect-square p-1 rounded-lg relative
-                ${hasEvents ? 'bg-cyan-900/30' : 'hover:bg-gray-700/30'}
+                ${isInLaunchRange ? 'bg-fuchsia-700/60 border-2 border-fuchsia-400' : hasEvents ? 'bg-cyan-900/30' : 'hover:bg-gray-700/30'}
                 ${isSelected ? 'ring-2 ring-cyan-400' : ''}
                 flex flex-col items-center justify-center text-center transition-all duration-150
               `}
             >
               <span className={`
                 text-xs md:text-sm
-                ${hasEvents ? 'text-cyan-400 font-medium' : 'text-gray-400'}
+                ${isInLaunchRange ? 'text-fuchsia-200 font-bold' : hasEvents ? 'text-cyan-400 font-medium' : 'text-gray-400'}
                 ${isSelected ? 'text-cyan-400' : ''}
               `}>
                 {day}
