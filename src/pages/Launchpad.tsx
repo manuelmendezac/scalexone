@@ -992,7 +992,7 @@ const Launchpad: React.FC = () => {
                             <button
                               key={star}
                               onClick={() => setRating(star)}
-                              className={`text-2xl ${star <= rating ? 'text-yellow-400' : 'text-gray-500'} hover:text-yellow-300 transition`}
+                              className={`text-xl md:text-2xl ${star <= rating ? 'text-yellow-400' : 'text-gray-500'} hover:text-yellow-300 transition`}
                               disabled={savingRating}
                               aria-label={`Calificar con ${star} estrellas`}
                             >
