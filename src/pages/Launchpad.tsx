@@ -210,17 +210,17 @@ const Launchpad: React.FC = () => {
               {/* Información del evento destacado */}
               <div className="mb-4">
                 <div className="rounded-xl p-4 mb-4 bg-gradient-to-r from-pink-600 via-fuchsia-600 to-pink-400 shadow-lg flex flex-col items-center text-white">
-                  <div className="font-orbitron text-2xl md:text-3xl font-bold mb-1 tracking-wide">{featuredEvent.title}</div>
-                  <div className="text-base md:text-lg mb-2 text-white/90 text-center">{featuredEvent.description} <span className="underline font-semibold cursor-pointer">{featuredEvent.cta}</span></div>
-                  <div className="flex items-center gap-4 text-3xl font-mono font-bold">
+                  <div className="font-orbitron text-xl md:text-2xl font-bold mb-1 tracking-wide">{featuredEvent.title}</div>
+                  <div className="text-sm md:text-base mb-2 text-white/90 text-center leading-tight">{featuredEvent.description} <span className="underline font-semibold cursor-pointer">{featuredEvent.cta}</span></div>
+                  <div className="flex items-center gap-2 text-lg font-mono font-bold bg-white/10 px-4 py-2 rounded-lg mt-2">
                     <span>{String(countdown.hours).padStart(2, '0')}</span>
-                    <span className="text-lg font-normal">horas</span>
+                    <span className="text-xs font-normal">h</span>
                     <span>:</span>
                     <span>{String(countdown.min).padStart(2, '0')}</span>
-                    <span className="text-lg font-normal">min</span>
+                    <span className="text-xs font-normal">m</span>
                     <span>:</span>
                     <span>{String(countdown.sec).padStart(2, '0')}</span>
-                    <span className="text-lg font-normal">seg</span>
+                    <span className="text-xs font-normal">s</span>
                   </div>
                 </div>
               </div>
