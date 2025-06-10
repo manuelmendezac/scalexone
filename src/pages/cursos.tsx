@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import useNeuroState from '../store/useNeuroState';
+import CursosAdminPanel from '../components/CursosAdminPanel';
+import { useNavigate } from 'react-router-dom';
 
 const cursosMock = [
   {
@@ -56,9 +58,12 @@ const CursosPage: React.FC = () => {
   const [cursoActivo, setCursoActivo] = useState(cursosMock[0]);
   const { userName } = useNeuroState();
   const primerNombre = userName ? userName.split(' ')[0] : 'Master';
+  const navigate = useNavigate();
 
   return (
     <div className="min-h-screen bg-black text-white flex flex-col items-center justify-start py-10 px-2">
+      {/* Panel admin solo para admin */}
+      <CursosAdminPanel />
       {/* Header */}
       <div className="w-full flex justify-end items-center mb-8 px-2 max-w-7xl mx-auto">
         <div className="flex gap-2">
@@ -80,7 +85,7 @@ const CursosPage: React.FC = () => {
             onMouseEnter={() => setCursoActivo(curso)}
           >
             <button
-              onClick={() => setCursoActivo(curso)}
+              onClick={() => navigate(`/cursos/${curso.id}`)}
               className={`px-4 py-3 rounded-lg border border-white font-black uppercase tracking-wide text-base md:text-lg bg-black transition-all duration-200 ${cursoActivo.id === curso.id ? 'bg-white' : 'text-white hover:bg-white'}`}
               style={{ minWidth: 180 }}
             >
