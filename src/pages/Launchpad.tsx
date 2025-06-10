@@ -123,6 +123,8 @@ const Launchpad: React.FC = () => {
   const [loadingComments, setLoadingComments] = useState(false);
   const [savingComment, setSavingComment] = useState(false);
   const [savingRating, setSavingRating] = useState(false);
+  // Estado para el usuario actual (para link de afiliado)
+  const [currentUser, setCurrentUser] = useState<any>(null);
 
   // Ajustar barra lateral según el ancho de pantalla después del primer render
   useEffect(() => {
@@ -571,6 +573,33 @@ const Launchpad: React.FC = () => {
     setSavingComment(false);
   }
 
+  // Al cargar la página, obtener el usuario actual y seleccionar el primer directo si hay
+  useEffect(() => {
+    async function fetchUser() {
+      const { data: { user } } = await supabase.auth.getUser();
+      setCurrentUser(user);
+    }
+    fetchUser();
+  }, []);
+
+  // Seleccionar automáticamente el primer directo al cargar videosFinal
+  useEffect(() => {
+    if (!selectedEvent && videosFinal.length > 0) {
+      setSelectedEvent(videosFinal[0]);
+    }
+    // eslint-disable-next-line
+  }, [videosFinal]);
+
+  // Función para compartir el link con afiliado
+  function handleShareExperience() {
+    let url = window.location.origin + window.location.pathname;
+    if (currentUser && currentUser.id) {
+      url += `?aff=${currentUser.id}`;
+    }
+    navigator.clipboard.writeText(url);
+    alert('¡Enlace copiado para compartir!');
+  }
+
   return (
     <div className="min-h-screen bg-gray-900 text-white">
       {/* Botón flotante para abrir el panel de edición solo para admin */}
@@ -921,6 +950,14 @@ const Launchpad: React.FC = () => {
               </div>
               {/* Accesos con tooltips o solo íconos */}
               <nav className="space-y-4 w-full mt-4 flex flex-col items-center">
+                <button
+                  className="w-full flex items-center gap-3 px-4 py-3 rounded-xl shadow-lg font-semibold border border-cyan-400/40 transition-all justify-center bg-gradient-to-br from-cyan-900 via-cyan-800 to-cyan-700 hover:from-cyan-700 hover:to-cyan-500 text-white active:scale-95"
+                  style={{ fontSize: isCollapsed ? 22 : 18 }}
+                  onClick={handleShareExperience}
+                >
+                  <span className={`text-cyan-300 ${isCollapsed ? 'text-2xl' : 'text-xl'}`}> {/* Puedes poner un icono aquí si quieres */} </span>
+                  {!isCollapsed && <span className="ml-2 font-orbitron text-base md:text-lg" style={{color: '#fff', fontWeight: 600}}>Compartir Experiencia</span>}
+                </button>
                 {links.map((item, idx) => (
                   <div key={item.id} className="group relative flex items-center w-full justify-center">
                     <a
