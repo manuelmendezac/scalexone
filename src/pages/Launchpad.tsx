@@ -77,6 +77,20 @@ const Launchpad: React.FC = () => {
   const [sidebarSettings, setSidebarSettings] = useState({ sidebar_title: 'IA Heroes Live', sidebar_logo: '' });
   const [loadingSettings, setLoadingSettings] = useState(true);
   const [savingSettings, setSavingSettings] = useState(false);
+  // Estado para videos
+  const [videos, setVideos] = useState<any[]>([]);
+  const [loadingVideos, setLoadingVideos] = useState(false);
+  const [editVideo, setEditVideo] = useState<any | null>(null);
+  const [savingVideo, setSavingVideo] = useState(false);
+  const [newVideo, setNewVideo] = useState({
+    title: '',
+    description: '',
+    video_url: '',
+    thumbnail: '',
+    type: 'Directo',
+    date: '',
+    destacado: false,
+  });
 
   // Ajustar barra lateral según el ancho de pantalla después del primer render
   useEffect(() => {
@@ -107,7 +121,7 @@ const Launchpad: React.FC = () => {
   }, []);
 
   // Simulación de 6 directos y 6 cápsulas
-  const videos = [
+  const videosSimulated = [
     // Directos
     ...Array.from({ length: 6 }, (_, i) => ({
       id: `live-${i+1}`,
@@ -132,8 +146,8 @@ const Launchpad: React.FC = () => {
 
   // Filtrar videos por fecha seleccionada
   const filteredVideos = selectedDate
-    ? videos.filter(v => v.date === selectedDate)
-    : videos;
+    ? videosSimulated.filter(v => v.date === selectedDate)
+    : videosSimulated;
 
   // Cargar el evento destacado desde Supabase al montar la página
   async function fetchFeatured() {
@@ -235,6 +249,17 @@ const Launchpad: React.FC = () => {
       setLoadingSettings(false);
     }
     fetchSettings();
+  }, []);
+
+  // Cargar videos desde Supabase
+  useEffect(() => {
+    async function fetchVideos() {
+      setLoadingVideos(true);
+      const { data } = await supabase.from('launchpad_videos').select('*').order('date', { ascending: true });
+      if (data) setVideos(data);
+      setLoadingVideos(false);
+    }
+    fetchVideos();
   }, []);
 
   // Guardar cambios en Supabase
@@ -343,6 +368,61 @@ const Launchpad: React.FC = () => {
         ]);
     }
     setSavingSettings(false);
+  }
+
+  // Subir miniatura a Supabase Storage
+  async function uploadVideoThumbnail(file: File) {
+    if (!file || file.size === 0) {
+      alert('Archivo vacío o no válido');
+      throw new Error('Archivo vacío o no válido');
+    }
+    const fileName = `videos/${Date.now()}-${file.name}`;
+    const { error } = await supabase.storage.from('launchpad-assets').upload(fileName, file, { upsert: true });
+    if (error) {
+      alert('Error subiendo miniatura: ' + error.message);
+      throw error;
+    }
+    const { data } = supabase.storage.from('launchpad-assets').getPublicUrl(fileName);
+    return data.publicUrl;
+  }
+
+  // Guardar nuevo video
+  async function handleAddVideo(e: React.FormEvent) {
+    e.preventDefault();
+    setSavingVideo(true);
+    // Si es destacado, desmarcar otros
+    if (newVideo.destacado) {
+      await supabase.from('launchpad_videos').update({ destacado: false }).eq('destacado', true);
+    }
+    const { error } = await supabase.from('launchpad_videos').insert([{ ...newVideo }]);
+    setSavingVideo(false);
+    setNewVideo({ title: '', description: '', video_url: '', thumbnail: '', type: 'Directo', date: '', destacado: false });
+    // Refrescar lista
+    const { data } = await supabase.from('launchpad_videos').select('*').order('date', { ascending: true });
+    if (data) setVideos(data);
+    if (error) alert('Error guardando video: ' + error.message);
+  }
+
+  // Editar video existente
+  async function handleEditVideo(e: React.FormEvent) {
+    e.preventDefault();
+    setSavingVideo(true);
+    if (editVideo.destacado) {
+      await supabase.from('launchpad_videos').update({ destacado: false }).eq('destacado', true);
+    }
+    const { error } = await supabase.from('launchpad_videos').update(editVideo).eq('id', editVideo.id);
+    setSavingVideo(false);
+    setEditVideo(null);
+    // Refrescar lista
+    const { data } = await supabase.from('launchpad_videos').select('*').order('date', { ascending: true });
+    if (data) setVideos(data);
+    if (error) alert('Error actualizando video: ' + error.message);
+  }
+
+  // Eliminar video
+  async function handleDeleteVideo(id: string) {
+    await supabase.from('launchpad_videos').delete().eq('id', id);
+    setVideos(videos.filter(v => v.id !== id));
   }
 
   return (
@@ -599,6 +679,64 @@ const Launchpad: React.FC = () => {
               </button>
               {loadingSettings && <div className="text-center text-cyan-300">Cargando configuración...</div>}
             </form>
+            {/* Panel de administración de videos */}
+            <div className="mb-8">
+              <h3 className="font-orbitron text-xl mb-4 text-cyan-300">Directos y Cápsulas</h3>
+              {/* Formulario para agregar o editar video */}
+              <form onSubmit={editVideo ? handleEditVideo : handleAddVideo} className="flex flex-col gap-2 mb-6 bg-gray-800 p-4 rounded-xl">
+                <label className="text-cyan-200 font-semibold">Título</label>
+                <input type="text" className="p-2 rounded bg-gray-900 border border-cyan-400 text-white" value={editVideo ? editVideo.title : newVideo.title} onChange={e => editVideo ? setEditVideo((v: any) => ({ ...v, title: e.target.value })) : setNewVideo(v => ({ ...v, title: e.target.value }))} required />
+                <label className="text-cyan-200 font-semibold">Descripción</label>
+                <textarea className="p-2 rounded bg-gray-900 border border-cyan-400 text-white" value={editVideo ? editVideo.description : newVideo.description} onChange={e => editVideo ? setEditVideo((v: any) => ({ ...v, description: e.target.value })) : setNewVideo(v => ({ ...v, description: e.target.value }))} rows={2} required />
+                <label className="text-cyan-200 font-semibold">URL del video (YouTube, Vimeo, etc.)</label>
+                <input type="text" className="p-2 rounded bg-gray-900 border border-cyan-400 text-white" value={editVideo ? editVideo.video_url : newVideo.video_url} onChange={e => editVideo ? setEditVideo((v: any) => ({ ...v, video_url: e.target.value })) : setNewVideo(v => ({ ...v, video_url: e.target.value }))} required />
+                <label className="text-cyan-200 font-semibold">Miniatura</label>
+                <input type="file" accept="image/*" onChange={async e => {
+                  const file = e.target.files?.[0];
+                  if (!file) return;
+                  const url = await uploadVideoThumbnail(file);
+                  if (editVideo) setEditVideo((v: any) => ({ ...v, thumbnail: url }));
+                  else setNewVideo(v => ({ ...v, thumbnail: url }));
+                }} />
+                {(editVideo ? editVideo.thumbnail : newVideo.thumbnail) && (
+                  <img src={editVideo ? editVideo.thumbnail : newVideo.thumbnail} alt="miniatura" className="w-32 h-20 object-cover rounded border border-cyan-400 mt-2" />
+                )}
+                <label className="text-cyan-200 font-semibold">Tipo</label>
+                <select className="p-2 rounded bg-gray-900 border border-cyan-400 text-white" value={editVideo ? editVideo.type : newVideo.type} onChange={e => editVideo ? setEditVideo((v: any) => ({ ...v, type: e.target.value })) : setNewVideo(v => ({ ...v, type: e.target.value }))}>
+                  <option value="Directo">Directo</option>
+                  <option value="Cápsula">Cápsula</option>
+                </select>
+                <label className="text-cyan-200 font-semibold">Fecha</label>
+                <input type="date" className="p-2 rounded bg-gray-900 border border-cyan-400 text-white" value={editVideo ? editVideo.date : newVideo.date} onChange={e => editVideo ? setEditVideo((v: any) => ({ ...v, date: e.target.value })) : setNewVideo(v => ({ ...v, date: e.target.value }))} required />
+                <label className="flex items-center gap-2 mt-2">
+                  <input type="checkbox" checked={editVideo ? editVideo.destacado : newVideo.destacado} onChange={e => editVideo ? setEditVideo((v: any) => ({ ...v, destacado: e.target.checked })) : setNewVideo(v => ({ ...v, destacado: e.target.checked }))} />
+                  <span className="text-cyan-200 font-semibold">Marcar como destacado</span>
+                </label>
+                <button type="submit" className="mt-2 bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-2 rounded shadow-lg border border-cyan-300 disabled:opacity-60" disabled={savingVideo}>{savingVideo ? 'Guardando...' : (editVideo ? 'Actualizar video' : 'Agregar video')}</button>
+                {editVideo && (
+                  <button type="button" className="mt-1 bg-gray-700 hover:bg-gray-600 text-white font-bold py-1 rounded shadow border border-cyan-300" onClick={() => setEditVideo(null)}>Cancelar edición</button>
+                )}
+              </form>
+              {/* Lista de videos existentes */}
+              <ul className="space-y-2">
+                {loadingVideos ? <div className="text-cyan-200">Cargando videos...</div> : videos.map(video => (
+                  <li key={video.id} className="flex items-center gap-3 bg-gray-900 rounded p-2 border border-cyan-400/30">
+                    <img src={video.thumbnail} alt={video.title} className="w-16 h-10 object-cover rounded border border-cyan-400" />
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <span className={`text-xs px-2 py-0.5 rounded-full font-bold ${video.type === 'Directo' ? 'bg-fuchsia-600 text-white' : 'bg-cyan-600 text-white'}`}>{video.type}</span>
+                        <span className="text-xs text-cyan-300">{video.date}</span>
+                        {video.destacado && <span className="text-xs bg-yellow-400 text-black rounded px-2 py-0.5 ml-2 font-bold">Destacado</span>}
+                      </div>
+                      <div className="font-semibold text-sm mt-1 text-cyan-100">{video.title}</div>
+                      <div className="text-xs text-gray-400 mt-0.5 line-clamp-2">{video.description}</div>
+                    </div>
+                    <button className="text-cyan-400 hover:text-cyan-200 font-bold px-2" onClick={() => setEditVideo(video)}>Editar</button>
+                    <button className="text-red-400 hover:text-red-200 font-bold px-2" onClick={() => handleDeleteVideo(video.id)}>Eliminar</button>
+                  </li>
+                ))}
+              </ul>
+            </div>
           </div>
         </div>
       )}
@@ -732,7 +870,7 @@ const Launchpad: React.FC = () => {
               </div>
               {/* Calendario */}
               <LaunchCalendar
-                events={videos}
+                events={videosSimulated}
                 selectedDate={selectedDate}
                 onSelectDate={setSelectedDate}
                 launchStartDate={featuredEvent.start_date}
