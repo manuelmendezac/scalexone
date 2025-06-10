@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Calendar, Share2, MessageSquare, Info, ChevronLeft, ChevronRight, Maximize2, Menu } from 'lucide-react';
+import { Calendar, Share2, MessageSquare, Info, ChevronLeft, ChevronRight, Maximize2, Menu, Upload } from 'lucide-react';
 import LaunchCalendar from '../components/launchpad/LaunchCalendar';
 import { supabase } from '../supabase';
 
@@ -442,21 +442,28 @@ const Launchpad: React.FC = () => {
                 <ul className="space-y-2 mb-4">
                   {links.map(link => (
                     <li key={link.id} className="flex items-center gap-2 bg-gray-800 rounded p-2">
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={async e => {
-                          const file = e.target.files?.[0];
-                          if (!file) return;
-                          try {
-                            const url = await uploadImageToStorage(file, 'iconos');
-                            handleEditLink(link.id, 'icon_img', url);
-                          } catch (err) {
-                            alert('Error subiendo imagen');
-                          }
-                        }}
-                        className="block"
-                      />
+                      <label className="flex flex-col items-center cursor-pointer bg-cyan-800 hover:bg-cyan-700 text-white px-2 py-1 rounded-lg shadow transition-all mr-2">
+                        <Upload className="w-4 h-4 mb-0.5" />
+                        <span className="text-[10px]">Subir</span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={async e => {
+                            const file = e.target.files?.[0];
+                            if (!file) return;
+                            try {
+                              const url = await uploadImageToStorage(file, 'iconos');
+                              handleEditLink(link.id, 'icon_img', url);
+                            } catch (err) {
+                              alert('Error subiendo imagen');
+                            }
+                          }}
+                          className="hidden"
+                        />
+                      </label>
+                      {link.icon_img && (
+                        <img src={link.icon_img} alt="icono" className="w-8 h-8 rounded object-cover border border-cyan-400 ml-1" />
+                      )}
                       <input
                         type="text"
                         className="w-24 p-1 rounded bg-gray-900 border border-cyan-400 text-cyan-200 text-center"
@@ -485,21 +492,28 @@ const Launchpad: React.FC = () => {
               )}
               {/* Formulario para agregar nuevo enlace */}
               <form onSubmit={handleAddLink} className="flex items-center gap-2">
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={async e => {
-                    const file = e.target.files?.[0];
-                    if (!file) return;
-                    try {
-                      const url = await uploadImageToStorage(file, 'iconos');
-                      setNewLink(l => ({ ...l, icon_img: url }));
-                    } catch (err) {
-                      alert('Error subiendo imagen');
-                    }
-                  }}
-                  className="block"
-                />
+                <label className="flex flex-col items-center cursor-pointer bg-cyan-800 hover:bg-cyan-700 text-white px-2 py-1 rounded-lg shadow transition-all mr-2">
+                  <Upload className="w-4 h-4 mb-0.5" />
+                  <span className="text-[10px]">Subir</span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={async e => {
+                      const file = e.target.files?.[0];
+                      if (!file) return;
+                      try {
+                        const url = await uploadImageToStorage(file, 'iconos');
+                        setNewLink(l => ({ ...l, icon_img: url }));
+                      } catch (err) {
+                        alert('Error subiendo imagen');
+                      }
+                    }}
+                    className="hidden"
+                  />
+                </label>
+                {newLink.icon_img && (
+                  <img src={newLink.icon_img} alt="icono" className="w-8 h-8 rounded object-cover border border-cyan-400 ml-1" />
+                )}
                 <input
                   type="text"
                   className="flex-1 p-1 rounded bg-gray-900 border border-cyan-400 text-cyan-200"
@@ -545,21 +559,28 @@ const Launchpad: React.FC = () => {
                   onChange={e => setSidebarSettings(s => ({ ...s, sidebar_logo: e.target.value }))}
                   placeholder="https://..."
                 />
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={async e => {
-                    const file = e.target.files?.[0];
-                    if (!file) return;
-                    try {
-                      const url = await uploadImageToStorage(file, 'logo');
-                      setSidebarSettings(s => ({ ...s, sidebar_logo: url }));
-                    } catch (err) {
-                      alert('Error subiendo imagen');
-                    }
-                  }}
-                  className="block"
-                />
+                <label className="flex flex-col items-center cursor-pointer bg-cyan-800 hover:bg-cyan-700 text-white px-3 py-2 rounded-lg shadow transition-all">
+                  <Upload className="w-5 h-5 mb-1" />
+                  <span className="text-xs">Subir imagen</span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={async e => {
+                      const file = e.target.files?.[0];
+                      if (!file) return;
+                      try {
+                        const url = await uploadImageToStorage(file, 'logo');
+                        setSidebarSettings(s => ({ ...s, sidebar_logo: url }));
+                      } catch (err) {
+                        alert('Error subiendo imagen');
+                      }
+                    }}
+                    className="hidden"
+                  />
+                </label>
+                {sidebarSettings.sidebar_logo && (
+                  <img src={sidebarSettings.sidebar_logo} alt="Logo" className="w-10 h-10 rounded-full object-cover border-2 border-cyan-400 ml-2" />
+                )}
               </div>
               <button
                 type="submit"
