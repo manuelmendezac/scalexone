@@ -985,28 +985,30 @@ const Launchpad: React.FC = () => {
                   {/* Calificación */}
                   <div className="mt-8 w-full max-w-2xl mx-auto">
                     <div className="mb-6 bg-gray-900/80 rounded-xl p-4 border border-cyan-400 shadow-inner">
-                      <div className="flex items-center gap-2 mb-2">
-                        <span className="text-cyan-200 font-bold text-lg">Califica este directo:</span>
-                        {[1,2,3,4,5].map(star => (
+                      <div className="flex flex-col items-center gap-2 mb-2 w-full">
+                        <span className="text-cyan-200 font-bold text-lg text-center">Califica este directo:</span>
+                        <div className="flex flex-row justify-center gap-2 w-full">
+                          {[1,2,3,4,5].map(star => (
+                            <button
+                              key={star}
+                              onClick={() => setRating(star)}
+                              className={`text-2xl ${star <= rating ? 'text-yellow-400' : 'text-gray-500'} hover:text-yellow-300 transition`}
+                              disabled={savingRating}
+                              aria-label={`Calificar con ${star} estrellas`}
+                            >
+                              <Star fill={star <= rating ? '#facc15' : 'none'} />
+                            </button>
+                          ))}
                           <button
-                            key={star}
-                            onClick={() => setRating(star)}
-                            className={`text-2xl ${star <= rating ? 'text-yellow-400' : 'text-gray-500'} hover:text-yellow-300 transition`}
-                            disabled={savingRating}
-                            aria-label={`Calificar con ${star} estrellas`}
+                            onClick={handleSendRating}
+                            className="ml-4 bg-cyan-600 hover:bg-cyan-500 text-white px-3 py-1 rounded font-bold disabled:opacity-60"
+                            disabled={savingRating || !rating}
                           >
-                            <Star fill={star <= rating ? '#facc15' : 'none'} />
+                            Enviar
                           </button>
-                        ))}
-                        <button
-                          onClick={handleSendRating}
-                          className="ml-4 bg-cyan-600 hover:bg-cyan-500 text-white px-3 py-1 rounded font-bold disabled:opacity-60"
-                          disabled={savingRating || !rating}
-                        >
-                          Enviar
-                        </button>
+                        </div>
                       </div>
-                      <div className="text-cyan-300 text-sm">
+                      <div className="text-cyan-300 text-sm text-center">
                         Promedio: <span className="font-bold">{avgRating.toFixed(2)}</span> ({ratingCount} calificaciones)
                       </div>
                     </div>
