@@ -254,12 +254,12 @@ const Topbar: React.FC<TopbarProps> = ({
             </>
           ) : (
             <>
-              <button className="px-3 py-1 rounded-lg bg-cyan-600 hover:bg-cyan-700 text-white font-semibold transition mr-2" title="Conectar a wallet" aria-label="Conectar a wallet"
+              <button className="px-2 py-1 rounded-lg bg-cyan-600 hover:bg-cyan-700 text-white font-semibold transition mr-2 text-sm sm:text-base" title="Conectar a wallet" aria-label="Conectar a wallet"
                 onClick={() => alert('Función de conectar wallet próximamente')}
               >
                 Conectar a wallet
               </button>
-              <button className="px-3 py-1 rounded-lg bg-cyan-600 hover:bg-cyan-700 text-white font-semibold transition" title="Iniciar sesión o registrarse" aria-label="Iniciar sesión"
+              <button className="px-2 py-1 rounded-lg bg-cyan-600 hover:bg-cyan-700 text-white font-semibold transition text-sm sm:text-base" title="Iniciar sesión o registrarse" aria-label="Iniciar sesión"
                 onClick={() => navigate('/login')}
               >
                 {t('Iniciar sesión') || 'Iniciar sesión'}
