@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import useNeuroState from '../store/useNeuroState';
 
 const cursosMock = [
   {
@@ -53,7 +54,8 @@ const cursosMock = [
 
 const CursosPage: React.FC = () => {
   const [cursoActivo, setCursoActivo] = useState(cursosMock[0]);
-  const [hovered, setHovered] = useState<string | null>(null);
+  const { userName } = useNeuroState();
+  const primerNombre = userName ? userName.split(' ')[0] : 'Master';
 
   return (
     <div className="min-h-screen bg-black text-white flex flex-col items-center justify-start py-10 px-2">
@@ -67,7 +69,7 @@ const CursosPage: React.FC = () => {
       </div>
       {/* Título */}
       <h1 className="text-2xl md:text-3xl font-light text-center mb-8">
-        Hola <span className="text-yellow-400 font-bold">Master</span>, ¿Qué quieres aprender hoy?
+        Hola <span className="text-yellow-400 font-bold">{primerNombre}</span>, ¿Qué quieres aprender hoy?
       </h1>
       {/* Botones de cursos */}
       <div className="flex flex-wrap justify-center gap-3 mb-10">
@@ -79,7 +81,7 @@ const CursosPage: React.FC = () => {
           >
             <button
               onClick={() => setCursoActivo(curso)}
-              className={`px-4 py-3 rounded-lg border border-white font-black uppercase tracking-wide text-base md:text-lg bg-black transition-all duration-200 ${cursoActivo.id === curso.id ? 'bg-white text-green-400' : 'text-white hover:bg-neutral-900'}`}
+              className={`px-4 py-3 rounded-lg border border-white font-black uppercase tracking-wide text-base md:text-lg bg-black transition-all duration-200 ${cursoActivo.id === curso.id ? 'bg-white text-green-400' : 'text-white hover:bg-white hover:text-green-400'}`}
               style={{ minWidth: 180 }}
             >
               <span className={curso.color}>{curso.nombre}</span>
