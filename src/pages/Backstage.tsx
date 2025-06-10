@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Calendar, Menu, ChevronLeft, ChevronRight, Star } from 'lucide-react';
+import { Calendar, Menu, ChevronLeft, ChevronRight, Star, Share2 } from 'lucide-react';
 import LaunchCalendar from '../components/launchpad/LaunchCalendar';
 import { supabase } from '../supabase';
 
@@ -127,31 +127,45 @@ const Backstage: React.FC = () => {
     fetchVideos();
   }, []);
 
-  // Simulación de videos de prueba (igual que Launchpad)
+  // Simulación de 1 directo y 1 cápsula de prueba
   const videosPrueba = [
-    { id: 'demo-live-1', type: 'Directo', title: 'Directo Demo 1', date: '2025-06-01', description: 'Directo de ejemplo para pruebas.', thumbnail: 'https://img.youtube.com/vi/example1/mqdefault.jpg', video_url: 'https://www.youtube.com/embed/example1' },
-    { id: 'demo-live-2', type: 'Directo', title: 'Directo Demo 2', date: '2025-06-02', description: 'Segundo directo de ejemplo.', thumbnail: 'https://img.youtube.com/vi/example2/mqdefault.jpg', video_url: 'https://www.youtube.com/embed/example2' },
-    { id: 'demo-live-3', type: 'Directo', title: 'Directo Demo 3', date: '2025-06-03', description: 'Tercer directo de ejemplo.', thumbnail: 'https://img.youtube.com/vi/example3/mqdefault.jpg', video_url: 'https://www.youtube.com/embed/example3' },
-    { id: 'demo-capsule-1', type: 'Cápsula', title: 'Cápsula Demo 1', date: '2025-06-04', description: 'Cápsula de ejemplo para pruebas.', thumbnail: 'https://img.youtube.com/vi/capsule1/mqdefault.jpg', video_url: 'https://www.youtube.com/embed/capsule1' },
-    { id: 'demo-capsule-2', type: 'Cápsula', title: 'Cápsula Demo 2', date: '2025-06-05', description: 'Segunda cápsula de ejemplo.', thumbnail: 'https://img.youtube.com/vi/capsule2/mqdefault.jpg', video_url: 'https://www.youtube.com/embed/capsule2' },
-    { id: 'demo-capsule-3', type: 'Cápsula', title: 'Cápsula Demo 3', date: '2025-06-06', description: 'Tercera cápsula de ejemplo.', thumbnail: 'https://img.youtube.com/vi/capsule3/mqdefault.jpg', video_url: 'https://www.youtube.com/embed/capsule3' },
+    {
+      id: 'demo-live-1',
+      type: 'Directo',
+      title: 'Directo Demo',
+      date: '2025-06-01',
+      description: 'Directo de ejemplo para pruebas.',
+      thumbnail: 'https://img.youtube.com/vi/example1/mqdefault.jpg',
+      video_url: 'https://www.youtube.com/embed/example1',
+    },
+    {
+      id: 'demo-capsule-1',
+      type: 'Cápsula',
+      title: 'Cápsula Demo',
+      date: '2025-06-02',
+      description: 'Cápsula de ejemplo para pruebas.',
+      thumbnail: 'https://img.youtube.com/vi/capsule1/mqdefault.jpg',
+      video_url: 'https://www.youtube.com/embed/capsule1',
+    },
   ];
-  const directos = [...videos.filter(v => v.type === 'Directo'), ...videosPrueba.filter(v => v.type === 'Directo')].slice(0, 3);
-  const capsulas = [...videos.filter(v => v.type === 'Cápsula'), ...videosPrueba.filter(v => v.type === 'Cápsula')].slice(0, 3);
-  const videosFinal = [...directos, ...capsulas];
+  // Usar solo videos reales si existen, si no, usar los demos
+  const videosFinal = videos.length > 0 ? videos : videosPrueba;
   const filteredVideos = selectedDate ? videosFinal.filter(v => v.date === selectedDate) : videosFinal;
 
-  // Seleccionar automáticamente el primer directo
+  // Seleccionar automáticamente el primer video real (no demo) si existe
   useEffect(() => {
-    if (!selectedEvent && videosFinal.length > 0) {
-      setSelectedEvent(videosFinal[0]);
+    if (!selectedEvent && videos.length > 0) {
+      setSelectedEvent(videos[0]);
+    } else if (!selectedEvent && videos.length === 0 && videosPrueba.length > 0) {
+      setSelectedEvent(videosPrueba[0]);
     }
-  }, [videosFinal]);
+  }, [videos, videosPrueba]);
 
   // Ratings y comentarios
   useEffect(() => {
     if (!selectedEvent) return;
     async function fetchRatings() {
+      if (!selectedEvent) return;
       const { data } = await supabase
         .from('launchpad_video_ratings')
         .select('rating')
@@ -163,6 +177,7 @@ const Backstage: React.FC = () => {
       }
     }
     async function fetchComments() {
+      if (!selectedEvent) return;
       setLoadingComments(true);
       const { data } = await supabase
         .from('launchpad_video_comments')
@@ -244,7 +259,7 @@ const Backstage: React.FC = () => {
                     style={{ fontSize: isCollapsed ? 22 : 18 }}
                     onClick={() => setShareMenuOpen(v => !v)}
                   >
-                    <span className={`text-cyan-300 ${isCollapsed ? 'text-2xl' : 'text-xl'}`}></span>
+                    <Share2 className={`text-cyan-300 ${isCollapsed ? 'text-2xl' : 'text-xl'}`} />
                     {!isCollapsed && <span className="ml-2 font-orbitron text-base md:text-lg" style={{color: '#fff', fontWeight: 600}}>Compartir Experiencia</span>}
                   </button>
                   {shareMenuOpen && (
@@ -308,10 +323,12 @@ const Backstage: React.FC = () => {
                   </div>
                   {/* Video centrado y grande */}
                   <div className="w-full flex justify-center">
-                    <div className="aspect-video w-full max-w-2xl bg-black rounded-lg overflow-hidden shadow-2xl border-4 border-cyan-400">
+                    <div className="aspect-video w-full max-w-2xl bg-black rounded-lg overflow-hidden shadow-2xl border-4 border-cyan-400
+                      sm:max-w-full sm:min-h-[180px] md:min-h-[240px] lg:min-h-[300px]"
+                    >
                       <iframe
                         src={selectedEvent.video_url}
-                        className="w-full h-full min-h-[300px]"
+                        className="w-full h-full min-h-[180px] sm:min-h-[180px] md:min-h-[240px] lg:min-h-[300px]"
                         allowFullScreen
                         allow="autoplay; encrypted-media"
                       />
@@ -325,19 +342,21 @@ const Backstage: React.FC = () => {
                   {/* Calificación */}
                   <div className="mt-8 w-full max-w-2xl mx-auto">
                     <div className="mb-6 bg-gray-900/80 rounded-xl p-4 border border-cyan-400 shadow-inner">
-                      <div className="flex items-center gap-2 mb-2">
-                        <span className="text-cyan-200 font-bold text-lg">Califica este directo:</span>
-                        {[1,2,3,4,5].map(star => (
-                          <button
-                            key={star}
-                            onClick={() => setRating(star)}
-                            className={`text-2xl ${star <= rating ? 'text-yellow-400' : 'text-gray-500'} hover:text-yellow-300 transition`}
-                            disabled={savingRating}
-                            aria-label={`Calificar con ${star} estrellas`}
-                          >
-                            <Star fill={star <= rating ? '#facc15' : 'none'} />
-                          </button>
-                        ))}
+                      <div className="flex flex-col items-center gap-2 mb-2 md:flex-row md:items-center md:gap-2">
+                        <div className="flex items-center gap-2 mb-2 md:mb-0">
+                          {[1,2,3,4,5].map(star => (
+                            <button
+                              key={star}
+                              onClick={() => setRating(star)}
+                              className={`text-2xl ${star <= rating ? 'text-yellow-400' : 'text-gray-500'} hover:text-yellow-300 transition`}
+                              disabled={savingRating}
+                              aria-label={`Calificar con ${star} estrellas`}
+                            >
+                              <Star fill={star <= rating ? '#facc15' : 'none'} />
+                            </button>
+                          ))}
+                        </div>
+                        <span className="text-cyan-200 font-bold text-lg text-center md:ml-4">Califica este directo:</span>
                         <button
                           onClick={async () => {
                             if (!selectedEvent || !rating) return;
@@ -356,13 +375,13 @@ const Backstage: React.FC = () => {
                             }
                             setSavingRating(false);
                           }}
-                          className="ml-4 bg-cyan-600 hover:bg-cyan-500 text-white px-3 py-1 rounded font-bold disabled:opacity-60"
+                          className="mt-2 md:mt-0 md:ml-4 bg-cyan-600 hover:bg-cyan-500 text-white px-3 py-1 rounded font-bold disabled:opacity-60"
                           disabled={savingRating || !rating}
                         >
                           Enviar
                         </button>
                       </div>
-                      <div className="text-cyan-300 text-sm">
+                      <div className="text-cyan-300 text-sm text-center">
                         Promedio: <span className="font-bold">{avgRating.toFixed(2)}</span> ({ratingCount} calificaciones)
                       </div>
                     </div>
@@ -439,68 +458,7 @@ const Backstage: React.FC = () => {
               )}
             </div>
             {/* Calendario y lista de videos */}
-            <div className={`${isVideoExpanded ? 'hidden' : ''} flex flex-col gap-6 bg-gray-800 rounded-xl p-4`}>
-              {/* Información del evento destacado */}
-              <div className="mb-4">
-                <div className="rounded-xl p-4 mb-4 bg-gradient-to-r from-pink-600 via-fuchsia-600 to-pink-400 shadow-lg flex flex-col items-center text-white">
-                  {loadingFeatured ? (
-                    <div className="text-white/80 text-center">Cargando evento destacado...</div>
-                  ) : (
-                    <>
-                      <div className="font-orbitron text-xl md:text-2xl font-bold mb-1 tracking-wide">{featuredEvent.title}</div>
-                      <div className="text-sm md:text-base mb-2 text-white/90 text-center leading-tight">{featuredEvent.description} <span className="underline font-semibold cursor-pointer">{featuredEvent.cta}</span></div>
-                      <div className="flex items-center gap-2 text-lg font-mono font-bold bg-white/10 px-4 py-2 rounded-lg mt-2">
-                        <span>{String(countdown.hours).padStart(2, '0')}</span>
-                        <span className="text-xs font-normal">h</span>
-                        <span>:</span>
-                        <span>{String(countdown.min).padStart(2, '0')}</span>
-                        <span className="text-xs font-normal">m</span>
-                        <span>:</span>
-                        <span>{String(countdown.sec).padStart(2, '0')}</span>
-                        <span className="text-xs font-normal">s</span>
-                      </div>
-                    </>
-                  )}
-                </div>
-              </div>
-              {/* Calendario */}
-              <LaunchCalendar
-                events={videosFinal}
-                selectedDate={selectedDate}
-                onSelectDate={setSelectedDate}
-                launchStartDate={featuredEvent.start_date}
-                launchEndDate={featuredEvent.end_date}
-              />
-              {/* Lista de videos */}
-              <div className="bg-gray-900/70 rounded-xl p-3 mt-2 shadow-inner">
-                <div className="flex items-center gap-2 mb-3">
-                  <Calendar className="w-5 h-5 text-cyan-400" />
-                  <h3 className="font-orbitron text-lg">Directos y Cápsulas</h3>
-                </div>
-                <div className="grid grid-cols-1 gap-3">
-                  {filteredVideos.length === 0 && (
-                    <div className="text-gray-500 text-sm">No hay videos para este día.</div>
-                  )}
-                  {filteredVideos.map(video => (
-                    <button
-                      key={video.id}
-                      onClick={() => setSelectedEvent(video)}
-                      className={`flex items-center gap-3 w-full p-2 rounded-lg transition-all text-left bg-gray-800/80 hover:bg-cyan-900/40 border border-transparent hover:border-cyan-400 ${selectedEvent?.id === video.id ? 'ring-2 ring-cyan-400 border-cyan-400' : ''}`}
-                    >
-                      <img src={video.thumbnail} alt={video.title} className="w-16 h-10 object-cover rounded-md border border-gray-700" />
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2">
-                          <span className={`text-xs px-2 py-0.5 rounded-full font-bold ${video.type === 'Directo' ? 'bg-fuchsia-600 text-white' : 'bg-cyan-600 text-white'}`}>{video.type}</span>
-                          <span className="text-xs text-cyan-300">{new Date(video.date).toLocaleDateString()}</span>
-                        </div>
-                        <div className="font-semibold text-sm mt-1 text-cyan-100">{video.title}</div>
-                        <div className="text-xs text-gray-400 mt-0.5 line-clamp-2">{video.description}</div>
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
+            <div className={`${isVideoExpanded ? 'hidden' : ''} flex flex-col gap-6 bg-gray-800 rounded-xl p-4`}></div>
           </div>
         </div>
       </div>
@@ -508,4 +466,4 @@ const Backstage: React.FC = () => {
   );
 };
 
-export default Backstage; 
+export default Backstage;
