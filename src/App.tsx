@@ -38,6 +38,7 @@ import { supabase } from './supabase';
 import { MdFilterAlt, MdOutlineSchool } from 'react-icons/md';
 import { FaRobot, FaWhatsapp, FaHome, FaChalkboardTeacher, FaBrain, FaTrophy, FaUsers } from 'react-icons/fa';
 import { FiBarChart2, FiZap, FiSettings } from 'react-icons/fi';
+import CursosPage from './pages/cursos';
 
 // Definición de tipos para las vistas
 type ViewType = 'inicio' | 'simulacion' | 'dashboard' | 'perfil' | 'configuracion' | 'panel' | 'uploader' | 'knowledge' | 'nicho' | 'modules' | 'train';
@@ -143,8 +144,8 @@ function App() {
               <button onClick={() => navigate('/classroom')} className="flex items-center gap-2 px-3 py-1 rounded-full bg-gradient-to-r from-purple-700 to-indigo-700 text-white font-semibold shadow hover:from-purple-600 hover:to-indigo-600 transition whitespace-nowrap text-xs md:text-xs md:px-2 md:py-1 md:gap-1">
                 <MdOutlineSchool className="w-4 h-4" /> <span>Classroom</span>
               </button>
-              <button onClick={() => navigate('/cursos')} className="flex items-center gap-2 px-3 py-1 rounded-full bg-gradient-to-r from-pink-700 to-pink-500 text-white font-semibold shadow hover:from-pink-600 hover:to-pink-400 transition whitespace-nowrap text-xs md:text-xs md:px-2 md:py-1 md:gap-1">
-                <FaChalkboardTeacher className="w-4 h-4" /> <span>Cursos</span>
+              <button onClick={() => navigate('/cursos')} className="flex items-center gap-2 px-3 py-1 rounded-full bg-gradient-to-r from-cyan-700 to-blue-700 text-white font-semibold shadow hover:from-cyan-600 hover:to-blue-600 transition whitespace-nowrap text-xs md:text-xs md:px-2 md:py-1 md:gap-1">
+                <MdOutlineSchool className="w-5 h-5" /> <span className="text-xs font-bold">Cursos</span>
               </button>
               <button onClick={() => navigate('/launchpad')} className="flex items-center gap-2 px-3 py-1 rounded-full bg-gradient-to-r from-cyan-700 to-blue-700 text-white font-semibold shadow hover:from-cyan-600 hover:to-blue-600 transition whitespace-nowrap text-xs md:text-xs md:px-2 md:py-1 md:gap-1">
                 <FaBrain className="w-4 h-4" /> <span>Launchpad</span>
