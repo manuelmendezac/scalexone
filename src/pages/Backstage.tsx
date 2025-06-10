@@ -155,7 +155,13 @@ const Backstage: React.FC = () => {
   // Seleccionar automáticamente el primer video real (no demo) si existe
   useEffect(() => {
     if (!selectedEvent && videos.length > 0) {
-      setSelectedEvent(videos[0]);
+      // Buscar el primer video que NO sea demo
+      const primerReal = videos.find(v => !v.id.startsWith('demo-'));
+      if (primerReal) {
+        setSelectedEvent(primerReal);
+      } else {
+        setSelectedEvent(videos[0]);
+      }
     } else if (!selectedEvent && videos.length === 0 && videosPrueba.length > 0) {
       setSelectedEvent(videosPrueba[0]);
     }
@@ -215,6 +221,13 @@ const Backstage: React.FC = () => {
     }, 1000);
     return () => clearInterval(interval);
   }, [featuredEvent.date]);
+
+  // Cerrar menú de compartir si se colapsa la barra lateral
+  useEffect(() => {
+    if (isCollapsed && shareMenuOpen) {
+      setShareMenuOpen(false);
+    }
+  }, [isCollapsed, shareMenuOpen]);
 
   return (
     <div className="min-h-screen bg-gray-900 text-white">
