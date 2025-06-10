@@ -55,6 +55,12 @@ function toEmbedUrl(url: string): string {
   return url;
 }
 
+// Utilidad para extraer el ID de YouTube
+function getYouTubeId(url: string): string | null {
+  const match = url.match(/(?:youtube\.com\/embed\/|youtu\.be\/)([\w-]{11})/);
+  return match ? match[1] : null;
+}
+
 const Launchpad: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(true);
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -872,32 +878,52 @@ const Launchpad: React.FC = () => {
         <div className={`flex-1 transition-all duration-300 ${isMenuOpen ? (isCollapsed ? 'ml-20' : 'ml-64') : ''}`}>
           <div className="p-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Área del video */}
-            <div className={`${isVideoExpanded ? 'lg:col-span-3' : 'lg:col-span-2'} bg-gray-800 rounded-xl p-4`}>
-              <div className="relative">
-                <div className="aspect-video bg-black rounded-lg overflow-hidden">
-                  {selectedEvent ? (
-                    <iframe
-                      src={selectedEvent.video_url}
-                      className="w-full h-full"
-                      allowFullScreen
-                    />
-                  ) : (
-                    <div className="flex items-center justify-center h-full text-gray-500">
-                      Selecciona un video para comenzar
+            <div className={`${isVideoExpanded ? 'lg:col-span-3' : 'lg:col-span-2'} bg-gray-800 rounded-xl p-4 flex flex-col items-center`}>
+              {selectedEvent ? (
+                <>
+                  {/* Título grande */}
+                  <h1 className="text-3xl md:text-4xl font-orbitron font-bold text-cyan-300 text-center mb-2">{selectedEvent.title}</h1>
+                  {/* Fecha y hora */}
+                  <div className="text-lg text-cyan-100 font-semibold text-center mb-4">
+                    {selectedEvent.date && (
+                      <span>{new Date(selectedEvent.date).toLocaleString('es-ES', { dateStyle: 'full', timeStyle: 'short' })}</span>
+                    )}
+                  </div>
+                  {/* Video y chat en grid */}
+                  <div className="w-full flex flex-col lg:flex-row gap-6 justify-center items-start">
+                    {/* Video */}
+                    <div className="flex-1 flex justify-center">
+                      <div className="aspect-video w-full max-w-2xl bg-black rounded-lg overflow-hidden shadow-2xl border-4 border-cyan-400">
+                        <iframe
+                          src={selectedEvent.video_url}
+                          className="w-full h-full min-h-[300px]"
+                          allowFullScreen
+                          allow="autoplay; encrypted-media"
+                        />
+                      </div>
                     </div>
-                  )}
-                </div>
-                <button
-                  onClick={() => setIsVideoExpanded(!isVideoExpanded)}
-                  className="absolute top-4 right-4 p-2 bg-gray-900/50 rounded-lg hover:bg-gray-900"
-                >
-                  <Maximize2 className="w-4 h-4" />
-                </button>
-              </div>
-              {selectedEvent && (
-                <div className="mt-4">
-                  <h2 className="text-xl font-orbitron text-cyan-400">{selectedEvent.title}</h2>
-                  <p className="mt-2 text-gray-400">{selectedEvent.description}</p>
+                    {/* Chat de YouTube si aplica */}
+                    {getYouTubeId(selectedEvent.video_url) && (
+                      <div className="w-full lg:w-[380px] h-[400px] bg-gray-900 rounded-lg border border-cyan-400 shadow-xl mt-6 lg:mt-0">
+                        <iframe
+                          src={`https://www.youtube.com/live_chat?v=${getYouTubeId(selectedEvent.video_url)}&embed_domain=${typeof window !== 'undefined' ? window.location.hostname : ''}`}
+                          className="w-full h-full rounded-lg"
+                          frameBorder="0"
+                          allowFullScreen
+                          title="YouTube Live Chat"
+                        />
+                      </div>
+                    )}
+                  </div>
+                  {/* Descripción */}
+                  <div className="mt-6 w-full max-w-2xl mx-auto bg-gray-900/80 rounded-xl p-4 shadow-inner border border-cyan-400">
+                    <h2 className="text-cyan-200 font-bold text-lg mb-2">Descripción</h2>
+                    <p className="text-gray-200 text-base whitespace-pre-line">{selectedEvent.description}</p>
+                  </div>
+                </>
+              ) : (
+                <div className="flex items-center justify-center h-full text-gray-500 w-full min-h-[300px]">
+                  Selecciona un video para comenzar
                 </div>
               )}
             </div>
