@@ -21,6 +21,16 @@ interface LaunchpadLink {
   order_index?: number;
 }
 
+// Función para subir imagen a Supabase Storage y devolver la URL pública
+async function uploadImageToStorage(file: File, pathPrefix = 'misc') {
+  const fileExt = file.name.split('.').pop();
+  const fileName = `${pathPrefix}/${Date.now()}-${Math.random().toString(36).substr(2, 8)}.${fileExt}`;
+  const { data, error } = await supabase.storage.from('launchpad-assets').upload(fileName, file, { upsert: true });
+  if (error) throw error;
+  const { data: publicUrl } = supabase.storage.from('launchpad-assets').getPublicUrl(fileName);
+  return publicUrl.publicUrl;
+}
+
 const Launchpad: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(true);
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -433,23 +443,23 @@ const Launchpad: React.FC = () => {
                   {links.map(link => (
                     <li key={link.id} className="flex items-center gap-2 bg-gray-800 rounded p-2">
                       <input
-                        type="text"
-                        className="w-20 p-1 rounded bg-gray-900 border border-cyan-400 text-cyan-200 text-center"
-                        value={link.icon || ''}
-                        onChange={e => handleEditLink(link.id, 'icon', e.target.value)}
-                        placeholder="🔗"
-                        maxLength={2}
+                        type="file"
+                        accept="image/*"
+                        onChange={async e => {
+                          const file = e.target.files?.[0];
+                          if (!file) return;
+                          try {
+                            const url = await uploadImageToStorage(file, 'iconos');
+                            handleEditLink(link.id, 'icon_img', url);
+                          } catch (err) {
+                            alert('Error subiendo imagen');
+                          }
+                        }}
+                        className="block"
                       />
                       <input
                         type="text"
                         className="w-24 p-1 rounded bg-gray-900 border border-cyan-400 text-cyan-200 text-center"
-                        value={link.icon_img || ''}
-                        onChange={e => handleEditLink(link.id, 'icon_img', e.target.value)}
-                        placeholder="URL img"
-                      />
-                      <input
-                        type="text"
-                        className="flex-1 p-1 rounded bg-gray-900 border border-cyan-400 text-cyan-200"
                         value={link.label}
                         onChange={e => handleEditLink(link.id, 'label', e.target.value)}
                         placeholder="Nombre"
@@ -476,20 +486,19 @@ const Launchpad: React.FC = () => {
               {/* Formulario para agregar nuevo enlace */}
               <form onSubmit={handleAddLink} className="flex items-center gap-2">
                 <input
-                  type="text"
-                  className="w-16 p-1 rounded bg-gray-900 border border-cyan-400 text-cyan-200 text-center"
-                  value={newLink.icon}
-                  onChange={e => setNewLink(l => ({ ...l, icon: e.target.value }))}
-                  placeholder="🔗"
-                  maxLength={2}
-                  required
-                />
-                <input
-                  type="text"
-                  className="w-24 p-1 rounded bg-gray-900 border border-cyan-400 text-cyan-200 text-center"
-                  value={newLink.icon_img}
-                  onChange={e => setNewLink(l => ({ ...l, icon_img: e.target.value }))}
-                  placeholder="URL img"
+                  type="file"
+                  accept="image/*"
+                  onChange={async e => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    try {
+                      const url = await uploadImageToStorage(file, 'iconos');
+                      setNewLink(l => ({ ...l, icon_img: url }));
+                    } catch (err) {
+                      alert('Error subiendo imagen');
+                    }
+                  }}
+                  className="block"
                 />
                 <input
                   type="text"
@@ -527,14 +536,31 @@ const Launchpad: React.FC = () => {
                 onChange={e => setSidebarSettings(s => ({ ...s, sidebar_title: e.target.value }))}
                 required
               />
-              <label className="text-cyan-200 font-semibold">Logo (URL de imagen)</label>
-              <input
-                type="text"
-                className="p-2 rounded bg-gray-800 border border-cyan-400 text-white"
-                value={sidebarSettings.sidebar_logo}
-                onChange={e => setSidebarSettings(s => ({ ...s, sidebar_logo: e.target.value }))}
-                placeholder="https://..."
-              />
+              <label className="text-cyan-200 font-semibold">Logo (URL de imagen o subir archivo)</label>
+              <div className="flex gap-2 items-center">
+                <input
+                  type="text"
+                  className="p-2 rounded bg-gray-800 border border-cyan-400 text-white flex-1"
+                  value={sidebarSettings.sidebar_logo}
+                  onChange={e => setSidebarSettings(s => ({ ...s, sidebar_logo: e.target.value }))}
+                  placeholder="https://..."
+                />
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={async e => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    try {
+                      const url = await uploadImageToStorage(file, 'logo');
+                      setSidebarSettings(s => ({ ...s, sidebar_logo: url }));
+                    } catch (err) {
+                      alert('Error subiendo imagen');
+                    }
+                  }}
+                  className="block"
+                />
+              </div>
               <button
                 type="submit"
                 className="mt-2 bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-2 rounded shadow-lg border border-cyan-300 disabled:opacity-60"
