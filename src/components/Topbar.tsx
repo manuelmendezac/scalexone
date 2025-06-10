@@ -121,15 +121,7 @@ const Topbar: React.FC<TopbarProps> = ({
       </div>
 
       {/* Iconos a la derecha */}
-      <div className="flex items-center gap-1 sm:gap-4">
-        {/* Iconos extra solo en móvil */}
-        <div className="flex items-center gap-1 sm:hidden">
-          <MdFilterAlt className="w-5 h-5 cursor-pointer hover:text-cyan-400 transition" title="Embudos" onClick={() => navigate('/funnels')} />
-          <FaRobot className="w-5 h-5 cursor-pointer hover:text-cyan-400 transition" title="IA" onClick={() => navigate('/ia')} />
-          <FiZap className="w-5 h-5 cursor-pointer hover:text-cyan-400 transition" title="Automatizaciones" onClick={() => navigate('/automatizaciones')} />
-          <FaWhatsapp className="w-5 h-5 cursor-pointer hover:text-cyan-400 transition" title="WhatsApp CRM" onClick={() => navigate('/whatsapp-crm')} />
-          <FiSettings className="w-5 h-5 cursor-pointer hover:text-cyan-400 transition" title="Configuración" onClick={() => navigate('/configuracion')} />
-        </div>
+      <div className="flex items-center gap-2 sm:gap-4">
         {/* Botón de soporte */}
         <button
           className="flex items-center gap-2 px-2 sm:px-3 py-1 rounded-lg bg-gray-800 hover:bg-gray-700 text-white font-semibold transition"
