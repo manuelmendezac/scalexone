@@ -39,6 +39,22 @@ async function uploadImageToStorage(file: File, pathPrefix = 'misc') {
   return data.publicUrl;
 }
 
+// Función para transformar URLs normales a URLs embebidas
+function toEmbedUrl(url: string): string {
+  // YouTube
+  const ytMatch = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([\w-]{11})/);
+  if (ytMatch) {
+    return `https://www.youtube.com/embed/${ytMatch[1]}`;
+  }
+  // Vimeo
+  const vimeoMatch = url.match(/vimeo\.com\/(\d+)/);
+  if (vimeoMatch) {
+    return `https://player.vimeo.com/video/${vimeoMatch[1]}`;
+  }
+  // Si ya es embed o no se reconoce, devolver igual
+  return url;
+}
+
 const Launchpad: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(true);
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -432,7 +448,9 @@ const Launchpad: React.FC = () => {
     if (newVideo.destacado) {
       await supabase.from('launchpad_videos').update({ destacado: false }).eq('destacado', true);
     }
-    const { error } = await supabase.from('launchpad_videos').insert([{ ...newVideo }]);
+    // Transformar la URL antes de guardar
+    const videoToSave = { ...newVideo, video_url: toEmbedUrl(newVideo.video_url) };
+    const { error } = await supabase.from('launchpad_videos').insert([videoToSave]);
     setSavingVideo(false);
     setNewVideo({ title: '', description: '', video_url: '', thumbnail: '', type: 'Directo', date: '', destacado: false });
     // Refrescar lista
@@ -448,7 +466,9 @@ const Launchpad: React.FC = () => {
     if (editVideo.destacado) {
       await supabase.from('launchpad_videos').update({ destacado: false }).eq('destacado', true);
     }
-    const { error } = await supabase.from('launchpad_videos').update(editVideo).eq('id', editVideo.id);
+    // Transformar la URL antes de guardar
+    const videoToUpdate = { ...editVideo, video_url: toEmbedUrl(editVideo.video_url) };
+    const { error } = await supabase.from('launchpad_videos').update(videoToUpdate).eq('id', editVideo.id);
     setSavingVideo(false);
     setEditVideo(null);
     // Refrescar lista
