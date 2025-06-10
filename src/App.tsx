@@ -35,9 +35,9 @@ import { BibliotecaProvider } from './context/BibliotecaContext';
 import ModuloCardBibliotecaConocimiento from './components/ModuloCardBibliotecaConocimiento';
 import ModuloCardConsejeroInteligente from './components/ModuloCardConsejeroInteligente';
 import { supabase } from './supabase';
-import { MdFilterAlt } from 'react-icons/md';
-import { FaRobot, FaWhatsapp } from 'react-icons/fa';
-import { FiZap, FiSettings } from 'react-icons/fi';
+import { MdFilterAlt, MdOutlineSchool } from 'react-icons/md';
+import { FaRobot, FaWhatsapp, FaHome, FaChalkboardTeacher, FaBrain, FaTrophy, FaUsers } from 'react-icons/fa';
+import { FiBarChart2, FiZap, FiSettings } from 'react-icons/fi';
 
 // Definición de tipos para las vistas
 type ViewType = 'inicio' | 'simulacion' | 'dashboard' | 'perfil' | 'configuracion' | 'panel' | 'uploader' | 'knowledge' | 'nicho' | 'modules' | 'train';
@@ -132,27 +132,44 @@ function App() {
               darkMode={darkMode}
               isLoggedIn={isLoggedIn}
             />
-            {/* Barra de accesos directos tipo cápsula solo en móvil, ahora en dos líneas */}
-            <div className="flex flex-col gap-1 px-2 py-2 bg-transparent md:hidden w-full">
-              <div className="flex gap-2 w-full overflow-x-auto">
-                <button onClick={() => navigate('/funnels')} className="flex items-center gap-2 px-3 py-1 rounded-full bg-gradient-to-r from-cyan-700 to-blue-700 text-white font-semibold shadow hover:from-cyan-600 hover:to-blue-600 transition whitespace-nowrap">
-                  <MdFilterAlt className="w-5 h-5" /> <span className="text-xs font-bold">Embudos</span>
-                </button>
-                <button onClick={() => navigate('/ia')} className="flex items-center gap-2 px-3 py-1 rounded-full bg-gradient-to-r from-fuchsia-700 to-pink-600 text-white font-semibold shadow hover:from-fuchsia-600 hover:to-pink-500 transition whitespace-nowrap">
-                  <FaRobot className="w-5 h-5" /> <span className="text-xs font-bold">IA</span>
-                </button>
-                <button onClick={() => navigate('/automatizaciones')} className="flex items-center gap-2 px-3 py-1 rounded-full bg-gradient-to-r from-yellow-500 to-yellow-700 text-white font-semibold shadow hover:from-yellow-400 hover:to-yellow-600 transition whitespace-nowrap">
-                  <FiZap className="w-5 h-5" /> <span className="text-xs font-bold">Automatizaciones</span>
-                </button>
-              </div>
-              <div className="flex gap-2 w-full overflow-x-auto">
-                <button onClick={() => navigate('/whatsapp-crm')} className="flex items-center gap-2 px-3 py-1 rounded-full bg-gradient-to-r from-green-600 to-green-800 text-white font-semibold shadow hover:from-green-500 hover:to-green-700 transition whitespace-nowrap">
-                  <FaWhatsapp className="w-5 h-5" /> <span className="text-xs font-bold">WhatsApp CRM</span>
-                </button>
-                <button onClick={() => navigate('/configuracion')} className="flex items-center gap-2 px-3 py-1 rounded-full bg-gradient-to-r from-gray-700 to-gray-900 text-white font-semibold shadow hover:from-gray-600 hover:to-gray-800 transition whitespace-nowrap">
-                  <FiSettings className="w-5 h-5" /> <span className="text-xs font-bold">Configuración</span>
-                </button>
-              </div>
+            {/* Barra de accesos directos tipo cápsula visible en todas las resoluciones */}
+            <div className="flex gap-2 px-2 py-2 bg-transparent overflow-x-auto w-full">
+              <button onClick={() => navigate('/home')} className="flex items-center gap-2 px-3 py-1 rounded-full bg-gradient-to-r from-blue-700 to-cyan-700 text-white font-semibold shadow hover:from-blue-600 hover:to-cyan-600 transition whitespace-nowrap text-xs md:text-xs md:px-2 md:py-1 md:gap-1">
+                <FaHome className="w-4 h-4" /> <span>Inicio</span>
+              </button>
+              <button onClick={() => navigate('/dashboard')} className="flex items-center gap-2 px-3 py-1 rounded-full bg-gradient-to-r from-gray-700 to-gray-900 text-white font-semibold shadow hover:from-gray-600 hover:to-gray-800 transition whitespace-nowrap text-xs md:text-xs md:px-2 md:py-1 md:gap-1">
+                <FiBarChart2 className="w-4 h-4" /> <span>Dashboard</span>
+              </button>
+              <button onClick={() => navigate('/classroom')} className="flex items-center gap-2 px-3 py-1 rounded-full bg-gradient-to-r from-purple-700 to-indigo-700 text-white font-semibold shadow hover:from-purple-600 hover:to-indigo-600 transition whitespace-nowrap text-xs md:text-xs md:px-2 md:py-1 md:gap-1">
+                <MdOutlineSchool className="w-4 h-4" /> <span>Classroom</span>
+              </button>
+              <button onClick={() => navigate('/cursos')} className="flex items-center gap-2 px-3 py-1 rounded-full bg-gradient-to-r from-pink-700 to-pink-500 text-white font-semibold shadow hover:from-pink-600 hover:to-pink-400 transition whitespace-nowrap text-xs md:text-xs md:px-2 md:py-1 md:gap-1">
+                <FaChalkboardTeacher className="w-4 h-4" /> <span>Cursos</span>
+              </button>
+              <button onClick={() => navigate('/launchpad')} className="flex items-center gap-2 px-3 py-1 rounded-full bg-gradient-to-r from-cyan-700 to-blue-700 text-white font-semibold shadow hover:from-cyan-600 hover:to-blue-600 transition whitespace-nowrap text-xs md:text-xs md:px-2 md:py-1 md:gap-1">
+                <FaBrain className="w-4 h-4" /> <span>Launchpad</span>
+              </button>
+              <button onClick={() => navigate('/community')} className="flex items-center gap-2 px-3 py-1 rounded-full bg-gradient-to-r from-green-700 to-green-900 text-white font-semibold shadow hover:from-green-600 hover:to-green-800 transition whitespace-nowrap text-xs md:text-xs md:px-2 md:py-1 md:gap-1">
+                <FaUsers className="w-4 h-4" /> <span>Comunidad</span>
+              </button>
+              <button onClick={() => navigate('/gamificacion')} className="flex items-center gap-2 px-3 py-1 rounded-full bg-gradient-to-r from-yellow-500 to-yellow-700 text-white font-semibold shadow hover:from-yellow-400 hover:to-yellow-600 transition whitespace-nowrap text-xs md:text-xs md:px-2 md:py-1 md:gap-1">
+                <FaTrophy className="w-4 h-4" /> <span>Gamificación</span>
+              </button>
+              <button onClick={() => navigate('/funnels')} className="flex items-center gap-2 px-3 py-1 rounded-full bg-gradient-to-r from-cyan-700 to-blue-700 text-white font-semibold shadow hover:from-cyan-600 hover:to-blue-600 transition whitespace-nowrap text-xs md:text-xs md:px-2 md:py-1 md:gap-1">
+                <MdFilterAlt className="w-4 h-4" /> <span>Embudos</span>
+              </button>
+              <button onClick={() => navigate('/ia')} className="flex items-center gap-2 px-3 py-1 rounded-full bg-gradient-to-r from-fuchsia-700 to-pink-600 text-white font-semibold shadow hover:from-fuchsia-600 hover:to-pink-500 transition whitespace-nowrap text-xs md:text-xs md:px-2 md:py-1 md:gap-1">
+                <FaRobot className="w-4 h-4" /> <span>IA</span>
+              </button>
+              <button onClick={() => navigate('/automatizaciones')} className="flex items-center gap-2 px-3 py-1 rounded-full bg-gradient-to-r from-yellow-500 to-yellow-700 text-white font-semibold shadow hover:from-yellow-400 hover:to-yellow-600 transition whitespace-nowrap text-xs md:text-xs md:px-2 md:py-1 md:gap-1">
+                <FiZap className="w-4 h-4" /> <span>Automatizaciones</span>
+              </button>
+              <button onClick={() => navigate('/whatsapp-crm')} className="flex items-center gap-2 px-3 py-1 rounded-full bg-gradient-to-r from-green-600 to-green-800 text-white font-semibold shadow hover:from-green-500 hover:to-green-700 transition whitespace-nowrap text-xs md:text-xs md:px-2 md:py-1 md:gap-1">
+                <FaWhatsapp className="w-4 h-4" /> <span>WhatsApp CRM</span>
+              </button>
+              <button onClick={() => navigate('/configuracion')} className="flex items-center gap-2 px-3 py-1 rounded-full bg-gradient-to-r from-gray-700 to-gray-900 text-white font-semibold shadow hover:from-gray-600 hover:to-gray-800 transition whitespace-nowrap text-xs md:text-xs md:px-2 md:py-1 md:gap-1">
+                <FiSettings className="w-4 h-4" /> <span>Configuración</span>
+              </button>
             </div>
             <SecondNavbar />
           </>
