@@ -309,12 +309,10 @@ const Backstage: React.FC = () => {
                   </div>
                   {/* Video centrado y grande */}
                   <div className="w-full flex justify-center">
-                    <div className="aspect-video w-full max-w-2xl bg-black rounded-lg overflow-hidden shadow-2xl border-4 border-cyan-400
-                      sm:max-w-full sm:min-h-[180px] md:min-h-[240px] lg:min-h-[300px]"
-                    >
+                    <div className="aspect-video w-full max-w-full bg-black rounded-lg overflow-hidden shadow-2xl border-4 border-cyan-400 min-h-[180px] max-h-[240px] sm:min-h-[200px] sm:max-h-[260px]">
                       <iframe
                         src={selectedEvent.video_url}
-                        className="w-full h-full min-h-[180px] sm:min-h-[180px] md:min-h-[240px] lg:min-h-[300px]"
+                        className="w-full h-full"
                         allowFullScreen
                         allow="autoplay; encrypted-media"
                       />
