@@ -55,6 +55,10 @@ const Launchpad: React.FC = () => {
   const [loadingLinks, setLoadingLinks] = useState(false);
   const [savingLinks, setSavingLinks] = useState(false);
   const [newLink, setNewLink] = useState({ label: '', url: '', icon: '', icon_img: '' });
+  // Estado para configuración de la barra lateral
+  const [sidebarSettings, setSidebarSettings] = useState({ sidebar_title: 'IA Heroes Live', sidebar_logo: '' });
+  const [loadingSettings, setLoadingSettings] = useState(true);
+  const [savingSettings, setSavingSettings] = useState(false);
 
   // Ajustar barra lateral según el ancho de pantalla después del primer render
   useEffect(() => {
@@ -196,6 +200,25 @@ const Launchpad: React.FC = () => {
     fetchLinks();
   }, [drawerOpen]);
 
+  // Cargar configuración al montar
+  useEffect(() => {
+    async function fetchSettings() {
+      setLoadingSettings(true);
+      const { data } = await supabase
+        .from('launchpad_settings')
+        .select('*')
+        .order('updated_at', { ascending: false })
+        .limit(1)
+        .single();
+      if (data) setSidebarSettings({
+        sidebar_title: data.sidebar_title || 'IA Heroes Live',
+        sidebar_logo: data.sidebar_logo || ''
+      });
+      setLoadingSettings(false);
+    }
+    fetchSettings();
+  }, []);
+
   // Guardar cambios en Supabase
   async function handleSaveEvent(e: React.FormEvent) {
     e.preventDefault();
@@ -268,6 +291,40 @@ const Launchpad: React.FC = () => {
     const updatedLinks = links.map(l => l.id === id ? { ...l, [field]: value } : l);
     setLinks(updatedLinks);
     await supabase.from('launchpad_links').update({ [field]: value }).eq('id', id);
+  }
+
+  // Guardar cambios en la configuración
+  async function handleSaveSettings(e: React.FormEvent) {
+    e.preventDefault();
+    setSavingSettings(true);
+    // Buscar si ya existe un registro
+    const { data: existing } = await supabase
+      .from('launchpad_settings')
+      .select('id')
+      .order('updated_at', { ascending: false })
+      .limit(1)
+      .single();
+    let result;
+    if (existing) {
+      result = await supabase
+        .from('launchpad_settings')
+        .update({
+          sidebar_title: sidebarSettings.sidebar_title,
+          sidebar_logo: sidebarSettings.sidebar_logo,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', existing.id);
+    } else {
+      result = await supabase
+        .from('launchpad_settings')
+        .insert([
+          {
+            sidebar_title: sidebarSettings.sidebar_title,
+            sidebar_logo: sidebarSettings.sidebar_logo,
+          },
+        ]);
+    }
+    setSavingSettings(false);
   }
 
   return (
@@ -459,6 +516,34 @@ const Launchpad: React.FC = () => {
                 </button>
               </form>
             </div>
+            {/* Formulario de edición de configuración de barra lateral */}
+            <form onSubmit={handleSaveSettings} className="flex flex-col gap-3 mb-8">
+              <h3 className="font-orbitron text-xl mb-2 text-cyan-300">Barra lateral</h3>
+              <label className="text-cyan-200 font-semibold">Título</label>
+              <input
+                type="text"
+                className="p-2 rounded bg-gray-800 border border-cyan-400 text-white"
+                value={sidebarSettings.sidebar_title}
+                onChange={e => setSidebarSettings(s => ({ ...s, sidebar_title: e.target.value }))}
+                required
+              />
+              <label className="text-cyan-200 font-semibold">Logo (URL de imagen)</label>
+              <input
+                type="text"
+                className="p-2 rounded bg-gray-800 border border-cyan-400 text-white"
+                value={sidebarSettings.sidebar_logo}
+                onChange={e => setSidebarSettings(s => ({ ...s, sidebar_logo: e.target.value }))}
+                placeholder="https://..."
+              />
+              <button
+                type="submit"
+                className="mt-2 bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-2 rounded shadow-lg border border-cyan-300 disabled:opacity-60"
+                disabled={savingSettings}
+              >
+                {savingSettings ? 'Guardando...' : 'Guardar configuración'}
+              </button>
+              {loadingSettings && <div className="text-center text-cyan-300">Cargando configuración...</div>}
+            </form>
           </div>
         </div>
       )}
@@ -484,11 +569,15 @@ const Launchpad: React.FC = () => {
               </button>
               {/* Logo/avatar */}
               <div className={`mb-8 mt-2 flex flex-col items-center transition-all ${isCollapsed ? 'scale-90' : ''}`}>
-                <div className="w-14 h-14 rounded-full bg-cyan-400 flex items-center justify-center shadow-lg border-4 border-cyan-300/40">
-                  <span className="text-3xl font-bold text-cyan-900">🚀</span>
-                </div>
+                {sidebarSettings.sidebar_logo ? (
+                  <img src={sidebarSettings.sidebar_logo} alt="Logo" className="w-14 h-14 rounded-full object-cover shadow-lg border-4 border-cyan-300/40 bg-cyan-400" />
+                ) : (
+                  <div className="w-14 h-14 rounded-full bg-cyan-400 flex items-center justify-center shadow-lg border-4 border-cyan-300/40">
+                    <span className="text-3xl font-bold text-cyan-900">🚀</span>
+                  </div>
+                )}
                 {!isCollapsed && (
-                  <span className="mt-2 text-cyan-200 font-orbitron text-lg tracking-wide">IA Heroes Live</span>
+                  <span className="mt-2 text-cyan-200 font-orbitron text-lg tracking-wide">{sidebarSettings.sidebar_title}</span>
                 )}
               </div>
               {/* Accesos con tooltips o solo íconos */}
