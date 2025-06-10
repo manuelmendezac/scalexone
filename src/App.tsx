@@ -59,6 +59,11 @@ function App() {
   const location = useLocation();
   const hideMenu = location.pathname === '/' || location.pathname === '/registro';
 
+  // LOGS TEMPORALES PARA DEPURACIÓN
+  console.log('isHydrated:', isHydrated);
+  console.log('userName:', userName);
+  console.log('location:', location.pathname);
+
   const handleThemeToggle = () => setDarkMode((prev) => !prev);
 
   useEffect(() => {
