@@ -35,6 +35,9 @@ import { BibliotecaProvider } from './context/BibliotecaContext';
 import ModuloCardBibliotecaConocimiento from './components/ModuloCardBibliotecaConocimiento';
 import ModuloCardConsejeroInteligente from './components/ModuloCardConsejeroInteligente';
 import { supabase } from './supabase';
+import { MdFilterAlt } from 'react-icons/md';
+import { FaRobot, FaWhatsapp } from 'react-icons/fa';
+import { FiZap, FiSettings } from 'react-icons/fi';
 
 // Definición de tipos para las vistas
 type ViewType = 'inicio' | 'simulacion' | 'dashboard' | 'perfil' | 'configuracion' | 'panel' | 'uploader' | 'knowledge' | 'nicho' | 'modules' | 'train';
@@ -129,6 +132,24 @@ function App() {
               darkMode={darkMode}
               isLoggedIn={isLoggedIn}
             />
+            {/* Barra de accesos directos tipo cápsula solo en móvil */}
+            <div className="flex gap-2 px-2 py-2 bg-transparent overflow-x-auto md:hidden w-full">
+              <button onClick={() => navigate('/funnels')} className="flex items-center gap-2 px-3 py-1 rounded-full bg-gradient-to-r from-cyan-700 to-blue-700 text-white font-semibold shadow hover:from-cyan-600 hover:to-blue-600 transition whitespace-nowrap">
+                <MdFilterAlt className="w-5 h-5" /> <span className="text-xs font-bold">Embudos</span>
+              </button>
+              <button onClick={() => navigate('/ia')} className="flex items-center gap-2 px-3 py-1 rounded-full bg-gradient-to-r from-fuchsia-700 to-pink-600 text-white font-semibold shadow hover:from-fuchsia-600 hover:to-pink-500 transition whitespace-nowrap">
+                <FaRobot className="w-5 h-5" /> <span className="text-xs font-bold">IA</span>
+              </button>
+              <button onClick={() => navigate('/automatizaciones')} className="flex items-center gap-2 px-3 py-1 rounded-full bg-gradient-to-r from-yellow-500 to-yellow-700 text-white font-semibold shadow hover:from-yellow-400 hover:to-yellow-600 transition whitespace-nowrap">
+                <FiZap className="w-5 h-5" /> <span className="text-xs font-bold">Automatizaciones</span>
+              </button>
+              <button onClick={() => navigate('/whatsapp-crm')} className="flex items-center gap-2 px-3 py-1 rounded-full bg-gradient-to-r from-green-600 to-green-800 text-white font-semibold shadow hover:from-green-500 hover:to-green-700 transition whitespace-nowrap">
+                <FaWhatsapp className="w-5 h-5" /> <span className="text-xs font-bold">WhatsApp CRM</span>
+              </button>
+              <button onClick={() => navigate('/configuracion')} className="flex items-center gap-2 px-3 py-1 rounded-full bg-gradient-to-r from-gray-700 to-gray-900 text-white font-semibold shadow hover:from-gray-600 hover:to-gray-800 transition whitespace-nowrap">
+                <FiSettings className="w-5 h-5" /> <span className="text-xs font-bold">Configuración</span>
+              </button>
+            </div>
             <SecondNavbar />
           </>
         )}
