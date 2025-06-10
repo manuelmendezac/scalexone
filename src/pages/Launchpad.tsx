@@ -9,7 +9,7 @@ interface LaunchEvent {
   title: string;
   date: string;
   description: string;
-  videoUrl: string;
+  video_url: string;
 }
 
 interface LaunchpadLink {
@@ -857,7 +857,7 @@ const Launchpad: React.FC = () => {
                 <div className="aspect-video bg-black rounded-lg overflow-hidden">
                   {selectedEvent ? (
                     <iframe
-                      src={selectedEvent.videoUrl}
+                      src={selectedEvent.video_url}
                       className="w-full h-full"
                       allowFullScreen
                     />
