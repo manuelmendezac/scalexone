@@ -54,7 +54,9 @@ const Launchpad: React.FC = () => {
     title: '',
     description: '',
     cta: '',
-    date: '',
+    date: '', // fecha/hora principal (para el contador)
+    start_date: '', // nueva: fecha de inicio del lanzamiento
+    end_date: '',   // nueva: fecha de fin del lanzamiento
   });
   const [loadingEvent, setLoadingEvent] = useState(false);
   const [savingEvent, setSavingEvent] = useState(false);
@@ -185,7 +187,9 @@ const Launchpad: React.FC = () => {
           title: data.title || '',
           description: data.description || '',
           cta: data.cta || '',
-          date: data.date ? data.date.slice(0, 16) : '', // formato para input datetime-local
+          date: data.date ? data.date.slice(0, 16) : '',
+          start_date: data.start_date ? data.start_date.slice(0, 10) : '',
+          end_date: data.end_date ? data.end_date.slice(0, 10) : '',
         });
       }
       setLoadingEvent(false);
@@ -228,6 +232,8 @@ const Launchpad: React.FC = () => {
           description: editEvent.description,
           cta: editEvent.cta,
           date: editEvent.date,
+          start_date: editEvent.start_date,
+          end_date: editEvent.end_date,
         })
         .eq('id', existing.id);
     } else {
@@ -239,6 +245,8 @@ const Launchpad: React.FC = () => {
             description: editEvent.description,
             cta: editEvent.cta,
             date: editEvent.date,
+            start_date: editEvent.start_date,
+            end_date: editEvent.end_date,
           },
         ]);
     }
@@ -341,7 +349,7 @@ const Launchpad: React.FC = () => {
                 onChange={e => setEditEvent(ev => ({ ...ev, cta: e.target.value }))}
                 required
               />
-              <label className="text-fuchsia-200 font-semibold">Fecha y hora</label>
+              <label className="text-fuchsia-200 font-semibold">Fecha y hora (contador)</label>
               <input
                 type="datetime-local"
                 className="p-2 rounded bg-gray-800 border border-fuchsia-400 text-white"
@@ -349,6 +357,30 @@ const Launchpad: React.FC = () => {
                 onChange={e => setEditEvent(ev => ({ ...ev, date: e.target.value }))}
                 required
               />
+              <label className="text-fuchsia-200 font-semibold">Fecha de inicio del lanzamiento</label>
+              <input
+                type="date"
+                className="p-2 rounded bg-gray-800 border border-fuchsia-400 text-white"
+                value={editEvent.start_date}
+                onChange={e => setEditEvent(ev => ({ ...ev, start_date: e.target.value }))}
+                required
+              />
+              <label className="text-fuchsia-200 font-semibold">Fecha de fin del lanzamiento</label>
+              <input
+                type="date"
+                className="p-2 rounded bg-gray-800 border border-fuchsia-400 text-white"
+                value={editEvent.end_date}
+                onChange={e => setEditEvent(ev => ({ ...ev, end_date: e.target.value }))}
+                required
+              />
+              <button
+                type="submit"
+                className="mt-4 bg-fuchsia-600 hover:bg-fuchsia-500 text-white font-bold py-2 rounded shadow-lg border border-fuchsia-300 disabled:opacity-60"
+                disabled={savingEvent}
+              >
+                {savingEvent ? 'Guardando...' : 'Guardar cambios'}
+              </button>
+              {loadingEvent && <div className="text-center text-fuchsia-300">Cargando datos...</div>}
             </form>
             {/* Sección de edición de enlaces rápidos */}
             <div className="mb-8">
