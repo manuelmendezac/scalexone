@@ -17,6 +17,7 @@ interface LaunchpadLink {
   label: string;
   url: string;
   icon?: string;
+  icon_img?: string;
   order_index?: number;
 }
 
@@ -53,7 +54,7 @@ const Launchpad: React.FC = () => {
   const [links, setLinks] = useState<LaunchpadLink[]>([]);
   const [loadingLinks, setLoadingLinks] = useState(false);
   const [savingLinks, setSavingLinks] = useState(false);
-  const [newLink, setNewLink] = useState({ label: '', url: '', icon: '' });
+  const [newLink, setNewLink] = useState({ label: '', url: '', icon: '', icon_img: '' });
 
   // Ajustar barra lateral según el ancho de pantalla después del primer render
   useEffect(() => {
@@ -247,7 +248,7 @@ const Launchpad: React.FC = () => {
       .from('launchpad_links')
       .insert([{ ...newLink, order_index: links.length }]);
     setSavingLinks(false);
-    setNewLink({ label: '', url: '', icon: '' });
+    setNewLink({ label: '', url: '', icon: '', icon_img: '' });
     // Refrescar lista
     const { data: updated } = await supabase
       .from('launchpad_links')
@@ -384,6 +385,13 @@ const Launchpad: React.FC = () => {
                       />
                       <input
                         type="text"
+                        className="w-24 p-1 rounded bg-gray-900 border border-cyan-400 text-cyan-200 text-center"
+                        value={link.icon_img || ''}
+                        onChange={e => handleEditLink(link.id, 'icon_img', e.target.value)}
+                        placeholder="URL img"
+                      />
+                      <input
+                        type="text"
                         className="flex-1 p-1 rounded bg-gray-900 border border-cyan-400 text-cyan-200"
                         value={link.label}
                         onChange={e => handleEditLink(link.id, 'label', e.target.value)}
@@ -418,6 +426,13 @@ const Launchpad: React.FC = () => {
                   placeholder="🔗"
                   maxLength={2}
                   required
+                />
+                <input
+                  type="text"
+                  className="w-24 p-1 rounded bg-gray-900 border border-cyan-400 text-cyan-200 text-center"
+                  value={newLink.icon_img}
+                  onChange={e => setNewLink(l => ({ ...l, icon_img: e.target.value }))}
+                  placeholder="URL img"
                 />
                 <input
                   type="text"
@@ -492,7 +507,13 @@ const Launchpad: React.FC = () => {
                         ${isCollapsed ? 'justify-center px-2 py-2' : ''}`}
                       style={{ fontSize: isCollapsed ? 22 : 18 }}
                     >
-                      <span className={`text-cyan-300 ${isCollapsed ? 'text-2xl' : 'text-xl'}`}>{item.icon || '🔗'}</span>
+                      <span className={`text-cyan-300 ${isCollapsed ? 'text-2xl' : 'text-xl'}`}>
+                        {item.icon_img ? (
+                          <img src={item.icon_img} alt={item.label} className="w-7 h-7 rounded object-cover inline-block" />
+                        ) : (
+                          item.icon || '🔗'
+                        )}
+                      </span>
                       {!isCollapsed && <span className="ml-2 font-orbitron text-base md:text-lg" style={{color: '#fff', fontWeight: 600}}>{item.label}</span>}
                     </a>
                     {/* Tooltip solo cuando está colapsado */}
