@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Calendar, Menu, ChevronLeft, ChevronRight, Star, Share2 } from 'lucide-react';
+import { Calendar, Menu, ChevronLeft, ChevronRight, Star, Share2, Maximize2, Minimize2 } from 'lucide-react';
 import LaunchCalendar from '../components/launchpad/LaunchCalendar';
 import { supabase } from '../supabase';
 
@@ -304,9 +304,17 @@ const Backstage: React.FC = () => {
         <div className={`flex-1 transition-all duration-300 ${isMenuOpen ? (isCollapsed ? 'ml-20' : 'ml-64') : ''}`}>
           <div className="p-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Área del video */}
-            <div ref={videoRef} className={`${isVideoExpanded ? 'lg:col-span-3' : 'lg:col-span-2'} bg-gray-800 rounded-xl p-4 flex flex-col items-center`}>
+            <div ref={videoRef} className={`${isVideoExpanded ? 'lg:col-span-3' : 'lg:col-span-2'} bg-gray-800 rounded-xl p-4 flex flex-col items-center relative`}>
               {selectedEvent ? (
                 <>
+                  {/* Botón expandir/reducir video */}
+                  <button
+                    className="absolute top-4 right-4 z-10 bg-gray-900/70 hover:bg-cyan-700 text-white p-2 rounded-full shadow-lg border border-cyan-400 transition"
+                    onClick={() => setIsVideoExpanded(v => !v)}
+                    title={isVideoExpanded ? 'Reducir video' : 'Expandir video'}
+                  >
+                    {isVideoExpanded ? <Minimize2 className="w-6 h-6" /> : <Maximize2 className="w-6 h-6" />}
+                  </button>
                   {/* Título grande */}
                   <h1 className="text-xl md:text-3xl font-orbitron font-bold text-cyan-300 text-center mb-2 mt-2 md:mt-4">{selectedEvent.title}</h1>
                   {/* Fecha y hora */}
@@ -317,7 +325,7 @@ const Backstage: React.FC = () => {
                   </div>
                   {/* Video centrado y grande */}
                   <div className="w-full flex justify-center">
-                    <div className="aspect-video w-full max-w-full bg-black rounded-lg overflow-hidden shadow-2xl border-4 border-cyan-400 min-h-[180px] max-h-[240px] sm:min-h-[200px] sm:max-h-[260px]">
+                    <div className="aspect-video w-full max-w-4xl bg-black rounded-lg overflow-hidden shadow-2xl border-4 border-cyan-400 min-h-[180px] max-h-[70vh]">
                       <iframe
                         src={selectedEvent.video_url}
                         className="w-full h-full"
