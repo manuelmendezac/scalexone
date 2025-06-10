@@ -58,6 +58,7 @@ function App() {
   const isLoggedIn = userName !== 'Invitado';
   const location = useLocation();
   const hideMenu = location.pathname === '/' || location.pathname === '/registro';
+  const isLaunchpad = location.pathname === '/launchpad';
 
   // LOGS TEMPORALES PARA DEPURACIÓN
   console.log('isHydrated:', isHydrated);
@@ -118,7 +119,8 @@ function App() {
   return (
     <BibliotecaProvider>
       <div className="min-h-screen w-full" style={{background: 'transparent'}}>
-        {!hideMenu && (
+        {/* Mostrar menú solo si está logueado, no en launchpad ni en rutas públicas */}
+        {!hideMenu && isLoggedIn && !isLaunchpad && (
           <>
             <Topbar
               userAvatar={avatarUrl}

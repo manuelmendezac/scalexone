@@ -34,10 +34,28 @@ const HistorialTransaccionesPage = () => {
           </div>
         </div>
         <div className="w-full max-w-4xl mx-auto">
-          <div className="flex gap-6 border-b border-gray-200 mb-4">
-            <button onClick={() => setTab('comision')} className={`pb-2 font-semibold text-lg transition-all border-b-2 ${tab === 'comision' ? 'border-blue-600 text-blue-800' : 'border-transparent text-gray-500'}`}>HISTORIAL DE COMISIÓN</button>
-            <button onClick={() => setTab('retiros')} className={`pb-2 font-semibold text-lg transition-all border-b-2 ${tab === 'retiros' ? 'border-blue-600 text-blue-800' : 'border-transparent text-gray-500'}`}>HISTORIAL DE RETIROS</button>
-            <button onClick={() => setTab('transferencias')} className={`pb-2 font-semibold text-lg transition-all border-b-2 ${tab === 'transferencias' ? 'border-blue-600 text-blue-800' : 'border-transparent text-gray-500'}`}>HISTORIAL DE TRANSFERENCIAS</button>
+          <div className="flex gap-2 md:gap-6 border-b border-gray-200 mb-4 justify-between">
+            <button
+              onClick={() => setTab('comision')}
+              className={`flex-1 min-w-0 px-1 py-2 text-[11px] md:text-lg font-semibold transition-all border-b-2 rounded-t-md md:rounded-none md:px-4 md:py-2
+                ${tab === 'comision' ? 'border-blue-600 text-blue-800 bg-blue-50 md:bg-transparent' : 'border-transparent text-gray-500 bg-transparent'}`}
+            >
+              HISTORIAL DE COMISIÓN
+            </button>
+            <button
+              onClick={() => setTab('retiros')}
+              className={`flex-1 min-w-0 px-1 py-2 text-[11px] md:text-lg font-semibold transition-all border-b-2 rounded-t-md md:rounded-none md:px-4 md:py-2
+                ${tab === 'retiros' ? 'border-blue-600 text-blue-800 bg-blue-50 md:bg-transparent' : 'border-transparent text-gray-500 bg-transparent'}`}
+            >
+              HISTORIAL DE RETIROS
+            </button>
+            <button
+              onClick={() => setTab('transferencias')}
+              className={`flex-1 min-w-0 px-1 py-2 text-[11px] md:text-lg font-semibold transition-all border-b-2 rounded-t-md md:rounded-none md:px-4 md:py-2
+                ${tab === 'transferencias' ? 'border-blue-600 text-blue-800 bg-blue-50 md:bg-transparent' : 'border-transparent text-gray-500 bg-transparent'}`}
+            >
+              HISTORIAL DE TRANSFERENCIAS
+            </button>
           </div>
           <div className="flex flex-col md:flex-row gap-4 mb-4 items-center">
             <select className="border rounded-lg p-2 bg-white shadow-sm min-w-[120px]">
