@@ -125,6 +125,8 @@ const Launchpad: React.FC = () => {
   const [savingRating, setSavingRating] = useState(false);
   // Estado para el usuario actual (para link de afiliado)
   const [currentUser, setCurrentUser] = useState<any>(null);
+  // Estado para mostrar el menú de compartir
+  const [shareMenuOpen, setShareMenuOpen] = useState(false);
 
   // Ajustar barra lateral según el ancho de pantalla después del primer render
   useEffect(() => {
@@ -590,14 +592,13 @@ const Launchpad: React.FC = () => {
     // eslint-disable-next-line
   }, [videosFinal]);
 
-  // Función para compartir el link con afiliado
-  function handleShareExperience() {
+  // Función para obtener el enlace de afiliado
+  function getShareUrl() {
     let url = window.location.origin + window.location.pathname;
     if (currentUser && currentUser.id) {
       url += `?aff=${currentUser.id}`;
     }
-    navigator.clipboard.writeText(url);
-    alert('¡Enlace copiado para compartir!');
+    return url;
   }
 
   return (
@@ -950,14 +951,24 @@ const Launchpad: React.FC = () => {
               </div>
               {/* Accesos con tooltips o solo íconos */}
               <nav className="space-y-4 w-full mt-4 flex flex-col items-center">
-                <button
-                  className="w-full flex items-center gap-3 px-4 py-3 rounded-xl shadow-lg font-semibold border border-cyan-400/40 transition-all justify-center bg-gradient-to-br from-cyan-900 via-cyan-800 to-cyan-700 hover:from-cyan-700 hover:to-cyan-500 text-white active:scale-95"
-                  style={{ fontSize: isCollapsed ? 22 : 18 }}
-                  onClick={handleShareExperience}
-                >
-                  <span className={`text-cyan-300 ${isCollapsed ? 'text-2xl' : 'text-xl'}`}> {/* Puedes poner un icono aquí si quieres */} </span>
-                  {!isCollapsed && <span className="ml-2 font-orbitron text-base md:text-lg" style={{color: '#fff', fontWeight: 600}}>Compartir Experiencia</span>}
-                </button>
+                <div className="relative w-full">
+                  <button
+                    className="w-full flex items-center gap-3 px-4 py-3 rounded-xl shadow-lg font-semibold border border-cyan-400/40 transition-all justify-center bg-gradient-to-br from-cyan-900 via-cyan-800 to-cyan-700 hover:from-cyan-700 hover:to-cyan-500 text-white active:scale-95"
+                    style={{ fontSize: isCollapsed ? 22 : 18 }}
+                    onClick={() => setShareMenuOpen(v => !v)}
+                  >
+                    <span className={`text-cyan-300 ${isCollapsed ? 'text-2xl' : 'text-xl'}`}></span>
+                    {!isCollapsed && <span className="ml-2 font-orbitron text-base md:text-lg" style={{color: '#fff', fontWeight: 600}}>Compartir Experiencia</span>}
+                  </button>
+                  {shareMenuOpen && (
+                    <div className="absolute left-0 mt-2 w-full bg-gray-900 border border-cyan-400 rounded-xl shadow-xl z-50 flex flex-col">
+                      <button className="px-4 py-2 hover:bg-cyan-800 text-cyan-200 text-left" onClick={() => {navigator.clipboard.writeText(getShareUrl()); setShareMenuOpen(false); alert('¡Enlace copiado!')}}>Copiar enlace</button>
+                      <a className="px-4 py-2 hover:bg-cyan-800 text-cyan-200 text-left" href={`https://wa.me/?text=${encodeURIComponent(getShareUrl())}`} target="_blank" rel="noopener noreferrer" onClick={()=>setShareMenuOpen(false)}>Compartir por WhatsApp</a>
+                      <a className="px-4 py-2 hover:bg-cyan-800 text-cyan-200 text-left" href={`https://t.me/share/url?url=${encodeURIComponent(getShareUrl())}`} target="_blank" rel="noopener noreferrer" onClick={()=>setShareMenuOpen(false)}>Compartir por Telegram</a>
+                      <a className="px-4 py-2 hover:bg-cyan-800 text-cyan-200 text-left" href={`mailto:?subject=¡Mira este lanzamiento!&body=${encodeURIComponent(getShareUrl())}`} onClick={()=>setShareMenuOpen(false)}>Compartir por Correo</a>
+                    </div>
+                  )}
+                </div>
                 {links.map((item, idx) => (
                   <div key={item.id} className="group relative flex items-center w-full justify-center">
                     <a
