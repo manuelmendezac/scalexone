@@ -33,7 +33,8 @@ const sidebarItems = [
 ];
 
 const Launchpad: React.FC = () => {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(true);
+  const [isCollapsed, setIsCollapsed] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<LaunchEvent | null>(null);
   const [isVideoExpanded, setIsVideoExpanded] = useState(false);
   const [selectedDate, setSelectedDate] = useState<string | undefined>(undefined);
@@ -42,8 +43,10 @@ const Launchpad: React.FC = () => {
   useEffect(() => {
     if (typeof window !== 'undefined') {
       setIsMenuOpen(window.innerWidth >= 1024);
+      setIsCollapsed(false);
       const handleResize = () => {
         setIsMenuOpen(window.innerWidth >= 1024);
+        setIsCollapsed(false);
       };
       window.addEventListener('resize', handleResize);
       return () => window.removeEventListener('resize', handleResize);
@@ -76,7 +79,7 @@ const Launchpad: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-900 text-white">
       {/* Botón flotante para abrir barra lateral en móvil */}
-      {!isMenuOpen && (
+      {!isMenuOpen && !isCollapsed && (
         <button
           className="fixed z-50 bottom-6 left-6 bg-cyan-500 hover:bg-cyan-400 text-white p-3 rounded-full shadow-lg lg:hidden"
           onClick={() => setIsMenuOpen(true)}
@@ -86,7 +89,7 @@ const Launchpad: React.FC = () => {
         </button>
       )}
       <div className="flex">
-        {/* Barra lateral con glassmorphism y animación */}
+        {/* Barra lateral con glassmorphism y animación, debajo de las barras superiores */}
         <AnimatePresence>
           {isMenuOpen && (
             <motion.aside
@@ -94,39 +97,43 @@ const Launchpad: React.FC = () => {
               animate={{ x: 0, opacity: 1, scale: 1 }}
               exit={{ x: -300, opacity: 0, scale: 0.95 }}
               transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-              className="w-64 h-screen fixed left-0 top-0 z-40 p-4 bg-cyan-900/40 backdrop-blur-lg border-r border-cyan-400/30 shadow-xl flex flex-col items-center"
+              style={{ top: 112, height: 'calc(100vh - 112px)' }}
+              className={`fixed left-0 z-40 p-2 bg-cyan-900/40 backdrop-blur-lg border-r border-cyan-400/30 shadow-xl flex flex-col items-center transition-all duration-300 ${isCollapsed ? 'w-20' : 'w-64'}`}
             >
-              {/* Botón cerrar */}
+              {/* Botón colapsar/expandir */}
               <button
-                onClick={() => setIsMenuOpen(false)}
+                onClick={() => setIsCollapsed(!isCollapsed)}
                 className="absolute -right-3 top-4 bg-cyan-600 p-1 rounded-full shadow-lg"
-                aria-label="Cerrar menú"
+                aria-label={isCollapsed ? 'Expandir menú' : 'Colapsar menú'}
               >
-                <ChevronLeft size={16} />
+                {isCollapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
               </button>
               {/* Logo/avatar */}
-              <div className="mb-8 mt-2 flex flex-col items-center">
+              <div className={`mb-8 mt-2 flex flex-col items-center transition-all ${isCollapsed ? 'scale-90' : ''}`}>
                 <div className="w-14 h-14 rounded-full bg-cyan-400 flex items-center justify-center shadow-lg border-4 border-cyan-300/40">
-                  {/* Aquí puedes poner el logo real o avatar */}
                   <span className="text-3xl font-bold text-cyan-900">🚀</span>
                 </div>
-                <span className="mt-2 text-cyan-200 font-orbitron text-lg tracking-wide">IA Heroes Live</span>
+                {!isCollapsed && (
+                  <span className="mt-2 text-cyan-200 font-orbitron text-lg tracking-wide">IA Heroes Live</span>
+                )}
               </div>
-              {/* Accesos con tooltips */}
-              <nav className="space-y-4 w-full mt-4">
+              {/* Accesos con tooltips o solo íconos */}
+              <nav className="space-y-4 w-full mt-4 flex flex-col items-center">
                 {sidebarItems.map((item, idx) => (
-                  <div key={item.label} className="group relative flex items-center w-full">
+                  <div key={item.label} className="group relative flex items-center w-full justify-center">
                     <button
-                      className="w-full flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-cyan-900/30 transition font-semibold border border-transparent hover:border-cyan-400 text-cyan-100"
+                      className={`flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-cyan-900/30 transition font-semibold border border-transparent hover:border-cyan-400 text-cyan-100 w-full justify-center ${isCollapsed ? 'justify-center' : ''}`}
                       onClick={item.onClick}
                     >
                       {item.icon}
-                      <span className="hidden md:inline">{item.label}</span>
+                      {!isCollapsed && <span className="ml-2">{item.label}</span>}
                     </button>
-                    {/* Tooltip */}
-                    <span className="absolute left-full ml-2 top-1/2 -translate-y-1/2 bg-cyan-700 text-white text-xs rounded px-2 py-1 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity shadow-lg z-50">
-                      {item.tooltip}
-                    </span>
+                    {/* Tooltip solo cuando está colapsado */}
+                    {isCollapsed && (
+                      <span className="absolute left-full ml-2 top-1/2 -translate-y-1/2 bg-cyan-700 text-white text-xs rounded px-2 py-1 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity shadow-lg z-50">
+                        {item.tooltip}
+                      </span>
+                    )}
                   </div>
                 ))}
               </nav>
@@ -134,7 +141,7 @@ const Launchpad: React.FC = () => {
           )}
         </AnimatePresence>
         {/* Contenido principal */}
-        <div className={`flex-1 ${isMenuOpen ? 'ml-64' : ''} transition-all duration-300`}>
+        <div className={`flex-1 transition-all duration-300 ${isMenuOpen ? (isCollapsed ? 'ml-20' : 'ml-64') : ''}`}>
           <div className="p-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Área del video */}
             <div className={`${isVideoExpanded ? 'lg:col-span-3' : 'lg:col-span-2'} bg-gray-800 rounded-xl p-4`}>
