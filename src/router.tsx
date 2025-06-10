@@ -39,6 +39,7 @@ import EnlacesAfiliadosPage from './pages/afiliados/enlaces';
 import ContactoIBPage from './pages/afiliados/contacto';
 import Launchpad from './pages/Launchpad';
 import Backstage from './pages/Backstage';
+import CursosPage from './pages/cursos';
 
 export const router = createBrowserRouter([
   {
@@ -79,6 +80,7 @@ export const router = createBrowserRouter([
       ] },
       { path: 'launchpad', element: <Launchpad /> },
       { path: 'backstage', element: <Backstage /> },
+      { path: 'cursos', element: <ProtectedRoute><CursosPage /></ProtectedRoute> },
     ]
   },
   { path: '/afiliados', element: <AfiliadosPage /> },
