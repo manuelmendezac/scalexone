@@ -131,7 +131,7 @@ const AfiliadosLayout: React.FC<AfiliadosLayoutProps> = ({ children }) => {
         <header className="bg-white shadow-sm sticky top-0 z-10">
           <div className="flex items-center justify-between px-4 py-2 md:px-8 md:py-4">
             <div className="flex items-center">
-              <h1 className="text-lg md:text-2xl font-bold text-blue-900 font-orbitron tracking-wide">Comisiones de Afiliados</h1>
+              {/* Título eliminado */}
             </div>
             <div className="flex items-center space-x-2 md:space-x-4">
               {/* Client/IB Switch */}
