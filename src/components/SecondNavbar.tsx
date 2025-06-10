@@ -1,88 +1,56 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { FiHome, FiBarChart2, FiUser, FiSettings, FiGlobe } from 'react-icons/fi';
+import { FiHome, FiBarChart2, FiUser } from 'react-icons/fi';
 import { FaBrain } from 'react-icons/fa';
 import { MdOutlineSchool } from 'react-icons/md';
 
 const menu = [
   {
     label: 'Inicio',
-    icon: <FiHome />,
+    icon: <FiHome size={24} />,
     to: '/home',
-    description: 'Bienvenido de vuelta',
-    tips: true,
   },
   {
     label: 'Dashboard',
-    icon: <FiBarChart2 />,
+    icon: <FiBarChart2 size={24} />,
     to: '/dashboard',
   },
   {
     label: 'Classroom',
-    icon: <MdOutlineSchool />,
+    icon: <MdOutlineSchool size={24} />,
     to: '/classroom',
   },
   {
-    label: 'Cursos',
-    icon: <FiBarChart2 />,
-    to: '/cursos',
-  },
-  {
     label: 'Launchpad',
-    icon: <FaBrain />,
+    icon: <FaBrain size={24} />,
     to: '/launchpad',
   },
   {
     label: 'Comunidad',
-    icon: <FiUser />,
+    icon: <FiUser size={24} />,
     to: '/community',
   },
   {
-    label: 'Gamificación',
-    icon: <FiBarChart2 />,
-    to: '/gamification',
-  },
-  {
-    label: 'Embudos',
-    icon: <FiGlobe />,
-    to: '/funnels',
-  },
-  {
-    label: 'IA',
-    icon: <FaBrain />,
-    to: '/agent',
-  },
-  {
-    label: 'Automatizaciones',
-    icon: <FiSettings />,
-    to: '/automations',
-  },
-  {
-    label: 'WhatsApp CRM',
-    icon: <FiGlobe />,
-    to: '/whatsapp-crm',
-  },
-  {
-    label: 'Configuración',
-    icon: <FiSettings />,
-    to: '/settings',
+    label: 'Perfil',
+    icon: <FiUser size={24} />,
+    to: '/perfil',
   },
 ];
 
 const SecondNavbar: React.FC = () => {
   return (
-    <nav className="w-full bg-gray-900 text-white font-orbitron px-2 py-1 flex flex-wrap items-center shadow z-40 border-b border-cyan-900">
-      <ul className="flex flex-wrap items-center gap-2 w-full justify-center md:justify-start">
+    <nav className="fixed bottom-0 left-0 w-full z-50 bg-gray-900 border-t border-cyan-900 flex md:hidden">
+      <ul className="flex justify-between items-center w-full px-1 py-1">
         {menu.map((item) => (
-          <li key={item.label} className="relative group">
+          <li key={item.label} className="flex-1 flex flex-col items-center">
             <NavLink
               to={item.to!}
               className={({ isActive }) =>
-                `flex items-center gap-2 px-4 py-2 rounded-lg bg-gray-900 hover:bg-cyan-900/30 transition font-semibold border border-transparent hover:border-cyan-400 ${isActive ? 'bg-cyan-900/60 text-cyan-300' : 'text-white'}`
+                `flex flex-col items-center justify-center w-full py-1 transition font-semibold text-xs ${isActive ? 'text-cyan-300' : 'text-white'}`
               }
             >
-              <span className="text-cyan-400">{item.icon}</span>
-              <span>{item.label}</span>
+              <span>{item.icon}</span>
+              <span className="text-[11px] mt-0.5">{item.label}</span>
             </NavLink>
           </li>
         ))}
