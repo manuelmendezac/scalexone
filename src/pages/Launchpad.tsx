@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Calendar, Share2, MessageSquare, Info, ChevronLeft, ChevronRight, Maximize2, Menu, Upload } from 'lucide-react';
+import { Calendar, Share2, MessageSquare, Info, ChevronLeft, ChevronRight, Maximize2, Menu, Upload, Star } from 'lucide-react';
 import LaunchCalendar from '../components/launchpad/LaunchCalendar';
 import { supabase } from '../supabase';
 
@@ -113,6 +113,16 @@ const Launchpad: React.FC = () => {
     date: '',
     destacado: false,
   });
+  // Estado para calificaciones y comentarios
+  const [rating, setRating] = useState(0);
+  const [avgRating, setAvgRating] = useState(0);
+  const [ratingCount, setRatingCount] = useState(0);
+  const [comment, setComment] = useState('');
+  const [commentName, setCommentName] = useState('');
+  const [comments, setComments] = useState<any[]>([]);
+  const [loadingComments, setLoadingComments] = useState(false);
+  const [savingComment, setSavingComment] = useState(false);
+  const [savingRating, setSavingRating] = useState(false);
 
   // Ajustar barra lateral según el ancho de pantalla después del primer render
   useEffect(() => {
@@ -322,6 +332,36 @@ const Launchpad: React.FC = () => {
     fetchVideos();
   }, []);
 
+  // Cargar calificaciones y comentarios cuando cambia el video seleccionado
+  useEffect(() => {
+    if (!selectedEvent) return;
+    // Calificaciones
+    async function fetchRatings() {
+      const { data, error } = await supabase
+        .from('launchpad_video_ratings')
+        .select('rating')
+        .eq('video_id', selectedEvent.id);
+      if (data) {
+        const ratings = data.map((r: any) => r.rating);
+        setAvgRating(ratings.length ? ratings.reduce((a: number, b: number) => a + b, 0) / ratings.length : 0);
+        setRatingCount(ratings.length);
+      }
+    }
+    // Comentarios
+    async function fetchComments() {
+      setLoadingComments(true);
+      const { data, error } = await supabase
+        .from('launchpad_video_comments')
+        .select('*')
+        .eq('video_id', selectedEvent.id)
+        .order('created_at', { ascending: false });
+      if (data) setComments(data);
+      setLoadingComments(false);
+    }
+    fetchRatings();
+    fetchComments();
+  }, [selectedEvent]);
+
   // Guardar cambios en Supabase
   async function handleSaveEvent(e: React.FormEvent) {
     e.preventDefault();
@@ -487,6 +527,48 @@ const Launchpad: React.FC = () => {
   async function handleDeleteVideo(id: string) {
     await supabase.from('launchpad_videos').delete().eq('id', id);
     setVideos(videos.filter(v => v.id !== id));
+  }
+
+  // Enviar calificación
+  async function handleSendRating() {
+    if (!selectedEvent || !rating) return;
+    const videoId = selectedEvent.id;
+    setSavingRating(true);
+    await supabase.from('launchpad_video_ratings').insert({ video_id: videoId, rating });
+    setRating(0);
+    // Refrescar promedio
+    const { data } = await supabase
+      .from('launchpad_video_ratings')
+      .select('rating')
+      .eq('video_id', videoId);
+    if (data) {
+      const ratings = data.map((r: any) => r.rating);
+      setAvgRating(ratings.length ? ratings.reduce((a: number, b: number) => a + b, 0) / ratings.length : 0);
+      setRatingCount(ratings.length);
+    }
+    setSavingRating(false);
+  }
+  // Enviar comentario
+  async function handleSendComment(e: React.FormEvent) {
+    e.preventDefault();
+    if (!selectedEvent || !comment.trim()) return;
+    const videoId = selectedEvent.id;
+    setSavingComment(true);
+    await supabase.from('launchpad_video_comments').insert({
+      video_id: videoId,
+      nombre: commentName,
+      comentario: comment,
+    });
+    setComment('');
+    setCommentName('');
+    // Refrescar comentarios
+    const { data } = await supabase
+      .from('launchpad_video_comments')
+      .select('*')
+      .eq('video_id', videoId)
+      .order('created_at', { ascending: false });
+    if (data) setComments(data);
+    setSavingComment(false);
   }
 
   return (
@@ -919,6 +1001,80 @@ const Launchpad: React.FC = () => {
                   <div className="mt-6 w-full max-w-2xl mx-auto bg-gray-900/80 rounded-xl p-4 shadow-inner border border-cyan-400">
                     <h2 className="text-cyan-200 font-bold text-lg mb-2">Descripción</h2>
                     <p className="text-gray-200 text-base whitespace-pre-line">{selectedEvent.description}</p>
+                  </div>
+                  {/* Calificación */}
+                  <div className="mt-8 w-full max-w-2xl mx-auto">
+                    <div className="mb-6 bg-gray-900/80 rounded-xl p-4 border border-cyan-400 shadow-inner">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-cyan-200 font-bold text-lg">Califica este directo:</span>
+                        {[1,2,3,4,5].map(star => (
+                          <button
+                            key={star}
+                            onClick={() => setRating(star)}
+                            className={`text-2xl ${star <= rating ? 'text-yellow-400' : 'text-gray-500'} hover:text-yellow-300 transition`}
+                            disabled={savingRating}
+                            aria-label={`Calificar con ${star} estrellas`}
+                          >
+                            <Star fill={star <= rating ? '#facc15' : 'none'} />
+                          </button>
+                        ))}
+                        <button
+                          onClick={handleSendRating}
+                          className="ml-4 bg-cyan-600 hover:bg-cyan-500 text-white px-3 py-1 rounded font-bold disabled:opacity-60"
+                          disabled={savingRating || !rating}
+                        >
+                          Enviar
+                        </button>
+                      </div>
+                      <div className="text-cyan-300 text-sm">
+                        Promedio: <span className="font-bold">{avgRating.toFixed(2)}</span> ({ratingCount} calificaciones)
+                      </div>
+                    </div>
+                    {/* Comentarios */}
+                    <div className="bg-gray-900/80 rounded-xl p-4 border border-cyan-400 shadow-inner">
+                      <h3 className="text-cyan-200 font-bold text-lg mb-2">Comentarios</h3>
+                      <form onSubmit={handleSendComment} className="flex flex-col gap-2 mb-4">
+                        <input
+                          type="text"
+                          className="p-2 rounded bg-gray-800 border border-cyan-400 text-white"
+                          placeholder="Tu nombre (opcional)"
+                          value={commentName}
+                          onChange={e => setCommentName(e.target.value)}
+                        />
+                        <textarea
+                          className="p-2 rounded bg-gray-800 border border-cyan-400 text-white"
+                          placeholder="Escribe tu comentario..."
+                          value={comment}
+                          onChange={e => setComment(e.target.value)}
+                          rows={2}
+                          required
+                        />
+                        <button
+                          type="submit"
+                          className="bg-cyan-600 hover:bg-cyan-500 text-white px-3 py-1 rounded font-bold disabled:opacity-60"
+                          disabled={savingComment || !comment.trim()}
+                        >
+                          {savingComment ? 'Enviando...' : 'Comentar'}
+                        </button>
+                      </form>
+                      {loadingComments ? (
+                        <div className="text-cyan-200">Cargando comentarios...</div>
+                      ) : comments.length === 0 ? (
+                        <div className="text-gray-400">Sé el primero en comentar este directo.</div>
+                      ) : (
+                        <ul className="space-y-3">
+                          {comments.map(c => (
+                            <li key={c.id} className="bg-gray-800 rounded p-3 border border-cyan-400/30">
+                              <div className="flex items-center gap-2 mb-1">
+                                <span className="font-bold text-cyan-300 text-sm">{c.nombre || 'Anónimo'}</span>
+                                <span className="text-xs text-gray-400">{new Date(c.created_at).toLocaleString('es-ES')}</span>
+                              </div>
+                              <div className="text-gray-200 text-base">{c.comentario}</div>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
                   </div>
                 </>
               ) : (
