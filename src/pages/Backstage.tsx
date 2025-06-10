@@ -326,8 +326,9 @@ const Backstage: React.FC = () => {
                   {/* Calificación */}
                   <div className="mt-8 w-full max-w-2xl mx-auto">
                     <div className="mb-6 bg-gray-900/80 rounded-xl p-4 border border-cyan-400 shadow-inner">
-                      <div className="flex flex-col items-center gap-2 mb-2 md:flex-row md:items-center md:gap-2">
-                        <div className="flex items-center gap-2 mb-2 md:mb-0">
+                      <div className="flex flex-col items-center gap-2 mb-2 w-full">
+                        <span className="text-cyan-200 font-bold text-lg text-center">Califica este directo:</span>
+                        <div className="flex flex-row justify-center gap-2 w-full">
                           {[1,2,3,4,5].map(star => (
                             <button
                               key={star}
@@ -339,31 +340,30 @@ const Backstage: React.FC = () => {
                               <Star fill={star <= rating ? '#facc15' : 'none'} />
                             </button>
                           ))}
+                          <button
+                            onClick={async () => {
+                              if (!selectedEvent || !rating) return;
+                              setSavingRating(true);
+                              await supabase.from('launchpad_video_ratings').insert({ video_id: selectedEvent.id, rating });
+                              setRating(0);
+                              // Refrescar promedio
+                              const { data } = await supabase
+                                .from('launchpad_video_ratings')
+                                .select('rating')
+                                .eq('video_id', selectedEvent.id);
+                              if (data) {
+                                const ratings = data.map((r: any) => r.rating);
+                                setAvgRating(ratings.length ? ratings.reduce((a: number, b: number) => a + b, 0) / ratings.length : 0);
+                                setRatingCount(ratings.length);
+                              }
+                              setSavingRating(false);
+                            }}
+                            className="ml-4 bg-cyan-600 hover:bg-cyan-500 text-white px-3 py-1 rounded font-bold disabled:opacity-60"
+                            disabled={savingRating || !rating}
+                          >
+                            Enviar
+                          </button>
                         </div>
-                        <span className="text-cyan-200 font-bold text-lg text-center md:ml-4">Califica este directo:</span>
-                        <button
-                          onClick={async () => {
-                            if (!selectedEvent || !rating) return;
-                            setSavingRating(true);
-                            await supabase.from('launchpad_video_ratings').insert({ video_id: selectedEvent.id, rating });
-                            setRating(0);
-                            // Refrescar promedio
-                            const { data } = await supabase
-                              .from('launchpad_video_ratings')
-                              .select('rating')
-                              .eq('video_id', selectedEvent.id);
-                            if (data) {
-                              const ratings = data.map((r: any) => r.rating);
-                              setAvgRating(ratings.length ? ratings.reduce((a: number, b: number) => a + b, 0) / ratings.length : 0);
-                              setRatingCount(ratings.length);
-                            }
-                            setSavingRating(false);
-                          }}
-                          className="mt-2 md:mt-0 md:ml-4 bg-cyan-600 hover:bg-cyan-500 text-white px-3 py-1 rounded font-bold disabled:opacity-60"
-                          disabled={savingRating || !rating}
-                        >
-                          Enviar
-                        </button>
                       </div>
                       <div className="text-cyan-300 text-sm text-center">
                         Promedio: <span className="font-bold">{avgRating.toFixed(2)}</span> ({ratingCount} calificaciones)
