@@ -12,6 +12,14 @@ interface LaunchEvent {
   videoUrl: string;
 }
 
+interface LaunchpadLink {
+  id: string;
+  label: string;
+  url: string;
+  icon?: string;
+  order_index?: number;
+}
+
 const sidebarItems = [
   {
     label: 'Compartir experiencia',
@@ -50,6 +58,19 @@ const Launchpad: React.FC = () => {
   });
   const [loadingEvent, setLoadingEvent] = useState(false);
   const [savingEvent, setSavingEvent] = useState(false);
+  // Estado para el evento destacado mostrado en la vista principal
+  const [featuredEvent, setFeaturedEvent] = useState({
+    title: '',
+    description: '',
+    date: '',
+    cta: '',
+  });
+  const [loadingFeatured, setLoadingFeatured] = useState(true);
+  // Estado para enlaces rápidos
+  const [links, setLinks] = useState<LaunchpadLink[]>([]);
+  const [loadingLinks, setLoadingLinks] = useState(false);
+  const [savingLinks, setSavingLinks] = useState(false);
+  const [newLink, setNewLink] = useState({ label: '', url: '', icon: '' });
 
   // Ajustar barra lateral según el ancho de pantalla después del primer render
   useEffect(() => {
@@ -108,13 +129,26 @@ const Launchpad: React.FC = () => {
     ? videos.filter(v => v.date === selectedDate)
     : videos;
 
-  // Simulación de información del evento destacado y contador
-  const featuredEvent = {
-    title: 'IA HEROES LIVE',
-    description: 'Para obtener las Masterclasses Exclusivas y reservar tu plaza solo quedan:',
-    date: '2025-06-05T19:00:00',
-    cta: 'Masterclasses Exclusivas',
-  };
+  // Cargar el evento destacado desde Supabase al montar la página
+  async function fetchFeatured() {
+    setLoadingFeatured(true);
+    const { data, error } = await supabase
+      .from('launchpad_events')
+      .select('*')
+      .order('date', { ascending: false })
+      .limit(1)
+      .single();
+    if (data) {
+      setFeaturedEvent({
+        title: data.title || '',
+        description: data.description || '',
+        date: data.date || '',
+        cta: data.cta || '',
+      });
+    }
+    setLoadingFeatured(false);
+  }
+  useEffect(() => { fetchFeatured(); }, []);
 
   function getCountdown(targetDate: string) {
     const now = new Date();
@@ -128,11 +162,12 @@ const Launchpad: React.FC = () => {
 
   const [countdown, setCountdown] = useState(getCountdown(featuredEvent.date));
   useEffect(() => {
+    setCountdown(getCountdown(featuredEvent.date));
     const interval = setInterval(() => {
       setCountdown(getCountdown(featuredEvent.date));
     }, 1000);
     return () => clearInterval(interval);
-  }, []);
+  }, [featuredEvent.date]);
 
   // Cargar datos del evento destacado desde Supabase al abrir el drawer
   useEffect(() => {
@@ -156,6 +191,21 @@ const Launchpad: React.FC = () => {
       setLoadingEvent(false);
     }
     fetchEvent();
+  }, [drawerOpen]);
+
+  // Cargar enlaces rápidos desde Supabase al abrir el drawer
+  useEffect(() => {
+    if (!drawerOpen) return;
+    async function fetchLinks() {
+      setLoadingLinks(true);
+      const { data, error } = await supabase
+        .from('launchpad_links')
+        .select('*')
+        .order('order_index', { ascending: true });
+      if (data) setLinks(data);
+      setLoadingLinks(false);
+    }
+    fetchLinks();
   }, [drawerOpen]);
 
   // Guardar cambios en Supabase
@@ -194,8 +244,38 @@ const Launchpad: React.FC = () => {
     }
     setSavingEvent(false);
     setDrawerOpen(false);
-    // Refrescar datos en la vista principal (puedes mejorar esto con SWR o similar)
-    window.location.reload();
+    // Refrescar datos en la vista principal sin recargar la página
+    fetchFeatured();
+  }
+
+  // Guardar nuevo enlace rápido
+  async function handleAddLink(e: React.FormEvent) {
+    e.preventDefault();
+    setSavingLinks(true);
+    const { data, error } = await supabase
+      .from('launchpad_links')
+      .insert([{ ...newLink, order_index: links.length }]);
+    setSavingLinks(false);
+    setNewLink({ label: '', url: '', icon: '' });
+    // Refrescar lista
+    const { data: updated } = await supabase
+      .from('launchpad_links')
+      .select('*')
+      .order('order_index', { ascending: true });
+    if (updated) setLinks(updated);
+  }
+
+  // Eliminar enlace rápido
+  async function handleDeleteLink(id: string) {
+    await supabase.from('launchpad_links').delete().eq('id', id);
+    setLinks(links.filter(l => l.id !== id));
+  }
+
+  // Editar enlace rápido (solo label, url, icon)
+  async function handleEditLink(id: string, field: string, value: string) {
+    const updatedLinks = links.map(l => l.id === id ? { ...l, [field]: value } : l);
+    setLinks(updatedLinks);
+    await supabase.from('launchpad_links').update({ [field]: value }).eq('id', id);
   }
 
   return (
@@ -236,7 +316,7 @@ const Launchpad: React.FC = () => {
             </button>
             <h2 className="font-orbitron text-2xl mb-6 text-fuchsia-300">Editar Launchpad</h2>
             {/* Formulario de edición del evento destacado */}
-            <form onSubmit={handleSaveEvent} className="flex flex-col gap-4">
+            <form onSubmit={handleSaveEvent} className="flex flex-col gap-4 mb-8">
               <label className="text-fuchsia-200 font-semibold">Título</label>
               <input
                 type="text"
@@ -269,15 +349,86 @@ const Launchpad: React.FC = () => {
                 onChange={e => setEditEvent(ev => ({ ...ev, date: e.target.value }))}
                 required
               />
-              <button
-                type="submit"
-                className="mt-4 bg-fuchsia-600 hover:bg-fuchsia-500 text-white font-bold py-2 rounded shadow-lg border border-fuchsia-300 disabled:opacity-60"
-                disabled={savingEvent}
-              >
-                {savingEvent ? 'Guardando...' : 'Guardar cambios'}
-              </button>
-              {loadingEvent && <div className="text-center text-fuchsia-300">Cargando datos...</div>}
             </form>
+            {/* Sección de edición de enlaces rápidos */}
+            <div className="mb-8">
+              <h3 className="font-orbitron text-xl mb-4 text-cyan-300">Enlaces rápidos</h3>
+              {loadingLinks ? (
+                <div className="text-cyan-200">Cargando enlaces...</div>
+              ) : (
+                <ul className="space-y-2 mb-4">
+                  {links.map(link => (
+                    <li key={link.id} className="flex items-center gap-2 bg-gray-800 rounded p-2">
+                      <input
+                        type="text"
+                        className="w-20 p-1 rounded bg-gray-900 border border-cyan-400 text-cyan-200 text-center"
+                        value={link.icon || ''}
+                        onChange={e => handleEditLink(link.id, 'icon', e.target.value)}
+                        placeholder="🔗"
+                        maxLength={2}
+                      />
+                      <input
+                        type="text"
+                        className="flex-1 p-1 rounded bg-gray-900 border border-cyan-400 text-cyan-200"
+                        value={link.label}
+                        onChange={e => handleEditLink(link.id, 'label', e.target.value)}
+                        placeholder="Nombre"
+                      />
+                      <input
+                        type="text"
+                        className="flex-1 p-1 rounded bg-gray-900 border border-cyan-400 text-cyan-200"
+                        value={link.url}
+                        onChange={e => handleEditLink(link.id, 'url', e.target.value)}
+                        placeholder="URL"
+                      />
+                      <button
+                        type="button"
+                        className="ml-2 text-red-400 hover:text-red-200 text-lg font-bold"
+                        onClick={() => handleDeleteLink(link.id)}
+                        title="Eliminar"
+                      >
+                        ×
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+              {/* Formulario para agregar nuevo enlace */}
+              <form onSubmit={handleAddLink} className="flex items-center gap-2">
+                <input
+                  type="text"
+                  className="w-16 p-1 rounded bg-gray-900 border border-cyan-400 text-cyan-200 text-center"
+                  value={newLink.icon}
+                  onChange={e => setNewLink(l => ({ ...l, icon: e.target.value }))}
+                  placeholder="🔗"
+                  maxLength={2}
+                  required
+                />
+                <input
+                  type="text"
+                  className="flex-1 p-1 rounded bg-gray-900 border border-cyan-400 text-cyan-200"
+                  value={newLink.label}
+                  onChange={e => setNewLink(l => ({ ...l, label: e.target.value }))}
+                  placeholder="Nombre"
+                  required
+                />
+                <input
+                  type="text"
+                  className="flex-1 p-1 rounded bg-gray-900 border border-cyan-400 text-cyan-200"
+                  value={newLink.url}
+                  onChange={e => setNewLink(l => ({ ...l, url: e.target.value }))}
+                  placeholder="URL"
+                  required
+                />
+                <button
+                  type="submit"
+                  className="bg-cyan-600 hover:bg-cyan-500 text-white px-3 py-1 rounded font-bold disabled:opacity-60"
+                  disabled={savingLinks}
+                >
+                  +
+                </button>
+              </form>
+            </div>
           </div>
         </div>
       )}
@@ -377,18 +528,24 @@ const Launchpad: React.FC = () => {
               {/* Información del evento destacado */}
               <div className="mb-4">
                 <div className="rounded-xl p-4 mb-4 bg-gradient-to-r from-pink-600 via-fuchsia-600 to-pink-400 shadow-lg flex flex-col items-center text-white">
-                  <div className="font-orbitron text-xl md:text-2xl font-bold mb-1 tracking-wide">{featuredEvent.title}</div>
-                  <div className="text-sm md:text-base mb-2 text-white/90 text-center leading-tight">{featuredEvent.description} <span className="underline font-semibold cursor-pointer">{featuredEvent.cta}</span></div>
-                  <div className="flex items-center gap-2 text-lg font-mono font-bold bg-white/10 px-4 py-2 rounded-lg mt-2">
-                    <span>{String(countdown.hours).padStart(2, '0')}</span>
-                    <span className="text-xs font-normal">h</span>
-                    <span>:</span>
-                    <span>{String(countdown.min).padStart(2, '0')}</span>
-                    <span className="text-xs font-normal">m</span>
-                    <span>:</span>
-                    <span>{String(countdown.sec).padStart(2, '0')}</span>
-                    <span className="text-xs font-normal">s</span>
-                  </div>
+                  {loadingFeatured ? (
+                    <div className="text-white/80 text-center">Cargando evento destacado...</div>
+                  ) : (
+                    <>
+                      <div className="font-orbitron text-xl md:text-2xl font-bold mb-1 tracking-wide">{featuredEvent.title}</div>
+                      <div className="text-sm md:text-base mb-2 text-white/90 text-center leading-tight">{featuredEvent.description} <span className="underline font-semibold cursor-pointer">{featuredEvent.cta}</span></div>
+                      <div className="flex items-center gap-2 text-lg font-mono font-bold bg-white/10 px-4 py-2 rounded-lg mt-2">
+                        <span>{String(countdown.hours).padStart(2, '0')}</span>
+                        <span className="text-xs font-normal">h</span>
+                        <span>:</span>
+                        <span>{String(countdown.min).padStart(2, '0')}</span>
+                        <span className="text-xs font-normal">m</span>
+                        <span>:</span>
+                        <span>{String(countdown.sec).padStart(2, '0')}</span>
+                        <span className="text-xs font-normal">s</span>
+                      </div>
+                    </>
+                  )}
                 </div>
               </div>
               {/* Calendario */}
