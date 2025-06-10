@@ -987,21 +987,23 @@ const Launchpad: React.FC = () => {
                     <div className="mb-6 bg-gray-900/80 rounded-xl p-4 border border-cyan-400 shadow-inner">
                       <div className="flex flex-col items-center gap-2 mb-2 w-full">
                         <span className="text-cyan-200 font-bold text-lg text-center">Califica este directo:</span>
-                        <div className="flex flex-row justify-center gap-2 w-full">
-                          {[1,2,3,4,5].map(star => (
-                            <button
-                              key={star}
-                              onClick={() => setRating(star)}
-                              className={`text-xl md:text-2xl ${star <= rating ? 'text-yellow-400' : 'text-gray-500'} hover:text-yellow-300 transition`}
-                              disabled={savingRating}
-                              aria-label={`Calificar con ${star} estrellas`}
-                            >
-                              <Star fill={star <= rating ? '#facc15' : 'none'} />
-                            </button>
-                          ))}
+                        <div className="flex flex-col md:flex-row items-center justify-center gap-2 w-full">
+                          <div className="flex flex-row justify-center gap-1 w-full">
+                            {[1,2,3,4,5].map(star => (
+                              <button
+                                key={star}
+                                onClick={() => setRating(star)}
+                                className={`text-xl md:text-2xl ${star <= rating ? 'text-yellow-400' : 'text-gray-500'} hover:text-yellow-300 transition`}
+                                disabled={savingRating}
+                                aria-label={`Calificar con ${star} estrellas`}
+                              >
+                                <Star fill={star <= rating ? '#facc15' : 'none'} />
+                              </button>
+                            ))}
+                          </div>
                           <button
                             onClick={handleSendRating}
-                            className="ml-4 bg-cyan-600 hover:bg-cyan-500 text-white px-3 py-1 rounded font-bold disabled:opacity-60"
+                            className="mt-2 md:mt-0 md:ml-4 bg-cyan-600 hover:bg-cyan-500 text-white px-3 py-1 rounded font-bold disabled:opacity-60"
                             disabled={savingRating || !rating}
                           >
                             Enviar
