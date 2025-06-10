@@ -122,11 +122,17 @@ const Launchpad: React.FC = () => {
                 {sidebarItems.map((item, idx) => (
                   <div key={item.label} className="group relative flex items-center w-full justify-center">
                     <button
-                      className={`flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-cyan-900/30 transition font-semibold border border-transparent hover:border-cyan-400 text-cyan-100 w-full justify-center ${isCollapsed ? 'justify-center' : ''}`}
+                      className={`flex items-center gap-3 px-4 py-3 rounded-xl shadow-lg font-semibold border border-cyan-400/40 transition-all w-full justify-center
+                        bg-gradient-to-br from-cyan-900 via-cyan-800 to-cyan-700
+                        hover:from-cyan-700 hover:to-cyan-500
+                        text-white
+                        active:scale-95
+                        ${isCollapsed ? 'justify-center px-2 py-2' : ''}`}
+                      style={{ fontSize: isCollapsed ? 22 : 18 }}
                       onClick={item.onClick}
                     >
-                      {item.icon}
-                      {!isCollapsed && <span className="ml-2">{item.label}</span>}
+                      <span className={`text-cyan-300 ${isCollapsed ? 'text-2xl' : 'text-xl'}`}>{item.icon}</span>
+                      {!isCollapsed && <span className="ml-2 font-orbitron text-base md:text-lg" style={{color: '#fff', fontWeight: 600}}>{item.label}</span>}
                     </button>
                     {/* Tooltip solo cuando está colapsado */}
                     {isCollapsed && (
