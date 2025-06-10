@@ -16,22 +16,50 @@ const CursosAdminPanel: React.FC = () => {
   const [nuevo, setNuevo] = useState({ nombre: '', descripcion: '', imagen: '', orden: 0 });
   const [subiendo, setSubiendo] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [adminError, setAdminError] = useState<string | null>(null);
+  const [checking, setChecking] = useState(true);
 
   // Verificar si el usuario es admin
   useEffect(() => {
     async function checkAdmin() {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-      const { data } = await supabase
-        .from('usuarios')
-        .select('rol')
-        .eq('id', user.id)
-        .single();
-      if (data?.rol === 'admin') setIsAdmin(true);
+      try {
+        const { data: { user }, error: userError } = await supabase.auth.getUser();
+        if (userError) {
+          setAdminError('Error obteniendo usuario: ' + userError.message);
+          setChecking(false);
+          return;
+        }
+        if (!user) {
+          setAdminError('No hay usuario autenticado.');
+          setChecking(false);
+          return;
+        }
+        const { data, error } = await supabase
+          .from('usuarios')
+          .select('rol')
+          .eq('id', user.id)
+          .single();
+        if (error) {
+          setAdminError('Error consultando rol: ' + error.message);
+          setChecking(false);
+          return;
+        }
+        if (data?.rol === 'admin') {
+          setIsAdmin(true);
+        } else {
+          setAdminError('No tienes permisos de administrador.');
+        }
+        setChecking(false);
+      } catch (e: any) {
+        setAdminError('Error inesperado: ' + e.message);
+        setChecking(false);
+      }
     }
     checkAdmin();
   }, []);
 
+  if (checking) return <div className="text-white">Verificando permisos de administrador...</div>;
+  if (adminError) return <div className="text-red-400 font-bold">{adminError}</div>;
   if (!isAdmin) return null;
 
   // Leer cursos
