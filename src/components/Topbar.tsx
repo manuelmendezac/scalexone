@@ -1,12 +1,13 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { FiBell, FiMail, FiUserPlus, FiChevronDown, FiUser, FiLogOut, FiCopy, FiHelpCircle, FiGlobe } from 'react-icons/fi';
-import { MdDarkMode, MdLightMode } from 'react-icons/md';
+import { FiBell, FiMail, FiUserPlus, FiChevronDown, FiUser, FiLogOut, FiCopy, FiHelpCircle, FiGlobe, FiSettings, FiZap } from 'react-icons/fi';
+import { MdDarkMode, MdLightMode, MdFilterAlt } from 'react-icons/md';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import useNeuroState from '../store/useNeuroState';
 import { supabase } from '../supabase';
 import SwitchClienteIB from './SwitchClienteIB';
+import { FaRobot, FaWhatsapp } from 'react-icons/fa';
 
 interface TopbarProps {
   userAvatar?: string;
@@ -120,7 +121,15 @@ const Topbar: React.FC<TopbarProps> = ({
       </div>
 
       {/* Iconos a la derecha */}
-      <div className="flex items-center gap-2 sm:gap-4">
+      <div className="flex items-center gap-1 sm:gap-4">
+        {/* Iconos extra solo en móvil */}
+        <div className="flex items-center gap-1 sm:hidden">
+          <MdFilterAlt className="w-5 h-5 cursor-pointer hover:text-cyan-400 transition" title="Embudos" onClick={() => navigate('/funnels')} />
+          <FaRobot className="w-5 h-5 cursor-pointer hover:text-cyan-400 transition" title="IA" onClick={() => navigate('/ia')} />
+          <FiZap className="w-5 h-5 cursor-pointer hover:text-cyan-400 transition" title="Automatizaciones" onClick={() => navigate('/automatizaciones')} />
+          <FaWhatsapp className="w-5 h-5 cursor-pointer hover:text-cyan-400 transition" title="WhatsApp CRM" onClick={() => navigate('/whatsapp-crm')} />
+          <FiSettings className="w-5 h-5 cursor-pointer hover:text-cyan-400 transition" title="Configuración" onClick={() => navigate('/configuracion')} />
+        </div>
         {/* Botón de soporte */}
         <button
           className="flex items-center gap-2 px-2 sm:px-3 py-1 rounded-lg bg-gray-800 hover:bg-gray-700 text-white font-semibold transition"
@@ -224,7 +233,7 @@ const Topbar: React.FC<TopbarProps> = ({
           <span className="text-base font-bold">{language === 'es' ? 'ES' : 'EN'}</span>
         </button>
         {/* Avatar y menú de usuario */}
-        <div className="relative flex items-center gap-3">
+        <div className="relative flex items-center gap-1 sm:gap-3">
           {isLoggedIn ? (
             <>
               {/* Switch tipo Client | IB */}
@@ -243,11 +252,11 @@ const Topbar: React.FC<TopbarProps> = ({
                   <img
                     src={avatarUrl}
                     alt="avatar"
-                    className="w-9 h-9 rounded-full object-cover border-2 border-cyan-400 shadow bg-transparent"
+                    className="w-7 h-7 sm:w-9 sm:h-9 rounded-full object-cover border-2 border-cyan-400 shadow bg-transparent"
                   />
                 ) : (
-                  <div className="w-9 h-9 rounded-full bg-cyan-900 flex items-center justify-center border-2 border-cyan-400">
-                    <FiUser className="w-6 h-6 text-cyan-300" />
+                  <div className="w-7 h-7 sm:w-9 sm:h-9 rounded-full bg-cyan-900 flex items-center justify-center border-2 border-cyan-400">
+                    <FiUser className="w-5 h-5 text-cyan-300" />
                   </div>
                 )}
               </button>
