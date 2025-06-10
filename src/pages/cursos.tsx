@@ -79,7 +79,7 @@ const CursosPage: React.FC = () => {
           >
             <button
               onClick={() => setCursoActivo(curso)}
-              className={`px-4 py-3 rounded-lg border border-white font-black uppercase tracking-wide text-base md:text-lg bg-black transition-all duration-200 ${cursoActivo.id === curso.id ? 'bg-white text-black' : 'text-white hover:bg-neutral-900'}`}
+              className={`px-4 py-3 rounded-lg border border-white font-black uppercase tracking-wide text-base md:text-lg bg-black transition-all duration-200 ${cursoActivo.id === curso.id ? 'bg-white text-green-400' : 'text-white hover:bg-neutral-900'}`}
               style={{ minWidth: 180 }}
             >
               <span className={curso.color}>{curso.nombre}</span>
