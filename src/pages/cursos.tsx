@@ -76,15 +76,15 @@ const CursosPage: React.FC = () => {
         {cursosMock.map((curso) => (
           <div
             key={curso.id}
-            className=""
+            className="group"
             onMouseEnter={() => setCursoActivo(curso)}
           >
             <button
               onClick={() => setCursoActivo(curso)}
-              className={`px-4 py-3 rounded-lg border border-white font-black uppercase tracking-wide text-base md:text-lg bg-black transition-all duration-200 ${cursoActivo.id === curso.id ? 'bg-white text-green-400' : 'text-white hover:bg-white hover:text-green-400'}`}
+              className={`px-4 py-3 rounded-lg border border-white font-black uppercase tracking-wide text-base md:text-lg bg-black transition-all duration-200 ${cursoActivo.id === curso.id ? 'bg-white' : 'text-white hover:bg-white'}`}
               style={{ minWidth: 180 }}
             >
-              <span className={curso.color}>{curso.nombre}</span>
+              <span className={`transition-colors duration-200 ${cursoActivo.id === curso.id ? 'text-green-400' : 'group-hover:text-green-400'}`}>{curso.nombre}</span>
             </button>
           </div>
         ))}
