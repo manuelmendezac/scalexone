@@ -53,28 +53,34 @@ const Launchpad: React.FC = () => {
     }
   }, []);
 
-  // Datos de ejemplo
-  const events: LaunchEvent[] = [
-    {
-      id: '1',
-      title: 'La Revolución de la IA y cómo aprovecharla',
-      date: '2025-05-05',
-      description: 'Descubre por qué la inteligencia artificial es la tecnología que marcará el rumbo de la era exponencial y por qué tienes que dominarla.',
-      videoUrl: 'https://www.youtube.com/embed/example1'
-    },
-    {
-      id: '2',
-      title: 'Multiplica tus ingresos con agentes y crea con modelos de imagen y video',
-      date: '2025-05-06',
-      description: 'Aprende a utilizar los modelos más avanzados de IA para crear contenido visual impactante.',
-      videoUrl: 'https://www.youtube.com/embed/example2'
-    }
+  // Simulación de 6 directos y 6 cápsulas
+  const videos = [
+    // Directos
+    ...Array.from({ length: 6 }, (_, i) => ({
+      id: `live-${i+1}`,
+      type: 'Directo',
+      title: `Directo Día ${i+1}: Tema Impactante ${i+1}`,
+      date: `2025-05-${String(i+1).padStart(2, '0')}`,
+      description: `Descripción del directo número ${i+1}, con aprendizajes clave y participación en vivo.`,
+      thumbnail: `https://img.youtube.com/vi/example${i+1}/mqdefault.jpg`,
+      videoUrl: `https://www.youtube.com/embed/example${i+1}`
+    })),
+    // Cápsulas
+    ...Array.from({ length: 6 }, (_, i) => ({
+      id: `capsula-${i+1}`,
+      type: 'Cápsula',
+      title: `Cápsula IA #${i+1}: Microaprendizaje` ,
+      date: `2025-05-${String(i+7).padStart(2, '0')}`,
+      description: `Cápsula rápida sobre IA, tip ${i+1}.`,
+      thumbnail: `https://img.youtube.com/vi/capsule${i+1}/mqdefault.jpg`,
+      videoUrl: `https://www.youtube.com/embed/capsule${i+1}`
+    }))
   ];
 
-  // Filtrar eventos por fecha seleccionada
-  const filteredEvents = selectedDate
-    ? events.filter(e => e.date === selectedDate)
-    : events;
+  // Filtrar videos por fecha seleccionada
+  const filteredVideos = selectedDate
+    ? videos.filter(v => v.date === selectedDate)
+    : videos;
 
   // Simulación de información del evento destacado y contador
   const featuredEvent = {
@@ -205,7 +211,7 @@ const Launchpad: React.FC = () => {
                 </div>
               )}
             </div>
-            {/* Calendario y lista de eventos */}
+            {/* Calendario y lista de videos */}
             <div className={`${isVideoExpanded ? 'hidden' : ''} flex flex-col gap-6 bg-gray-800 rounded-xl p-4`}>
               {/* Información del evento destacado */}
               <div className="mb-4">
@@ -226,32 +232,35 @@ const Launchpad: React.FC = () => {
               </div>
               {/* Calendario */}
               <LaunchCalendar
-                events={events}
+                events={videos}
                 selectedDate={selectedDate}
                 onSelectDate={setSelectedDate}
               />
-              {/* Lista de eventos */}
-              <div>
-                <div className="flex items-center gap-2 mb-2 mt-2">
+              {/* Lista de videos */}
+              <div className="bg-gray-900/70 rounded-xl p-3 mt-2 shadow-inner">
+                <div className="flex items-center gap-2 mb-3">
                   <Calendar className="w-5 h-5 text-cyan-400" />
-                  <h3 className="font-orbitron text-lg">Eventos del mes</h3>
+                  <h3 className="font-orbitron text-lg">Directos y Cápsulas</h3>
                 </div>
-                <div className="space-y-4">
-                  {filteredEvents.length === 0 && (
-                    <div className="text-gray-500 text-sm">No hay eventos para este día.</div>
+                <div className="grid grid-cols-1 gap-3">
+                  {filteredVideos.length === 0 && (
+                    <div className="text-gray-500 text-sm">No hay videos para este día.</div>
                   )}
-                  {filteredEvents.map(event => (
+                  {filteredVideos.map(video => (
                     <button
-                      key={event.id}
-                      onClick={() => setSelectedEvent(event)}
-                      className={`w-full p-4 rounded-lg transition-all text-left ${
-                        selectedEvent?.id === event.id
-                          ? 'bg-cyan-900/60 border border-cyan-400'
-                          : 'bg-gray-900/60 hover:bg-gray-900'
-                      }`}
+                      key={video.id}
+                      onClick={() => setSelectedEvent(video)}
+                      className={`flex items-center gap-3 w-full p-2 rounded-lg transition-all text-left bg-gray-800/80 hover:bg-cyan-900/40 border border-transparent hover:border-cyan-400 ${selectedEvent?.id === video.id ? 'ring-2 ring-cyan-400 border-cyan-400' : ''}`}
                     >
-                      <div className="text-sm text-cyan-400">{new Date(event.date).toLocaleDateString()}</div>
-                      <div className="font-semibold mt-1">{event.title}</div>
+                      <img src={video.thumbnail} alt={video.title} className="w-16 h-10 object-cover rounded-md border border-gray-700" />
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                          <span className={`text-xs px-2 py-0.5 rounded-full font-bold ${video.type === 'Directo' ? 'bg-fuchsia-600 text-white' : 'bg-cyan-600 text-white'}`}>{video.type}</span>
+                          <span className="text-xs text-cyan-300">{new Date(video.date).toLocaleDateString()}</span>
+                        </div>
+                        <div className="font-semibold text-sm mt-1 text-cyan-100">{video.title}</div>
+                        <div className="text-xs text-gray-400 mt-0.5 line-clamp-2">{video.description}</div>
+                      </div>
                     </button>
                   ))}
                 </div>

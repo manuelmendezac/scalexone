@@ -24,11 +24,9 @@ const LaunchCalendar: React.FC<LaunchCalendarProps> = ({
   const today = new Date();
   const currentMonth = today.getMonth();
   const currentYear = today.getFullYear();
-  const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
-  const firstDayOfMonth = new Date(currentYear, currentMonth, 1).getDay();
 
-  // Crear array de días del mes
-  const days = Array.from({ length: daysInMonth }, (_, i) => i + 1);
+  // Solo mostrar los primeros 14 días (dos filas)
+  const days = Array.from({ length: 14 }, (_, i) => i + 1);
 
   // Obtener eventos por día
   const getEventsForDay = (day: number) => {
@@ -49,17 +47,13 @@ const LaunchCalendar: React.FC<LaunchCalendarProps> = ({
 
       <div className="grid grid-cols-7 gap-1 mb-2">
         {['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'].map(day => (
-          <div key={day} className="text-center text-sm text-gray-400 font-medium py-2">
+          <div key={day} className="text-center text-xs md:text-sm text-gray-400 font-medium py-1 md:py-2">
             {day}
           </div>
         ))}
       </div>
 
       <div className="grid grid-cols-7 gap-1">
-        {Array(firstDayOfMonth).fill(null).map((_, i) => (
-          <div key={`empty-${i}`} className="aspect-square" />
-        ))}
-
         {days.map(day => {
           const date = new Date(currentYear, currentMonth, day).toISOString().split('T')[0];
           const dayEvents = getEventsForDay(day);
@@ -74,10 +68,11 @@ const LaunchCalendar: React.FC<LaunchCalendarProps> = ({
                 aspect-square p-1 rounded-lg relative
                 ${hasEvents ? 'bg-cyan-900/30' : 'hover:bg-gray-700/30'}
                 ${isSelected ? 'ring-2 ring-cyan-400' : ''}
+                flex flex-col items-center justify-center text-center transition-all duration-150
               `}
             >
               <span className={`
-                text-sm
+                text-xs md:text-sm
                 ${hasEvents ? 'text-cyan-400 font-medium' : 'text-gray-400'}
                 ${isSelected ? 'text-cyan-400' : ''}
               `}>
