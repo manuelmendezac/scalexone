@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Calendar, Share2, MessageSquare, Info, ChevronLeft, ChevronRight, Maximize2, Menu, Upload, Star } from 'lucide-react';
 import LaunchCalendar from '../components/launchpad/LaunchCalendar';
@@ -128,6 +128,7 @@ const Launchpad: React.FC = () => {
   const [currentUser, setCurrentUser] = useState<any>(null);
   // Estado para mostrar el menú de compartir
   const [shareMenuOpen, setShareMenuOpen] = useState(false);
+  const videoRef = useRef<HTMLDivElement>(null);
 
   // Ajustar barra lateral según el ancho de pantalla después del primer render
   useEffect(() => {
@@ -548,6 +549,13 @@ const Launchpad: React.FC = () => {
     return url;
   }
 
+  // Cuando cambia el video seleccionado, hacer scroll al inicio del video
+  useEffect(() => {
+    if (videoRef.current) {
+      videoRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, [selectedEvent]);
+
   return (
     <div className="min-h-screen bg-gray-900 text-white">
       {/* Botón flotante para abrir el panel de edición solo para admin */}
@@ -563,7 +571,7 @@ const Launchpad: React.FC = () => {
       {/* Botón flotante para abrir barra lateral en móvil */}
       {!isMenuOpen && !isCollapsed && (
         <button
-          className="fixed top-1/2 left-4 -translate-y-1/2 z-50 bg-cyan-500 hover:bg-cyan-400 text-white p-3 rounded-full shadow-lg lg:hidden"
+          className="fixed top-28 left-4 z-50 bg-cyan-500 hover:bg-cyan-400 text-white p-3 rounded-full shadow-lg lg:hidden"
           onClick={() => setIsMenuOpen(true)}
           aria-label="Abrir menú"
         >
@@ -955,7 +963,7 @@ const Launchpad: React.FC = () => {
         <div className={`flex-1 transition-all duration-300 ${isMenuOpen ? (isCollapsed ? 'ml-20' : 'ml-64') : ''}`}>
           <div className="p-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Área del video */}
-            <div className={`${isVideoExpanded ? 'lg:col-span-3' : 'lg:col-span-2'} bg-gray-800 rounded-xl p-4 flex flex-col items-center`}>
+            <div ref={videoRef} className={`${isVideoExpanded ? 'lg:col-span-3' : 'lg:col-span-2'} bg-gray-800 rounded-xl p-4 flex flex-col items-center`}>
               {selectedEvent ? (
                 <>
                   {/* Título grande */}
