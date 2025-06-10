@@ -58,10 +58,8 @@ const CursosPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-black text-white flex flex-col items-center justify-start py-10 px-2">
       {/* Header */}
-      <div className="w-full flex justify-between items-center mb-8 px-2 max-w-7xl mx-auto">
-        <img src="/images/bemaster-logo.svg" alt="Bemaster Logo" className="h-8" />
+      <div className="w-full flex justify-end items-center mb-8 px-2 max-w-7xl mx-auto">
         <div className="flex gap-2">
-          <button className="px-4 py-2 rounded-full bg-neutral-900 text-white font-semibold border border-neutral-700">Home</button>
           <button className="px-4 py-2 rounded-full bg-neutral-900 text-white font-semibold border border-neutral-700">Próximamente</button>
           <button className="px-3 py-2 rounded-full bg-neutral-900 text-white font-semibold border border-neutral-700">?</button>
           <div className="w-8 h-8 rounded-full bg-neutral-800 flex items-center justify-center text-xs font-bold border border-neutral-700">MU</div>
@@ -76,9 +74,8 @@ const CursosPage: React.FC = () => {
         {cursosMock.map((curso) => (
           <div
             key={curso.id}
-            className={`relative group`}
-            onMouseEnter={() => setHovered(curso.id)}
-            onMouseLeave={() => setHovered(null)}
+            className=""
+            onMouseEnter={() => setCursoActivo(curso)}
           >
             <button
               onClick={() => setCursoActivo(curso)}
@@ -87,15 +84,6 @@ const CursosPage: React.FC = () => {
             >
               <span className={curso.color}>{curso.nombre}</span>
             </button>
-            {/* Hover card/modal */}
-            {hovered === curso.id && (
-              <div className="absolute left-1/2 -translate-x-1/2 top-16 z-20 w-80 bg-neutral-900 border border-white rounded-xl shadow-xl p-5 animate-fade-in flex flex-col items-center">
-                <img src={curso.imagen} alt={curso.nombre} className="w-24 h-24 object-cover rounded mb-3 border border-neutral-700" />
-                <div className="font-black text-lg mb-2 text-center">{curso.nombre}</div>
-                <div className="text-sm text-neutral-300 mb-4 text-center">{curso.descripcion}</div>
-                <button className="px-5 py-2 rounded-full bg-white text-black font-bold hover:bg-yellow-400 transition">Ingresar</button>
-              </div>
-            )}
           </div>
         ))}
       </div>
