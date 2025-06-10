@@ -20,27 +20,6 @@ interface LaunchpadLink {
   order_index?: number;
 }
 
-const sidebarItems = [
-  {
-    label: 'Compartir experiencia',
-    icon: <Share2 className="w-4 h-4" />, 
-    tooltip: 'Comparte tu experiencia',
-    onClick: () => {},
-  },
-  {
-    label: 'Grupo de WhatsApp',
-    icon: <MessageSquare className="w-4 h-4" />, 
-    tooltip: 'Únete al grupo',
-    onClick: () => {},
-  },
-  {
-    label: 'Contactar soporte',
-    icon: <Info className="w-4 h-4" />, 
-    tooltip: 'Soporte',
-    onClick: () => {},
-  },
-];
-
 const Launchpad: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(true);
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -499,9 +478,12 @@ const Launchpad: React.FC = () => {
               </div>
               {/* Accesos con tooltips o solo íconos */}
               <nav className="space-y-4 w-full mt-4 flex flex-col items-center">
-                {sidebarItems.map((item, idx) => (
-                  <div key={item.label} className="group relative flex items-center w-full justify-center">
-                    <button
+                {links.map((item, idx) => (
+                  <div key={item.id} className="group relative flex items-center w-full justify-center">
+                    <a
+                      href={item.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
                       className={`flex items-center gap-3 px-4 py-3 rounded-xl shadow-lg font-semibold border border-cyan-400/40 transition-all w-full justify-center
                         bg-gradient-to-br from-cyan-900 via-cyan-800 to-cyan-700
                         hover:from-cyan-700 hover:to-cyan-500
@@ -509,15 +491,14 @@ const Launchpad: React.FC = () => {
                         active:scale-95
                         ${isCollapsed ? 'justify-center px-2 py-2' : ''}`}
                       style={{ fontSize: isCollapsed ? 22 : 18 }}
-                      onClick={item.onClick}
                     >
-                      <span className={`text-cyan-300 ${isCollapsed ? 'text-2xl' : 'text-xl'}`}>{item.icon}</span>
+                      <span className={`text-cyan-300 ${isCollapsed ? 'text-2xl' : 'text-xl'}`}>{item.icon || '🔗'}</span>
                       {!isCollapsed && <span className="ml-2 font-orbitron text-base md:text-lg" style={{color: '#fff', fontWeight: 600}}>{item.label}</span>}
-                    </button>
+                    </a>
                     {/* Tooltip solo cuando está colapsado */}
                     {isCollapsed && (
                       <span className="absolute left-full ml-2 top-1/2 -translate-y-1/2 bg-cyan-700 text-white text-xs rounded px-2 py-1 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity shadow-lg z-50">
-                        {item.tooltip}
+                        {item.label}
                       </span>
                     )}
                   </div>
