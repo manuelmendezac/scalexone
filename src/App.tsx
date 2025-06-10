@@ -86,8 +86,12 @@ function App() {
           name: session.user.user_metadata?.nombre || '',
           email: session.user.email || '',
         });
-        if (window.location.href !== 'https://www.scalexone.app/home') {
-          window.location.href = 'https://www.scalexone.app/home';
+        // Solo redirige si estás en login o registro
+        if (
+          window.location.pathname === '/' ||
+          window.location.pathname === '/registro'
+        ) {
+          window.location.href = '/home';
         }
       }
     });
