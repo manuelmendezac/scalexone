@@ -23,12 +23,20 @@ interface LaunchpadLink {
 
 // Función para subir imagen a Supabase Storage y devolver la URL pública
 async function uploadImageToStorage(file: File, pathPrefix = 'misc') {
-  const fileExt = file.name.split('.').pop();
-  const fileName = `${pathPrefix}/${Date.now()}-${Math.random().toString(36).substr(2, 8)}.${fileExt}`;
-  const { data, error } = await supabase.storage.from('launchpad-assets').upload(fileName, file, { upsert: true });
-  if (error) throw error;
-  const { data: publicUrl } = supabase.storage.from('launchpad-assets').getPublicUrl(fileName);
-  return publicUrl.publicUrl;
+  console.log('Archivo a subir:', file);
+  if (!file || file.size === 0) {
+    alert('Archivo vacío o no válido');
+    throw new Error('Archivo vacío o no válido');
+  }
+  const fileName = `${pathPrefix}/${Date.now()}-${file.name}`;
+  const { error } = await supabase.storage.from('launchpad-assets').upload(fileName, file, { upsert: true });
+  if (error) {
+    console.error('Error real de Supabase:', error);
+    alert('Error subiendo imagen: ' + error.message);
+    throw error;
+  }
+  const { data } = supabase.storage.from('launchpad-assets').getPublicUrl(fileName);
+  return data.publicUrl;
 }
 
 const Launchpad: React.FC = () => {
