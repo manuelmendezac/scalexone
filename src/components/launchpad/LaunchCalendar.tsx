@@ -29,22 +29,11 @@ const LaunchCalendar: React.FC<LaunchCalendarProps> = ({
   const currentMonth = today.getMonth();
   const currentYear = today.getFullYear();
 
-  // Calcular el rango de días a mostrar según el rango de lanzamiento
+  // Calcular el rango de días a mostrar: SIEMPRE mostrar todo el mes
   let daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
   let startDay = 1;
   let endDay = daysInMonth;
-  if (launchStartDate && launchEndDate) {
-    const start = new Date(launchStartDate);
-    const end = new Date(launchEndDate);
-    if (start.getMonth() === currentMonth && end.getMonth() === currentMonth) {
-      startDay = start.getDate();
-      endDay = end.getDate();
-    } else if (start.getMonth() === currentMonth) {
-      startDay = start.getDate();
-    } else if (end.getMonth() === currentMonth) {
-      endDay = end.getDate();
-    }
-  }
+  // Ya no limitar por launchStartDate ni launchEndDate
   const days = Array.from({ length: endDay - startDay + 1 }, (_, i) => i + startDay);
 
   // Obtener eventos por día
