@@ -62,6 +62,7 @@ function getYouTubeId(url: string): string | null {
 }
 
 const Launchpad: React.FC = () => {
+  console.log('Render Launchpad');
   const [isMenuOpen, setIsMenuOpen] = useState(true);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<LaunchEvent | null>(null);
@@ -157,72 +158,12 @@ const Launchpad: React.FC = () => {
   }, []);
 
   // Simulación de 3 directos y 3 cápsulas de prueba
-  const videosPrueba = [
-    // Directos de prueba
-    {
-      id: 'demo-live-1',
-      type: 'Directo',
-      title: 'Directo Demo 1',
-      date: '2025-06-01',
-      description: 'Directo de ejemplo para pruebas.',
-      thumbnail: 'https://img.youtube.com/vi/example1/mqdefault.jpg',
-      video_url: 'https://www.youtube.com/embed/example1',
-    },
-    {
-      id: 'demo-live-2',
-      type: 'Directo',
-      title: 'Directo Demo 2',
-      date: '2025-06-02',
-      description: 'Segundo directo de ejemplo.',
-      thumbnail: 'https://img.youtube.com/vi/example2/mqdefault.jpg',
-      video_url: 'https://www.youtube.com/embed/example2',
-    },
-    {
-      id: 'demo-live-3',
-      type: 'Directo',
-      title: 'Directo Demo 3',
-      date: '2025-06-03',
-      description: 'Tercer directo de ejemplo.',
-      thumbnail: 'https://img.youtube.com/vi/example3/mqdefault.jpg',
-      video_url: 'https://www.youtube.com/embed/example3',
-    },
-    // Cápsulas de prueba
-    {
-      id: 'demo-capsule-1',
-      type: 'Cápsula',
-      title: 'Cápsula Demo 1',
-      date: '2025-06-04',
-      description: 'Cápsula de ejemplo para pruebas.',
-      thumbnail: 'https://img.youtube.com/vi/capsule1/mqdefault.jpg',
-      video_url: 'https://www.youtube.com/embed/capsule1',
-    },
-    {
-      id: 'demo-capsule-2',
-      type: 'Cápsula',
-      title: 'Cápsula Demo 2',
-      date: '2025-06-05',
-      description: 'Segunda cápsula de ejemplo.',
-      thumbnail: 'https://img.youtube.com/vi/capsule2/mqdefault.jpg',
-      video_url: 'https://www.youtube.com/embed/capsule2',
-    },
-    {
-      id: 'demo-capsule-3',
-      type: 'Cápsula',
-      title: 'Cápsula Demo 3',
-      date: '2025-06-06',
-      description: 'Tercera cápsula de ejemplo.',
-      thumbnail: 'https://img.youtube.com/vi/capsule3/mqdefault.jpg',
-      video_url: 'https://www.youtube.com/embed/capsule3',
-    },
-  ];
-  // Combinar videos reales y de prueba (si faltan)
-  const directos = [...videos.filter(v => v.type === 'Directo'), ...videosPrueba.filter(v => v.type === 'Directo')].slice(0, 3);
-  const capsulas = [...videos.filter(v => v.type === 'Cápsula'), ...videosPrueba.filter(v => v.type === 'Cápsula')].slice(0, 3);
-  const videosFinal = [...directos, ...capsulas];
-  // Filtrar videos por fecha seleccionada
-  const filteredVideos = selectedDate
-    ? videosFinal.filter(v => v.date === selectedDate)
-    : videosFinal;
+  // const videosPrueba = [...]; // Eliminar esta sección
+  // const directos = [...]; // Eliminar demo
+  // const capsulas = [...]; // Eliminar demo
+  // const videosFinal = [...directos, ...capsulas];
+  const videosFinal = videos;
+  const filteredVideos = selectedDate ? videosFinal.filter(v => v.date === selectedDate) : videosFinal;
 
   // Cargar el evento destacado desde Supabase al montar la página
   async function fetchFeatured() {
@@ -584,13 +525,19 @@ const Launchpad: React.FC = () => {
     fetchUser();
   }, []);
 
-  // Seleccionar automáticamente el primer directo al cargar videosFinal
+  // Seleccionar automáticamente el primer video real si existe
   useEffect(() => {
-    if (!selectedEvent && videosFinal.length > 0) {
-      setSelectedEvent(videosFinal[0]);
+    if (!selectedEvent && videos.length > 0) {
+      setSelectedEvent(videos[0]);
     }
-    // eslint-disable-next-line
-  }, [videosFinal]);
+  }, [videos]);
+
+  // Cerrar menú de compartir si se colapsa la barra lateral
+  useEffect(() => {
+    if (isCollapsed && shareMenuOpen) {
+      setShareMenuOpen(false);
+    }
+  }, [isCollapsed, shareMenuOpen]);
 
   // Función para obtener el enlace de afiliado
   function getShareUrl() {
@@ -957,7 +904,7 @@ const Launchpad: React.FC = () => {
                     style={{ fontSize: isCollapsed ? 22 : 18 }}
                     onClick={() => setShareMenuOpen(v => !v)}
                   >
-                    <span className={`text-cyan-300 ${isCollapsed ? 'text-2xl' : 'text-xl'}`}></span>
+                    <Share2 className={`text-cyan-300 ${isCollapsed ? 'text-2xl' : 'text-xl'}`} />
                     {!isCollapsed && <span className="ml-2 font-orbitron text-base md:text-lg" style={{color: '#fff', fontWeight: 600}}>Compartir Experiencia</span>}
                   </button>
                   {shareMenuOpen && (

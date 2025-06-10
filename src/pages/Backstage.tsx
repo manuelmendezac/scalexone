@@ -127,45 +127,18 @@ const Backstage: React.FC = () => {
     fetchVideos();
   }, []);
 
-  // Simulación de 1 directo y 1 cápsula de prueba
-  const videosPrueba = [
-    {
-      id: 'demo-live-1',
-      type: 'Directo',
-      title: 'Directo Demo',
-      date: '2025-06-01',
-      description: 'Directo de ejemplo para pruebas.',
-      thumbnail: 'https://img.youtube.com/vi/example1/mqdefault.jpg',
-      video_url: 'https://www.youtube.com/embed/example1',
-    },
-    {
-      id: 'demo-capsule-1',
-      type: 'Cápsula',
-      title: 'Cápsula Demo',
-      date: '2025-06-02',
-      description: 'Cápsula de ejemplo para pruebas.',
-      thumbnail: 'https://img.youtube.com/vi/capsule1/mqdefault.jpg',
-      video_url: 'https://www.youtube.com/embed/capsule1',
-    },
-  ];
-  // Usar solo videos reales si existen, si no, usar los demos
-  const videosFinal = videos.length > 0 ? videos : videosPrueba;
+  // Eliminar videos demo y trabajar solo con videos reales
+  // const videosPrueba = [...]; // Eliminar esta sección
+  // const videosFinal = videos.length > 0 ? videos : videosPrueba;
+  const videosFinal = videos;
   const filteredVideos = selectedDate ? videosFinal.filter(v => v.date === selectedDate) : videosFinal;
 
-  // Seleccionar automáticamente el primer video real (no demo) si existe
+  // Seleccionar automáticamente el primer video real si existe
   useEffect(() => {
     if (!selectedEvent && videos.length > 0) {
-      // Buscar el primer video que NO sea demo
-      const primerReal = videos.find(v => !v.id.startsWith('demo-'));
-      if (primerReal) {
-        setSelectedEvent(primerReal);
-      } else {
-        setSelectedEvent(videos[0]);
-      }
-    } else if (!selectedEvent && videos.length === 0 && videosPrueba.length > 0) {
-      setSelectedEvent(videosPrueba[0]);
+      setSelectedEvent(videos[0]);
     }
-  }, [videos, videosPrueba]);
+  }, [videos]);
 
   // Ratings y comentarios
   useEffect(() => {
