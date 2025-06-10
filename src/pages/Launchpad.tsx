@@ -76,6 +76,32 @@ const Launchpad: React.FC = () => {
     ? events.filter(e => e.date === selectedDate)
     : events;
 
+  // Simulación de información del evento destacado y contador
+  const featuredEvent = {
+    title: 'IA HEROES LIVE',
+    description: 'Para obtener las Masterclasses Exclusivas y reservar tu plaza solo quedan:',
+    date: '2025-06-05T19:00:00',
+    cta: 'Masterclasses Exclusivas',
+  };
+
+  function getCountdown(targetDate: string) {
+    const now = new Date();
+    const target = new Date(targetDate);
+    const diff = Math.max(0, target.getTime() - now.getTime());
+    const hours = Math.floor(diff / (1000 * 60 * 60));
+    const min = Math.floor((diff / (1000 * 60)) % 60);
+    const sec = Math.floor((diff / 1000) % 60);
+    return { hours, min, sec };
+  }
+
+  const [countdown, setCountdown] = useState(getCountdown(featuredEvent.date));
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCountdown(getCountdown(featuredEvent.date));
+    }, 1000);
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <div className="min-h-screen bg-gray-900 text-white">
       {/* Botón flotante para abrir barra lateral en móvil */}
@@ -181,6 +207,23 @@ const Launchpad: React.FC = () => {
             </div>
             {/* Calendario y lista de eventos */}
             <div className={`${isVideoExpanded ? 'hidden' : ''} flex flex-col gap-6 bg-gray-800 rounded-xl p-4`}>
+              {/* Información del evento destacado */}
+              <div className="mb-4">
+                <div className="rounded-xl p-4 mb-4 bg-gradient-to-r from-pink-600 via-fuchsia-600 to-pink-400 shadow-lg flex flex-col items-center text-white">
+                  <div className="font-orbitron text-2xl md:text-3xl font-bold mb-1 tracking-wide">{featuredEvent.title}</div>
+                  <div className="text-base md:text-lg mb-2 text-white/90 text-center">{featuredEvent.description} <span className="underline font-semibold cursor-pointer">{featuredEvent.cta}</span></div>
+                  <div className="flex items-center gap-4 text-3xl font-mono font-bold">
+                    <span>{String(countdown.hours).padStart(2, '0')}</span>
+                    <span className="text-lg font-normal">horas</span>
+                    <span>:</span>
+                    <span>{String(countdown.min).padStart(2, '0')}</span>
+                    <span className="text-lg font-normal">min</span>
+                    <span>:</span>
+                    <span>{String(countdown.sec).padStart(2, '0')}</span>
+                    <span className="text-lg font-normal">seg</span>
+                  </div>
+                </div>
+              </div>
               {/* Calendario */}
               <LaunchCalendar
                 events={events}
