@@ -44,173 +44,51 @@ export const router = createBrowserRouter([
     path: '/',
     element: <App />,
     children: [
-      {
-        index: true,
-        element: <Login />
-      },
-      {
-        path: 'registro',
-        element: <Register />
-      },
-      // Rutas protegidas
-      {
-        element: <ProtectedRoute><></></ProtectedRoute>,
+      { index: true, element: <Login /> },
+      { path: 'registro', element: <Register /> },
+      { path: 'inicio', element: <ProtectedRoute><Inicio /></ProtectedRoute> },
+      { path: 'home', element: <ProtectedRoute><Inicio /></ProtectedRoute> },
+      { path: 'dashboard', element: <ProtectedRoute><Dashboard /></ProtectedRoute>,
         children: [
-          {
-            path: 'inicio',
-            element: <Inicio />
-          },
-          {
-            path: 'home',
-            element: <Inicio />
-          },
-          {
-            path: 'dashboard',
-            element: <Dashboard />,
-            children: [
-              {
-                index: true,
-                element: <Inicio />
-              },
-              {
-                path: 'console',
-                element: <AIConsole />
-              },
-              {
-                path: 'knowledge',
-                element: <KnowledgeAssistant />
-              },
-              {
-                path: 'uploader',
-                element: <UploaderDocsIA />
-              },
-              {
-                path: 'panel',
-                element: <PanelIA />
-              },
-              {
-                path: 'nicho',
-                element: <SelectorNicho />
-              }
-            ]
-          },
-          {
-            path: 'knowledge-vault',
-            element: <KnowledgeVaultQuiz />
-          },
-          {
-            path: 'dynamic-expert-profile',
-            element: <DynamicExpertProfile />
-          },
-          {
-            path: 'meta-galaxy',
-            element: <MetaGalaxyMap />
-          },
-          {
-            path: 'meta-galaxy/mision-personal',
-            element: <MisionPersonalGame />
-          },
-          {
-            path: 'meta-galaxy/pasiones',
-            element: <PasionesGame />
-          },
-          {
-            path: 'meta-galaxy/habilidades',
-            element: <HabilidadesGame />
-          },
-          {
-            path: 'meta-galaxy/impacto',
-            element: <ImpactoGame />
-          },
-          {
-            path: 'meta-galaxy/sueno-maximo',
-            element: <SuenoMaximoGame />
-          },
-          {
-            path: 'perfil-aspiracional',
-            element: <MetaGalaxyMap />
-          },
-          {
-            path: 'implementar-ia',
-            element: <ImplementarIAPage />
-          },
-          {
-            path: 'personalizar-agente/:id',
-            element: <PersonalizarAgente />,
-          },
-          {
-            path: 'configuracion',
-            element: <ConfiguracionProyecto />,
-          },
-          {
-            path: 'reset-password',
-            element: <ResetPassword />
-          },
-          {
-            path: 'perfil',
-            element: <Perfil />
-          },
-          {
-            path: 'templates',
-            children: [
-              { index: true, element: <TemplatesIndex /> },
-              { path: 'editor/:templateId', element: <TemplateEditor /> }
-            ]
-          },
-          {
-            path: 'launchpad',
-            element: <Launchpad />
-          },
+          { index: true, element: <ProtectedRoute><Inicio /></ProtectedRoute> },
+          { path: 'console', element: <ProtectedRoute><AIConsole /></ProtectedRoute> },
+          { path: 'knowledge', element: <ProtectedRoute><KnowledgeAssistant /></ProtectedRoute> },
+          { path: 'uploader', element: <ProtectedRoute><UploaderDocsIA /></ProtectedRoute> },
+          { path: 'panel', element: <ProtectedRoute><PanelIA /></ProtectedRoute> },
+          { path: 'nicho', element: <ProtectedRoute><SelectorNicho /></ProtectedRoute> },
         ]
       },
+      { path: 'knowledge-vault', element: <ProtectedRoute><KnowledgeVaultQuiz /></ProtectedRoute> },
+      { path: 'dynamic-expert-profile', element: <ProtectedRoute><DynamicExpertProfile /></ProtectedRoute> },
+      { path: 'meta-galaxy', element: <ProtectedRoute><MetaGalaxyMap /></ProtectedRoute> },
+      { path: 'meta-galaxy/mision-personal', element: <ProtectedRoute><MisionPersonalGame /></ProtectedRoute> },
+      { path: 'meta-galaxy/pasiones', element: <ProtectedRoute><PasionesGame /></ProtectedRoute> },
+      { path: 'meta-galaxy/habilidades', element: <ProtectedRoute><HabilidadesGame /></ProtectedRoute> },
+      { path: 'meta-galaxy/impacto', element: <ProtectedRoute><ImpactoGame /></ProtectedRoute> },
+      { path: 'meta-galaxy/sueno-maximo', element: <ProtectedRoute><SuenoMaximoGame /></ProtectedRoute> },
+      { path: 'perfil-aspiracional', element: <ProtectedRoute><MetaGalaxyMap /></ProtectedRoute> },
+      { path: 'implementar-ia', element: <ProtectedRoute><ImplementarIAPage /></ProtectedRoute> },
+      { path: 'personalizar-agente/:id', element: <ProtectedRoute><PersonalizarAgente /></ProtectedRoute> },
+      { path: 'configuracion', element: <ProtectedRoute><ConfiguracionProyecto /></ProtectedRoute> },
+      { path: 'reset-password', element: <ResetPassword /> },
+      { path: 'perfil', element: <ProtectedRoute><Perfil /></ProtectedRoute> },
+      { path: 'templates', children: [
+        { index: true, element: <ProtectedRoute><TemplatesIndex /></ProtectedRoute> },
+        { path: 'editor/:templateId', element: <ProtectedRoute><TemplateEditor /></ProtectedRoute> }
+      ] },
+      { path: 'launchpad', element: <ProtectedRoute><Launchpad /></ProtectedRoute> },
     ]
   },
-  {
-    path: '/afiliados',
-    element: <AfiliadosPage />
-  },
-  {
-    path: '/afiliados/ib-marca-blanca',
-    element: <IBMarcaBlancaPage />
-  },
-  {
-    path: '/afiliados/ib-scalexone',
-    element: <IBScalexOnePage />
-  },
-  {
-    path: '/afiliados/multinivel',
-    element: <MultinivelIBPage />
-  },
-  {
-    path: '/afiliados/cuentas',
-    element: <CuentasIBPage />
-  },
-  {
-    path: '/afiliados/historial',
-    element: <HistorialTransaccionesPage />
-  },
-  {
-    path: '/afiliados/perfil',
-    element: <PerfilIBPage />
-  },
-  {
-    path: '/afiliados/enlaces',
-    element: <EnlacesAfiliadosPage />
-  },
-  {
-    path: '/afiliados/contacto',
-    element: <ContactoIBPage />
-  },
-  {
-    path: '/onboarding',
-    element: <CloneOnboarding />,
-  },
-  {
-    path: '/planificador-metas',
-    element: <PlanificadorMetas />,
-  },
-  {
-    path: '*',
-    element: <Error404 />
-  },
+  { path: '/afiliados', element: <AfiliadosPage /> },
+  { path: '/afiliados/ib-marca-blanca', element: <IBMarcaBlancaPage /> },
+  { path: '/afiliados/ib-scalexone', element: <IBScalexOnePage /> },
+  { path: '/afiliados/multinivel', element: <MultinivelIBPage /> },
+  { path: '/afiliados/cuentas', element: <CuentasIBPage /> },
+  { path: '/afiliados/historial', element: <HistorialTransaccionesPage /> },
+  { path: '/afiliados/perfil', element: <PerfilIBPage /> },
+  { path: '/afiliados/enlaces', element: <EnlacesAfiliadosPage /> },
+  { path: '/afiliados/contacto', element: <ContactoIBPage /> },
+  { path: '/onboarding', element: <CloneOnboarding /> },
+  { path: '/planificador-metas', element: <PlanificadorMetas /> },
+  { path: '*', element: <Error404 /> },
 ]); 
