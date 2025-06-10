@@ -448,6 +448,16 @@ const Backstage: React.FC = () => {
           </div>
         </div>
       </div>
+      {/* Botón flotante para abrir barra lateral en móvil */}
+      {!isMenuOpen && !isCollapsed && (
+        <button
+          className="fixed top-1/2 left-4 -translate-y-1/2 z-50 bg-cyan-500 hover:bg-cyan-400 text-white p-3 rounded-full shadow-lg lg:hidden"
+          onClick={() => setIsMenuOpen(true)}
+          aria-label="Abrir menú"
+        >
+          <Menu className="w-6 h-6" />
+        </button>
+      )}
     </div>
   );
 };
