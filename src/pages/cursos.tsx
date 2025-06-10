@@ -30,7 +30,7 @@ const CursosPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-black text-white flex flex-col items-center justify-start py-10 px-2">
-      {/* <CursosAdminPanel /> */}
+      <CursosAdminPanel />
       {/* Header */}
       <div className="w-full flex justify-end items-center mb-8 px-2 max-w-7xl mx-auto">
         <div className="flex gap-2">
