@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { supabase } from '../../supabase';
 import useNeuroState from '../../store/useNeuroState';
-import { BookOpen, Users, Award, UploadCloud } from 'lucide-react';
+import { BookOpen, Users, Award, UploadCloud, Layers, PlayCircle } from 'lucide-react';
 
 const mockCurso = {
   id: 1,
@@ -245,16 +245,30 @@ const CursoDetalle = () => {
       {/* Módulos */}
       <section className="modulos mb-10">
         <h2 className="text-2xl font-bold mb-4">Módulos</h2>
-        <div className="grid md:grid-cols-3 gap-6">
+        <div className="grid md:grid-cols-3 gap-8">
           {mockCurso.modulos.map((mod, idx) => (
-            <div key={idx} className="bg-neutral-900 rounded-xl p-6 shadow-lg">
-              <h3 className="text-xl font-bold mb-2">{mod.titulo}</h3>
-              <p className="mb-2">{mod.descripcion}</p>
-              <div className="flex items-center gap-4 text-sm mb-2">
-                <span>🧱 Nivel: {mod.nivel}</span>
-                <span>▶️ Clases: {mod.clases}</span>
+            <div key={idx} className="bg-neutral-900 rounded-2xl p-7 shadow-xl border border-neutral-800 flex flex-col h-full transition-all hover:shadow-2xl hover:border-cyan-400 group">
+              {/* Icono grande arriba */}
+              <div className="flex justify-center mb-4">
+                {/* Puedes cambiar el icono por módulo después */}
+                {idx === 0 && <svg width="48" height="48" fill="none" stroke="#22d3ee" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-cyan-400"><circle cx="24" cy="24" r="20" /><path d="M34 34L28 28" /><circle cx="24" cy="24" r="8" /></svg>}
+                {idx === 1 && <svg width="48" height="48" fill="none" stroke="#22d3ee" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-cyan-400"><rect x="8" y="16" width="32" height="16" rx="4" /><path d="M16 24h16" /></svg>}
+                {idx === 2 && <svg width="48" height="48" fill="none" stroke="#22d3ee" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-cyan-400"><path d="M24 8v8M24 32v8M8 24h8M32 24h8M16.24 16.24l5.66 5.66M32.97 32.97l-5.66-5.66" /></svg>}
               </div>
-              <button className="bg-white text-black px-4 py-1 rounded-full font-semibold">Iniciar</button>
+              {/* Título */}
+              <h3 className="text-xl font-bold mb-2 text-cyan-200 group-hover:text-cyan-400 transition-all">{mod.titulo}</h3>
+              {/* Descripción */}
+              <p className="mb-4 text-white/90 text-sm min-h-[60px]">{mod.descripcion}</p>
+              {/* Info fila */}
+              <div className="flex flex-row items-center gap-4 text-cyan-300 mb-5">
+                <span className="flex items-center gap-1 text-xs"><Layers className="w-4 h-4"/>Nivel: {mod.nivel}</span>
+                <span className="flex items-center gap-1 text-xs"><PlayCircle className="w-4 h-4"/>Clases: {mod.clases}</span>
+              </div>
+              {/* Botones */}
+              <div className="flex gap-2 mt-auto">
+                <button className="flex-1 bg-cyan-400 hover:bg-cyan-300 text-black font-bold py-2 rounded-full transition-all text-sm shadow group-hover:scale-105">Iniciar</button>
+                <button className="flex-1 border border-cyan-400 text-cyan-400 hover:bg-cyan-400 hover:text-black font-bold py-2 rounded-full transition-all text-sm shadow group-hover:scale-105 flex items-center justify-center gap-1">Ver clases <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 9h8m0 0-3-3m3 3-3 3"/></svg></button>
+              </div>
             </div>
           ))}
         </div>
