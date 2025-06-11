@@ -153,29 +153,58 @@ const CursoDetalle = () => {
   const data = portada || demo;
 
   return (
-    <div className="curso-detalle-page bg-black min-h-screen text-white p-4">
-      {isAdmin && <PortadaCursoEditor cursoId={id} portada={portada} onSave={handleReload} />}
-      {/* Portada visual */}
-      <section className="encabezado flex flex-col md:flex-row items-center gap-6 mb-10">
-        <div className="flex flex-col gap-2 flex-1">
-          <img src={data.logo_url} alt="Logo" className="h-12 mb-2" />
-          <h1 className="text-4xl font-bold mb-2">{data.titulo}</h1>
-          <p className="text-lg mb-2">{data.descripcion}</p>
-          <div className="flex items-center gap-2 mb-2">
-            <span className="text-yellow-400 text-xl font-bold">{'★'.repeat(Math.round(data.calificacion))}</span>
-            <span className="text-white text-lg">{data.calificacion}/5 - {data.num_calificaciones} Calificaciones</span>
+    <div className="curso-detalle-page bg-black min-h-screen text-white p-0">
+      {/* Portada visual HERO */}
+      <section
+        className="relative w-full min-h-[420px] flex flex-col justify-center items-center overflow-hidden"
+        style={{ minHeight: '420px' }}
+      >
+        {/* Imagen de fondo */}
+        <img
+          src={data.imagen_lateral_url}
+          alt="Portada"
+          className="absolute inset-0 w-full h-full object-cover z-0"
+          style={{ filter: 'brightness(0.5) blur(1px)' }}
+        />
+        {/* Overlay glassmorphism */}
+        <div className="absolute inset-0 bg-gradient-to-r from-[#181a2f]/80 via-[#23234a]/70 to-[#181a2f]/80 z-10 backdrop-blur-md" />
+        {/* Contenido principal */}
+        <div className="relative z-20 w-full max-w-4xl mx-auto flex flex-col md:flex-row items-center md:items-start gap-6 p-6 md:p-12">
+          {/* Columna izquierda: Logo y botones */}
+          <div className="flex flex-col items-center md:items-start gap-4 flex-1">
+            <div className="flex flex-row items-center gap-4 w-full">
+              <img src={data.logo_url} alt="Logo" className="h-14 md:h-16 w-auto drop-shadow-lg bg-white/10 rounded-xl p-2" />
+              <div className="flex gap-2 flex-wrap">
+                {data.botones && data.botones.map((b: any, i: number) => (
+                  <button
+                    key={i}
+                    className={`px-4 py-2 rounded-full font-semibold shadow-md transition-all text-sm md:text-base ${b.editable ? 'bg-cyan-500 text-white' : 'bg-neutral-800/80 text-white hover:bg-cyan-600/80'}`}
+                  >
+                    {b.texto}
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
-          <a href={data.boton_principal_url || '#'} className="bg-white text-black px-6 py-2 rounded-full font-semibold inline-block mb-2">{data.boton_principal_texto}</a>
-          <div className="flex gap-2 mt-2">
-            {data.botones && data.botones.map((b: any, i: number) => (
-              <button key={i} className={`px-4 py-2 rounded-full font-semibold ${b.editable ? 'bg-cyan-500 text-white' : 'bg-neutral-800 text-white'}`}>{b.texto}</button>
-            ))}
+          {/* Columna derecha: Título, descripción, calificación, botón principal */}
+          <div className="flex-1 flex flex-col items-center md:items-start gap-3 bg-white/10 backdrop-blur-lg rounded-2xl p-6 shadow-xl border border-cyan-400/20">
+            <h1 className="text-3xl md:text-5xl font-bold mb-2 font-orbitron text-cyan-200 drop-shadow-lg text-center md:text-left">{data.titulo}</h1>
+            <p className="text-lg md:text-xl mb-2 text-cyan-100 text-center md:text-left">{data.descripcion}</p>
+            <div className="flex items-center gap-2 mb-2">
+              <span className="text-yellow-400 text-2xl font-bold drop-shadow">{'★'.repeat(Math.round(data.calificacion))}</span>
+              <span className="text-white text-lg">{data.calificacion}/5 - {data.num_calificaciones} Calificaciones</span>
+            </div>
+            <a
+              href={data.boton_principal_url || '#'}
+              className="bg-cyan-500 hover:bg-cyan-400 text-white px-8 py-3 rounded-full font-semibold text-lg shadow-lg transition-all mt-2 w-full md:w-auto text-center"
+            >
+              {data.boton_principal_texto}
+            </a>
           </div>
-        </div>
-        <div className="flex-1 flex justify-center">
-          {data.imagen_lateral_url && <img src={data.imagen_lateral_url} alt="Imagen lateral" className="w-80 h-64 object-cover rounded-lg shadow-lg" />}
         </div>
       </section>
+      {/* Editor solo para admin */}
+      {isAdmin && <PortadaCursoEditor cursoId={id} portada={portada} onSave={handleReload} />}
 
       {/* Módulos */}
       <section className="modulos mb-10">
