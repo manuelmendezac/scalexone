@@ -40,6 +40,7 @@ import ContactoIBPage from './pages/afiliados/contacto';
 import Launchpad from './pages/Launchpad';
 import Backstage from './pages/Backstage';
 import CursosPage from './pages/cursos';
+import CursoDetalle from './pages/cursos/[id]';
 
 export const router = createBrowserRouter([
   {
@@ -81,6 +82,7 @@ export const router = createBrowserRouter([
       { path: 'launchpad', element: <Launchpad /> },
       { path: 'backstage', element: <Backstage /> },
       { path: 'cursos', element: <ProtectedRoute><CursosPage /></ProtectedRoute> },
+      { path: 'cursos/:id', element: <ProtectedRoute><CursoDetalle /></ProtectedRoute> },
     ]
   },
   { path: '/afiliados', element: <AfiliadosPage /> },
