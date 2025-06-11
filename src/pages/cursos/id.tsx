@@ -199,33 +199,33 @@ const CursoDetalle = () => {
     <div className="curso-detalle-page bg-black min-h-screen text-white p-0">
       {/* Editor solo para admin, siempre visible arriba */}
       {isAdmin && <div className="max-w-5xl mx-auto pt-4"><PortadaCursoEditor cursoId={id} portada={portada} onSave={handleReload} /></div>}
-      {/* Portada visual con mockup y logo pequeño */}
+      {/* Portada visual con mockup grande y botones mejorados */}
       <section className="w-full flex flex-col items-center justify-center pt-10 pb-8 px-2 md:px-0">
-        <div className="w-full max-w-5xl flex flex-col md:flex-row items-center md:items-start gap-8 md:gap-12">
-          {/* Mockup (imagen de portada) */}
+        <div className="w-full max-w-5xl flex flex-col md:flex-row items-center md:items-center gap-8 md:gap-16">
+          {/* Mockup (imagen de portada) grande, alineado centro, solo sombra */}
           <div className="order-1 md:order-2 w-full md:w-1/2 flex justify-center md:justify-end mb-6 md:mb-0">
             {data.imagen_lateral_url && (
               <img
                 src={data.imagen_lateral_url}
                 alt="Mockup"
-                className="w-64 md:w-80 h-auto rounded-2xl shadow-2xl border border-cyan-800 object-contain bg-black"
-                style={{maxHeight: '340px'}}
+                className="w-80 md:w-[420px] h-auto rounded-2xl shadow-2xl object-contain bg-black"
+                style={{maxHeight: '400px', boxShadow: '0 8px 32px 0 rgba(0,255,255,0.18), 0 1.5px 8px 0 rgba(0,0,0,0.25)'}}
               />
             )}
           </div>
           {/* Contenido principal */}
           <div className="order-2 md:order-1 w-full md:w-1/2 flex flex-col items-start">
             {/* Logo pequeño */}
-            <img src={data.logo_url} alt="Logo" className="h-12 w-auto mb-4" style={{maxWidth: '120px'}} />
-            <div className="flex flex-row gap-4 flex-wrap items-center mb-6">
-              <button className="flex items-center gap-2 px-5 py-2 rounded-full bg-neutral-900/80 text-cyan-400 font-semibold text-base shadow border border-cyan-700"><BookOpen className="w-5 h-5"/>Módulos</button>
-              <button className="flex items-center gap-2 px-5 py-2 rounded-full bg-neutral-900/80 text-cyan-400 font-semibold text-base shadow border border-cyan-700"><Users className="w-5 h-5"/>Complementario</button>
-              <button className="flex items-center gap-2 px-5 py-2 rounded-full bg-neutral-900/80 text-cyan-400 font-semibold text-base shadow border border-cyan-700"><Award className="w-5 h-5"/>Master Adventure</button>
+            <img src={data.logo_url} alt="Logo" className="h-10 w-auto mb-4" style={{maxWidth: '110px'}} />
+            <div className="flex flex-row gap-3 flex-wrap items-center mb-7 ml-1">
+              <button className="flex items-center gap-1.5 px-4 py-1.5 rounded-full border border-cyan-400 text-cyan-400 font-semibold text-sm shadow-none bg-black hover:bg-cyan-900/10 transition-all"><BookOpen className="w-4 h-4"/>Módulos</button>
+              <button className="flex items-center gap-1.5 px-4 py-1.5 rounded-full border border-cyan-400 text-cyan-400 font-semibold text-sm shadow-none bg-black hover:bg-cyan-900/10 transition-all"><Users className="w-4 h-4"/>Complementario</button>
+              <button className="flex items-center gap-1.5 px-4 py-1.5 rounded-full border border-cyan-400 text-cyan-400 font-semibold text-sm shadow-none bg-black hover:bg-cyan-900/10 transition-all"><Award className="w-4 h-4"/>Master Adventure</button>
             </div>
             <h1 className="text-4xl md:text-5xl font-bold mb-4 text-cyan-400" style={{letterSpacing: '-1px'}}>{data.titulo}</h1>
             <p className="text-lg md:text-xl mb-6 text-white/90 max-w-2xl">{data.descripcion}</p>
-            <div className="flex flex-row items-center gap-4 mb-6">
-              <span className="text-cyan-400 text-2xl font-bold">{'★'.repeat(Math.round(data.calificacion))}</span>
+            <div className="flex flex-row items-center gap-4 mb-7">
+              <span className="text-cyan-400 text-3xl font-bold">{'★'.repeat(Math.round(data.calificacion))}</span>
               <span className="text-white text-lg">{data.calificacion}/5 - {data.num_calificaciones} Calificaciones</span>
             </div>
             <a href={data.boton_principal_url || '#'} className="bg-cyan-400 hover:bg-cyan-300 text-black px-8 py-3 rounded-full font-bold text-lg shadow transition-all">{data.boton_principal_texto}</a>
