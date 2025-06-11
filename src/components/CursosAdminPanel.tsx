@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../supabase';
-import useNeuroState from '../store/useNeuroState';
 
 interface Curso {
   id: string;
@@ -14,6 +13,9 @@ const CursosAdminPanel: React.FC = () => {
   const [isAdmin, setIsAdmin] = useState(false);
   const [adminError, setAdminError] = useState<string | null>(null);
   const [checking, setChecking] = useState(true);
+  const [cursos, setCursos] = useState<Curso[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [cursosError, setCursosError] = useState<string | null>(null);
 
   useEffect(() => {
     async function checkAdmin() {
@@ -53,10 +55,50 @@ const CursosAdminPanel: React.FC = () => {
     checkAdmin();
   }, []);
 
+  useEffect(() => {
+    if (!isAdmin) return;
+    setLoading(true);
+    supabase.from('cursos').select('*').order('orden', { ascending: true })
+      .then(({ data, error }) => {
+        if (error) setCursosError('Error al cargar cursos: ' + error.message);
+        setCursos(data || []);
+        setLoading(false);
+      });
+  }, [isAdmin]);
+
   if (checking) return <div style={{color: 'white', padding: 24}}>Verificando permisos de administrador...</div>;
   if (adminError) return <div style={{color: 'red', padding: 24}}>{adminError}</div>;
-  if (isAdmin) return <div style={{color: 'lime', padding: 24}}>Eres admin. (Panel en construcción)</div>;
-  return null;
+  if (!isAdmin) return null;
+
+  return (
+    <div style={{color: 'white', padding: 24}}>
+      <div style={{color: 'lime', marginBottom: 16}}>Eres admin. (Vista de cursos)</div>
+      {loading && <div>Cargando cursos...</div>}
+      {cursosError && <div style={{color: 'red'}}>{cursosError}</div>}
+      <table style={{width: '100%', background: '#181818', borderRadius: 12, overflow: 'hidden'}}>
+        <thead>
+          <tr style={{background: '#222'}}>
+            <th style={{padding: 8}}>Imagen</th>
+            <th style={{padding: 8}}>Nombre</th>
+            <th style={{padding: 8}}>Descripción</th>
+            <th style={{padding: 8}}>Orden</th>
+          </tr>
+        </thead>
+        <tbody>
+          {cursos.map(curso => (
+            <tr key={curso.id} style={{borderBottom: '1px solid #333'}}>
+              <td style={{padding: 8}}>
+                {curso.imagen && <img src={curso.imagen} alt={curso.nombre} style={{width: 60, height: 60, objectFit: 'cover', borderRadius: 8}} />}
+              </td>
+              <td style={{padding: 8}}>{curso.nombre}</td>
+              <td style={{padding: 8, maxWidth: 300}}>{curso.descripcion}</td>
+              <td style={{padding: 8, textAlign: 'center'}}>{curso.orden}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
 };
 
 export default CursosAdminPanel; 
