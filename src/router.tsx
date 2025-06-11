@@ -40,7 +40,7 @@ import ContactoIBPage from './pages/afiliados/contacto';
 import Launchpad from './pages/Launchpad';
 import Backstage from './pages/Backstage';
 import CursosPage from './pages/cursos';
-import CursoDetalle from './pages/cursos/[id]';
+import CursoDetalle from './pages/cursos/id';
 
 export const router = createBrowserRouter([
   {
