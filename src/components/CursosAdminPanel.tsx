@@ -83,6 +83,26 @@ const CursosAdminPanel: React.FC = () => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || e.target.files.length === 0) return;
+    const file = e.target.files[0];
+    setFormLoading(true);
+    setFormError(null);
+    try {
+      // Subir a Supabase Storage (bucket: 'cursos')
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Date.now()}-${Math.random().toString(36).substring(2,8)}.${fileExt}`;
+      const { data, error } = await supabase.storage.from('cursos').upload(fileName, file, { upsert: true });
+      if (error) throw error;
+      // Obtener URL pública
+      const { data: publicUrlData } = supabase.storage.from('cursos').getPublicUrl(fileName);
+      setForm({ ...form, imagen: publicUrlData?.publicUrl || '' });
+    } catch (err: any) {
+      setFormError('Error al subir imagen: ' + (err.message || '')); 
+    }
+    setFormLoading(false);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setFormLoading(true);
@@ -185,8 +205,12 @@ const CursosAdminPanel: React.FC = () => {
         <form onSubmit={handleSubmit} style={{width: 340, display: 'flex', flexDirection: 'column', gap: 18}}>
           <div style={{fontWeight: 700, fontSize: 22, color: '#3ec6f7', marginBottom: 8}}>{modal === 'add' ? 'Agregar curso' : 'Editar curso'}</div>
           <input name="nombre" placeholder="Nombre" value={form.nombre || ''} onChange={handleChange} required style={{padding: 10, borderRadius: 8, border: '1px solid #333', fontSize: 16}} />
-          <textarea name="descripcion" placeholder="Descripción" value={form.descripcion || ''} onChange={handleChange} required style={{padding: 10, borderRadius: 8, border: '1px solid #333', fontSize: 16, minHeight: 60}} />
-          <input name="imagen" placeholder="URL de imagen" value={form.imagen || ''} onChange={handleChange} style={{padding: 10, borderRadius: 8, border: '1px solid #333', fontSize: 16}} />
+          <textarea name="descripcion" placeholder="Descripción del curso" value={form.descripcion || ''} onChange={handleChange} required style={{padding: 10, borderRadius: 8, border: '1px solid #333', fontSize: 16, minHeight: 60}} />
+          <div style={{display: 'flex', flexDirection: 'column', gap: 8}}>
+            <label style={{color: '#3ec6f7', fontWeight: 600}}>Imagen del curso</label>
+            <input type="file" accept="image/*" onChange={handleFileChange} style={{color: '#fff'}} />
+            {form.imagen && <img src={form.imagen} alt="Preview" style={{width: 80, height: 80, objectFit: 'cover', borderRadius: 8, marginTop: 6, border: '1px solid #333'}} />}
+          </div>
           <input name="orden" placeholder="Orden" type="number" value={form.orden || ''} onChange={handleChange} required style={{padding: 10, borderRadius: 8, border: '1px solid #333', fontSize: 16}} />
           {formError && <div style={{color: 'red', fontWeight: 600}}>{formError}</div>}
           <button type="submit" disabled={formLoading} style={{background: '#3ec6f7', color: '#101c2c', fontWeight: 700, border: 'none', borderRadius: 8, padding: '12px 0', fontSize: 18, marginTop: 8, cursor: 'pointer'}}>{formLoading ? 'Guardando...' : (modal === 'add' ? 'Agregar' : 'Guardar cambios')}</button>
