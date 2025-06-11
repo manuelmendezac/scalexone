@@ -24,6 +24,11 @@ const CursosAdminPanel: React.FC = () => {
   const [formError, setFormError] = useState<string | null>(null);
 
   useEffect(() => {
+    const isAdminMode = localStorage.getItem('adminMode') === 'true';
+    setIsAdmin(isAdminMode);
+  }, []);
+
+  useEffect(() => {
     async function checkAdmin() {
       try {
         const { data: { user }, error: userError } = await supabase.auth.getUser();
