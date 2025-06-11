@@ -243,9 +243,14 @@ const CursoDetalle = () => {
       </section>
 
       {/* Módulos */}
-      <section className="modulos mb-10">
-        <h2 className="text-2xl font-bold mb-4">Módulos</h2>
-        <div className="grid md:grid-cols-3 gap-8">
+      <section className="modulos mb-10 px-4 md:px-12">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-2xl font-bold">Módulos</h2>
+          <button className="flex items-center gap-2 px-5 py-2 rounded-full border border-cyan-400 text-cyan-400 font-semibold text-base bg-black hover:bg-cyan-400 hover:text-black transition-all shadow-none">
+            Ver Todos <span className="text-xl font-bold transition-transform group-hover:translate-x-1">&gt;</span>
+          </button>
+        </div>
+        <div className="grid md:grid-cols-3 gap-8 max-w-7xl mx-auto">
           {mockCurso.modulos.map((mod, idx) => (
             <div key={idx} className="bg-neutral-900 rounded-2xl p-7 shadow-xl border border-neutral-800 flex flex-col h-full transition-all hover:shadow-2xl hover:border-cyan-400 group">
               {/* Icono grande arriba */}
@@ -266,8 +271,8 @@ const CursoDetalle = () => {
               </div>
               {/* Botones */}
               <div className="flex gap-2 mt-auto">
-                <button className="flex-1 bg-cyan-400 hover:bg-cyan-300 text-black font-bold py-2 rounded-full transition-all text-sm shadow group-hover:scale-105">Iniciar</button>
-                <button className="flex-1 border border-cyan-400 text-cyan-400 hover:bg-cyan-400 hover:text-black font-bold py-2 rounded-full transition-all text-sm shadow group-hover:scale-105 flex items-center justify-center gap-1">Ver clases <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 9h8m0 0-3-3m3 3-3 3"/></svg></button>
+                <button className="flex-1 bg-white text-black font-bold py-2 rounded-full transition-all text-sm shadow group-hover:scale-105 border border-white hover:bg-cyan-400 hover:text-black hover:border-cyan-400">Iniciar</button>
+                <button className="flex-1 border border-cyan-400 text-cyan-400 hover:bg-cyan-400 hover:text-black font-bold py-2 rounded-full transition-all text-sm shadow group-hover:scale-105 flex items-center justify-center gap-1 bg-black">Ver clases <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 9h8m0 0-3-3m3 3-3 3"/></svg></button>
               </div>
             </div>
           ))}
