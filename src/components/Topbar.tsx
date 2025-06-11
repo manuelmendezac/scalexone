@@ -41,6 +41,7 @@ const Topbar: React.FC<TopbarProps> = ({
     const saved = localStorage.getItem('affiliateMode');
     return saved === 'IB' ? 'IB' : 'Client';
   });
+  const [isAdminMode, setIsAdminMode] = useState(localStorage.getItem('adminMode') === 'true');
 
   // Cerrar el dropdown de afiliado al hacer clic fuera
   useEffect(() => {
@@ -103,14 +104,20 @@ const Topbar: React.FC<TopbarProps> = ({
     }
   }, [i18n]);
 
-  const handleSwitchAffiliate = (mode: 'Client' | 'IB') => {
-    setAffiliateMode(mode);
-    localStorage.setItem('affiliateMode', mode);
-    if (mode === 'IB') {
+  const handleSwitchAffiliate = (newMode: 'Client' | 'IB') => {
+    setAffiliateMode(newMode);
+    localStorage.setItem('affiliateMode', newMode);
+    if (newMode === 'IB') {
       navigate('/afiliados');
     } else {
       window.location.href = 'https://www.scalexone.app/home';
     }
+  };
+
+  const handleAdminModeToggle = () => {
+    const newMode = !isAdminMode;
+    setIsAdminMode(newMode);
+    localStorage.setItem('adminMode', String(newMode));
   };
 
   return (
@@ -283,6 +290,12 @@ const Topbar: React.FC<TopbarProps> = ({
                   onClick={() => navigate('/perfil')}
                 >
                   <FiUser className="w-5 h-5" /> {t('Mi Perfil') || 'Mi Perfil'}
+                </button>
+                <button
+                  className="w-full flex items-center gap-2 px-4 py-2 hover:bg-cyan-900 text-left text-white font-orbitron text-base transition bg-black"
+                  onClick={handleAdminModeToggle}
+                >
+                  <FiSettings className="w-5 h-5" /> {isAdminMode ? 'Modo Afiliado' : 'Modo Admin'}
                 </button>
                 <button
                   className="w-full flex items-center gap-2 px-4 py-2 hover:bg-red-700 text-left text-white font-orbitron text-base transition rounded-b-xl bg-black"
