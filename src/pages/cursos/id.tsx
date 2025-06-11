@@ -72,13 +72,13 @@ const PortadaCursoEditor = ({ cursoId, portada, onSave }: any) => {
     if (field === 'imagen_lateral_url') setUploadingPortada(true);
     const ext = file.name.split('.').pop();
     const fileName = `${field}_${cursoId}_${Date.now()}.${ext}`;
-    const { error } = await supabase.storage.from('cursos-assets').upload(fileName, file, { upsert: true });
+    const { error } = await supabase.storage.from('cursos').upload(fileName, file, { upsert: true });
     if (error) {
       alert('Error al subir la imagen: ' + error.message);
       setUploadingLogo(false); setUploadingPortada(false);
       return;
     }
-    const { data } = supabase.storage.from('cursos-assets').getPublicUrl(fileName);
+    const { data } = supabase.storage.from('cursos').getPublicUrl(fileName);
     if (data?.publicUrl) {
       setForm((f: typeof form) => ({ ...f, [field]: data.publicUrl }));
     }
