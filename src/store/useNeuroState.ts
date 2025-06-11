@@ -155,6 +155,7 @@ interface NeuroState {
   userInfo: {
     name: string;
     email: string;
+    rol: string;
   };
   userProfile: UserProfile;
   reflections: Reflection[];
@@ -178,7 +179,7 @@ interface NeuroState {
   updateCognitiveProfile: (profile: Partial<CognitiveProfile>) => void;
   updateKnowledge: (knowledge: Partial<Knowledge>) => void;
   addFile: (file: { name: string; type: string; content: string }) => void;
-  updateUserInfo: (info: { name: string; email: string }) => void;
+  updateUserInfo: (info: { name: string; email: string; rol?: string }) => void;
   selectKnowledgeProfile: (profileId: string) => void;
   removeKnowledgeProfile: (profileId: string) => void;
   addCustomKnowledge: (knowledge: {
@@ -317,6 +318,7 @@ const useNeuroState = create<NeuroState>()(
       userInfo: {
         name: '',
         email: '',
+        rol: '',
       },
       userProfile: {
         selectedProfiles: [],
@@ -407,7 +409,7 @@ const useNeuroState = create<NeuroState>()(
         }
       })),
 
-      updateUserInfo: (info: { name: string; email: string }) => set((state: NeuroState) => ({
+      updateUserInfo: (info: { name: string; email: string; rol?: string }) => set((state: NeuroState) => ({
         userInfo: { ...state.userInfo, ...info }
       })),
 
