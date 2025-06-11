@@ -69,7 +69,12 @@ const CursosPage: React.FC = () => {
           <div className="flex-1 flex flex-col items-center md:items-start">
             <div className="font-black text-2xl mb-2 text-green-400">{cursoActivo.nombre}</div>
             <div className="text-base text-neutral-200 mb-6 text-center md:text-left">{cursoActivo.descripcion}</div>
-            <button className="px-8 py-3 rounded-full bg-white text-black font-bold hover:bg-yellow-400 transition text-lg">Ingresar</button>
+            <button
+              className="px-8 py-3 rounded-full bg-white text-black font-bold hover:bg-yellow-400 transition text-lg"
+              onClick={() => navigate(`/cursos/${cursoActivo.id}`)}
+            >
+              Ingresar
+            </button>
           </div>
         </div>
       )}
