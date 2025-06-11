@@ -118,6 +118,7 @@ const Topbar: React.FC<TopbarProps> = ({
     const newMode = !isAdminMode;
     setIsAdminMode(newMode);
     localStorage.setItem('adminMode', String(newMode));
+    localStorage.clear();
     window.location.reload();
   };
 
