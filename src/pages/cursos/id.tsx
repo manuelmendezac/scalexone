@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { supabase } from '../../supabase';
 import useNeuroState from '../../store/useNeuroState';
-import { BookOpen, Users, Award } from 'lucide-react';
+import { BookOpen, Users, Award, UploadCloud } from 'lucide-react';
 
 const mockCurso = {
   id: 1,
@@ -57,9 +57,32 @@ const PortadaCursoEditor = ({ cursoId, portada, onSave }: any) => {
     logo_url: '', imagen_lateral_url: '', titulo: '', descripcion: '', calificacion: 5, num_calificaciones: 0, video_url: '', botones: [], boton_principal_texto: 'Iniciar', boton_principal_url: ''
   });
   const [saving, setSaving] = useState(false);
+  const [uploadingLogo, setUploadingLogo] = useState(false);
+  const [uploadingPortada, setUploadingPortada] = useState(false);
 
   const handleChange = (e: any) => {
     setForm({ ...form, [e.target.name]: e.target.value });
+  };
+
+  // Subir imagen a Supabase Storage
+  const handleUpload = async (e: any, field: 'logo_url' | 'imagen_lateral_url') => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (field === 'logo_url') setUploadingLogo(true);
+    if (field === 'imagen_lateral_url') setUploadingPortada(true);
+    const ext = file.name.split('.').pop();
+    const fileName = `${field}_${cursoId}_${Date.now()}.${ext}`;
+    const { error } = await supabase.storage.from('cursos-assets').upload(fileName, file, { upsert: true });
+    if (error) {
+      alert('Error al subir la imagen: ' + error.message);
+      setUploadingLogo(false); setUploadingPortada(false);
+      return;
+    }
+    const { data } = supabase.storage.from('cursos-assets').getPublicUrl(fileName);
+    if (data?.publicUrl) {
+      setForm((f: typeof form) => ({ ...f, [field]: data.publicUrl }));
+    }
+    setUploadingLogo(false); setUploadingPortada(false);
   };
 
   const handleSave = async () => {
@@ -75,11 +98,30 @@ const PortadaCursoEditor = ({ cursoId, portada, onSave }: any) => {
   };
 
   return (
-    <div className="bg-neutral-900 p-4 rounded-xl mb-6">
+    <div className="bg-neutral-900 p-4 rounded-xl mb-6 max-w-3xl mx-auto">
       <h3 className="text-lg font-bold mb-2 text-cyan-400">Editar portada del curso</h3>
       <div className="flex flex-col gap-2">
-        <input name="logo_url" value={form.logo_url} onChange={handleChange} placeholder="URL del logo" className="p-2 rounded bg-neutral-800" />
-        <input name="imagen_lateral_url" value={form.imagen_lateral_url} onChange={handleChange} placeholder="URL imagen lateral" className="p-2 rounded bg-neutral-800" />
+        {/* Logo */}
+        <label className="font-semibold text-cyan-300">Logo (sugerido 300x80px, PNG/SVG)</label>
+        <div className="flex gap-2 items-center">
+          <input name="logo_url" value={form.logo_url} onChange={handleChange} placeholder="URL del logo" className="p-2 rounded bg-neutral-800 flex-1" />
+          <label className="cursor-pointer flex items-center gap-1 bg-cyan-700 hover:bg-cyan-600 text-white px-3 py-2 rounded shadow text-xs">
+            <UploadCloud className="w-4 h-4" /> Subir
+            <input type="file" accept="image/*" className="hidden" onChange={e => handleUpload(e, 'logo_url')} disabled={uploadingLogo} />
+          </label>
+        </div>
+        {uploadingLogo && <span className="text-xs text-cyan-400">Subiendo logo...</span>}
+        {/* Imagen lateral/portada */}
+        <label className="font-semibold text-cyan-300 mt-2">Imagen de portada (sugerido 1200x600px, JPG/PNG)</label>
+        <div className="flex gap-2 items-center">
+          <input name="imagen_lateral_url" value={form.imagen_lateral_url} onChange={handleChange} placeholder="URL imagen lateral" className="p-2 rounded bg-neutral-800 flex-1" />
+          <label className="cursor-pointer flex items-center gap-1 bg-cyan-700 hover:bg-cyan-600 text-white px-3 py-2 rounded shadow text-xs">
+            <UploadCloud className="w-4 h-4" /> Subir
+            <input type="file" accept="image/*" className="hidden" onChange={e => handleUpload(e, 'imagen_lateral_url')} disabled={uploadingPortada} />
+          </label>
+        </div>
+        {uploadingPortada && <span className="text-xs text-cyan-400">Subiendo imagen de portada...</span>}
+        {/* Resto de campos */}
         <input name="titulo" value={form.titulo} onChange={handleChange} placeholder="Título" className="p-2 rounded bg-neutral-800" />
         <textarea name="descripcion" value={form.descripcion} onChange={handleChange} placeholder="Descripción" className="p-2 rounded bg-neutral-800" />
         <input name="calificacion" type="number" step="0.1" value={form.calificacion} onChange={handleChange} placeholder="Calificación" className="p-2 rounded bg-neutral-800" />
