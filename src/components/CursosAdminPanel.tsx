@@ -71,32 +71,45 @@ const CursosAdminPanel: React.FC = () => {
   if (!isAdmin) return null;
 
   return (
-    <div style={{color: 'white', padding: 24}}>
+    <div style={{color: 'white', padding: 24, maxWidth: 900, margin: '0 auto'}}>
       <div style={{color: 'lime', marginBottom: 16}}>Eres admin. (Vista de cursos)</div>
       {loading && <div>Cargando cursos...</div>}
       {cursosError && <div style={{color: 'red'}}>{cursosError}</div>}
-      <table style={{width: '100%', background: '#181818', borderRadius: 12, overflow: 'hidden'}}>
-        <thead>
-          <tr style={{background: '#222'}}>
-            <th style={{padding: 8}}>Imagen</th>
-            <th style={{padding: 8}}>Nombre</th>
-            <th style={{padding: 8}}>Descripción</th>
-            <th style={{padding: 8}}>Orden</th>
-          </tr>
-        </thead>
-        <tbody>
-          {cursos.map(curso => (
-            <tr key={curso.id} style={{borderBottom: '1px solid #333'}}>
-              <td style={{padding: 8}}>
-                {curso.imagen && <img src={curso.imagen} alt={curso.nombre} style={{width: 60, height: 60, objectFit: 'cover', borderRadius: 8}} />}
-              </td>
-              <td style={{padding: 8}}>{curso.nombre}</td>
-              <td style={{padding: 8, maxWidth: 300}}>{curso.descripcion}</td>
-              <td style={{padding: 8, textAlign: 'center'}}>{curso.orden}</td>
+      <div style={{overflowX: 'auto'}}>
+        <table style={{width: '100%', minWidth: 600, background: '#181818', borderRadius: 12, overflow: 'hidden', fontSize: 16}}>
+          <thead>
+            <tr style={{background: '#222'}}>
+              <th style={{padding: 8, width: 80, textAlign: 'center'}}>Imagen</th>
+              <th style={{padding: 8}}>Nombre</th>
+              <th style={{padding: 8}}>Descripción</th>
+              <th style={{padding: 8, width: 60, textAlign: 'center'}}>Orden</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {cursos.map(curso => (
+              <tr key={curso.id} style={{borderBottom: '1px solid #333', verticalAlign: 'middle'}}>
+                <td style={{padding: 8, textAlign: 'center'}}>
+                  {curso.imagen ? (
+                    <img
+                      src={curso.imagen}
+                      alt={curso.nombre}
+                      style={{width: 60, height: 60, objectFit: 'cover', borderRadius: 8, background: '#222'}}
+                      onError={e => {
+                        (e.currentTarget as HTMLImageElement).src = 'https://placehold.co/60x60?text=No+Img';
+                      }}
+                    />
+                  ) : (
+                    <img src="https://placehold.co/60x60?text=No+Img" alt="Sin imagen" style={{width: 60, height: 60, borderRadius: 8, background: '#222'}} />
+                  )}
+                </td>
+                <td style={{padding: 8, fontWeight: 600, color: '#fff'}}>{curso.nombre}</td>
+                <td style={{padding: 8, maxWidth: 320, color: '#ccc'}}>{curso.descripcion}</td>
+                <td style={{padding: 8, textAlign: 'center', fontWeight: 500}}>{curso.orden}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 };
