@@ -41,6 +41,7 @@ import Launchpad from './pages/Launchpad';
 import Backstage from './pages/Backstage';
 import CursosPage from './pages/cursos';
 import CursoDetalle from './pages/cursos/id';
+import ModulosCurso from './pages/cursos/modulos';
 
 export const router = createBrowserRouter([
   {
@@ -83,6 +84,7 @@ export const router = createBrowserRouter([
       { path: 'backstage', element: <Backstage /> },
       { path: 'cursos', element: <ProtectedRoute><CursosPage /></ProtectedRoute> },
       { path: 'cursos/:id', element: <ProtectedRoute><CursoDetalle /></ProtectedRoute> },
+      { path: 'cursos/:id/modulos', element: <ProtectedRoute><ModulosCurso /></ProtectedRoute> },
     ]
   },
   { path: '/afiliados', element: <AfiliadosPage /> },
