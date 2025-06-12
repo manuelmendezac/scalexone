@@ -137,17 +137,46 @@ const PortadaCursoEditor = ({ cursoId, portada, onSave }: any) => {
   );
 };
 
-// Componente de barra de progreso circular
-const CircularProgress = ({ percent = 0, size = 48, stroke = 6, color = '#22d3ee', bg = '#222' }) => {
+// Componente de barra de progreso circular futurista
+const CircularProgress = ({ percent = 0, size = 64, stroke = 8 }) => {
   const r = (size - stroke) / 2;
   const c = 2 * Math.PI * r;
   const offset = c - (percent / 100) * c;
   return (
-    <svg width={size} height={size} className="block">
-      <circle cx={size/2} cy={size/2} r={r} stroke={bg} strokeWidth={stroke} fill="none" />
-      <circle cx={size/2} cy={size/2} r={r} stroke={color} strokeWidth={stroke} fill="none" strokeDasharray={c} strokeDashoffset={offset} strokeLinecap="round" />
-      <text x="50%" y="54%" textAnchor="middle" fill={color} fontSize={size/4} fontWeight="bold" dy=".3em">{percent}%</text>
-    </svg>
+    <div className="flex flex-col items-center">
+      <svg width={size} height={size} className="block relative z-10">
+        <defs>
+          <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stopColor="#00fff7" />
+            <stop offset="100%" stopColor="#7f5cff" />
+          </linearGradient>
+          <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+            <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+            <feMerge>
+              <feMergeNode in="coloredBlur"/>
+              <feMergeNode in="SourceGraphic"/>
+            </feMerge>
+          </filter>
+        </defs>
+        {/* Fondo translúcido */}
+        <circle cx={size/2} cy={size/2} r={r} stroke="#222a" strokeWidth={stroke} fill="rgba(20,20,30,0.7)" />
+        {/* Progreso con gradiente y glow */}
+        <circle
+          cx={size/2}
+          cy={size/2}
+          r={r}
+          stroke="url(#grad1)"
+          strokeWidth={stroke}
+          fill="none"
+          strokeDasharray={c}
+          strokeDashoffset={offset}
+          strokeLinecap="round"
+          style={{ filter: 'url(#glow)' }}
+        />
+      </svg>
+      {/* Porcentaje debajo */}
+      <span className="text-cyan-300 font-bold text-sm mt-1 drop-shadow-glow">{percent}%</span>
+    </div>
   );
 };
 
@@ -323,15 +352,17 @@ const CursoDetalle = () => {
           {modulos.map((mod, idx) => (
             <div key={idx} className="bg-neutral-900 rounded-2xl p-7 shadow-xl border border-neutral-800 flex flex-col h-full transition-all hover:shadow-2xl hover:border-cyan-400 group">
               {/* Icono grande arriba */}
-              <div className="flex justify-center mb-4 relative">
-                <CircularProgress percent={Math.floor(Math.random()*60+40)} />
-                {/* Icono grande arriba, superpuesto */}
-                <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none">
-                  {mod.icono ? (
-                    <img src={mod.icono} alt="icono" className="w-10 h-10 object-cover rounded-full border-2 border-cyan-400" />
-                  ) : (
-                    <svg width="32" height="32" fill="none" stroke="#22d3ee" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-cyan-400"><circle cx="16" cy="16" r="13" /><path d="M24 24L20 20" /><circle cx="16" cy="16" r="5" /></svg>
-                  )}
+              <div className="flex flex-col items-center mb-4 relative">
+                <div className="relative">
+                  <CircularProgress percent={Math.floor(Math.random()*60+40)} />
+                  {/* Icono grande centrado dentro del círculo */}
+                  <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none z-20">
+                    {mod.icono ? (
+                      <img src={mod.icono} alt="icono" className="w-10 h-10 object-cover rounded-full border-2 border-cyan-400 bg-black/80" />
+                    ) : (
+                      <svg width="32" height="32" fill="none" stroke="#22d3ee" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-cyan-400"><circle cx="16" cy="16" r="13" /><path d="M24 24L20 20" /><circle cx="16" cy="16" r="5" /></svg>
+                    )}
+                  </div>
                 </div>
               </div>
               {/* Título */}
