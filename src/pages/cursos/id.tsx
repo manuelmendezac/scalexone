@@ -552,10 +552,15 @@ const CursoDetalle = () => {
     try {
       // Limpiar el objeto a guardar
       const comunidadToSave = {
+        id: comunidadForm.id, // Usar id si existe para evitar duplicados
         curso_id: id,
         titulo: comunidadForm.titulo || '',
         descripcion: comunidadForm.descripcion || '',
-        links: comunidadForm.links || [],
+        links: (comunidadForm.links || []).map((l: any) => ({
+          texto: l.texto,
+          color: l.color,
+          url: l.url || '#'
+        })),
         portada_url: comunidadPortadaUrl || ''
       };
       console.log('Guardando comunidad:', comunidadToSave);
@@ -568,6 +573,7 @@ const CursoDetalle = () => {
       }
       alert('¡Guardado exitoso!');
       setEditComunidadPortadaOpen(false);
+      setEditComunidadOpen(false);
     } catch (err: any) {
       alert('Error al guardar: ' + err.message);
     }
@@ -921,9 +927,43 @@ const CursoDetalle = () => {
             </div>
             <p className="text-lg text-white/80 mb-4">{comunidadForm.descripcion}</p>
             <div className="flex flex-col gap-3">
-              {comunidadForm.links.map((link: any, idx: number) => (
-                <a key={idx} href={link.url} className={`flex items-center gap-2 px-5 py-3 rounded-lg font-bold text-lg shadow transition-all ${link.color === 'red' ? 'bg-red-600 text-white' : link.color === 'green' ? 'bg-green-500 text-white' : 'bg-blue-600 text-white'}`}>{link.texto}</a>
+              {comunidadForm.links.map((link: any, index: number) => (
+                <div key={index} className="flex gap-2 items-center">
+                  <input
+                    value={link.texto}
+                    onChange={(e) => handleComunidadLinkChange(index, 'texto', e.target.value)}
+                    className="flex-1 p-2 rounded bg-neutral-800 border border-cyan-400 text-white"
+                    placeholder="Texto del enlace"
+                  />
+                  <input
+                    value={link.url || ''}
+                    onChange={(e) => handleComunidadLinkChange(index, 'url', e.target.value)}
+                    className="flex-1 p-2 rounded bg-neutral-800 border border-cyan-400 text-white"
+                    placeholder="URL del enlace"
+                  />
+                  <select
+                    value={link.color}
+                    onChange={(e) => handleComunidadLinkChange(index, 'color', e.target.value)}
+                    className="p-2 rounded bg-neutral-800 border border-cyan-400 text-white"
+                  >
+                    <option value="red">Rojo</option>
+                    <option value="green">Verde</option>
+                    <option value="blue">Azul</option>
+                  </select>
+                  <button
+                    onClick={() => handleRemoveComunidadLink(index)}
+                    className="p-2 text-red-400 hover:text-red-300"
+                  >
+                    <X size={20} />
+                  </button>
+                </div>
               ))}
+              <button
+                onClick={handleAddComunidadLink}
+                className="text-cyan-400 hover:text-cyan-300 text-sm font-semibold"
+              >
+                + Agregar enlace
+              </button>
             </div>
           </div>
         </div>
@@ -1030,6 +1070,12 @@ const CursoDetalle = () => {
                       onChange={(e) => handleComunidadLinkChange(index, 'texto', e.target.value)}
                       className="flex-1 p-2 rounded bg-neutral-800 border border-cyan-400 text-white"
                       placeholder="Texto del enlace"
+                    />
+                    <input
+                      value={link.url || ''}
+                      onChange={(e) => handleComunidadLinkChange(index, 'url', e.target.value)}
+                      className="flex-1 p-2 rounded bg-neutral-800 border border-cyan-400 text-white"
+                      placeholder="URL del enlace"
                     />
                     <select
                       value={link.color}
