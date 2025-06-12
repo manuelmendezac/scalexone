@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../../supabase';
 import useNeuroState from '../../store/useNeuroState';
 import { BookOpen, Users, Award, UploadCloud, Layers, PlayCircle, X, Video, VideoIcon, VideoOff, Link2, ExternalLink, Users as UsersIcon, Calendar, Globe, Video as VideoLucide, VideoOff as VideoOffLucide } from 'lucide-react';
@@ -241,6 +241,7 @@ const CursoDetalle = () => {
   const [uploadingEventosPortada, setUploadingEventosPortada] = useState(false);
   const [comunidadPortadaUrl, setComunidadPortadaUrl] = useState('/img/comunidad-demo.jpg');
   const [eventosPortadaUrl, setEventosPortadaUrl] = useState('/img/eventos-demo.jpg');
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -698,7 +699,26 @@ const CursoDetalle = () => {
               <span className="text-cyan-400 text-3xl font-bold">{'★'.repeat(Math.round(data.calificacion))}</span>
               <span className="text-white text-lg">{data.calificacion}/5 - {data.num_calificaciones} Calificaciones</span>
             </div>
-            <a href={data.boton_principal_url || '#'} className="bg-cyan-400 hover:bg-cyan-300 text-black px-8 py-3 rounded-full font-bold text-lg shadow transition-all">{data.boton_principal_texto}</a>
+            <div className="flex gap-2 mt-auto">
+              <button
+                className="flex-1 bg-white text-black font-bold py-2 rounded-full transition-all text-sm shadow group-hover:scale-105 border border-white hover:bg-cyan-400 hover:text-black hover:border-cyan-400"
+                onClick={() => navigate('/cursos/primer-modulo')}
+              >
+                Iniciar
+              </button>
+              <button
+                className="flex-1 border border-cyan-400 text-cyan-400 hover:bg-cyan-400 hover:text-black font-bold py-2 rounded-full transition-all text-sm shadow group-hover:scale-105 flex items-center justify-center gap-1 bg-black"
+                onClick={() => navigate('/cursos/primer-modulo')}
+              >
+                Ver clases <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 9h8m0 0-3-3m3 3-3 3"/></svg>
+              </button>
+              <button
+                className="flex-1 border border-yellow-400 text-yellow-400 hover:bg-yellow-400 hover:text-black font-bold py-2 rounded-full transition-all text-sm shadow group-hover:scale-105 flex items-center justify-center gap-1 bg-black"
+                onClick={() => navigate('/cursos/primer-modulo')}
+              >
+                Ejemplo admin
+              </button>
+            </div>
           </div>
         </div>
         {/* Responsive: en móvil el mockup va arriba */}
