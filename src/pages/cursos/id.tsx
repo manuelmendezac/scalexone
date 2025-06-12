@@ -689,7 +689,12 @@ const CursoDetalle = () => {
             {/* Logo pequeño */}
             <img src={data.logo_url} alt="Logo" className="h-10 w-auto mb-4" style={{maxWidth: '110px'}} />
             <div className="flex flex-row gap-3 flex-wrap items-center mb-7 ml-1">
-              <button className="flex items-center gap-1.5 px-4 py-1.5 rounded-full border border-cyan-400 text-cyan-400 font-semibold text-sm shadow-none bg-black hover:bg-cyan-900/10 transition-all"><BookOpen className="w-4 h-4"/>Módulos</button>
+              <button
+                className="flex items-center gap-1.5 px-4 py-1.5 rounded-full border border-cyan-400 text-cyan-400 font-semibold text-sm shadow-none bg-black hover:bg-cyan-900/10 transition-all"
+                onClick={() => navigate(`/cursos/${id}/modulos`)}
+              >
+                <BookOpen className="w-4 h-4"/>Módulos
+              </button>
               <button className="flex items-center gap-1.5 px-4 py-1.5 rounded-full border border-cyan-400 text-cyan-400 font-semibold text-sm shadow-none bg-black hover:bg-cyan-900/10 transition-all"><Users className="w-4 h-4"/>Complementario</button>
               <button className="flex items-center gap-1.5 px-4 py-1.5 rounded-full border border-cyan-400 text-cyan-400 font-semibold text-sm shadow-none bg-black hover:bg-cyan-900/10 transition-all"><Award className="w-4 h-4"/>Master Adventure</button>
             </div>
@@ -712,12 +717,6 @@ const CursoDetalle = () => {
               >
                 Ver clases <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 9h8m0 0-3-3m3 3-3 3"/></svg>
               </button>
-              <button
-                className="flex-1 border border-yellow-400 text-yellow-400 hover:bg-yellow-400 hover:text-black font-bold py-2 rounded-full transition-all text-sm shadow group-hover:scale-105 flex items-center justify-center gap-1 bg-black"
-                onClick={() => navigate('/cursos/primer-modulo')}
-              >
-                Ejemplo admin
-              </button>
             </div>
           </div>
         </div>
@@ -736,7 +735,10 @@ const CursoDetalle = () => {
       <section className="modulos mb-10 px-4 md:px-12">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-2xl font-bold">Módulos</h2>
-          <button className="flex items-center gap-2 px-5 py-2 rounded-full border border-cyan-400 text-cyan-400 font-semibold text-base bg-black hover:bg-cyan-400 hover:text-black transition-all shadow-none">
+          <button
+            className="flex items-center gap-2 px-5 py-2 rounded-full border border-cyan-400 text-cyan-400 font-semibold text-base bg-black hover:bg-cyan-400 hover:text-black transition-all shadow-none"
+            onClick={() => navigate(`/cursos/${id}/modulos`)}
+          >
             Ver Todos <span className="text-xl font-bold transition-transform group-hover:translate-x-1">&gt;</span>
           </button>
         </div>
