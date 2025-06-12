@@ -918,7 +918,7 @@ const CursoDetalle = () => {
         {/* Eventos */}
         <div className="relative bg-neutral-900 rounded-2xl shadow-xl overflow-hidden flex flex-col min-h-[340px] p-0">
           {/* Portada pequeña */}
-          <div className="w-full h-32 bg-cover bg-center" style={{backgroundImage: `url('${eventosPortadaUrl}')`}} />
+          <div className="w-full rounded-t-2xl" style={{height: '180px', backgroundImage: `url('${eventosPortadaUrl}')`, backgroundSize: 'cover', backgroundPosition: 'center'}} />
           <div className="absolute top-4 right-4 z-20">
             {isAdmin && (
               <button 
@@ -1158,6 +1158,7 @@ const CursoDetalle = () => {
             <button
               onClick={handleSaveEventos}
               className="flex-1 bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-2 rounded transition"
+              disabled={uploadingEventosPortada}
             >
               Guardar
             </button>
@@ -1202,6 +1203,7 @@ const CursoDetalle = () => {
             <button
               onClick={handleSaveEventos}
               className="flex-1 bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-2 rounded transition"
+              disabled={uploadingEventosPortada}
             >
               Guardar
             </button>
