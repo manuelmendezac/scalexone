@@ -4,6 +4,7 @@ import { supabase } from '../../supabase';
 import useNeuroState from '../../store/useNeuroState';
 import { BookOpen, Users, Award, UploadCloud, Layers, PlayCircle } from 'lucide-react';
 import ModalFuturista from '../../components/ModalFuturista';
+import CertificacionSection from '../../components/CertificacionSection';
 
 const mockCurso = {
   id: 1,
@@ -402,8 +403,15 @@ const CursoDetalle = () => {
 
       {/* Certificación */}
       <section className="certificacion mb-10">
-        <h2 className="text-2xl font-bold mb-4">{mockCurso.certificacion.titulo}</h2>
-        <button className="bg-red-500 text-white px-6 py-2 rounded-full font-semibold">{mockCurso.certificacion.boton}</button>
+        <CertificacionSection
+          videoUrl="https://www.youtube.com/embed/1Q8fG0TtVAY" // Ejemplo de video motivacional
+          onCertificar={() => alert('Aquí irá la lógica para certificar o abrir el quiz')}
+          certificadoImg="/img/certificado-demo.png"
+          alianzas={[
+            { logo: "/logos/cel.png", nombre: "Center of Education and Leadership", url: "https://cel.com" },
+            { logo: "/logos/fguni.png", nombre: "Florida Global University", url: "https://floridaglobal.university" }
+          ]}
+        />
       </section>
     </div>
   );
