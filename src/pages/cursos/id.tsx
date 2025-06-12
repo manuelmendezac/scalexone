@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { supabase } from '../../supabase';
 import useNeuroState from '../../store/useNeuroState';
-import { BookOpen, Users, Award, UploadCloud, Layers, PlayCircle } from 'lucide-react';
+import { BookOpen, Users, Award, UploadCloud, Layers, PlayCircle, X } from 'lucide-react';
 import ModalFuturista from '../../components/ModalFuturista';
 import CertificacionSection from '../../components/CertificacionSection';
 
@@ -180,6 +180,23 @@ const CircularProgress = ({ percent = 0, size = 64, stroke = 8 }) => {
   );
 };
 
+const categoriasComplementario = [
+  { key: 'Masterclass', label: 'Masterclass' },
+  { key: 'Sesión en Vivo', label: 'Sesión en Vivo' },
+  { key: 'Master Live', label: 'Master Live' },
+];
+
+type VideoComplementario = {
+  id: string;
+  curso_id: string;
+  categoria: string;
+  titulo: string;
+  ponente: string;
+  imagen: string;
+  video_url: string;
+  orden: number;
+};
+
 const CursoDetalle = () => {
   const { id } = useParams();
   const { userInfo } = useNeuroState();
@@ -193,6 +210,8 @@ const CursoDetalle = () => {
   const [savingModulo, setSavingModulo] = useState(false);
   const [errorModulo, setErrorModulo] = useState<string | null>(null);
   const [editPortadaOpen, setEditPortadaOpen] = useState(false);
+  const [videosComplementarios, setVideosComplementarios] = useState<VideoComplementario[]>([]);
+  const [videoModal, setVideoModal] = useState<{ url: string, titulo: string } | null>(null);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -211,6 +230,19 @@ const CursoDetalle = () => {
       setLoading(false);
     }
     fetchPortada();
+  }, [id]);
+
+  useEffect(() => {
+    async function fetchVideos() {
+      const { data } = await supabase
+        .from('videos_complementarios')
+        .select('*')
+        .eq('curso_id', id)
+        .order('categoria', { ascending: true })
+        .order('orden', { ascending: true });
+      setVideosComplementarios((data as VideoComplementario[]) || []);
+    }
+    if (id) fetchVideos();
   }, [id]);
 
   const handleReload = () => {
@@ -327,8 +359,17 @@ const CursoDetalle = () => {
       )}
       {/* Modal para editar portada */}
       <ModalFuturista open={editPortadaOpen} onClose={() => setEditPortadaOpen(false)}>
-        <div style={{display:'flex',alignItems:'center',justifyContent:'center',height:'100%',minHeight:'100vh'}}>
-          <div className="flex flex-col gap-4 p-4 min-w-[320px] max-w-[420px] w-full bg-neutral-900 rounded-xl" style={{maxWidth: 420, maxHeight: '90vh', overflowY: 'auto'}}>
+        <div style={{display:'flex',alignItems:'center',justifyContent:'center',height:'100%',minHeight:'100vh',padding:'32px 0'}}>
+          <div className="relative flex flex-col gap-4 p-6 min-w-[320px] max-w-[420px] w-full bg-neutral-900 rounded-xl" style={{maxWidth: 420, maxHeight: '95vh', overflowY: 'auto', paddingTop: 40, paddingBottom: 32}}>
+            {/* Botón X de cerrar */}
+            <button
+              onClick={() => setEditPortadaOpen(false)}
+              className="absolute top-3 right-3 text-cyan-400 hover:text-cyan-200 text-2xl z-20"
+              aria-label="Cerrar"
+              style={{background: 'none', border: 'none', cursor: 'pointer'}}
+            >
+              <X size={28} />
+            </button>
             <PortadaCursoEditor cursoId={id} portada={portada} onSave={() => { handleReload(); setEditPortadaOpen(false); }} />
           </div>
         </div>
@@ -463,17 +504,53 @@ const CursoDetalle = () => {
       {/* Complementario */}
       <section className="complementario mb-10">
         <h2 className="text-2xl font-bold mb-4">Complementario</h2>
-        <div className="flex gap-6 overflow-x-auto">
-          {mockCurso.complementario.map((comp, idx) => (
-            <div key={idx} className="bg-neutral-900 rounded-xl p-4 min-w-[200px] flex flex-col items-center">
-              <img src={comp.imagen} alt={comp.nombre} className="w-24 h-24 object-cover rounded-full mb-2" />
-              <div className="text-center">
-                <div className="font-bold">{comp.nombre}</div>
-                <div className="text-sm">{comp.curso}</div>
+        {categoriasComplementario.map(cat => (
+          <div key={cat.key} className="mb-8">
+            <h3 className="text-xl font-bold mb-3">{cat.label}</h3>
+            <div className="flex flex-wrap gap-6">
+              {videosComplementarios.filter(v => v.categoria === cat.key).slice(0, 3).map((video, idx) => (
+                <div key={video.id} className="bg-neutral-900 rounded-xl p-0 overflow-hidden shadow-lg w-[340px] min-h-[210px] flex flex-col relative group">
+                  <div className="relative w-full h-[170px] bg-black">
+                    <img src={video.imagen} alt={video.titulo} className="w-full h-full object-cover" />
+                    <button
+                      className="absolute bottom-3 left-1/2 -translate-x-1/2 bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded-full flex items-center gap-2 text-lg shadow-lg z-10"
+                      onClick={() => setVideoModal({ url: video.video_url, titulo: video.titulo })}
+                    >
+                      <svg width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><polygon points="6,4 20,11 6,18" fill="currentColor" /></svg>
+                      Ver Ahora
+                    </button>
+                  </div>
+                  <div className="p-4 flex-1 flex flex-col justify-between">
+                    <div>
+                      <div className="text-green-400 text-xs font-bold mb-1">{cat.label}</div>
+                      <div className="text-white font-bold text-base mb-1 leading-tight">{video.titulo}</div>
+                      <div className="text-green-300 text-sm font-semibold">{video.ponente}</div>
+                    </div>
+                    {isAdmin && (
+                      <button className="mt-2 text-xs text-cyan-400 underline">Editar</button>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+        {/* Modal de video a pantalla completa */}
+        <ModalFuturista open={!!videoModal} onClose={() => setVideoModal(null)}>
+          {videoModal && (
+            <div className="w-full max-w-2xl aspect-video flex flex-col items-center justify-center">
+              <h2 className="text-xl font-bold mb-4 text-center">{videoModal.titulo}</h2>
+              <div className="w-full aspect-video bg-black rounded-xl overflow-hidden">
+                <iframe
+                  src={videoModal.url.replace('watch?v=', 'embed/')}
+                  title={videoModal.titulo}
+                  className="w-full h-full"
+                  allowFullScreen
+                />
               </div>
             </div>
-          ))}
-        </div>
+          )}
+        </ModalFuturista>
       </section>
 
       {/* Comunidad */}
