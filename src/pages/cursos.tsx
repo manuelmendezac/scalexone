@@ -9,8 +9,9 @@ const CursosPage: React.FC = () => {
   const [cursoActivo, setCursoActivo] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const { userName } = useNeuroState();
-  const primerNombre = userName ? userName.split(' ')[0] : 'Master';
+  const { userName, userInfo } = useNeuroState();
+  const nombre = userInfo?.name || userName || 'Master';
+  const primerNombre = nombre.split(' ')[0];
   const navigate = useNavigate();
   const [isAdmin, setIsAdmin] = useState(false);
 
