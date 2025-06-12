@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom';
 import { supabase } from '../../supabase';
 import useNeuroState from '../../store/useNeuroState';
 import { BookOpen, Users, Award, UploadCloud, Layers, PlayCircle } from 'lucide-react';
+import ModalFuturista from '../../components/ModalFuturista';
 
 const mockCurso = {
   id: 1,
@@ -141,6 +142,10 @@ const CursoDetalle = () => {
   const [portada, setPortada] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [editModuloIdx, setEditModuloIdx] = useState<number | null>(null);
+  const [modulos, setModulos] = useState<any[]>(mockCurso.modulos);
+  const [moduloForm, setModuloForm] = useState<any>({});
+  const [uploadingIcon, setUploadingIcon] = useState(false);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -153,6 +158,7 @@ const CursoDetalle = () => {
       setLoading(true);
       const { data } = await supabase.from('cursos_portada').select('*').eq('curso_id', id).single();
       setPortada(data);
+      setModulos((data && data.modulos && data.modulos.length > 0) ? data.modulos : mockCurso.modulos);
       setLoading(false);
     }
     fetchPortada();
@@ -162,6 +168,7 @@ const CursoDetalle = () => {
     setLoading(true);
     supabase.from('cursos_portada').select('*').eq('curso_id', id).single().then(({ data }) => {
       setPortada(data);
+      setModulos((data && data.modulos && data.modulos.length > 0) ? data.modulos : mockCurso.modulos);
       setLoading(false);
     });
   };
@@ -182,8 +189,65 @@ const CursoDetalle = () => {
       { texto: 'Complementario', url: '#' },
       { texto: 'Gamificación Scalexone', url: '#', editable: true },
     ],
+    modulos: [
+      {
+        titulo: '1. Bienvenido a Traffic Master',
+        descripcion: '¡Felicidades! Esta es tu puerta de entrada para entrenarte como Traffic Master...',
+        nivel: 'Junior',
+        clases: 2,
+      },
+      {
+        titulo: '2. Los primeros pasos del Traffic Master',
+        descripcion: 'Es momento de conocer con claridad lo que hace un Traffic Master...',
+        nivel: 'Junior',
+        clases: 4,
+      },
+      {
+        titulo: '3. Conozcamos la habilidad',
+        descripcion: 'La habilidad del tráfico pago es una subdivisión del marketing digital...',
+        nivel: 'Junior',
+        clases: 4,
+      },
+    ],
   };
   const data = portada || demo;
+
+  const handleEditModulo = (idx: number) => {
+    setEditModuloIdx(idx);
+    setModuloForm(modulos[idx]);
+  };
+  const handleCloseModal = () => {
+    setEditModuloIdx(null);
+    setModuloForm({});
+  };
+  const handleModuloChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    setModuloForm({ ...moduloForm, [e.target.name]: e.target.value });
+  };
+  const handleIconUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || e.target.files.length === 0) return;
+    const file = e.target.files[0];
+    setUploadingIcon(true);
+    const ext = file.name.split('.').pop();
+    const fileName = `modulo_icon_${Date.now()}.${ext}`;
+    const { error } = await supabase.storage.from('cursos').upload(fileName, file, { upsert: true });
+    if (error) {
+      alert('Error al subir icono: ' + error.message);
+      setUploadingIcon(false);
+      return;
+    }
+    const { data: publicUrlData } = supabase.storage.from('cursos').getPublicUrl(fileName);
+    setModuloForm({ ...moduloForm, icono: publicUrlData?.publicUrl || '' });
+    setUploadingIcon(false);
+  };
+  const handleSaveModulo = () => {
+    if (editModuloIdx === null) return;
+    const nuevosModulos = [...modulos];
+    nuevosModulos[editModuloIdx] = moduloForm;
+    setModulos(nuevosModulos);
+    setEditModuloIdx(null);
+    setModuloForm({});
+    // Aquí puedes agregar lógica para guardar en Supabase si lo deseas
+  };
 
   return (
     <div className="curso-detalle-page bg-black min-h-screen text-white p-0">
@@ -241,14 +305,15 @@ const CursoDetalle = () => {
           </button>
         </div>
         <div className="grid md:grid-cols-3 gap-8 max-w-7xl mx-auto">
-          {mockCurso.modulos.map((mod, idx) => (
+          {modulos.map((mod, idx) => (
             <div key={idx} className="bg-neutral-900 rounded-2xl p-7 shadow-xl border border-neutral-800 flex flex-col h-full transition-all hover:shadow-2xl hover:border-cyan-400 group">
               {/* Icono grande arriba */}
               <div className="flex justify-center mb-4">
-                {/* Puedes cambiar el icono por módulo después */}
-                {idx === 0 && <svg width="48" height="48" fill="none" stroke="#22d3ee" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-cyan-400"><circle cx="24" cy="24" r="20" /><path d="M34 34L28 28" /><circle cx="24" cy="24" r="8" /></svg>}
-                {idx === 1 && <svg width="48" height="48" fill="none" stroke="#22d3ee" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-cyan-400"><rect x="8" y="16" width="32" height="16" rx="4" /><path d="M16 24h16" /></svg>}
-                {idx === 2 && <svg width="48" height="48" fill="none" stroke="#22d3ee" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-cyan-400"><path d="M24 8v8M24 32v8M8 24h8M32 24h8M16.24 16.24l5.66 5.66M32.97 32.97l-5.66-5.66" /></svg>}
+                {mod.icono ? (
+                  <img src={mod.icono} alt="icono" className="w-16 h-16 object-cover rounded-full border-2 border-cyan-400" />
+                ) : (
+                  <svg width="48" height="48" fill="none" stroke="#22d3ee" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-cyan-400"><circle cx="24" cy="24" r="20" /><path d="M34 34L28 28" /><circle cx="24" cy="24" r="8" /></svg>
+                )}
               </div>
               {/* Título */}
               <h3 className="text-xl font-bold mb-2 text-cyan-200 group-hover:text-cyan-400 transition-all">{mod.titulo}</h3>
@@ -263,10 +328,35 @@ const CursoDetalle = () => {
               <div className="flex gap-2 mt-auto">
                 <button className="flex-1 bg-white text-black font-bold py-2 rounded-full transition-all text-sm shadow group-hover:scale-105 border border-white hover:bg-cyan-400 hover:text-black hover:border-cyan-400">Iniciar</button>
                 <button className="flex-1 border border-cyan-400 text-cyan-400 hover:bg-cyan-400 hover:text-black font-bold py-2 rounded-full transition-all text-sm shadow group-hover:scale-105 flex items-center justify-center gap-1 bg-black">Ver clases <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 9h8m0 0-3-3m3 3-3 3"/></svg></button>
+                {isAdmin && (
+                  <button className="ml-2 px-3 py-1 rounded bg-yellow-400 text-black font-bold hover:bg-yellow-500 transition" onClick={() => handleEditModulo(idx)}>Editar</button>
+                )}
               </div>
             </div>
           ))}
         </div>
+        {/* Modal de edición de módulo */}
+        <ModalFuturista open={editModuloIdx !== null} onClose={handleCloseModal}>
+          <form className="flex flex-col gap-4 p-4 min-w-[320px]" onSubmit={e => { e.preventDefault(); handleSaveModulo(); }}>
+            <div className="font-bold text-lg mb-2 text-cyan-400">Editar módulo</div>
+            <label className="text-cyan-300 font-semibold">Título</label>
+            <input name="titulo" value={moduloForm.titulo || ''} onChange={handleModuloChange} className="p-2 rounded bg-neutral-800 border border-cyan-400 text-white" required />
+            <label className="text-cyan-300 font-semibold">Descripción</label>
+            <textarea name="descripcion" value={moduloForm.descripcion || ''} onChange={handleModuloChange} className="p-2 rounded bg-neutral-800 border border-cyan-400 text-white" rows={3} required />
+            <label className="text-cyan-300 font-semibold">Nivel</label>
+            <input name="nivel" value={moduloForm.nivel || ''} onChange={handleModuloChange} className="p-2 rounded bg-neutral-800 border border-cyan-400 text-white" required />
+            <label className="text-cyan-300 font-semibold">Clases</label>
+            <input name="clases" type="number" value={moduloForm.clases || ''} onChange={handleModuloChange} className="p-2 rounded bg-neutral-800 border border-cyan-400 text-white" required />
+            <label className="text-cyan-300 font-semibold">Icono/Imagen</label>
+            <input type="file" accept="image/*" onChange={handleIconUpload} />
+            {uploadingIcon && <span className="text-xs text-cyan-400">Subiendo icono...</span>}
+            {moduloForm.icono && <img src={moduloForm.icono} alt="icono" className="w-16 h-16 object-cover rounded-full border-2 border-cyan-400 mt-2" />}
+            <div className="flex gap-2 mt-4">
+              <button type="submit" className="flex-1 bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-2 rounded transition">Guardar</button>
+              <button type="button" className="flex-1 bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 rounded transition" onClick={handleCloseModal}>Cancelar</button>
+            </div>
+          </form>
+        </ModalFuturista>
       </section>
 
       {/* Complementario */}
