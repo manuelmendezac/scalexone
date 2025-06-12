@@ -192,6 +192,7 @@ const CursoDetalle = () => {
   const [uploadingIcon, setUploadingIcon] = useState(false);
   const [savingModulo, setSavingModulo] = useState(false);
   const [errorModulo, setErrorModulo] = useState<string | null>(null);
+  const [editPortadaOpen, setEditPortadaOpen] = useState(false);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -314,7 +315,24 @@ const CursoDetalle = () => {
   return (
     <div className="curso-detalle-page bg-black min-h-screen text-white p-0">
       {/* Editor solo para admin, siempre visible arriba */}
-      {isAdmin && <div className="max-w-5xl mx-auto pt-4"><PortadaCursoEditor cursoId={id} portada={portada} onSave={handleReload} /></div>}
+      {isAdmin && (
+        <div className="max-w-5xl mx-auto pt-4 flex justify-end">
+          <button
+            className="bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-2 px-6 rounded-full shadow transition"
+            onClick={() => setEditPortadaOpen(true)}
+          >
+            Editar portada
+          </button>
+        </div>
+      )}
+      {/* Modal para editar portada */}
+      <ModalFuturista open={editPortadaOpen} onClose={() => setEditPortadaOpen(false)}>
+        <div style={{display:'flex',alignItems:'center',justifyContent:'center',height:'100%',minHeight:'100vh'}}>
+          <div className="flex flex-col gap-4 p-4 min-w-[320px] max-w-[420px] w-full bg-neutral-900 rounded-xl" style={{maxWidth: 420, maxHeight: '90vh', overflowY: 'auto'}}>
+            <PortadaCursoEditor cursoId={id} portada={portada} onSave={() => { handleReload(); setEditPortadaOpen(false); }} />
+          </div>
+        </div>
+      </ModalFuturista>
       {/* Portada visual con mockup grande y botones mejorados */}
       <section className="w-full flex flex-col items-center justify-center pt-10 pb-8 px-2 md:px-0">
         <div className="w-full max-w-5xl flex flex-col md:flex-row items-center md:items-center gap-8 md:gap-16">
