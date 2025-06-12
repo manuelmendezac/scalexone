@@ -537,15 +537,24 @@ const CursoDetalle = () => {
 
   const handleSaveComunidad = async () => {
     try {
+      // Limpiar el objeto a guardar
+      const comunidadToSave = {
+        curso_id: id,
+        titulo: comunidadForm.titulo || '',
+        descripcion: comunidadForm.descripcion || '',
+        links: comunidadForm.links || [],
+        portada_url: comunidadPortadaUrl || ''
+      };
+      console.log('Guardando comunidad:', comunidadToSave);
       const { error } = await supabase
         .from('cursos_comunidad')
-        .upsert({ 
-          curso_id: id,
-          ...comunidadForm,
-          portada_url: comunidadPortadaUrl
-        });
-      if (error) throw error;
-      setEditComunidadOpen(false);
+        .upsert(comunidadToSave);
+      if (error) {
+        alert('Error al guardar: ' + error.message);
+        return;
+      }
+      alert('¡Guardado exitoso!');
+      setEditComunidadPortadaOpen(false);
     } catch (err: any) {
       alert('Error al guardar: ' + err.message);
     }
