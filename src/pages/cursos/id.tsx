@@ -868,7 +868,7 @@ const CursoDetalle = () => {
         {/* Comunidad */}
         <div className="relative bg-neutral-900 rounded-2xl shadow-xl overflow-hidden flex flex-col justify-between min-h-[340px]">
           {/* Portada pequeña */}
-          <div className="w-full h-32 bg-cover bg-center" style={{backgroundImage: `url('${comunidadPortadaUrl}')`}} />
+          <div className="w-full rounded-t-2xl" style={{height: '180px', backgroundImage: `url('${comunidadPortadaUrl}')`, backgroundSize: 'cover', backgroundPosition: 'center'}} />
           <div className="absolute top-4 right-4 z-20">
             {isAdmin && (
               <button 
