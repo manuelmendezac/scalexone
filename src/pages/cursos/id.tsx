@@ -137,6 +137,20 @@ const PortadaCursoEditor = ({ cursoId, portada, onSave }: any) => {
   );
 };
 
+// Componente de barra de progreso circular
+const CircularProgress = ({ percent = 0, size = 48, stroke = 6, color = '#22d3ee', bg = '#222' }) => {
+  const r = (size - stroke) / 2;
+  const c = 2 * Math.PI * r;
+  const offset = c - (percent / 100) * c;
+  return (
+    <svg width={size} height={size} className="block">
+      <circle cx={size/2} cy={size/2} r={r} stroke={bg} strokeWidth={stroke} fill="none" />
+      <circle cx={size/2} cy={size/2} r={r} stroke={color} strokeWidth={stroke} fill="none" strokeDasharray={c} strokeDashoffset={offset} strokeLinecap="round" />
+      <text x="50%" y="54%" textAnchor="middle" fill={color} fontSize={size/4} fontWeight="bold" dy=".3em">{percent}%</text>
+    </svg>
+  );
+};
+
 const CursoDetalle = () => {
   const { id } = useParams();
   const { userInfo } = useNeuroState();
@@ -221,7 +235,7 @@ const CursoDetalle = () => {
     setEditModuloIdx(null);
     setModuloForm({});
   };
-  const handleModuloChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleModuloChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     setModuloForm({ ...moduloForm, [e.target.name]: e.target.value });
   };
   const handleIconUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -309,12 +323,16 @@ const CursoDetalle = () => {
           {modulos.map((mod, idx) => (
             <div key={idx} className="bg-neutral-900 rounded-2xl p-7 shadow-xl border border-neutral-800 flex flex-col h-full transition-all hover:shadow-2xl hover:border-cyan-400 group">
               {/* Icono grande arriba */}
-              <div className="flex justify-center mb-4">
-                {mod.icono ? (
-                  <img src={mod.icono} alt="icono" className="w-16 h-16 object-cover rounded-full border-2 border-cyan-400" />
-                ) : (
-                  <svg width="48" height="48" fill="none" stroke="#22d3ee" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-cyan-400"><circle cx="24" cy="24" r="20" /><path d="M34 34L28 28" /><circle cx="24" cy="24" r="8" /></svg>
-                )}
+              <div className="flex justify-center mb-4 relative">
+                <CircularProgress percent={Math.floor(Math.random()*60+40)} />
+                {/* Icono grande arriba, superpuesto */}
+                <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none">
+                  {mod.icono ? (
+                    <img src={mod.icono} alt="icono" className="w-10 h-10 object-cover rounded-full border-2 border-cyan-400" />
+                  ) : (
+                    <svg width="32" height="32" fill="none" stroke="#22d3ee" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-cyan-400"><circle cx="16" cy="16" r="13" /><path d="M24 24L20 20" /><circle cx="16" cy="16" r="5" /></svg>
+                  )}
+                </div>
               </div>
               {/* Título */}
               <h3 className="text-xl font-bold mb-2 text-cyan-200 group-hover:text-cyan-400 transition-all">{mod.titulo}</h3>
@@ -345,7 +363,12 @@ const CursoDetalle = () => {
             <label className="text-cyan-300 font-semibold">Descripción</label>
             <textarea name="descripcion" value={moduloForm.descripcion || ''} onChange={handleModuloChange} className="p-2 rounded bg-neutral-800 border border-cyan-400 text-white" rows={3} required />
             <label className="text-cyan-300 font-semibold">Nivel</label>
-            <input name="nivel" value={moduloForm.nivel || ''} onChange={handleModuloChange} className="p-2 rounded bg-neutral-800 border border-cyan-400 text-white" required />
+            <select name="nivel" value={moduloForm.nivel || ''} onChange={handleModuloChange} className="p-2 rounded bg-neutral-800 border border-cyan-400 text-white" required>
+              <option value="">Selecciona el nivel</option>
+              <option value="Junior">Junior</option>
+              <option value="Intermedio">Intermedio</option>
+              <option value="Avanzado">Avanzado</option>
+            </select>
             <label className="text-cyan-300 font-semibold">Clases</label>
             <input name="clases" type="number" value={moduloForm.clases || ''} onChange={handleModuloChange} className="p-2 rounded bg-neutral-800 border border-cyan-400 text-white" required />
             <label className="text-cyan-300 font-semibold">Icono/Imagen</label>
