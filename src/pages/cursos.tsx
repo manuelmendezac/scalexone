@@ -12,6 +12,7 @@ const CursosPage: React.FC = () => {
   const { userName } = useNeuroState();
   const primerNombre = userName ? userName.split(' ')[0] : 'Master';
   const navigate = useNavigate();
+  const [isAdmin, setIsAdmin] = useState(false);
 
   // Leer cursos desde Supabase
   useEffect(() => {
@@ -25,12 +26,18 @@ const CursosPage: React.FC = () => {
       });
   }, []);
 
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setIsAdmin(localStorage.getItem('adminMode') === 'true');
+    }
+  }, []);
+
   if (loading) return <div className="min-h-screen flex items-center justify-center text-white">Cargando cursos...</div>;
   if (error) return <div className="min-h-screen flex items-center justify-center text-red-400">{error}</div>;
 
   return (
     <div className="min-h-screen bg-black text-white flex flex-col items-center justify-start py-10 px-2">
-      <CursosAdminPanel />
+      {isAdmin && <CursosAdminPanel />}
       {/* Header */}
       <div className="w-full flex justify-end items-center mb-8 px-2 max-w-7xl mx-auto">
         <div className="flex gap-2">
