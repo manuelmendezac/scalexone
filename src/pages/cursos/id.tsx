@@ -216,6 +216,18 @@ const CursoDetalle = () => {
   const [editVideoForm, setEditVideoForm] = useState<any>({});
   const [uploadingThumb, setUploadingThumb] = useState(false);
   const [videoPage, setVideoPage] = useState<{[cat: string]: number}>({});
+  
+  // Nuevos estados para comunidad y eventos
+  const [editComunidadOpen, setEditComunidadOpen] = useState(false);
+  const [editEventosOpen, setEditEventosOpen] = useState(false);
+  const [editComunidadPortadaOpen, setEditComunidadPortadaOpen] = useState(false);
+  const [editEventosPortadaOpen, setEditEventosPortadaOpen] = useState(false);
+  const [comunidadForm, setComunidadForm] = useState<any>(mockCurso.comunidad);
+  const [eventosForm, setEventosForm] = useState<any[]>(mockCurso.eventos);
+  const [uploadingComunidadPortada, setUploadingComunidadPortada] = useState(false);
+  const [uploadingEventosPortada, setUploadingEventosPortada] = useState(false);
+  const [comunidadPortadaUrl, setComunidadPortadaUrl] = useState('/img/comunidad-demo.jpg');
+  const [eventosPortadaUrl, setEventosPortadaUrl] = useState('/img/eventos-demo.jpg');
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -234,6 +246,42 @@ const CursoDetalle = () => {
       setLoading(false);
     }
     fetchPortada();
+  }, [id]);
+
+  // Cargar datos de comunidad y eventos
+  useEffect(() => {
+    async function fetchComunidadYEventos() {
+      // Cargar comunidad
+      const { data: comunidadData } = await supabase
+        .from('cursos_comunidad')
+        .select('*')
+        .eq('curso_id', id)
+        .single();
+      
+      if (comunidadData) {
+        setComunidadForm(comunidadData);
+        if (comunidadData.portada_url) {
+          setComunidadPortadaUrl(comunidadData.portada_url);
+        }
+      }
+
+      // Cargar eventos
+      const { data: eventosData } = await supabase
+        .from('cursos_eventos')
+        .select('*')
+        .eq('curso_id', id)
+        .single();
+      
+      if (eventosData) {
+        setEventosForm(eventosData.eventos || []);
+        if (eventosData.portada_url) {
+          setEventosPortadaUrl(eventosData.portada_url);
+        }
+      }
+    }
+    if (id) {
+      fetchComunidadYEventos();
+    }
   }, [id]);
 
   useEffect(() => {
@@ -445,6 +493,116 @@ const CursoDetalle = () => {
       .order('categoria', { ascending: true })
       .order('orden', { ascending: true });
     setVideosComplementarios((data as VideoComplementario[]) || []);
+  };
+
+  // Funciones para manejar la edición de comunidad
+  const handleComunidadChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    setComunidadForm({ ...comunidadForm, [e.target.name]: e.target.value });
+  };
+
+  const handleComunidadLinkChange = (index: number, field: string, value: string) => {
+    const newLinks = [...comunidadForm.links];
+    newLinks[index] = { ...newLinks[index], [field]: value };
+    setComunidadForm({ ...comunidadForm, links: newLinks });
+  };
+
+  const handleAddComunidadLink = () => {
+    setComunidadForm({
+      ...comunidadForm,
+      links: [...comunidadForm.links, { texto: 'Nuevo enlace', color: 'blue', url: '#' }]
+    });
+  };
+
+  const handleRemoveComunidadLink = (index: number) => {
+    const newLinks = comunidadForm.links.filter((_: any, i: number) => i !== index);
+    setComunidadForm({ ...comunidadForm, links: newLinks });
+  };
+
+  const handleComunidadPortadaUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || e.target.files.length === 0) return;
+    const file = e.target.files[0];
+    setUploadingComunidadPortada(true);
+    const ext = file.name.split('.').pop();
+    const fileName = `comunidad_portada_${id}_${Date.now()}.${ext}`;
+    const { error } = await supabase.storage.from('cursos').upload(fileName, file, { upsert: true });
+    if (error) {
+      alert('Error al subir imagen: ' + error.message);
+      setUploadingComunidadPortada(false);
+      return;
+    }
+    const { data: publicUrlData } = supabase.storage.from('cursos').getPublicUrl(fileName);
+    setComunidadPortadaUrl(publicUrlData?.publicUrl || '');
+    setUploadingComunidadPortada(false);
+  };
+
+  const handleSaveComunidad = async () => {
+    try {
+      const { error } = await supabase
+        .from('cursos_comunidad')
+        .upsert({ 
+          curso_id: id,
+          ...comunidadForm,
+          portada_url: comunidadPortadaUrl
+        });
+      if (error) throw error;
+      setEditComunidadOpen(false);
+    } catch (err: any) {
+      alert('Error al guardar: ' + err.message);
+    }
+  };
+
+  // Funciones para manejar la edición de eventos
+  const handleEventoChange = (index: number, field: string, value: string) => {
+    const newEventos = [...eventosForm];
+    newEventos[index] = { ...newEventos[index], [field]: value };
+    setEventosForm(newEventos);
+  };
+
+  const handleAddEvento = () => {
+    setEventosForm([...eventosForm, {
+      titulo: 'Nuevo evento',
+      dia: 'Lunes',
+      hora: '12:00',
+      plataforma: 'Zoom',
+      url: '#'
+    }]);
+  };
+
+  const handleRemoveEvento = (index: number) => {
+    setEventosForm(eventosForm.filter((_, i) => i !== index));
+  };
+
+  const handleEventosPortadaUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || e.target.files.length === 0) return;
+    const file = e.target.files[0];
+    setUploadingEventosPortada(true);
+    const ext = file.name.split('.').pop();
+    const fileName = `eventos_portada_${id}_${Date.now()}.${ext}`;
+    const { error } = await supabase.storage.from('cursos').upload(fileName, file, { upsert: true });
+    if (error) {
+      alert('Error al subir imagen: ' + error.message);
+      setUploadingEventosPortada(false);
+      return;
+    }
+    const { data: publicUrlData } = supabase.storage.from('cursos').getPublicUrl(fileName);
+    setEventosPortadaUrl(publicUrlData?.publicUrl || '');
+    setUploadingEventosPortada(false);
+  };
+
+  const handleSaveEventos = async () => {
+    try {
+      const { error } = await supabase
+        .from('cursos_eventos')
+        .upsert({ 
+          curso_id: id,
+          eventos: eventosForm,
+          portada_url: eventosPortadaUrl
+        });
+      if (error) throw error;
+      setEditEventosOpen(false);
+    } catch (err: any) {
+      alert('Error al guardar: ' + err.message);
+    }
   };
 
   return (
@@ -710,23 +868,33 @@ const CursoDetalle = () => {
         {/* Comunidad */}
         <div className="relative bg-neutral-900 rounded-2xl shadow-xl overflow-hidden flex flex-col justify-between min-h-[340px]">
           {/* Portada pequeña */}
-          <div className="w-full h-32 bg-cover bg-center" style={{backgroundImage: `url('/img/comunidad-demo.jpg')`}} />
+          <div className="w-full h-32 bg-cover bg-center" style={{backgroundImage: `url('${comunidadPortadaUrl}')`}} />
           <div className="absolute top-4 right-4 z-20">
             {isAdmin && (
-              <button className="text-xs bg-cyan-700 hover:bg-cyan-500 text-white px-3 py-1 rounded-full font-bold shadow" /*onClick={abrirModalComunidadPortada}*/>Editar portada</button>
+              <button 
+                className="text-xs bg-cyan-700 hover:bg-cyan-500 text-white px-3 py-1 rounded-full font-bold shadow"
+                onClick={() => setEditComunidadPortadaOpen(true)}
+              >
+                Editar portada
+              </button>
             )}
           </div>
           <div className="relative z-10 flex flex-col h-full p-8 gap-6 justify-center">
             <div className="flex items-center justify-between mb-2">
-              <h2 className="text-3xl font-bold mb-2 text-white">{mockCurso.comunidad.titulo}</h2>
+              <h2 className="text-3xl font-bold mb-2 text-white">{comunidadForm.titulo}</h2>
               {isAdmin && (
-                <button className="text-xs bg-cyan-700 hover:bg-cyan-500 text-white px-3 py-1 rounded-full font-bold shadow" /*onClick={abrirModalComunidad}*/>Editar</button>
+                <button 
+                  className="text-xs bg-cyan-700 hover:bg-cyan-500 text-white px-3 py-1 rounded-full font-bold shadow"
+                  onClick={() => setEditComunidadOpen(true)}
+                >
+                  Editar
+                </button>
               )}
             </div>
-            <p className="text-lg text-white/80 mb-4">{mockCurso.comunidad.descripcion}</p>
+            <p className="text-lg text-white/80 mb-4">{comunidadForm.descripcion}</p>
             <div className="flex flex-col gap-3">
-              {mockCurso.comunidad.links.map((link, idx) => (
-                <a key={idx} href="#" className={`flex items-center gap-2 px-5 py-3 rounded-lg font-bold text-lg shadow transition-all ${link.color === 'red' ? 'bg-red-600 text-white' : link.color === 'green' ? 'bg-green-500 text-white' : 'bg-blue-600 text-white'}`}>{link.texto}</a>
+              {comunidadForm.links.map((link: any, idx: number) => (
+                <a key={idx} href={link.url} className={`flex items-center gap-2 px-5 py-3 rounded-lg font-bold text-lg shadow transition-all ${link.color === 'red' ? 'bg-red-600 text-white' : link.color === 'green' ? 'bg-green-500 text-white' : 'bg-blue-600 text-white'}`}>{link.texto}</a>
               ))}
             </div>
           </div>
@@ -734,27 +902,37 @@ const CursoDetalle = () => {
         {/* Eventos */}
         <div className="relative bg-neutral-900 rounded-2xl shadow-xl overflow-hidden flex flex-col min-h-[340px] p-0">
           {/* Portada pequeña */}
-          <div className="w-full h-32 bg-cover bg-center" style={{backgroundImage: `url('/img/eventos-demo.jpg')`}} />
+          <div className="w-full h-32 bg-cover bg-center" style={{backgroundImage: `url('${eventosPortadaUrl}')`}} />
           <div className="absolute top-4 right-4 z-20">
             {isAdmin && (
-              <button className="text-xs bg-cyan-700 hover:bg-cyan-500 text-white px-3 py-1 rounded-full font-bold shadow" /*onClick={abrirModalEventosPortada}*/>Editar portada</button>
+              <button 
+                className="text-xs bg-cyan-700 hover:bg-cyan-500 text-white px-3 py-1 rounded-full font-bold shadow"
+                onClick={() => setEditEventosPortadaOpen(true)}
+              >
+                Editar portada
+              </button>
             )}
           </div>
           <div className="relative z-10 flex flex-col h-full p-8 gap-6 justify-center">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-3xl font-bold text-white">Eventos</h2>
               {isAdmin && (
-                <button className="text-xs bg-cyan-700 hover:bg-cyan-500 text-white px-3 py-1 rounded-full font-bold shadow" /*onClick={abrirModalEventos}*/>Editar</button>
+                <button 
+                  className="text-xs bg-cyan-700 hover:bg-cyan-500 text-white px-3 py-1 rounded-full font-bold shadow"
+                  onClick={() => setEditEventosOpen(true)}
+                >
+                  Editar
+                </button>
               )}
             </div>
             <div className="flex flex-col gap-5">
-              {mockCurso.eventos.map((ev, idx) => (
+              {eventosForm.map((ev, idx) => (
                 <div key={idx} className="bg-neutral-800 rounded-xl p-5 flex flex-col md:flex-row md:items-center gap-3 shadow-lg border-l-8 border-cyan-500">
                   <div className="flex-1">
                     <div className="text-lg font-bold text-white mb-1">{ev.titulo}</div>
                     <div className="text-cyan-300 font-semibold mb-1">{ev.dia} {ev.hora} - {ev.plataforma}</div>
                   </div>
-                  <a href="#" className="bg-white text-black font-bold px-6 py-2 rounded-full shadow hover:bg-cyan-200 transition">Unirse</a>
+                  <a href={ev.url} className="bg-white text-black font-bold px-6 py-2 rounded-full shadow hover:bg-cyan-200 transition">Unirse</a>
                 </div>
               ))}
             </div>
@@ -784,6 +962,230 @@ const CursoDetalle = () => {
 
       {/* Loader visual general */}
       {loading && <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50"><div className="text-cyan-300 text-xl font-bold animate-pulse">Cargando...</div></div>}
+
+      {/* Modal de edición de comunidad */}
+      <ModalFuturista open={editComunidadOpen} onClose={() => setEditComunidadOpen(false)}>
+        <div className="flex flex-col gap-4 p-6 min-w-[320px] max-w-[420px] w-full">
+          <div className="font-bold text-lg mb-2 text-cyan-400">Editar Comunidad</div>
+          <div className="flex flex-col gap-4">
+            <div>
+              <label className="text-cyan-300 font-semibold">Título</label>
+              <input
+                name="titulo"
+                value={comunidadForm.titulo}
+                onChange={handleComunidadChange}
+                className="w-full p-2 rounded bg-neutral-800 border border-cyan-400 text-white"
+              />
+            </div>
+            <div>
+              <label className="text-cyan-300 font-semibold">Descripción</label>
+              <textarea
+                name="descripcion"
+                value={comunidadForm.descripcion}
+                onChange={handleComunidadChange}
+                className="w-full p-2 rounded bg-neutral-800 border border-cyan-400 text-white"
+                rows={3}
+              />
+            </div>
+            <div>
+              <label className="text-cyan-300 font-semibold">Enlaces</label>
+              <div className="flex flex-col gap-3">
+                {comunidadForm.links.map((link: any, index: number) => (
+                  <div key={index} className="flex gap-2 items-center">
+                    <input
+                      value={link.texto}
+                      onChange={(e) => handleComunidadLinkChange(index, 'texto', e.target.value)}
+                      className="flex-1 p-2 rounded bg-neutral-800 border border-cyan-400 text-white"
+                      placeholder="Texto del enlace"
+                    />
+                    <select
+                      value={link.color}
+                      onChange={(e) => handleComunidadLinkChange(index, 'color', e.target.value)}
+                      className="p-2 rounded bg-neutral-800 border border-cyan-400 text-white"
+                    >
+                      <option value="red">Rojo</option>
+                      <option value="green">Verde</option>
+                      <option value="blue">Azul</option>
+                    </select>
+                    <button
+                      onClick={() => handleRemoveComunidadLink(index)}
+                      className="p-2 text-red-400 hover:text-red-300"
+                    >
+                      <X size={20} />
+                    </button>
+                  </div>
+                ))}
+                <button
+                  onClick={handleAddComunidadLink}
+                  className="text-cyan-400 hover:text-cyan-300 text-sm font-semibold"
+                >
+                  + Agregar enlace
+                </button>
+              </div>
+            </div>
+          </div>
+          <div className="flex gap-2 mt-4">
+            <button
+              onClick={handleSaveComunidad}
+              className="flex-1 bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-2 rounded transition"
+            >
+              Guardar
+            </button>
+            <button
+              onClick={() => setEditComunidadOpen(false)}
+              className="flex-1 bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 rounded transition"
+            >
+              Cancelar
+            </button>
+          </div>
+        </div>
+      </ModalFuturista>
+
+      {/* Modal de edición de portada de comunidad */}
+      <ModalFuturista open={editComunidadPortadaOpen} onClose={() => setEditComunidadPortadaOpen(false)}>
+        <div className="flex flex-col gap-4 p-6 min-w-[320px] max-w-[420px] w-full">
+          <div className="font-bold text-lg mb-2 text-cyan-400">Editar Portada de Comunidad</div>
+          <div className="flex flex-col gap-4">
+            <div>
+              <label className="text-cyan-300 font-semibold">Imagen de portada</label>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleComunidadPortadaUpload}
+                className="w-full p-2 rounded bg-neutral-800 border border-cyan-400 text-white"
+              />
+              {uploadingComunidadPortada && (
+                <div className="text-cyan-400 text-sm mt-2">Subiendo imagen...</div>
+              )}
+              {comunidadPortadaUrl && (
+                <img
+                  src={comunidadPortadaUrl}
+                  alt="Portada comunidad"
+                  className="w-full h-32 object-cover rounded mt-2"
+                />
+              )}
+            </div>
+          </div>
+          <div className="flex gap-2 mt-4">
+            <button
+              onClick={() => setEditComunidadPortadaOpen(false)}
+              className="flex-1 bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-2 rounded transition"
+            >
+              Cerrar
+            </button>
+          </div>
+        </div>
+      </ModalFuturista>
+
+      {/* Modal de edición de eventos */}
+      <ModalFuturista open={editEventosOpen} onClose={() => setEditEventosOpen(false)}>
+        <div className="flex flex-col gap-4 p-6 min-w-[320px] max-w-[420px] w-full">
+          <div className="font-bold text-lg mb-2 text-cyan-400">Editar Eventos</div>
+          <div className="flex flex-col gap-4">
+            {eventosForm.map((evento, index) => (
+              <div key={index} className="flex flex-col gap-3 p-4 bg-neutral-800 rounded-lg">
+                <div className="flex justify-between items-center">
+                  <h3 className="text-cyan-300 font-semibold">Evento {index + 1}</h3>
+                  <button
+                    onClick={() => handleRemoveEvento(index)}
+                    className="text-red-400 hover:text-red-300"
+                  >
+                    <X size={20} />
+                  </button>
+                </div>
+                <input
+                  value={evento.titulo}
+                  onChange={(e) => handleEventoChange(index, 'titulo', e.target.value)}
+                  className="w-full p-2 rounded bg-neutral-900 border border-cyan-400 text-white"
+                  placeholder="Título del evento"
+                />
+                <div className="grid grid-cols-2 gap-2">
+                  <input
+                    value={evento.dia}
+                    onChange={(e) => handleEventoChange(index, 'dia', e.target.value)}
+                    className="w-full p-2 rounded bg-neutral-900 border border-cyan-400 text-white"
+                    placeholder="Día"
+                  />
+                  <input
+                    value={evento.hora}
+                    onChange={(e) => handleEventoChange(index, 'hora', e.target.value)}
+                    className="w-full p-2 rounded bg-neutral-900 border border-cyan-400 text-white"
+                    placeholder="Hora"
+                  />
+                </div>
+                <input
+                  value={evento.plataforma}
+                  onChange={(e) => handleEventoChange(index, 'plataforma', e.target.value)}
+                  className="w-full p-2 rounded bg-neutral-900 border border-cyan-400 text-white"
+                  placeholder="Plataforma"
+                />
+                <input
+                  value={evento.url}
+                  onChange={(e) => handleEventoChange(index, 'url', e.target.value)}
+                  className="w-full p-2 rounded bg-neutral-900 border border-cyan-400 text-white"
+                  placeholder="URL del evento"
+                />
+              </div>
+            ))}
+            <button
+              onClick={handleAddEvento}
+              className="text-cyan-400 hover:text-cyan-300 text-sm font-semibold"
+            >
+              + Agregar evento
+            </button>
+          </div>
+          <div className="flex gap-2 mt-4">
+            <button
+              onClick={handleSaveEventos}
+              className="flex-1 bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-2 rounded transition"
+            >
+              Guardar
+            </button>
+            <button
+              onClick={() => setEditEventosOpen(false)}
+              className="flex-1 bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 rounded transition"
+            >
+              Cancelar
+            </button>
+          </div>
+        </div>
+      </ModalFuturista>
+
+      {/* Modal de edición de portada de eventos */}
+      <ModalFuturista open={editEventosPortadaOpen} onClose={() => setEditEventosPortadaOpen(false)}>
+        <div className="flex flex-col gap-4 p-6 min-w-[320px] max-w-[420px] w-full">
+          <div className="font-bold text-lg mb-2 text-cyan-400">Editar Portada de Eventos</div>
+          <div className="flex flex-col gap-4">
+            <div>
+              <label className="text-cyan-300 font-semibold">Imagen de portada</label>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleEventosPortadaUpload}
+                className="w-full p-2 rounded bg-neutral-800 border border-cyan-400 text-white"
+              />
+              {uploadingEventosPortada && (
+                <div className="text-cyan-400 text-sm mt-2">Subiendo imagen...</div>
+              )}
+              {eventosPortadaUrl && (
+                <img
+                  src={eventosPortadaUrl}
+                  alt="Portada eventos"
+                  className="w-full h-32 object-cover rounded mt-2"
+                />
+              )}
+            </div>
+          </div>
+          <div className="flex gap-2 mt-4">
+            <button
+              onClick={() => setEditEventosPortadaOpen(false)}
+              className="flex-1 bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-2 rounded transition"
+            >
+              Cerrar
+            </button>
+          </div>
+        </div>
+      </ModalFuturista>
     </div>
   );
 };
