@@ -968,20 +968,36 @@ const CursoDetalle = () => {
               )}
             </div>
             <div className="flex flex-col gap-5">
-              {eventosForm.map((ev, idx) => (
-                <div key={idx} className="bg-neutral-800 rounded-xl p-5 flex flex-col md:flex-row md:items-center gap-3 shadow-lg border-l-8 border-cyan-500">
-                  <div className="flex-1 flex items-center gap-3">
-                    {getPlataformaIcon(ev.plataforma)}
-                    <div>
-                      <div className="text-lg font-bold text-white mb-1">{ev.titulo}</div>
-                      <div className="text-cyan-300 font-semibold mb-1">{ev.dia} {ev.hora} - {ev.plataforma}</div>
+              {eventosForm.map((ev, idx) => {
+                let countdown = null;
+                if (ev.fecha_hora) {
+                  const target = new Date(ev.fecha_hora);
+                  const now = new Date();
+                  const diff = Math.max(0, target.getTime() - now.getTime());
+                  const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+                  const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+                  const min = Math.floor((diff / (1000 * 60)) % 60);
+                  const sec = Math.floor((diff / 1000) % 60);
+                  countdown = `${days > 0 ? days + 'd ' : ''}${String(hours).padStart(2, '0')}:${String(min).padStart(2, '0')}:${String(sec).padStart(2, '0')}`;
+                }
+                return (
+                  <div key={idx} className="bg-neutral-800 rounded-xl p-5 flex flex-col md:flex-row md:items-center gap-3 shadow-lg border-l-8 border-cyan-500">
+                    <div className="flex-1 flex items-center gap-3">
+                      {getPlataformaIcon(ev.plataforma)}
+                      <div>
+                        <div className="text-lg font-bold text-white mb-1">{ev.titulo}</div>
+                        <div className="text-cyan-300 font-semibold mb-1">{ev.dia} {ev.hora} - {ev.plataforma}</div>
+                        {ev.fecha_hora && (
+                          <div className="text-xs text-cyan-400 font-mono mt-1">Falta: {countdown}</div>
+                        )}
+                      </div>
                     </div>
+                    <a href={ev.url} target="_blank" rel="noopener noreferrer" className="bg-white text-black font-bold px-6 py-2 rounded-full shadow hover:bg-cyan-200 transition flex items-center gap-2">
+                      <ExternalLink size={18} /> Unirse
+                    </a>
                   </div>
-                  <a href={ev.url} target="_blank" rel="noopener noreferrer" className="bg-white text-black font-bold px-6 py-2 rounded-full shadow hover:bg-cyan-200 transition flex items-center gap-2">
-                    <ExternalLink size={18} /> Unirse
-                  </a>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         </div>
@@ -1155,6 +1171,13 @@ const CursoDetalle = () => {
                   onChange={(e) => handleEventoChange(index, 'titulo', e.target.value)}
                   className="w-full p-2 rounded bg-neutral-900 border border-cyan-400 text-white"
                   placeholder="Título del evento"
+                />
+                <input
+                  type="datetime-local"
+                  value={evento.fecha_hora || ''}
+                  onChange={e => handleEventoChange(index, 'fecha_hora', e.target.value)}
+                  className="w-full p-2 rounded bg-neutral-900 border border-cyan-400 text-white"
+                  placeholder="Fecha y hora"
                 />
                 <div className="grid grid-cols-2 gap-2">
                   <input
