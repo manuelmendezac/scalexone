@@ -1,39 +1,71 @@
 import React, { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { supabase } from '../../supabase';
 
-// Reutilizamos el tipo de video
-interface VideoComplementario {
-  id: string;
-  curso_id: string;
-  categoria: string;
-  titulo: string;
-  ponente: string;
-  imagen: string;
-  video_url: string;
-  orden: number;
-  modulo_idx?: number;
-}
+// Barra de progreso circular (copiada de id.tsx)
+const CircularProgress = ({ percent = 0, size = 64, stroke = 8 }) => {
+  const r = (size - stroke) / 2;
+  const c = 2 * Math.PI * r;
+  const offset = c - (percent / 100) * c;
+  return (
+    <div className="flex flex-col items-center">
+      <svg width={size} height={size} className="block relative z-10">
+        <defs>
+          <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stopColor="#00fff7" />
+            <stop offset="100%" stopColor="#7f5cff" />
+          </linearGradient>
+          <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+            <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+            <feMerge>
+              <feMergeNode in="coloredBlur"/>
+              <feMergeNode in="SourceGraphic"/>
+            </feMerge>
+          </filter>
+        </defs>
+        <circle cx={size/2} cy={size/2} r={r} stroke="#222a" strokeWidth={stroke} fill="rgba(20,20,30,0.7)" />
+        <circle
+          cx={size/2}
+          cy={size/2}
+          r={r}
+          stroke="url(#grad1)"
+          strokeWidth={stroke}
+          fill="none"
+          strokeDasharray={c}
+          strokeDashoffset={offset}
+          strokeLinecap="round"
+          style={{ filter: 'url(#glow)' }}
+        />
+      </svg>
+      <span className="text-cyan-300 font-bold text-sm mt-1 drop-shadow-glow">{percent}%</span>
+    </div>
+  );
+};
+
+const focoSVG = (
+  <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <g>
+      <circle cx="24" cy="24" r="24" fill="none" />
+      <path d="M24 36V40" stroke="#39FF14" strokeWidth="3" strokeLinecap="round"/>
+      <path d="M16 28C16 22.4772 20.4772 18 26 18C31.5228 18 36 22.4772 36 28C36 31.3137 33.3137 34 30 34H22C18.6863 34 16 31.3137 16 28Z" stroke="#39FF14" strokeWidth="3"/>
+      <circle cx="26" cy="28" r="6" stroke="#39FF14" strokeWidth="3"/>
+    </g>
+  </svg>
+);
 
 const ModulosCurso = () => {
   const { id } = useParams();
-  const navigate = useNavigate();
   const [modulos, setModulos] = useState<any[]>([]);
-  const [videos, setVideos] = useState<VideoComplementario[]>([]);
   const [loading, setLoading] = useState(true);
   const [moduloActivo, setModuloActivo] = useState<number>(0);
 
   useEffect(() => {
     async function fetchData() {
       setLoading(true);
-      // Obtener módulos
       const { data: portada } = await supabase.from('cursos_portada').select('*').eq('curso_id', id).single();
       let modArr = (portada && portada.modulos) ? portada.modulos : [];
       if (!Array.isArray(modArr)) modArr = [];
       setModulos(modArr);
-      // Obtener videos
-      const { data: videosData } = await supabase.from('videos_complementarios').select('*').eq('curso_id', id);
-      setVideos((videosData as VideoComplementario[]) || []);
       setLoading(false);
     }
     if (id) fetchData();
@@ -44,7 +76,6 @@ const ModulosCurso = () => {
   return (
     <div className="max-w-6xl mx-auto py-10 px-4">
       <h1 className="text-3xl font-bold text-cyan-400 mb-8">Módulos del Curso</h1>
-      {/* Barra de navegación de módulos */}
       <div className="flex flex-wrap gap-3 mb-10 justify-center">
         {modulos.map((mod, idx) => (
           <button
@@ -56,25 +87,26 @@ const ModulosCurso = () => {
           </button>
         ))}
       </div>
-      {/* Contenido del módulo activo */}
       {modulos.length > 0 && (
         <div className="mb-12">
           <h2 className="text-2xl font-bold text-white mb-2">{modulos[moduloActivo].titulo}</h2>
           <p className="text-white/80 mb-6">{modulos[moduloActivo].descripcion}</p>
-          <div className="grid md:grid-cols-2 gap-8">
-            {videos.filter(v => v.modulo_idx === moduloActivo).length === 0 && (
-              <div className="text-cyan-300 col-span-2">No hay videos en este módulo.</div>
-            )}
-            {videos.filter(v => v.modulo_idx === moduloActivo).map(video => (
-              <div key={video.id} className="bg-neutral-900 rounded-2xl p-8 shadow-xl flex flex-col min-h-[260px] justify-between border border-neutral-800">
-                <div className="flex items-center gap-4 mb-4">
-                  <img src={video.imagen} alt={video.titulo} className="w-16 h-16 object-cover rounded-full border-2 border-cyan-400 bg-black" />
-                  <div>
-                    <div className="text-lg font-bold text-cyan-200 mb-1">{video.titulo}</div>
-                    <div className="text-green-400 text-sm">{video.ponente}</div>
-                  </div>
+          <div className="grid md:grid-cols-3 gap-8">
+            {/* Renderizar tarjetas de clases/contenidos */}
+            {(modulos[moduloActivo].clases || []).map((clase: any, idx: number) => (
+              <div key={idx} className="bg-neutral-900 rounded-2xl p-8 shadow-xl flex flex-col min-h-[340px] justify-between border border-neutral-800">
+                <div className="flex flex-col items-center mb-4">
+                  <div className="mb-2">{focoSVG}</div>
+                  <CircularProgress percent={Math.floor(Math.random()*60+40)} size={54} stroke={7} />
                 </div>
-                <a href={video.video_url} target="_blank" rel="noopener noreferrer" className="bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-2 rounded-full mt-auto text-center transition">Iniciar</a>
+                <div className="text-xl font-bold text-white mb-2 text-center uppercase">{clase.titulo}</div>
+                <div className="text-white/90 text-base mb-6 text-center">{clase.descripcion}</div>
+                <div className="flex gap-2 mt-auto justify-center">
+                  <button className="bg-white text-black font-bold py-2 px-6 rounded-full transition-all text-base shadow hover:bg-cyan-200">Iniciar</button>
+                  <button className="flex items-center gap-1 border border-cyan-400 text-cyan-400 font-bold py-2 px-5 rounded-full transition-all text-base shadow hover:bg-cyan-900/20">
+                    Información <span className="ml-1">&rarr;</span>
+                  </button>
+                </div>
               </div>
             ))}
           </div>
