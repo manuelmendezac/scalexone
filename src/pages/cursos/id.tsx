@@ -337,7 +337,7 @@ const CursoDetalle = () => {
         </div>
         {/* Modal de edición de módulo */}
         <ModalFuturista open={editModuloIdx !== null} onClose={handleCloseModal}>
-          <form className="flex flex-col gap-4 p-4 min-w-[320px]" onSubmit={e => { e.preventDefault(); handleSaveModulo(); }}>
+          <form className="flex flex-col gap-4 p-6 min-w-[500px] max-w-[90vw]" style={{maxWidth: 600}} onSubmit={e => { e.preventDefault(); handleSaveModulo(); }}>
             <div className="font-bold text-lg mb-2 text-cyan-400">Editar módulo</div>
             <label className="text-cyan-300 font-semibold">Título</label>
             <input name="titulo" value={moduloForm.titulo || ''} onChange={handleModuloChange} className="p-2 rounded bg-neutral-800 border border-cyan-400 text-white" required />
@@ -351,7 +351,7 @@ const CursoDetalle = () => {
             <input type="file" accept="image/*" onChange={handleIconUpload} />
             {uploadingIcon && <span className="text-xs text-cyan-400">Subiendo icono...</span>}
             {moduloForm.icono && <img src={moduloForm.icono} alt="icono" className="w-16 h-16 object-cover rounded-full border-2 border-cyan-400 mt-2" />}
-            <div className="flex gap-2 mt-4">
+            <div className="flex gap-2 mt-4 sticky bottom-0 bg-neutral-900 py-2 z-10">
               <button type="submit" className="flex-1 bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-2 rounded transition">Guardar</button>
               <button type="button" className="flex-1 bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 rounded transition" onClick={handleCloseModal}>Cancelar</button>
             </div>
