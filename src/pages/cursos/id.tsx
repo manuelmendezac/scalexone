@@ -288,13 +288,13 @@ const CursoDetalle = () => {
     const nuevosModulos = [...modulos];
     nuevosModulos[editModuloIdx] = moduloForm;
     setModulos(nuevosModulos);
-    setEditModuloIdx(null);
-    setModuloForm({});
     // Persistir en Supabase
     if (portada && portada.id) {
       await supabase.from('cursos_portada').update({ modulos: nuevosModulos }).eq('id', portada.id);
-      handleReload();
+      await handleReload();
     }
+    setEditModuloIdx(null);
+    setModuloForm({});
   };
 
   return (
@@ -395,34 +395,28 @@ const CursoDetalle = () => {
         {/* Modal de edición de módulo */}
         <ModalFuturista open={editModuloIdx !== null} onClose={handleCloseModal}>
           <div style={{display:'flex',alignItems:'center',justifyContent:'center',height:'100%',minHeight:'100vh'}}>
-            <form className="flex flex-col gap-4 p-8 min-w-[600px] max-w-[800px] w-full" style={{maxWidth: 800, maxHeight: '90vh', overflowY: 'auto'}} onSubmit={e => { e.preventDefault(); handleSaveModulo(); }}>
+            <form className="flex flex-col gap-4 p-4 min-w-[320px] max-w-[420px] w-full" style={{maxWidth: 420, maxHeight: '90vh', overflowY: 'auto'}} onSubmit={async e => { e.preventDefault(); await handleSaveModulo(); }}>
               <div className="font-bold text-lg mb-2 text-cyan-400">Editar módulo</div>
-              <div className="flex flex-row gap-8 flex-wrap">
-                <div className="flex-1 min-w-[260px] flex flex-col gap-4">
-                  <label className="text-cyan-300 font-semibold">Título</label>
-                  <input name="titulo" value={moduloForm.titulo || ''} onChange={handleModuloChange} className="p-2 rounded bg-neutral-800 border border-cyan-400 text-white" required />
-                  <label className="text-cyan-300 font-semibold">Descripción</label>
-                  <textarea name="descripcion" value={moduloForm.descripcion || ''} onChange={handleModuloChange} className="p-2 rounded bg-neutral-800 border border-cyan-400 text-white" rows={3} required />
-                  <label className="text-cyan-300 font-semibold">Nivel</label>
-                  <select name="nivel" value={moduloForm.nivel || ''} onChange={handleModuloChange} className="p-2 rounded bg-neutral-800 border border-cyan-400 text-white" required>
-                    <option value="">Selecciona el nivel</option>
-                    <option value="Junior">Junior</option>
-                    <option value="Intermedio">Intermedio</option>
-                    <option value="Avanzado">Avanzado</option>
-                  </select>
-                  <label className="text-cyan-300 font-semibold">Clases</label>
-                  <input name="clases" type="number" value={moduloForm.clases || ''} onChange={handleModuloChange} className="p-2 rounded bg-neutral-800 border border-cyan-400 text-white" required />
-                </div>
-                <div className="flex flex-col items-center justify-center gap-2 min-w-[180px]">
-                  <label className="text-cyan-300 font-semibold">Icono/Imagen</label>
-                  <input type="file" accept="image/*" onChange={handleIconUpload} />
-                  <span className="text-xs text-neutral-400 text-center">Sugerencia: Usa un icono cuadrado de 80x80px en PNG, JPG o SVG para mejor visualización.</span>
-                  {uploadingIcon && <span className="text-xs text-cyan-400">Subiendo icono...</span>}
-                  {moduloForm.icono && (
-                    <img src={moduloForm.icono} alt="icono" className="w-20 h-20 object-cover rounded-full mt-2" style={{border: 'none', boxShadow: 'none', background: '#111'}} />
-                  )}
-                </div>
-              </div>
+              <label className="text-cyan-300 font-semibold">Título</label>
+              <input name="titulo" value={moduloForm.titulo || ''} onChange={handleModuloChange} className="p-2 rounded bg-neutral-800 border border-cyan-400 text-white" required />
+              <label className="text-cyan-300 font-semibold">Descripción</label>
+              <textarea name="descripcion" value={moduloForm.descripcion || ''} onChange={handleModuloChange} className="p-2 rounded bg-neutral-800 border border-cyan-400 text-white" rows={3} required />
+              <label className="text-cyan-300 font-semibold">Nivel</label>
+              <select name="nivel" value={moduloForm.nivel || ''} onChange={handleModuloChange} className="p-2 rounded bg-neutral-800 border border-cyan-400 text-white" required>
+                <option value="">Selecciona el nivel</option>
+                <option value="Junior">Junior</option>
+                <option value="Intermedio">Intermedio</option>
+                <option value="Avanzado">Avanzado</option>
+              </select>
+              <label className="text-cyan-300 font-semibold">Clases</label>
+              <input name="clases" type="number" value={moduloForm.clases || ''} onChange={handleModuloChange} className="p-2 rounded bg-neutral-800 border border-cyan-400 text-white" required />
+              <label className="text-cyan-300 font-semibold">Icono/Imagen</label>
+              <input type="file" accept="image/*" onChange={handleIconUpload} />
+              <span className="text-xs text-neutral-400 text-center">Sugerencia: Usa un icono cuadrado de 80x80px en PNG, JPG o SVG para mejor visualización.</span>
+              {uploadingIcon && <span className="text-xs text-cyan-400">Subiendo icono...</span>}
+              {moduloForm.icono && (
+                <img src={moduloForm.icono} alt="icono" className="w-20 h-20 object-cover rounded-full mt-2" style={{border: 'none', boxShadow: 'none', background: '#111'}} />
+              )}
               <div className="flex gap-2 mt-4 sticky bottom-0 bg-neutral-900 py-2 z-10">
                 <button type="submit" className="flex-1 bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-2 rounded transition">Guardar</button>
                 <button type="button" className="flex-1 bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 rounded transition" onClick={handleCloseModal}>Cancelar</button>
