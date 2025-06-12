@@ -9,7 +9,7 @@ const CursosPage: React.FC = () => {
   const [cursoActivo, setCursoActivo] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const { userName, userInfo } = useNeuroState();
+  const { userName, userInfo, updateUserInfo } = useNeuroState();
   const nombre = userInfo?.name || userName || 'Master';
   const primerNombre = nombre.split(' ')[0];
   const navigate = useNavigate();
@@ -32,6 +32,22 @@ const CursosPage: React.FC = () => {
       setIsAdmin(localStorage.getItem('adminMode') === 'true');
     }
   }, []);
+
+  useEffect(() => {
+    if (userInfo && userInfo.email && (!userInfo.name || userInfo.name === userInfo.email)) {
+      // Buscar el nombre en la tabla usuarios de Supabase
+      supabase
+        .from('usuarios')
+        .select('name')
+        .eq('email', userInfo.email)
+        .single()
+        .then(({ data }) => {
+          if (data && data.name) {
+            updateUserInfo({ name: data.name, email: userInfo.email });
+          }
+        });
+    }
+  }, [userInfo, updateUserInfo]);
 
   if (loading) return <div className="min-h-screen flex items-center justify-center text-white">Cargando cursos...</div>;
   if (error) return <div className="min-h-screen flex items-center justify-center text-red-400">{error}</div>;
