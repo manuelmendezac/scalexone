@@ -429,6 +429,24 @@ const CursoDetalle = () => {
     setVideosComplementarios((data as VideoComplementario[]) || []);
   };
 
+  const handleDeleteVideo = async (video: VideoComplementario) => {
+    if (!window.confirm('¿Estás seguro de que deseas eliminar este video?')) return;
+    if (!window.confirm('Esta acción es irreversible. ¿Eliminar definitivamente el video?')) return;
+    const { error } = await supabase.from('videos_complementarios').delete().eq('id', video.id);
+    if (error) {
+      alert('Error al eliminar: ' + error.message);
+      return;
+    }
+    // Recargar videos
+    const { data } = await supabase
+      .from('videos_complementarios')
+      .select('*')
+      .eq('curso_id', id)
+      .order('categoria', { ascending: true })
+      .order('orden', { ascending: true });
+    setVideosComplementarios((data as VideoComplementario[]) || []);
+  };
+
   return (
     <div className="curso-detalle-page bg-black min-h-screen text-white p-0">
       {/* Editor solo para admin, siempre visible arriba */}
@@ -629,6 +647,7 @@ const CursoDetalle = () => {
                         <div className="flex gap-2 mt-2">
                           <button className="text-xs text-cyan-400 underline" onClick={() => handleEditVideo(video)}>Editar</button>
                           <button className="text-xs text-yellow-400 underline" onClick={() => handleDuplicateVideo(video)}>Duplicar</button>
+                          <button className="text-xs text-red-400 underline" onClick={() => handleDeleteVideo(video)}>Eliminar</button>
                         </div>
                       )}
                     </div>
