@@ -190,6 +190,8 @@ const CursoDetalle = () => {
   const [modulos, setModulos] = useState<any[]>(mockCurso.modulos);
   const [moduloForm, setModuloForm] = useState<any>({});
   const [uploadingIcon, setUploadingIcon] = useState(false);
+  const [savingModulo, setSavingModulo] = useState(false);
+  const [errorModulo, setErrorModulo] = useState<string | null>(null);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -202,7 +204,9 @@ const CursoDetalle = () => {
       setLoading(true);
       const { data } = await supabase.from('cursos_portada').select('*').eq('curso_id', id).single();
       setPortada(data);
-      setModulos((data && data.modulos && data.modulos.length > 0) ? data.modulos : mockCurso.modulos);
+      let modArr = (data && data.modulos) ? data.modulos : [];
+      if (!Array.isArray(modArr)) modArr = [];
+      setModulos(modArr.length > 0 ? modArr : mockCurso.modulos);
       setLoading(false);
     }
     fetchPortada();
@@ -212,7 +216,9 @@ const CursoDetalle = () => {
     setLoading(true);
     supabase.from('cursos_portada').select('*').eq('curso_id', id).single().then(({ data }) => {
       setPortada(data);
-      setModulos((data && data.modulos && data.modulos.length > 0) ? data.modulos : mockCurso.modulos);
+      let modArr = (data && data.modulos) ? data.modulos : [];
+      if (!Array.isArray(modArr)) modArr = [];
+      setModulos(modArr.length > 0 ? modArr : mockCurso.modulos);
       setLoading(false);
     });
   };
@@ -285,16 +291,24 @@ const CursoDetalle = () => {
   };
   const handleSaveModulo = async () => {
     if (editModuloIdx === null) return;
+    setSavingModulo(true);
+    setErrorModulo(null);
     const nuevosModulos = [...modulos];
     nuevosModulos[editModuloIdx] = moduloForm;
     setModulos(nuevosModulos);
     // Persistir en Supabase
     if (portada && portada.id) {
-      await supabase.from('cursos_portada').update({ modulos: nuevosModulos }).eq('id', portada.id);
+      const { error } = await supabase.from('cursos_portada').update({ modulos: nuevosModulos }).eq('id', portada.id);
+      if (error) {
+        setErrorModulo('Error al guardar los cambios. Intenta de nuevo.');
+        setSavingModulo(false);
+        return;
+      }
       await handleReload();
     }
     setEditModuloIdx(null);
     setModuloForm({});
+    setSavingModulo(false);
   };
 
   return (
@@ -397,6 +411,8 @@ const CursoDetalle = () => {
           <div style={{display:'flex',alignItems:'center',justifyContent:'center',height:'100%',minHeight:'100vh'}}>
             <form className="flex flex-col gap-4 p-4 min-w-[320px] max-w-[420px] w-full" style={{maxWidth: 420, maxHeight: '90vh', overflowY: 'auto'}} onSubmit={async e => { e.preventDefault(); await handleSaveModulo(); }}>
               <div className="font-bold text-lg mb-2 text-cyan-400">Editar módulo</div>
+              {savingModulo && <div className="text-cyan-400 text-center">Guardando cambios...</div>}
+              {errorModulo && <div className="text-red-400 text-center">{errorModulo}</div>}
               <label className="text-cyan-300 font-semibold">Título</label>
               <input name="titulo" value={moduloForm.titulo || ''} onChange={handleModuloChange} className="p-2 rounded bg-neutral-800 border border-cyan-400 text-white" required />
               <label className="text-cyan-300 font-semibold">Descripción</label>
@@ -486,6 +502,9 @@ const CursoDetalle = () => {
           .modulo-top-row { flex-direction: column !important; gap: 1.5rem !important; }
         }
       `}</style>
+
+      {/* Loader visual general */}
+      {loading && <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50"><div className="text-cyan-300 text-xl font-bold animate-pulse">Cargando...</div></div>}
     </div>
   );
 };
