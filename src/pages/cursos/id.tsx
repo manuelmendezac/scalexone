@@ -703,28 +703,46 @@ const CursoDetalle = () => {
         </ModalFuturista>
       </section>
 
-      {/* Comunidad */}
-      <section className="comunidad mb-10">
-        <h2 className="text-2xl font-bold mb-4">{mockCurso.comunidad.titulo}</h2>
-        <p className="mb-4">{mockCurso.comunidad.descripcion}</p>
-        <div className="flex gap-4">
-          {mockCurso.comunidad.links.map((link, idx) => (
-            <button key={idx} className={`px-4 py-2 rounded-full font-semibold text-white bg-${link.color}-500`}>{link.texto}</button>
-          ))}
-        </div>
-      </section>
-
-      {/* Eventos */}
-      <section className="eventos mb-10">
-        <h2 className="text-2xl font-bold mb-4">Eventos</h2>
-        <div className="grid md:grid-cols-2 gap-6">
-          {mockCurso.eventos.map((ev, idx) => (
-            <div key={idx} className="bg-neutral-900 rounded-xl p-6 flex flex-col gap-2">
-              <div className="font-bold text-lg">{ev.titulo}</div>
-              <div>{ev.dia} {ev.hora} - {ev.plataforma}</div>
-              <button className="bg-white text-black px-4 py-1 rounded-full font-semibold">Unirse</button>
+      {/* Comunidad y Eventos en dos columnas */}
+      <section className="comunidad-eventos-grid w-full max-w-6xl mx-auto mb-12 grid grid-cols-1 md:grid-cols-2 gap-8">
+        {/* Comunidad */}
+        <div className="relative bg-neutral-900 rounded-2xl shadow-xl overflow-hidden flex flex-col justify-between min-h-[340px]">
+          {/* Imagen de fondo a la derecha */}
+          <div className="absolute inset-0 right-0 w-1/2 h-full bg-cover bg-center" style={{backgroundImage: `url('/img/comunidad-demo.jpg')`, opacity: 0.18, pointerEvents: 'none'}} />
+          <div className="relative z-10 flex flex-col h-full p-8 gap-6 justify-center">
+            <div className="flex items-center justify-between mb-2">
+              <h2 className="text-3xl font-bold mb-2 text-white">{mockCurso.comunidad.titulo}</h2>
+              {isAdmin && (
+                <button className="text-xs bg-cyan-700 hover:bg-cyan-500 text-white px-3 py-1 rounded-full font-bold shadow" /*onClick={abrirModalComunidad}*/>Editar</button>
+              )}
             </div>
-          ))}
+            <p className="text-lg text-white/80 mb-4">{mockCurso.comunidad.descripcion}</p>
+            <div className="flex flex-col gap-3">
+              {mockCurso.comunidad.links.map((link, idx) => (
+                <a key={idx} href="#" className={`flex items-center gap-2 px-5 py-3 rounded-lg font-bold text-lg shadow transition-all ${link.color === 'red' ? 'bg-red-600 text-white' : link.color === 'green' ? 'bg-green-500 text-white' : 'bg-blue-600 text-white'}`}>{link.texto}</a>
+              ))}
+            </div>
+          </div>
+        </div>
+        {/* Eventos */}
+        <div className="relative bg-neutral-900 rounded-2xl shadow-xl overflow-hidden flex flex-col min-h-[340px] p-8">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-3xl font-bold text-white">Eventos</h2>
+            {isAdmin && (
+              <button className="text-xs bg-cyan-700 hover:bg-cyan-500 text-white px-3 py-1 rounded-full font-bold shadow" /*onClick={abrirModalEventos}*/>Editar</button>
+            )}
+          </div>
+          <div className="flex flex-col gap-5">
+            {mockCurso.eventos.map((ev, idx) => (
+              <div key={idx} className="bg-neutral-800 rounded-xl p-5 flex flex-col md:flex-row md:items-center gap-3 shadow-lg border-l-8 border-cyan-500">
+                <div className="flex-1">
+                  <div className="text-lg font-bold text-white mb-1">{ev.titulo}</div>
+                  <div className="text-cyan-300 font-semibold mb-1">{ev.dia} {ev.hora} - {ev.plataforma}</div>
+                </div>
+                <a href="#" className="bg-white text-black font-bold px-6 py-2 rounded-full shadow hover:bg-cyan-200 transition">Unirse</a>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
