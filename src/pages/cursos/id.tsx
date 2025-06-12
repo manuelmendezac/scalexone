@@ -241,6 +241,8 @@ const CursoDetalle = () => {
   const [uploadingEventosPortada, setUploadingEventosPortada] = useState(false);
   const [comunidadPortadaUrl, setComunidadPortadaUrl] = useState('/img/comunidad-demo.jpg');
   const [eventosPortadaUrl, setEventosPortadaUrl] = useState('/img/eventos-demo.jpg');
+  // Estado para feedback de subida de icono de evento
+  const [uploadingEventoIcono, setUploadingEventoIcono] = useState<number | null>(null);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -639,6 +641,26 @@ const CursoDetalle = () => {
     }
   };
 
+  // Lógica para subir icono a Supabase Storage (bucket 'cursos')
+  const handleEventoIconoUpload = async (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
+    if (!e.target.files || e.target.files.length === 0) return;
+    const file = e.target.files[0];
+    setUploadingEventoIcono(index);
+    const ext = file.name.split('.').pop();
+    const fileName = `evento_icono_${id}_${index}_${Date.now()}.${ext}`;
+    const { error } = await supabase.storage.from('cursos').upload(fileName, file, { upsert: true });
+    if (error) {
+      alert('Error al subir icono: ' + error.message);
+      setUploadingEventoIcono(null);
+      return;
+    }
+    const { data: publicUrlData } = supabase.storage.from('cursos').getPublicUrl(fileName);
+    const newEventos = [...eventosForm];
+    newEventos[index].icono_url = publicUrlData?.publicUrl || '';
+    setEventosForm(newEventos);
+    setUploadingEventoIcono(null);
+  };
+
   return (
     <div className="curso-detalle-page bg-black min-h-screen text-white p-0">
       {/* Editor solo para admin, siempre visible arriba */}
@@ -983,7 +1005,9 @@ const CursoDetalle = () => {
                 return (
                   <div key={idx} className="bg-neutral-800 rounded-xl p-5 flex flex-col md:flex-row md:items-center gap-3 shadow-lg border-l-8 border-cyan-500">
                     <div className="flex-1 flex items-center gap-3">
-                      {getPlataformaIcon(ev.plataforma)}
+                      {ev.icono_url ? (
+                        <img src={ev.icono_url} alt="icono evento" className="w-12 h-12 object-cover rounded" style={{border: 'none'}} />
+                      ) : getPlataformaIcon(ev.plataforma)}
                       <div>
                         <div className="text-lg font-bold text-white mb-1">{ev.titulo}</div>
                         <div className="text-cyan-300 font-semibold mb-1">{ev.dia} {ev.hora} - {ev.plataforma}</div>
@@ -1179,6 +1203,20 @@ const CursoDetalle = () => {
                   className="w-full p-2 rounded bg-neutral-900 border border-cyan-400 text-white"
                   placeholder="Fecha y hora"
                 />
+                {/* Subir icono */}
+                <label className="text-cyan-300 font-semibold">Icono del evento (opcional)</label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={e => handleEventoIconoUpload(e, index)}
+                  className="w-full p-2 rounded bg-neutral-800 border border-cyan-400 text-white"
+                  disabled={uploadingEventoIcono === index}
+                />
+                <span className="text-xs text-cyan-400">Tamaño recomendado: <b>48x48px</b>, cuadrado, sin bordes.</span>
+                {uploadingEventoIcono === index && <span className="text-xs text-cyan-300">Subiendo icono...</span>}
+                {evento.icono_url && (
+                  <img src={evento.icono_url} alt="icono evento" className="w-12 h-12 object-cover rounded mt-2" style={{border: 'none'}} />
+                )}
                 <div className="grid grid-cols-2 gap-2">
                   <input
                     value={evento.dia}
