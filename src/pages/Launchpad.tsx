@@ -145,17 +145,9 @@ const Launchpad: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    async function checkAdmin() {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-      const { data, error } = await supabase
-        .from('usuarios')
-        .select('rol')
-        .eq('id', user.id)
-        .single();
-      if (data?.rol === 'admin') setIsAdmin(true);
+    if (typeof window !== 'undefined') {
+      setIsAdmin(localStorage.getItem('adminMode') === 'true');
     }
-    checkAdmin();
   }, []);
 
   // Simulación de 3 directos y 3 cápsulas de prueba
