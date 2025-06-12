@@ -212,6 +212,9 @@ const CursoDetalle = () => {
   const [editPortadaOpen, setEditPortadaOpen] = useState(false);
   const [videosComplementarios, setVideosComplementarios] = useState<VideoComplementario[]>([]);
   const [videoModal, setVideoModal] = useState<{ url: string, titulo: string } | null>(null);
+  const [editVideo, setEditVideo] = useState<VideoComplementario | null>(null);
+  const [editVideoForm, setEditVideoForm] = useState<any>({});
+  const [uploadingThumb, setUploadingThumb] = useState(false);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -342,6 +345,44 @@ const CursoDetalle = () => {
     setEditModuloIdx(null);
     setModuloForm({});
     setSavingModulo(false);
+  };
+
+  const handleEditVideo = (video: VideoComplementario) => {
+    setEditVideo(video);
+    setEditVideoForm(video);
+  };
+  const handleEditVideoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setEditVideoForm({ ...editVideoForm, [e.target.name]: e.target.value });
+  };
+  const handleThumbUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || e.target.files.length === 0) return;
+    const file = e.target.files[0];
+    setUploadingThumb(true);
+    const ext = file.name.split('.').pop();
+    const fileName = `video_thumb_${Date.now()}.${ext}`;
+    const { error } = await supabase.storage.from('cursos').upload(fileName, file, { upsert: true });
+    if (error) {
+      alert('Error al subir miniatura: ' + error.message);
+      setUploadingThumb(false);
+      return;
+    }
+    const { data: publicUrlData } = supabase.storage.from('cursos').getPublicUrl(fileName);
+    setEditVideoForm({ ...editVideoForm, imagen: publicUrlData?.publicUrl || '' });
+    setUploadingThumb(false);
+  };
+  const handleSaveEditVideo = async () => {
+    if (!editVideo) return;
+    await supabase.from('videos_complementarios').update(editVideoForm).eq('id', editVideo.id);
+    setEditVideo(null);
+    setEditVideoForm({});
+    // Recargar videos
+    const { data } = await supabase
+      .from('videos_complementarios')
+      .select('*')
+      .eq('curso_id', id)
+      .order('categoria', { ascending: true })
+      .order('orden', { ascending: true });
+    setVideosComplementarios((data as VideoComplementario[]) || []);
   };
 
   return (
@@ -513,10 +554,11 @@ const CursoDetalle = () => {
                   <div className="relative w-full h-[170px] bg-black">
                     <img src={video.imagen} alt={video.titulo} className="w-full h-full object-cover" />
                     <button
-                      className="absolute bottom-3 left-1/2 -translate-x-1/2 bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded-full flex items-center gap-2 text-lg shadow-lg z-10"
+                      className="absolute bottom-3 left-1/2 -translate-x-1/2 bg-red-600 hover:bg-red-700 text-white font-bold py-1.5 px-4 rounded-full flex items-center gap-2 text-base shadow-lg z-10"
+                      style={{minWidth: '110px'}}
                       onClick={() => setVideoModal({ url: video.video_url, titulo: video.titulo })}
                     >
-                      <svg width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><polygon points="6,4 20,11 6,18" fill="currentColor" /></svg>
+                      <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><polygon points="6,4 20,11 6,18" fill="currentColor" /></svg>
                       Ver Ahora
                     </button>
                   </div>
@@ -527,7 +569,7 @@ const CursoDetalle = () => {
                       <div className="text-green-300 text-sm font-semibold">{video.ponente}</div>
                     </div>
                     {isAdmin && (
-                      <button className="mt-2 text-xs text-cyan-400 underline">Editar</button>
+                      <button className="mt-2 text-xs text-cyan-400 underline" onClick={() => handleEditVideo(video)}>Editar</button>
                     )}
                   </div>
                 </div>
@@ -535,20 +577,48 @@ const CursoDetalle = () => {
             </div>
           </div>
         ))}
-        {/* Modal de video a pantalla completa */}
+        {/* Modal de video fullscreen */}
         <ModalFuturista open={!!videoModal} onClose={() => setVideoModal(null)}>
           {videoModal && (
-            <div className="w-full max-w-2xl aspect-video flex flex-col items-center justify-center">
-              <h2 className="text-xl font-bold mb-4 text-center">{videoModal.titulo}</h2>
-              <div className="w-full aspect-video bg-black rounded-xl overflow-hidden">
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/95">
+              <button
+                onClick={() => setVideoModal(null)}
+                className="absolute top-4 right-4 text-white text-2xl z-50 bg-black/60 rounded-full p-2 hover:bg-black/90"
+                aria-label="Cerrar video"
+              >×</button>
+              <div className="w-full max-w-4xl aspect-video flex flex-col items-center justify-center">
                 <iframe
                   src={videoModal.url.replace('watch?v=', 'embed/')}
                   title={videoModal.titulo}
-                  className="w-full h-full"
+                  className="w-full h-full rounded-xl"
                   allowFullScreen
                 />
               </div>
             </div>
+          )}
+        </ModalFuturista>
+        {/* Modal de edición de video */}
+        <ModalFuturista open={!!editVideo} onClose={() => setEditVideo(null)}>
+          {editVideo && (
+            <form className="flex flex-col gap-4 p-6 min-w-[320px] max-w-[420px] w-full" style={{maxWidth: 420}} onSubmit={e => { e.preventDefault(); handleSaveEditVideo(); }}>
+              <div className="font-bold text-lg mb-2 text-cyan-400">Editar video</div>
+              <label className="text-cyan-300 font-semibold">Título</label>
+              <input name="titulo" value={editVideoForm.titulo || ''} onChange={handleEditVideoChange} className="p-2 rounded bg-neutral-800 border border-cyan-400 text-white" required />
+              <label className="text-cyan-300 font-semibold">Ponente</label>
+              <input name="ponente" value={editVideoForm.ponente || ''} onChange={handleEditVideoChange} className="p-2 rounded bg-neutral-800 border border-cyan-400 text-white" required />
+              <label className="text-cyan-300 font-semibold">Miniatura</label>
+              <input type="file" accept="image/*" onChange={handleThumbUpload} />
+              {uploadingThumb && <span className="text-xs text-cyan-400">Subiendo miniatura...</span>}
+              {editVideoForm.imagen && (
+                <img src={editVideoForm.imagen} alt="miniatura" className="w-32 h-20 object-cover rounded mt-2" />
+              )}
+              <label className="text-cyan-300 font-semibold">Enlace de video (YouTube, Vimeo, etc.)</label>
+              <input name="video_url" value={editVideoForm.video_url || ''} onChange={handleEditVideoChange} className="p-2 rounded bg-neutral-800 border border-cyan-400 text-white" required />
+              <div className="flex gap-2 mt-4">
+                <button type="submit" className="flex-1 bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-2 rounded transition">Guardar</button>
+                <button type="button" className="flex-1 bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 rounded transition" onClick={() => setEditVideo(null)}>Cancelar</button>
+              </div>
+            </form>
           )}
         </ModalFuturista>
       </section>
