@@ -143,19 +143,9 @@ const CursoDetalle = () => {
   const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
-    async function checkAdmin() {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-      // Buscar por email, que es único
-      const { data: usuarioData } = await supabase
-        .from('usuarios')
-        .select('rol')
-        .eq('email', user.email)
-        .single();
-      if (usuarioData?.rol === 'admin') setIsAdmin(true);
-      else setIsAdmin(false);
+    if (typeof window !== 'undefined') {
+      setIsAdmin(localStorage.getItem('adminMode') === 'true');
     }
-    checkAdmin();
   }, []);
 
   useEffect(() => {
