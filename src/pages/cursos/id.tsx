@@ -598,8 +598,9 @@ const CursoDetalle = () => {
     setUploadingEventosPortada(false);
   };
 
-  const handleSaveEventosPortada = async () => {
+  const handleSaveEventos = async () => {
     try {
+      // Limpiar el objeto a guardar
       const eventosToSave = {
         curso_id: id,
         eventos: eventosForm,
@@ -614,7 +615,7 @@ const CursoDetalle = () => {
         return;
       }
       alert('¡Guardado exitoso!');
-      setEditEventosPortadaOpen(false);
+      setEditEventosOpen(false);
     } catch (err: any) {
       alert('Error al guardar: ' + err.message);
     }
@@ -1197,7 +1198,7 @@ const CursoDetalle = () => {
           </div>
           <div className="flex gap-2 mt-4">
             <button
-              onClick={handleSaveEventosPortada}
+              onClick={handleSaveEventos}
               className="flex-1 bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-2 rounded transition"
             >
               Guardar
