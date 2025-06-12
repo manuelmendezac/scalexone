@@ -25,6 +25,13 @@ const videosDemo = [
   },
 ];
 
+const miniaturasDemo = [
+  'https://i.vimeocdn.com/video/452001751_640.jpg',
+  'https://i.vimeocdn.com/video/452001751_640.jpg',
+  'https://i.vimeocdn.com/video/452001751_640.jpg',
+  'https://i.vimeocdn.com/video/452001751_640.jpg',
+];
+
 const ModuloDetalle = () => {
   const { id, moduloIdx } = useParams();
   const navigate = useNavigate();
@@ -60,10 +67,10 @@ const ModuloDetalle = () => {
     <div className="min-h-screen bg-black text-white flex flex-col md:flex-row">
       {/* Panel principal */}
       <div className="flex-1 flex flex-col items-center justify-center p-8">
-        <div className="w-full max-w-3xl bg-neutral-900 rounded-2xl shadow-xl p-6 flex flex-col items-center">
-          <h2 className="text-2xl font-bold mb-2 text-cyan-400">{clase.titulo}</h2>
-          <p className="mb-4 text-cyan-200">{clase.descripcion}</p>
-          <div className="w-full aspect-video bg-black rounded-xl overflow-hidden mb-4 flex items-center justify-center">
+        <div className="w-full max-w-3xl bg-gradient-to-br from-neutral-900 to-black rounded-3xl shadow-2xl p-8 flex flex-col items-center border border-cyan-900/40">
+          <h2 className="text-4xl md:text-5xl font-bold mb-4 text-cyan-400 drop-shadow-glow text-center uppercase tracking-tight" style={{letterSpacing: '-1px'}}>{clase.titulo}</h2>
+          <p className="mb-6 text-cyan-200 text-lg text-center max-w-2xl">{clase.descripcion}</p>
+          <div className="w-full aspect-video bg-black rounded-2xl overflow-hidden mb-6 flex items-center justify-center border-2 border-cyan-900/30 shadow-lg">
             {/* Video protegido (ejemplo con Vimeo) */}
             <iframe
               src={clase.video_url + '?autoplay=0&title=0&byline=0&portrait=0'}
@@ -75,16 +82,16 @@ const ModuloDetalle = () => {
             />
           </div>
           {/* Botones de navegación */}
-          <div className="flex gap-4 mt-2">
+          <div className="flex gap-6 mt-2 justify-center">
             <button
-              className="bg-cyan-700 hover:bg-cyan-500 text-white px-4 py-2 rounded-full font-bold"
+              className="bg-cyan-700 hover:bg-cyan-500 text-white px-6 py-2 rounded-full font-bold text-lg shadow-md transition-all"
               onClick={() => setClaseActual((prev) => Math.max(prev - 1, 0))}
               disabled={claseActual === 0}
             >
               ← Anterior
             </button>
             <button
-              className="bg-cyan-700 hover:bg-cyan-500 text-white px-4 py-2 rounded-full font-bold"
+              className="bg-cyan-700 hover:bg-cyan-500 text-white px-6 py-2 rounded-full font-bold text-lg shadow-md transition-all"
               onClick={() => setClaseActual((prev) => Math.min(prev + 1, clases.length - 1))}
               disabled={claseActual === clases.length - 1}
             >
@@ -94,18 +101,23 @@ const ModuloDetalle = () => {
         </div>
       </div>
       {/* Sidebar de clases */}
-      <div className="w-full md:w-96 bg-neutral-950 p-6 flex flex-col gap-4">
-        <h3 className="text-xl font-bold mb-2 text-cyan-300">Clases del módulo</h3>
+      <div className="w-full md:w-[420px] bg-gradient-to-br from-neutral-950 to-black p-6 flex flex-col gap-5 rounded-3xl border-l border-cyan-900/30 shadow-2xl min-h-screen">
+        <h3 className="text-2xl font-bold mb-4 text-cyan-300 tracking-tight uppercase text-center">Clases del módulo</h3>
         {clases.map((c, idx) => (
           <div
             key={idx}
-            className={`flex items-center gap-4 p-3 rounded-xl cursor-pointer transition border ${idx === claseActual ? 'bg-cyan-900/30 border-cyan-400' : 'bg-neutral-900 border-neutral-800 hover:bg-cyan-900/10'}`}
+            className={`flex items-center gap-4 p-3 rounded-2xl cursor-pointer transition border-2 ${idx === claseActual ? 'bg-cyan-900/30 border-cyan-400 shadow-lg' : 'bg-neutral-900 border-neutral-800 hover:bg-cyan-900/10'} group`}
             onClick={() => setClaseActual(idx)}
+            style={{ minHeight: 90 }}
           >
-            <div className="w-16 h-12 bg-cyan-900/30 rounded-lg flex items-center justify-center text-cyan-300 font-bold text-lg">{idx + 1}</div>
-            <div>
-              <div className="font-bold text-cyan-200 text-base">{c.titulo}</div>
-              <div className="text-xs text-cyan-400">Video</div>
+            <img
+              src={c.miniatura_url || miniaturasDemo[idx % miniaturasDemo.length]}
+              alt={c.titulo}
+              className="w-24 h-16 object-cover rounded-xl border-2 border-cyan-800 group-hover:border-cyan-400 transition"
+            />
+            <div className="flex-1">
+              <div className="font-bold text-cyan-200 text-base uppercase tracking-tight group-hover:text-cyan-400 transition">{c.titulo}</div>
+              <div className="text-xs text-cyan-400 mt-1">Video</div>
             </div>
           </div>
         ))}
