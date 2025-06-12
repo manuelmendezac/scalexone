@@ -1054,6 +1054,7 @@ const CursoDetalle = () => {
                 onChange={handleComunidadPortadaUpload}
                 className="w-full p-2 rounded bg-neutral-800 border border-cyan-400 text-white"
               />
+              <span className="text-xs text-cyan-300 mt-1 block">Tamaño recomendado: <b>800x180px</b> (JPG o PNG)</span>
               {uploadingComunidadPortada && (
                 <div className="text-cyan-400 text-sm mt-2">Subiendo imagen...</div>
               )}
@@ -1061,17 +1062,18 @@ const CursoDetalle = () => {
                 <img
                   src={comunidadPortadaUrl}
                   alt="Portada comunidad"
-                  className="w-full h-32 object-cover rounded mt-2"
+                  className="w-full object-cover rounded mt-2"
+                  style={{height: '90px'}}
                 />
               )}
             </div>
           </div>
           <div className="flex gap-2 mt-4">
             <button
-              onClick={() => setEditComunidadPortadaOpen(false)}
+              onClick={handleSaveComunidad}
               className="flex-1 bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-2 rounded transition"
             >
-              Cerrar
+              Guardar
             </button>
           </div>
         </div>
