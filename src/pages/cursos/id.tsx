@@ -352,15 +352,18 @@ const CursoDetalle = () => {
           {modulos.map((mod, idx) => (
             <div key={idx} className="bg-neutral-900 rounded-2xl p-7 shadow-xl border border-neutral-800 flex flex-col h-full transition-all hover:shadow-2xl hover:border-cyan-400 group">
               {/* Icono grande arriba */}
-              <div className="flex flex-col items-center mb-4 relative">
-                <div className="relative">
-                  <CircularProgress percent={Math.floor(Math.random()*60+40)} />
-                  {/* Icono grande centrado dentro del círculo */}
-                  <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none z-20">
+              <div className="flex flex-col items-center mb-4">
+                <div className="flex flex-row items-center justify-center gap-6 w-full md:flex-row flex-col">
+                  {/* Barra de progreso circular */}
+                  <div className="flex flex-col items-center">
+                    <CircularProgress percent={Math.floor(Math.random()*60+40)} />
+                  </div>
+                  {/* Icono grande, ajustado automáticamente */}
+                  <div className="flex flex-col items-center">
                     {mod.icono ? (
-                      <img src={mod.icono} alt="icono" className="w-10 h-10 object-cover rounded-full border-2 border-cyan-400 bg-black/80" />
+                      <img src={mod.icono} alt="icono" className="w-16 h-16 md:w-20 md:h-20 object-cover rounded-full border-2 border-cyan-400 bg-black/80 shadow-lg" style={{minWidth: '64px', minHeight: '64px', maxWidth: '80px', maxHeight: '80px'}} />
                     ) : (
-                      <svg width="32" height="32" fill="none" stroke="#22d3ee" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-cyan-400"><circle cx="16" cy="16" r="13" /><path d="M24 24L20 20" /><circle cx="16" cy="16" r="5" /></svg>
+                      <svg width="64" height="64" fill="none" stroke="#22d3ee" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="text-cyan-400"><circle cx="32" cy="32" r="26" /><path d="M48 48L40 40" /><circle cx="32" cy="32" r="10" /></svg>
                     )}
                   </div>
                 </div>
@@ -467,6 +470,13 @@ const CursoDetalle = () => {
           ]}
         />
       </section>
+
+      {/* Media query para apilar en móvil */}
+      <style>{`
+        @media (max-width: 600px) {
+          .modulo-top-row { flex-direction: column !important; gap: 1.5rem !important; }
+        }
+      `}</style>
     </div>
   );
 };
