@@ -403,7 +403,8 @@ const CursoDetalle = () => {
     // Quitar id y poner orden al final
     const videosCat = videosComplementarios.filter(v => v.categoria === video.categoria);
     const maxOrden = videosCat.length > 0 ? Math.max(...videosCat.map(v => v.orden)) : 0;
-    const newVideo = { ...video, id: undefined, orden: maxOrden + 1 };
+    const { id, ...videoSinId } = video;
+    const newVideo = { ...videoSinId, orden: maxOrden + 1 };
     const { error } = await supabase.from('videos_complementarios').insert([newVideo]);
     if (error) {
       alert('Error al duplicar: ' + error.message);
