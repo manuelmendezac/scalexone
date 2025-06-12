@@ -1044,6 +1044,7 @@ const CursoDetalle = () => {
             <button
               onClick={handleSaveComunidad}
               className="flex-1 bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-2 rounded transition"
+              disabled={uploadingComunidadPortada}
             >
               Guardar
             </button>
@@ -1088,6 +1089,7 @@ const CursoDetalle = () => {
             <button
               onClick={handleSaveComunidad}
               className="flex-1 bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-2 rounded transition"
+              disabled={uploadingComunidadPortada}
             >
               Guardar
             </button>
