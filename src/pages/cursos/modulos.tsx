@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../../supabase';
 
 // Barra de progreso circular (copiada de id.tsx)
@@ -55,6 +55,7 @@ const focoSVG = (
 
 const ModulosCurso = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [modulos, setModulos] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [moduloActivo, setModuloActivo] = useState<number>(0);
@@ -124,9 +125,14 @@ const ModulosCurso = () => {
                   <div className="text-xl font-bold text-white mb-2 text-center uppercase">{clase.titulo}</div>
                   <div className="text-white/90 text-base mb-6 text-center">{clase.descripcion}</div>
                   <div className="flex gap-2 mt-auto justify-center">
-                    <button className="bg-white text-black font-bold py-2 px-6 rounded-full transition-all text-base shadow hover:bg-cyan-200">Iniciar</button>
+                    <button
+                      className="bg-white text-black font-bold py-2 px-6 rounded-full transition-all text-base shadow hover:bg-cyan-200"
+                      onClick={() => navigate(`/cursos/${id}/modulo/${moduloActivo}`)}
+                    >
+                      Iniciar
+                    </button>
                     <button className="flex items-center gap-1 border border-cyan-400 text-cyan-400 font-bold py-2 px-5 rounded-full transition-all text-base shadow hover:bg-cyan-900/20">
-                      Información <span className="ml-1">&rarr;</span>
+                      Ver clases <span className="ml-1">&rarr;</span>
                     </button>
                   </div>
                 </div>
