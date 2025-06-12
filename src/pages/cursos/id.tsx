@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { supabase } from '../../supabase';
 import useNeuroState from '../../store/useNeuroState';
-import { BookOpen, Users, Award, UploadCloud, Layers, PlayCircle, X } from 'lucide-react';
+import { BookOpen, Users, Award, UploadCloud, Layers, PlayCircle, X, Video, VideoIcon, VideoOff, Link2, ExternalLink, Users as UsersIcon, Calendar, Globe, Video as VideoLucide, VideoOff as VideoOffLucide } from 'lucide-react';
 import ModalFuturista from '../../components/ModalFuturista';
 import CertificacionSection from '../../components/CertificacionSection';
 
@@ -195,6 +195,19 @@ type VideoComplementario = {
   imagen: string;
   video_url: string;
   orden: number;
+};
+
+// Función para obtener el icono de la plataforma
+const getPlataformaIcon = (plataforma: string) => {
+  const p = plataforma.toLowerCase();
+  if (p.includes('zoom')) return <svg width="22" height="22" viewBox="0 0 48 48" fill="none"><rect width="48" height="48" rx="24" fill="#2D8CFF"/><path d="M34.5 20.5V27.5C34.5 28.3284 33.8284 29 33 29H15C14.1716 29 13.5 28.3284 13.5 27.5V20.5C13.5 19.6716 14.1716 19 15 19H33C33.8284 19 34.5 19.6716 34.5 20.5Z" fill="white"/><path d="M34.5 22.5L38 20.5V27.5L34.5 25.5V22.5Z" fill="white"/></svg>;
+  if (p.includes('meet')) return <svg width="22" height="22" viewBox="0 0 48 48" fill="none"><rect width="48" height="48" rx="24" fill="#00AC47"/><path d="M16 18V30H32V18H16ZM30 28H18V20H30V28Z" fill="white"/><path d="M34 20V28H36V20H34Z" fill="#FFBA00"/></svg>;
+  if (p.includes('teams')) return <svg width="22" height="22" viewBox="0 0 48 48" fill="none"><rect width="48" height="48" rx="24" fill="#5059C9"/><path d="M19 19H29V29H19V19Z" fill="white"/><path d="M23 23H25V25H23V23Z" fill="#5059C9"/></svg>;
+  if (p.includes('skype')) return <svg width="22" height="22" viewBox="0 0 48 48" fill="none"><rect width="48" height="48" rx="24" fill="#00AFF0"/><path d="M24 16C19.0294 16 15 20.0294 15 25C15 29.9706 19.0294 34 24 34C28.9706 34 33 29.9706 33 25C33 20.0294 28.9706 16 24 16ZM24 32C20.134 32 17 28.866 17 25C17 21.134 20.134 18 24 18C27.866 18 31 21.134 31 25C31 28.866 27.866 32 24 32Z" fill="white"/></svg>;
+  if (p.includes('youtube')) return <svg width="22" height="22" viewBox="0 0 48 48" fill="none"><rect width="48" height="48" rx="24" fill="#FF0000"/><path d="M20 18L32 24L20 30V18Z" fill="white"/></svg>;
+  if (p.includes('facebook')) return <svg width="22" height="22" viewBox="0 0 48 48" fill="none"><rect width="48" height="48" rx="24" fill="#1877F3"/><path d="M28 24H25V34H21V24H19V20H21V18.5C21 16.567 22.567 15 24.5 15H28V19H25C24.4477 19 24 19.4477 24 20V20H28V24Z" fill="white"/></svg>;
+  if (p.includes('google')) return <svg width="22" height="22" viewBox="0 0 48 48" fill="none"><rect width="48" height="48" rx="24" fill="#4285F4"/><path d="M24 34C29.5228 34 34 29.5228 34 24C34 18.4772 29.5228 14 24 14C18.4772 14 14 18.4772 14 24C14 29.5228 18.4772 34 24 34Z" fill="white"/></svg>;
+  return <Globe className="text-cyan-400" size={22} />;
 };
 
 const CursoDetalle = () => {
@@ -943,11 +956,16 @@ const CursoDetalle = () => {
             <div className="flex flex-col gap-5">
               {eventosForm.map((ev, idx) => (
                 <div key={idx} className="bg-neutral-800 rounded-xl p-5 flex flex-col md:flex-row md:items-center gap-3 shadow-lg border-l-8 border-cyan-500">
-                  <div className="flex-1">
-                    <div className="text-lg font-bold text-white mb-1">{ev.titulo}</div>
-                    <div className="text-cyan-300 font-semibold mb-1">{ev.dia} {ev.hora} - {ev.plataforma}</div>
+                  <div className="flex-1 flex items-center gap-3">
+                    {getPlataformaIcon(ev.plataforma)}
+                    <div>
+                      <div className="text-lg font-bold text-white mb-1">{ev.titulo}</div>
+                      <div className="text-cyan-300 font-semibold mb-1">{ev.dia} {ev.hora} - {ev.plataforma}</div>
+                    </div>
                   </div>
-                  <a href={ev.url} className="bg-white text-black font-bold px-6 py-2 rounded-full shadow hover:bg-cyan-200 transition">Unirse</a>
+                  <a href={ev.url} target="_blank" rel="noopener noreferrer" className="bg-white text-black font-bold px-6 py-2 rounded-full shadow hover:bg-cyan-200 transition flex items-center gap-2">
+                    <ExternalLink size={18} /> Unirse
+                  </a>
                 </div>
               ))}
             </div>
