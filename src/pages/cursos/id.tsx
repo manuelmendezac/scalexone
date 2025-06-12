@@ -927,43 +927,17 @@ const CursoDetalle = () => {
             </div>
             <p className="text-lg text-white/80 mb-4">{comunidadForm.descripcion}</p>
             <div className="flex flex-col gap-3">
-              {comunidadForm.links.map((link: any, index: number) => (
-                <div key={index} className="flex gap-2 items-center">
-                  <input
-                    value={link.texto}
-                    onChange={(e) => handleComunidadLinkChange(index, 'texto', e.target.value)}
-                    className="flex-1 p-2 rounded bg-neutral-800 border border-cyan-400 text-white"
-                    placeholder="Texto del enlace"
-                  />
-                  <input
-                    value={link.url || ''}
-                    onChange={(e) => handleComunidadLinkChange(index, 'url', e.target.value)}
-                    className="flex-1 p-2 rounded bg-neutral-800 border border-cyan-400 text-white"
-                    placeholder="URL del enlace"
-                  />
-                  <select
-                    value={link.color}
-                    onChange={(e) => handleComunidadLinkChange(index, 'color', e.target.value)}
-                    className="p-2 rounded bg-neutral-800 border border-cyan-400 text-white"
-                  >
-                    <option value="red">Rojo</option>
-                    <option value="green">Verde</option>
-                    <option value="blue">Azul</option>
-                  </select>
-                  <button
-                    onClick={() => handleRemoveComunidadLink(index)}
-                    className="p-2 text-red-400 hover:text-red-300"
-                  >
-                    <X size={20} />
-                  </button>
-                </div>
+              {comunidadForm.links.map((link: any, idx: number) => (
+                <a
+                  key={idx}
+                  href={link.url || '#'}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={`flex items-center gap-2 px-5 py-3 rounded-lg font-bold text-lg shadow transition-all ${link.color === 'red' ? 'bg-red-600 text-white' : link.color === 'green' ? 'bg-green-500 text-white' : 'bg-blue-600 text-white'}`}
+                >
+                  {link.texto}
+                </a>
               ))}
-              <button
-                onClick={handleAddComunidadLink}
-                className="text-cyan-400 hover:text-cyan-300 text-sm font-semibold"
-              >
-                + Agregar enlace
-              </button>
             </div>
           </div>
         </div>
