@@ -604,111 +604,118 @@ const CursoDetalle = () => {
         </ModalFuturista>
       </section>
 
-      {/* Complementario */}
-      <section className="complementario mb-10">
-        <h2 className="text-2xl font-bold mb-4">Complementario</h2>
-        {categoriasComplementario.map(cat => {
-          const videosCat = videosComplementarios.filter(v => v.categoria === cat.key);
-          const page = videoPage[cat.key] || 0;
-          const totalPages = Math.ceil(videosCat.length / 3);
-          return (
-            <div key={cat.key} className="mb-8">
-              <h3 className="text-xl font-bold mb-3">{cat.label}</h3>
-              <div className="flex items-center gap-2 mb-2">
-                {totalPages > 1 && (
-                  <>
-                    <button onClick={() => handlePrevPage(cat.key)} disabled={page === 0} className="px-2 py-1 rounded-full bg-cyan-800 text-white disabled:opacity-40">◀</button>
-                    <span className="text-cyan-300 text-xs">Página {page + 1} de {totalPages}</span>
-                    <button onClick={() => handleNextPage(cat.key, videosCat.length)} disabled={page >= totalPages - 1} className="px-2 py-1 rounded-full bg-cyan-800 text-white disabled:opacity-40">▶</button>
-                  </>
-                )}
-              </div>
-              <div className="flex flex-wrap gap-6">
-                {videosCat.slice(page * 3, page * 3 + 3).map((video, idx) => (
-                  <div key={video.id} className="bg-neutral-900 rounded-xl p-0 overflow-hidden shadow-lg w-[340px] min-h-[210px] flex flex-col relative group">
-                    <div className="relative w-full h-[170px] bg-black">
-                      <img src={video.imagen} alt={video.titulo} className="w-full h-full object-cover" />
-                      <button
-                        className="absolute bottom-3 left-1/2 -translate-x-1/2 bg-red-600 hover:bg-red-700 text-white font-bold py-1.5 px-4 rounded-full flex items-center gap-2 text-base shadow-lg z-10"
-                        style={{minWidth: '110px'}}
-                        onClick={() => setVideoModal({ url: video.video_url, titulo: video.titulo })}
-                      >
-                        <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><polygon points="6,4 20,11 6,18" fill="currentColor" /></svg>
-                        Ver Ahora
-                      </button>
-                    </div>
-                    <div className="p-4 flex-1 flex flex-col justify-between">
-                      <div>
-                        <div className="text-green-400 text-xs font-bold mb-1">{cat.label}</div>
-                        <div className="text-white font-bold text-base mb-1 leading-tight">{video.titulo}</div>
-                        <div className="text-green-300 text-sm font-semibold">{video.ponente}</div>
+      {/* Complementario centrado */}
+      <section className="complementario mb-10 w-full flex justify-center">
+        <div className="w-full max-w-6xl">
+          <h2 className="text-2xl font-bold mb-4 text-center">Complementario</h2>
+          {categoriasComplementario.map(cat => {
+            const videosCat = videosComplementarios.filter(v => v.categoria === cat.key);
+            const page = videoPage[cat.key] || 0;
+            const totalPages = Math.ceil(videosCat.length / 3);
+            return (
+              <div key={cat.key} className="mb-8">
+                <h3 className="text-xl font-bold mb-3 text-center">{cat.label}</h3>
+                <div className="flex items-center gap-2 mb-2 justify-center">
+                  {totalPages > 1 && (
+                    <>
+                      <button onClick={() => handlePrevPage(cat.key)} disabled={page === 0} className="px-2 py-1 rounded-full bg-cyan-800 text-white disabled:opacity-40">◀</button>
+                      <span className="text-cyan-300 text-xs">Página {page + 1} de {totalPages}</span>
+                      <button onClick={() => handleNextPage(cat.key, videosCat.length)} disabled={page >= totalPages - 1} className="px-2 py-1 rounded-full bg-cyan-800 text-white disabled:opacity-40">▶</button>
+                    </>
+                  )}
+                </div>
+                <div className="flex flex-wrap gap-6 justify-center">
+                  {videosCat.slice(page * 3, page * 3 + 3).map((video, idx) => (
+                    <div key={video.id} className="bg-neutral-900 rounded-xl p-0 overflow-hidden shadow-lg w-[340px] min-h-[210px] flex flex-col relative group">
+                      <div className="relative w-full h-[170px] bg-black">
+                        <img src={video.imagen} alt={video.titulo} className="w-full h-full object-cover" />
+                        <button
+                          className="absolute bottom-3 left-1/2 -translate-x-1/2 bg-red-600 hover:bg-red-700 text-white font-bold py-1.5 px-4 rounded-full flex items-center gap-2 text-base shadow-lg z-10"
+                          style={{minWidth: '110px'}}
+                          onClick={() => setVideoModal({ url: video.video_url, titulo: video.titulo })}
+                        >
+                          <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><polygon points="6,4 20,11 6,18" fill="currentColor" /></svg>
+                          Ver Ahora
+                        </button>
                       </div>
-                      {isAdmin && (
-                        <div className="flex gap-2 mt-2">
-                          <button className="text-xs text-cyan-400 underline" onClick={() => handleEditVideo(video)}>Editar</button>
-                          <button className="text-xs text-yellow-400 underline" onClick={() => handleDuplicateVideo(video)}>Duplicar</button>
-                          <button className="text-xs text-red-400 underline" onClick={() => handleDeleteVideo(video)}>Eliminar</button>
+                      <div className="p-4 flex-1 flex flex-col justify-between">
+                        <div>
+                          <div className="text-green-400 text-xs font-bold mb-1">{cat.label}</div>
+                          <div className="text-white font-bold text-base mb-1 leading-tight">{video.titulo}</div>
+                          <div className="text-green-300 text-sm font-semibold">{video.ponente}</div>
                         </div>
-                      )}
+                        {isAdmin && (
+                          <div className="flex gap-2 mt-2">
+                            <button className="text-xs text-cyan-400 underline" onClick={() => handleEditVideo(video)}>Editar</button>
+                            <button className="text-xs text-yellow-400 underline" onClick={() => handleDuplicateVideo(video)}>Duplicar</button>
+                            <button className="text-xs text-red-400 underline" onClick={() => handleDeleteVideo(video)}>Eliminar</button>
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
-            </div>
-          );
-        })}
-        {/* Modal de video fullscreen */}
-        <ModalFuturista open={!!videoModal} onClose={() => setVideoModal(null)}>
-          {videoModal && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/95">
-              <button
-                onClick={() => setVideoModal(null)}
-                className="absolute top-4 right-4 text-white text-2xl z-50 bg-black/60 rounded-full p-2 hover:bg-black/90"
-                aria-label="Cerrar video"
-              >×</button>
-              <div className="w-full max-w-4xl aspect-video flex flex-col items-center justify-center">
-                <iframe
-                  src={videoModal.url.replace('watch?v=', 'embed/')}
-                  title={videoModal.titulo}
-                  className="w-full h-full rounded-xl"
-                  allowFullScreen
-                />
+            );
+          })}
+          {/* Modal de video fullscreen */}
+          <ModalFuturista open={!!videoModal} onClose={() => setVideoModal(null)}>
+            {videoModal && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/95">
+                <button
+                  onClick={() => setVideoModal(null)}
+                  className="absolute top-4 right-4 text-white text-2xl z-50 bg-black/60 rounded-full p-2 hover:bg-black/90"
+                  aria-label="Cerrar video"
+                >×</button>
+                <div className="w-full max-w-4xl aspect-video flex flex-col items-center justify-center">
+                  <iframe
+                    src={videoModal.url.replace('watch?v=', 'embed/')}
+                    title={videoModal.titulo}
+                    className="w-full h-full rounded-xl"
+                    allowFullScreen
+                  />
+                </div>
               </div>
-            </div>
-          )}
-        </ModalFuturista>
-        {/* Modal de edición de video */}
-        <ModalFuturista open={!!editVideo} onClose={() => setEditVideo(null)}>
-          {editVideo && (
-            <form className="flex flex-col gap-4 p-6 min-w-[320px] max-w-[420px] w-full" style={{maxWidth: 420}} onSubmit={e => { e.preventDefault(); handleSaveEditVideo(); }}>
-              <div className="font-bold text-lg mb-2 text-cyan-400">Editar video</div>
-              <label className="text-cyan-300 font-semibold">Título</label>
-              <input name="titulo" value={editVideoForm.titulo || ''} onChange={handleEditVideoChange} className="p-2 rounded bg-neutral-800 border border-cyan-400 text-white" required />
-              <label className="text-cyan-300 font-semibold">Ponente</label>
-              <input name="ponente" value={editVideoForm.ponente || ''} onChange={handleEditVideoChange} className="p-2 rounded bg-neutral-800 border border-cyan-400 text-white" required />
-              <label className="text-cyan-300 font-semibold">Miniatura</label>
-              <input type="file" accept="image/*" onChange={handleThumbUpload} />
-              {uploadingThumb && <span className="text-xs text-cyan-400">Subiendo miniatura...</span>}
-              {editVideoForm.imagen && (
-                <img src={editVideoForm.imagen} alt="miniatura" className="w-32 h-20 object-cover rounded mt-2" />
-              )}
-              <label className="text-cyan-300 font-semibold">Enlace de video (YouTube, Vimeo, etc.)</label>
-              <input name="video_url" value={editVideoForm.video_url || ''} onChange={handleEditVideoChange} className="p-2 rounded bg-neutral-800 border border-cyan-400 text-white" required />
-              <div className="flex gap-2 mt-4">
-                <button type="submit" className="flex-1 bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-2 rounded transition">Guardar</button>
-                <button type="button" className="flex-1 bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 rounded transition" onClick={() => setEditVideo(null)}>Cancelar</button>
-              </div>
-            </form>
-          )}
-        </ModalFuturista>
+            )}
+          </ModalFuturista>
+          {/* Modal de edición de video */}
+          <ModalFuturista open={!!editVideo} onClose={() => setEditVideo(null)}>
+            {editVideo && (
+              <form className="flex flex-col gap-4 p-6 min-w-[320px] max-w-[420px] w-full" style={{maxWidth: 420}} onSubmit={e => { e.preventDefault(); handleSaveEditVideo(); }}>
+                <div className="font-bold text-lg mb-2 text-cyan-400">Editar video</div>
+                <label className="text-cyan-300 font-semibold">Título</label>
+                <input name="titulo" value={editVideoForm.titulo || ''} onChange={handleEditVideoChange} className="p-2 rounded bg-neutral-800 border border-cyan-400 text-white" required />
+                <label className="text-cyan-300 font-semibold">Ponente</label>
+                <input name="ponente" value={editVideoForm.ponente || ''} onChange={handleEditVideoChange} className="p-2 rounded bg-neutral-800 border border-cyan-400 text-white" required />
+                <label className="text-cyan-300 font-semibold">Miniatura</label>
+                <input type="file" accept="image/*" onChange={handleThumbUpload} />
+                {uploadingThumb && <span className="text-xs text-cyan-400">Subiendo miniatura...</span>}
+                {editVideoForm.imagen && (
+                  <img src={editVideoForm.imagen} alt="miniatura" className="w-32 h-20 object-cover rounded mt-2" />
+                )}
+                <label className="text-cyan-300 font-semibold">Enlace de video (YouTube, Vimeo, etc.)</label>
+                <input name="video_url" value={editVideoForm.video_url || ''} onChange={handleEditVideoChange} className="p-2 rounded bg-neutral-800 border border-cyan-400 text-white" required />
+                <div className="flex gap-2 mt-4">
+                  <button type="submit" className="flex-1 bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-2 rounded transition">Guardar</button>
+                  <button type="button" className="flex-1 bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 rounded transition" onClick={() => setEditVideo(null)}>Cancelar</button>
+                </div>
+              </form>
+            )}
+          </ModalFuturista>
+        </div>
       </section>
 
-      {/* Comunidad y Eventos en dos columnas */}
+      {/* Comunidad y Eventos en dos columnas con portada */}
       <section className="comunidad-eventos-grid w-full max-w-6xl mx-auto mb-12 grid grid-cols-1 md:grid-cols-2 gap-8">
         {/* Comunidad */}
         <div className="relative bg-neutral-900 rounded-2xl shadow-xl overflow-hidden flex flex-col justify-between min-h-[340px]">
-          {/* Imagen de fondo a la derecha */}
-          <div className="absolute inset-0 right-0 w-1/2 h-full bg-cover bg-center" style={{backgroundImage: `url('/img/comunidad-demo.jpg')`, opacity: 0.18, pointerEvents: 'none'}} />
+          {/* Portada pequeña */}
+          <div className="w-full h-32 bg-cover bg-center" style={{backgroundImage: `url('/img/comunidad-demo.jpg')`}} />
+          <div className="absolute top-4 right-4 z-20">
+            {isAdmin && (
+              <button className="text-xs bg-cyan-700 hover:bg-cyan-500 text-white px-3 py-1 rounded-full font-bold shadow" /*onClick={abrirModalComunidadPortada}*/>Editar portada</button>
+            )}
+          </div>
           <div className="relative z-10 flex flex-col h-full p-8 gap-6 justify-center">
             <div className="flex items-center justify-between mb-2">
               <h2 className="text-3xl font-bold mb-2 text-white">{mockCurso.comunidad.titulo}</h2>
@@ -725,23 +732,32 @@ const CursoDetalle = () => {
           </div>
         </div>
         {/* Eventos */}
-        <div className="relative bg-neutral-900 rounded-2xl shadow-xl overflow-hidden flex flex-col min-h-[340px] p-8">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-3xl font-bold text-white">Eventos</h2>
+        <div className="relative bg-neutral-900 rounded-2xl shadow-xl overflow-hidden flex flex-col min-h-[340px] p-0">
+          {/* Portada pequeña */}
+          <div className="w-full h-32 bg-cover bg-center" style={{backgroundImage: `url('/img/eventos-demo.jpg')`}} />
+          <div className="absolute top-4 right-4 z-20">
             {isAdmin && (
-              <button className="text-xs bg-cyan-700 hover:bg-cyan-500 text-white px-3 py-1 rounded-full font-bold shadow" /*onClick={abrirModalEventos}*/>Editar</button>
+              <button className="text-xs bg-cyan-700 hover:bg-cyan-500 text-white px-3 py-1 rounded-full font-bold shadow" /*onClick={abrirModalEventosPortada}*/>Editar portada</button>
             )}
           </div>
-          <div className="flex flex-col gap-5">
-            {mockCurso.eventos.map((ev, idx) => (
-              <div key={idx} className="bg-neutral-800 rounded-xl p-5 flex flex-col md:flex-row md:items-center gap-3 shadow-lg border-l-8 border-cyan-500">
-                <div className="flex-1">
-                  <div className="text-lg font-bold text-white mb-1">{ev.titulo}</div>
-                  <div className="text-cyan-300 font-semibold mb-1">{ev.dia} {ev.hora} - {ev.plataforma}</div>
+          <div className="relative z-10 flex flex-col h-full p-8 gap-6 justify-center">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-3xl font-bold text-white">Eventos</h2>
+              {isAdmin && (
+                <button className="text-xs bg-cyan-700 hover:bg-cyan-500 text-white px-3 py-1 rounded-full font-bold shadow" /*onClick={abrirModalEventos}*/>Editar</button>
+              )}
+            </div>
+            <div className="flex flex-col gap-5">
+              {mockCurso.eventos.map((ev, idx) => (
+                <div key={idx} className="bg-neutral-800 rounded-xl p-5 flex flex-col md:flex-row md:items-center gap-3 shadow-lg border-l-8 border-cyan-500">
+                  <div className="flex-1">
+                    <div className="text-lg font-bold text-white mb-1">{ev.titulo}</div>
+                    <div className="text-cyan-300 font-semibold mb-1">{ev.dia} {ev.hora} - {ev.plataforma}</div>
+                  </div>
+                  <a href="#" className="bg-white text-black font-bold px-6 py-2 rounded-full shadow hover:bg-cyan-200 transition">Unirse</a>
                 </div>
-                <a href="#" className="bg-white text-black font-bold px-6 py-2 rounded-full shadow hover:bg-cyan-200 transition">Unirse</a>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </div>
       </section>
