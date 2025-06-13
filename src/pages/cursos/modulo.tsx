@@ -23,6 +23,7 @@ const ModuloDetalle = () => {
   const [editorError, setEditorError] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [nuevoVideo, setNuevoVideo] = useState<any>({ titulo: '', descripcion: '', url: '', miniatura_url: '', orden: 0 });
+  const [fullscreen, setFullscreen] = useState(false);
 
   useEffect(() => {
     async function fetchData() {
@@ -135,6 +136,9 @@ const ModuloDetalle = () => {
   const clase = clases[claseActual] || {};
   const embedUrl = toEmbedUrl(clase.url);
 
+  // Ordenar videos por el campo 'orden' antes de renderizar
+  const clasesOrdenadas = [...clases].sort((a, b) => (a.orden || 0) - (b.orden || 0));
+
   const handleMiniaturaUpload = async (file: File, idx: number | null = null) => {
     if (!file) return;
     setEditorLoading(true);
@@ -229,18 +233,31 @@ const ModuloDetalle = () => {
   return (
     <div className="min-h-screen bg-black text-white flex flex-col md:flex-row">
       {/* Panel principal mejorado */}
-      <div className="flex-1 flex flex-col items-center justify-center p-4 md:p-12">
-        <div className="w-full max-w-5xl bg-gradient-to-br from-neutral-950 to-black rounded-3xl shadow-2xl p-0 md:p-0 flex flex-col items-center border border-cyan-900/40">
+      <div className={`flex-1 flex flex-col items-center justify-center p-2 md:p-8 transition-all duration-300 ${fullscreen ? 'fixed inset-0 z-50 bg-black' : ''}`}
+        style={fullscreen ? {maxWidth: '100vw', maxHeight: '100vh'} : {}}>
+        <div className={`w-full ${fullscreen ? '' : 'max-w-6xl'} bg-gradient-to-br from-neutral-950 to-black rounded-3xl shadow-2xl p-0 md:p-0 flex flex-col items-center border border-cyan-900/40`}>
           {/* Video grande y protagonista, sin bordes extras */}
-          <div className="w-full aspect-video bg-black rounded-t-3xl overflow-hidden flex items-center justify-center border-b-4 border-cyan-900/30 shadow-lg" style={{maxWidth: '100%', minHeight: 320}}>
+          <div className={`relative w-full aspect-video bg-black ${fullscreen ? '' : 'rounded-t-3xl'} overflow-hidden flex items-center justify-center border-b-4 border-cyan-900/30 shadow-lg`} style={fullscreen ? {minHeight: 400, maxHeight: '90vh'} : {minHeight: 400, maxHeight: 700}}>
+            {/* Botón pantalla completa */}
+            <button
+              className="absolute top-4 right-4 z-20 bg-cyan-700 hover:bg-cyan-500 text-white p-2 rounded-full shadow-lg border border-cyan-400 transition"
+              onClick={() => setFullscreen(f => !f)}
+              title={fullscreen ? 'Salir de pantalla completa' : 'Ver en pantalla completa'}
+            >
+              {fullscreen ? (
+                <svg width="28" height="28" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 19L5 23M5 23h6M5 23v-6M19 9l4-4m0 0v6m0-6h-6"/></svg>
+              ) : (
+                <svg width="28" height="28" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 9V5h4M19 5h4v4M5 19v4h4M19 23h4v-4"/></svg>
+              )}
+            </button>
             {embedUrl ? (
               <iframe
                 src={embedUrl + '?autoplay=0&title=0&byline=0&portrait=0'}
                 title={clase.titulo}
-                className="w-full h-full min-h-[320px]"
+                className="w-full h-full min-h-[400px]"
                 allow="autoplay; fullscreen"
                 allowFullScreen
-                style={{ border: 'none', width: '100%', height: '100%', aspectRatio: '16/9', maxHeight: 640 }}
+                style={{ border: 'none', width: '100%', height: '100%', aspectRatio: '16/9', maxHeight: fullscreen ? '90vh' : 700 }}
               />
             ) : (
               <div className="w-full h-full flex items-center justify-center text-cyan-400 text-lg">No hay video para mostrar</div>
@@ -271,8 +288,9 @@ const ModuloDetalle = () => {
           </div>
         </div>
       </div>
-      {/* Sidebar elegante y jerarquía visual mejorada */}
-      <div className="w-full md:w-[420px] bg-gradient-to-br from-neutral-950 to-black p-8 flex flex-col gap-6 rounded-3xl border-l-4 border-cyan-900/30 shadow-2xl min-h-screen">
+      {/* Sidebar elegante y angosta */}
+      <div className="w-full md:w-[320px] bg-gradient-to-br from-neutral-950 to-black p-4 md:p-6 flex flex-col gap-6 rounded-3xl border-l-4 border-cyan-900/30 shadow-2xl min-h-screen transition-all duration-300">
+        {/* Solo mostrar el botón de editar si es admin */}
         {isAdmin && (
           <button
             className="mb-6 px-6 py-3 rounded-full bg-cyan-700 hover:bg-cyan-500 text-white font-bold shadow transition-all text-lg w-full"
@@ -282,8 +300,8 @@ const ModuloDetalle = () => {
           </button>
         )}
         <h3 className="text-3xl font-bold mb-6 text-cyan-300 tracking-tight uppercase text-center drop-shadow-glow">Clases del módulo</h3>
-        {clases.length === 0 && <div className="text-cyan-400 text-center">No hay videos cargados. Usa el editor admin para agregar clases.</div>}
-        {clases.map((c, idx) => (
+        {clasesOrdenadas.length === 0 && <div className="text-cyan-400 text-center">No hay videos cargados. Usa el editor admin para agregar clases.</div>}
+        {clasesOrdenadas.map((c, idx) => (
           <div
             key={c.id || idx}
             className={`flex items-center gap-4 p-4 rounded-2xl cursor-pointer transition border-2 ${idx === claseActual ? 'bg-cyan-900/30 border-cyan-400 shadow-lg' : 'bg-neutral-900 border-neutral-800 hover:bg-cyan-900/10'} group`}
@@ -293,7 +311,7 @@ const ModuloDetalle = () => {
             <img
               src={c.miniatura_url || '/images/placeholder-video.png'}
               alt={c.titulo}
-              className="w-24 h-16 object-cover rounded-xl border-2 border-cyan-800 group-hover:border-cyan-400 transition"
+              className="w-16 h-12 object-cover rounded-xl border-2 border-cyan-800 group-hover:border-cyan-400 transition"
             />
             <div className="flex-1">
               <div className="font-bold text-cyan-200 text-lg uppercase tracking-tight group-hover:text-cyan-400 transition">{c.titulo}</div>
