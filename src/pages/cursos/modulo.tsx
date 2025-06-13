@@ -5,6 +5,7 @@ import { supabase } from '../../supabase';
 import ModalFuturista from '../../components/ModalFuturista';
 import { createClient } from '@supabase/supabase-js';
 import useNeuroState from '../../store/useNeuroState';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 const supabaseUrl = process.env.REACT_APP_SUPABASE_URL || import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = process.env.REACT_APP_SUPABASE_ANON_KEY || import.meta.env.VITE_SUPABASE_ANON_KEY;
@@ -307,20 +308,22 @@ const ModuloDetalle = () => {
             </span>
           </div>
           {/* Botones de navegación */}
-          <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 md:gap-6 mt-2 mb-4 sm:mb-8 justify-center flex-wrap px-1 sm:px-2 md:px-0 w-full max-w-xs mx-auto" style={fullscreen ? {marginBottom: 32, marginTop: 16, zIndex: 20} : {}}>
+          <div className="flex gap-4 mt-2 justify-center">
             <button
-              className="bg-cyan-700 hover:bg-cyan-500 text-white px-4 sm:px-6 md:px-8 py-2 md:py-3 rounded-full font-bold text-base md:text-lg shadow-md transition-all w-full"
+              className="bg-cyan-700 hover:bg-cyan-500 text-white p-2 rounded-full shadow-md transition-all disabled:opacity-40"
               onClick={() => setClaseActual((prev) => Math.max(prev - 1, 0))}
               disabled={claseActual === 0}
+              aria-label="Anterior"
             >
-              ← Anterior
+              <ChevronLeft className="w-6 h-6" />
             </button>
             <button
-              className="bg-cyan-700 hover:bg-cyan-500 text-white px-4 sm:px-6 md:px-8 py-2 md:py-3 rounded-full font-bold text-base md:text-lg shadow-md transition-all w-full"
+              className="bg-cyan-700 hover:bg-cyan-500 text-white p-2 rounded-full shadow-md transition-all disabled:opacity-40"
               onClick={() => setClaseActual((prev) => Math.min(prev + 1, clasesOrdenadas.length - 1))}
               disabled={esUltimoVideo}
+              aria-label="Siguiente"
             >
-              Siguiente →
+              <ChevronRight className="w-6 h-6" />
             </button>
           </div>
         </div>
@@ -351,11 +354,13 @@ const ModuloDetalle = () => {
             onClick={() => setClaseActual(claseActual + idx + 1)}
             style={{ minHeight: 60, fontSize: '0.98rem' }}
           >
-            <img
-              src={c.miniatura_url || '/images/placeholder-video.png'}
-              alt={c.titulo}
-              className="w-12 h-9 sm:w-16 sm:h-12 object-cover rounded-xl border-2 border-cyan-800 group-hover:border-cyan-400 transition"
-            />
+            {c.miniatura_url ? (
+              <img src={c.miniatura_url} alt={c.titulo} className="w-16 h-12 object-cover rounded-xl border-2 border-cyan-800 group-hover:border-cyan-400 transition" />
+            ) : c.url ? (
+              <video src={c.url} className="w-16 h-12 object-cover rounded-xl border-2 border-cyan-800 group-hover:border-cyan-400 transition" muted playsInline preload="metadata" style={{pointerEvents:'none'}} />
+            ) : (
+              <div className="w-16 h-12 bg-cyan-950 rounded-xl flex items-center justify-center text-cyan-400">Sin video</div>
+            )}
             <div className="flex-1">
               <div className="font-bold text-cyan-200 text-base sm:text-lg uppercase tracking-tight group-hover:text-cyan-400 transition">{c.titulo}</div>
               <div className="text-xs text-cyan-400 mt-1">Video</div>
