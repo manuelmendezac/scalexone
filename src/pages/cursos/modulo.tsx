@@ -36,12 +36,23 @@ const ModuloDetalle = () => {
       // 2. Buscar el id real del módulo en la tabla 'modulos' usando el curso y el título
       let moduloReal = null;
       if (mod.titulo) {
-        const { data: modData } = await supabase
+        let { data: modData } = await supabase
           .from('modulos')
           .select('*')
           .eq('curso_id', id)
           .eq('titulo', mod.titulo)
           .single();
+        // Si no existe, crearlo automáticamente
+        if (!modData) {
+          const { data: newMod, error: insertError } = await supabase
+            .from('modulos')
+            .insert([{ curso_id: id, titulo: mod.titulo, descripcion: mod.descripcion || '', nivel: mod.nivel || '', orden: idx }])
+            .select()
+            .single();
+          if (!insertError && newMod) {
+            modData = newMod;
+          }
+        }
         moduloReal = modData;
       }
       // 3. Si existe, usar el id real; si no, fallback al objeto embebido
