@@ -59,6 +59,7 @@ const ModulosCurso = () => {
   const [modulos, setModulos] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [moduloActivo, setModuloActivo] = useState<number>(0);
+  const [videosModulo, setVideosModulo] = useState<any[]>([]);
 
   useEffect(() => {
     async function fetchData() {
@@ -71,6 +72,34 @@ const ModulosCurso = () => {
     }
     if (id) fetchData();
   }, [id]);
+
+  useEffect(() => {
+    async function fetchVideosModulo() {
+      if (!modulos[moduloActivo] || !modulos[moduloActivo].titulo) {
+        setVideosModulo([]);
+        return;
+      }
+      // Buscar el id real del módulo
+      const { data: moduloReal } = await supabase
+        .from('modulos_curso')
+        .select('id')
+        .eq('curso_id', id)
+        .eq('titulo', modulos[moduloActivo].titulo)
+        .maybeSingle();
+      if (!moduloReal?.id) {
+        setVideosModulo([]);
+        return;
+      }
+      // Traer videos reales
+      const { data: videosData } = await supabase
+        .from('videos_modulo')
+        .select('*')
+        .eq('modulo_id', moduloReal.id)
+        .order('orden', { ascending: true });
+      setVideosModulo(videosData || []);
+    }
+    if (modulos.length > 0) fetchVideosModulo();
+  }, [modulos, moduloActivo, id]);
 
   if (loading) return <div className="text-cyan-400 text-center py-10">Cargando módulos...</div>;
 
@@ -93,16 +122,16 @@ const ModulosCurso = () => {
           <h2 className="text-2xl font-bold text-white mb-2">{modulos[moduloActivo].titulo}</h2>
           <p className="text-white/80 mb-6">{modulos[moduloActivo].descripcion}</p>
           <div className="grid md:grid-cols-3 gap-8">
-            {/* Renderizar tarjetas de clases/contenidos */}
-            {Array.isArray(modulos[moduloActivo].clases) ? (
-              modulos[moduloActivo].clases.map((clase: any, idx: number) => (
-                <div key={idx} className="bg-neutral-900 rounded-2xl p-8 shadow-xl flex flex-col min-h-[340px] justify-between border border-neutral-800">
+            {/* Renderizar tarjetas de videos reales */}
+            {videosModulo.length > 0 ? (
+              videosModulo.map((video, idx) => (
+                <div key={video.id} className="bg-neutral-900 rounded-2xl p-8 shadow-xl flex flex-col min-h-[340px] justify-between border border-neutral-800">
                   <div className="flex flex-col items-center mb-4">
                     <div className="mb-2">{focoSVG}</div>
                     <CircularProgress percent={Math.floor(Math.random()*60+40)} size={54} stroke={7} />
                   </div>
-                  <div className="text-xl font-bold text-white mb-2 text-center uppercase">{clase.titulo}</div>
-                  <div className="text-white/90 text-base mb-6 text-center">{clase.descripcion}</div>
+                  <div className="text-xl font-bold text-white mb-2 text-center uppercase">{video.titulo}</div>
+                  <div className="text-white/90 text-base mb-6 text-center">{video.descripcion}</div>
                   <div className="flex gap-2 mt-auto justify-center">
                     <button
                       className="bg-white text-black font-bold py-2 px-6 rounded-full transition-all text-base shadow hover:bg-cyan-200"
@@ -110,14 +139,11 @@ const ModulosCurso = () => {
                     >
                       Iniciar
                     </button>
-                    <button className="flex items-center gap-1 border border-cyan-400 text-cyan-400 font-bold py-2 px-5 rounded-full transition-all text-base shadow hover:bg-cyan-900/20">
-                      Ver clases <span className="ml-1">&rarr;</span>
-                    </button>
                   </div>
                 </div>
               ))
             ) : (
-              <div className="text-cyan-300 col-span-3 text-center">No hay clases cargadas para este módulo.</div>
+              <div className="text-cyan-300 col-span-3 text-center">No hay videos cargados para este módulo.</div>
             )}
           </div>
         </div>
