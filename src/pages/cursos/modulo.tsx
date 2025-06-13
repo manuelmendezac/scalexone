@@ -130,19 +130,22 @@ const ModuloDetalle = () => {
   }, [userInfo?.email]);
 
   useEffect(() => {
-    if (!modulo?.id) return;
+    // Usar el id de la tabla modulos si está disponible, si no, usar el id de useParams
+    const moduloId = modulo?.id || id;
+    if (!moduloId) return;
     setEditorLoading(true);
     supabase
       .from('videos_modulo')
       .select('*')
-      .eq('modulo_id', modulo.id)
+      .eq('modulo_id', moduloId)
       .order('orden', { ascending: true })
       .then(({ data, error }) => {
         if (error) setEditorError('Error al cargar videos: ' + error.message);
         setVideos(data || []);
+        setClases(data || []);
         setEditorLoading(false);
       });
-  }, [modulo?.id, showEditor]);
+  }, [modulo?.id, id, showEditor]);
 
   // Utilidad para transformar links normales a embed
   function toEmbedUrl(url: string): string {
