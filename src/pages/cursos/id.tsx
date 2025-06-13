@@ -947,7 +947,7 @@ const CursoDetalle = () => {
           </div>
           <div className="relative z-10 flex flex-col h-full p-8 gap-6 justify-center">
             <div className="flex items-center justify-between mb-2">
-              <h2 className="text-3xl font-bold mb-2 text-white">{comunidadForm.titulo}</h2>
+              <h2 className="text-3xl font-bold mb-2 text-white">bemaster</h2>
               {isAdmin && (
                 <button 
                   className="text-xs bg-cyan-700 hover:bg-cyan-500 text-white px-3 py-1 rounded-full font-bold shadow"
