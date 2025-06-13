@@ -1,6 +1,6 @@
 // Deploy fantasma para forzar build en Vercel
 import React, { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '../../supabase';
 import ModalFuturista from '../../components/ModalFuturista';
 import { createClient } from '@supabase/supabase-js';
@@ -16,6 +16,7 @@ const supabaseStorage = createClient(supabaseUrl, supabaseAnonKey);
 const ModuloDetalle = () => {
   const { id, moduloIdx } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const [modulo, setModulo] = useState<any>(null);
   const [clases, setClases] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -109,7 +110,13 @@ const ModuloDetalle = () => {
       setLoading(false);
     }
     if (id && moduloIdx !== undefined) fetchData();
-  }, [id, moduloIdx]);
+    // Leer el query param 'video' y posicionar el video actual
+    const params = new URLSearchParams(location.search);
+    const videoIdx = params.get('video');
+    if (videoIdx !== null && !isNaN(Number(videoIdx))) {
+      setClaseActual(Number(videoIdx));
+    }
+  }, [id, moduloIdx, location.search]);
 
   useEffect(() => {
     async function checkAdmin() {
