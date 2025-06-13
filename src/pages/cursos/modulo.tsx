@@ -36,22 +36,33 @@ const ModuloDetalle = () => {
       // 2. Buscar el id real del módulo en la tabla 'modulos' usando el curso y el título
       let moduloReal = null;
       if (mod.titulo) {
-        let { data: modData } = await supabase
+        let modData = null;
+        let insertError = null;
+        // Buscar el módulo existente
+        const { data: foundMod, error: findError } = await supabase
           .from('modulos')
           .select('*')
           .eq('curso_id', id)
           .eq('titulo', mod.titulo)
-          .single();
-        // Si no existe, crearlo automáticamente
+          .maybeSingle();
+        modData = foundMod;
         if (!modData) {
-          const { data: newMod, error: insertError } = await supabase
+          // Intentar crear el módulo si no existe
+          const { data: newMod, error: insError } = await supabase
             .from('modulos')
             .insert([{ curso_id: id, titulo: mod.titulo, descripcion: mod.descripcion || '', nivel: mod.nivel || '', orden: idx }])
             .select()
-            .single();
-          if (!insertError && newMod) {
+            .maybeSingle();
+          insertError = insError;
+          if (insertError) {
+            console.error('Error insertando módulo:', insertError);
+          }
+          if (newMod) {
             modData = newMod;
           }
+        }
+        if (!modData) {
+          console.error('No se pudo obtener ni crear el módulo.');
         }
         moduloReal = modData;
       }
