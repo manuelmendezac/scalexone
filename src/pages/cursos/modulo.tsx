@@ -54,7 +54,7 @@ const ModuloDetalle = () => {
         let insertError = null;
         // Buscar el módulo existente
         const { data: foundMod, error: findError } = await supabase
-          .from('modulos_curso')
+          .from('modulos')
           .select('*')
           .eq('curso_id', id)
           .eq('titulo', mod.titulo)
@@ -70,7 +70,7 @@ const ModuloDetalle = () => {
             orden: Number.isFinite(idx) ? idx : 0
           };
           const { data: newMod, error: insError } = await supabase
-            .from('modulos_curso')
+            .from('modulos')
             .insert([moduloToInsert])
             .select()
             .maybeSingle();
@@ -300,14 +300,13 @@ const ModuloDetalle = () => {
     setEditorLoading(true);
     try {
       const { error } = await supabase
-        .from('modulos_curso')
+        .from('modulos')
         .update({ descripcion_html: descripcionHtml })
         .eq('id', modulo.id);
       
       if (error) throw error;
       
-      // Actualizar el estado local
-      setModulo(prev => ({ ...prev, descripcion_html: descripcionHtml }));
+      setModulo((prev: typeof modulo) => ({ ...prev, descripcion_html: descripcionHtml }));
       setSuccessMsg('Descripción guardada correctamente');
       setShowEditDescripcion(false);
     } catch (err: any) {
