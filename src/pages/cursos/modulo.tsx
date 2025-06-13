@@ -5,7 +5,7 @@ import { supabase } from '../../supabase';
 import ModalFuturista from '../../components/ModalFuturista';
 import { createClient } from '@supabase/supabase-js';
 import useNeuroState from '../../store/useNeuroState';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, CheckCircle, ArrowLeft, ArrowRight } from 'lucide-react';
 
 const supabaseUrl = process.env.REACT_APP_SUPABASE_URL || import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = process.env.REACT_APP_SUPABASE_ANON_KEY || import.meta.env.VITE_SUPABASE_ANON_KEY;
@@ -359,9 +359,27 @@ const ModuloDetalle = () => {
         )}
         <h3 className="text-xl sm:text-2xl md:text-3xl font-bold mb-4 sm:mb-6 text-cyan-300 tracking-tight uppercase text-center drop-shadow-glow">Clases del módulo</h3>
         {videosSiguientes.length === 0 && (
-          <div className="flex flex-col items-center gap-2 sm:gap-4 mt-4 sm:mt-8">
-            <div className="text-cyan-400 text-center text-base sm:text-lg">¡Has completado todos los videos de este módulo!</div>
-            <button className="bg-green-600 hover:bg-green-500 text-white font-bold px-4 sm:px-6 py-2 sm:py-3 rounded-full shadow-lg text-base sm:text-lg transition-all" onClick={() => {/* Aquí puedes navegar al siguiente módulo */}}>Siguiente módulo</button>
+          <div className="flex flex-col items-center gap-6 mt-8 animate-fadein">
+            {/* Animación de check */}
+            <div className="flex flex-col items-center">
+              <CheckCircle className="w-24 h-24 text-green-400 animate-bounce-in" />
+            </div>
+            <div className="text-2xl font-bold text-cyan-300 text-center">¡Has completado el módulo!</div>
+            <audio id="felicitacion-audio" src="/audio/felicitacion-modulo.mp3" autoPlay onEnded={e => { e.currentTarget.currentTime = 0; }} />
+            <div className="flex flex-row gap-4 mt-4 w-full justify-center">
+              <button
+                className="flex items-center gap-2 px-6 py-3 rounded-full bg-neutral-800 hover:bg-cyan-900 text-cyan-200 font-bold text-lg shadow transition-all border border-cyan-700"
+                onClick={() => navigate(`/cursos/${id}`)}
+              >
+                <ArrowLeft className="w-5 h-5" /> Regresar al Inicio
+              </button>
+              <button
+                className="flex items-center gap-2 px-6 py-3 rounded-full bg-green-500 hover:bg-green-400 text-black font-bold text-lg shadow transition-all border border-green-700"
+                onClick={() => navigate(`/cursos/${id}/modulo/${parseInt(moduloIdx || '0', 10) + 1}`)}
+              >
+                Siguiente Módulo <ArrowRight className="w-5 h-5" />
+              </button>
+            </div>
           </div>
         )}
         {videosSiguientes.map((c, idx) => {
@@ -495,6 +513,24 @@ const ModuloDetalle = () => {
         </div>
       </ModalFuturista>
     </div>
+    {/* Animación simple con CSS */}
+    <style>{`
+    @keyframes bounce-in {
+      0% { transform: scale(0.5); opacity: 0; }
+      60% { transform: scale(1.2); opacity: 1; }
+      100% { transform: scale(1); }
+    }
+    .animate-bounce-in {
+      animation: bounce-in 0.8s cubic-bezier(.68,-0.55,.27,1.55);
+    }
+    .animate-fadein {
+      animation: fadein 1s;
+    }
+    @keyframes fadein {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    `}</style>
   );
 };
 
