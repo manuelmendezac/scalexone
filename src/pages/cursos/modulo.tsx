@@ -153,17 +153,17 @@ const ModuloDetalle = () => {
 
   return (
     <div className="min-h-screen bg-black text-white flex flex-col md:flex-row">
-      {/* Botón de edición solo para admin, fuera del panel principal */}
-      {isAdmin && (
-        <div className="w-full flex justify-start items-center px-8 pt-8">
+      {/* Encabezado centrado con botón de edición */}
+      <div className="w-full flex justify-center items-center pt-8 pb-2">
+        {isAdmin && (
           <button
-            className="px-6 py-2 rounded-full bg-cyan-700 hover:bg-cyan-500 text-white font-bold shadow transition-all"
+            className="px-6 py-2 rounded-full bg-cyan-700 hover:bg-cyan-500 text-white font-bold shadow transition-all text-lg"
             onClick={() => setShowEditor(true)}
           >
             Editar videos del módulo
           </button>
-        </div>
-      )}
+        )}
+      </div>
       {/* Panel principal */}
       <div className="flex-1 flex flex-col items-center justify-center p-8">
         <div className="w-full max-w-5xl bg-gradient-to-br from-neutral-900 to-black rounded-3xl shadow-2xl p-8 flex flex-col items-center border border-cyan-900/40">
@@ -233,84 +233,100 @@ const ModuloDetalle = () => {
       {/* Modal de edición admin (sin cambios, ya implementado) */}
       <ModalFuturista open={showEditor} onClose={() => setShowEditor(false)}>
         <div className="p-2 w-full">
-          <h3 className="text-xl font-bold text-cyan-400 mb-4">Editor de videos del módulo</h3>
+          <h3 className="text-xl font-bold text-cyan-400 mb-4 text-center">Editor de videos del módulo</h3>
           {editorLoading && <div className="text-cyan-300 mb-2">Cargando...</div>}
           {editorError && <div className="text-red-400 mb-2">{editorError}</div>}
           {successMsg && <div className="text-green-400 mb-2">{successMsg}</div>}
           {/* Listado y edición de videos existentes */}
           {videos.map((video, idx) => (
             <div key={video.id} className="mb-6 p-4 rounded-xl bg-[#101c2c] border border-cyan-900/40 flex flex-col gap-2">
+              <label className="text-cyan-300 text-sm font-semibold mb-1">Título</label>
               <input
                 className="px-3 py-2 rounded bg-black text-cyan-200 border border-cyan-700 mb-1"
                 value={video.titulo}
                 onChange={e => setVideos(videos.map((v, i) => i === idx ? { ...v, titulo: e.target.value } : v))}
-                placeholder="Título"
+                placeholder="Ej: Introducción al módulo"
               />
+              <label className="text-cyan-300 text-sm font-semibold mb-1">Descripción <span className="text-cyan-500">(opcional)</span></label>
               <textarea
                 className="px-3 py-2 rounded bg-black text-cyan-200 border border-cyan-700 mb-1"
                 value={video.descripcion || ''}
                 onChange={e => setVideos(videos.map((v, i) => i === idx ? { ...v, descripcion: e.target.value } : v))}
-                placeholder="Descripción"
+                placeholder="Breve descripción de la clase"
               />
+              <label className="text-cyan-300 text-sm font-semibold mb-1">URL del video <span className="text-cyan-500">(Vimeo, YouTube, etc.)</span></label>
               <input
                 className="px-3 py-2 rounded bg-black text-cyan-200 border border-cyan-700 mb-1"
                 value={video.url}
                 onChange={e => setVideos(videos.map((v, i) => i === idx ? { ...v, url: e.target.value } : v))}
-                placeholder="URL del video"
+                placeholder="https://vimeo.com/123456789"
               />
+              <label className="text-cyan-300 text-sm font-semibold mb-1">Orden en la lista <span className="text-cyan-500" title="Determina la posición del video en la lista de clases">(1 = primero, 2 = segundo...)</span></label>
               <input
                 className="px-3 py-2 rounded bg-black text-cyan-200 border border-cyan-700 mb-1"
-                value={video.orden || 0}
+                value={video.orden || ''}
                 type="number"
-                onChange={e => setVideos(videos.map((v, i) => i === idx ? { ...v, orden: parseInt(e.target.value) } : v))}
-                placeholder="Orden"
+                min={1}
+                onChange={e => setVideos(videos.map((v, i) => i === idx ? { ...v, orden: parseInt(e.target.value) || '' } : v))}
+                placeholder="Ej: 1"
               />
-              {/* Miniatura */}
+              <label className="text-cyan-300 text-sm font-semibold mb-1">Miniatura <span className="text-cyan-500">(opcional)</span></label>
               <div className="flex items-center gap-3 mb-2">
                 {video.miniatura_url && <img src={video.miniatura_url} alt="Miniatura" className="w-20 h-14 object-cover rounded border border-cyan-700" />}
                 <input type="file" accept="image/*" onChange={e => e.target.files && handleMiniaturaUpload(e.target.files[0], idx)} />
               </div>
               <div className="flex gap-3 mt-2">
                 <button className="px-4 py-2 rounded bg-cyan-700 text-white font-bold" onClick={() => handleGuardarVideo(video, idx)} disabled={editorLoading}>Guardar</button>
-                <button className="px-4 py-2 rounded bg-red-700 text-white font-bold" onClick={() => {
-                  if(window.confirm('¿Seguro que quieres eliminar este video?')) handleEliminarVideo(video.id);
-                }} disabled={editorLoading}>Eliminar</button>
+                <button className="px-4 py-2 rounded bg-red-700 text-white font-bold" onClick={() => { if(window.confirm('¿Seguro que quieres eliminar este video?')) handleEliminarVideo(video.id); }} disabled={editorLoading}>Eliminar</button>
               </div>
             </div>
           ))}
           {/* Formulario para agregar nuevo video */}
           <div className="mt-8 p-4 rounded-xl bg-[#1a2a3f] border border-cyan-900/40 flex flex-col gap-2">
+            <label className="text-cyan-300 text-sm font-semibold mb-1">Título</label>
             <input
               className="px-3 py-2 rounded bg-black text-cyan-200 border border-cyan-700 mb-1"
               value={nuevoVideo.titulo}
               onChange={e => setNuevoVideo({ ...nuevoVideo, titulo: e.target.value })}
-              placeholder="Título"
+              placeholder="Ej: Introducción al módulo"
             />
+            <label className="text-cyan-300 text-sm font-semibold mb-1">Descripción <span className="text-cyan-500">(opcional)</span></label>
             <textarea
               className="px-3 py-2 rounded bg-black text-cyan-200 border border-cyan-700 mb-1"
               value={nuevoVideo.descripcion}
               onChange={e => setNuevoVideo({ ...nuevoVideo, descripcion: e.target.value })}
-              placeholder="Descripción"
+              placeholder="Breve descripción de la clase"
             />
+            <label className="text-cyan-300 text-sm font-semibold mb-1">URL del video <span className="text-cyan-500">(Vimeo, YouTube, etc.)</span></label>
             <input
               className="px-3 py-2 rounded bg-black text-cyan-200 border border-cyan-700 mb-1"
               value={nuevoVideo.url}
               onChange={e => setNuevoVideo({ ...nuevoVideo, url: e.target.value })}
-              placeholder="URL del video"
+              placeholder="https://vimeo.com/123456789"
             />
+            <label className="text-cyan-300 text-sm font-semibold mb-1">Orden en la lista <span className="text-cyan-500" title="Determina la posición del video en la lista de clases">(1 = primero, 2 = segundo...)</span></label>
             <input
               className="px-3 py-2 rounded bg-black text-cyan-200 border border-cyan-700 mb-1"
-              value={nuevoVideo.orden}
+              value={nuevoVideo.orden || ''}
               type="number"
-              onChange={e => setNuevoVideo({ ...nuevoVideo, orden: parseInt(e.target.value) })}
-              placeholder="Orden"
+              min={1}
+              onChange={e => setNuevoVideo((prev: any) => ({ ...prev, orden: parseInt(e.target.value) || '' }))}
+              placeholder="Ej: 1"
             />
-            {/* Miniatura nueva */}
+            <label className="text-cyan-300 text-sm font-semibold mb-1">Miniatura <span className="text-cyan-500">(opcional)</span></label>
             <div className="flex items-center gap-3 mb-2">
               {nuevoVideo.miniatura_url && <img src={nuevoVideo.miniatura_url} alt="Miniatura" className="w-20 h-14 object-cover rounded border border-cyan-700" />}
               <input type="file" accept="image/*" onChange={e => e.target.files && handleMiniaturaUpload(e.target.files[0], null)} />
             </div>
-            <button className="px-4 py-2 rounded bg-green-700 text-white font-bold mt-2" onClick={handleAgregarVideo} disabled={editorLoading}>Agregar video</button>
+            <button className="px-4 py-2 rounded bg-green-700 text-white font-bold mt-2" onClick={async () => {
+              // Si no se especifica orden, asignar el siguiente disponible
+              let orden = nuevoVideo.orden;
+              if (!orden || orden < 1) {
+                orden = (videos.reduce((max, v) => v.orden > max ? v.orden : max, 0) || 0) + 1;
+              }
+              setNuevoVideo((prev: any) => ({ ...prev, orden }));
+              await handleAgregarVideo();
+            }} disabled={editorLoading}>Agregar video</button>
           </div>
           <button className="mt-8 px-4 py-2 rounded-full bg-cyan-700 hover:bg-cyan-500 text-white font-bold shadow w-full" onClick={() => setShowEditor(false)}>Cerrar</button>
         </div>
