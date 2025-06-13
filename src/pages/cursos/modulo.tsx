@@ -27,14 +27,37 @@ const ModuloDetalle = () => {
   useEffect(() => {
     async function fetchData() {
       setLoading(true);
+      // 1. Obtener la portada y los módulos embebidos
       const { data: portada } = await supabase.from('cursos_portada').select('*').eq('curso_id', id).single();
       let modArr = (portada && portada.modulos) ? portada.modulos : [];
       if (!Array.isArray(modArr)) modArr = [];
       const idx = parseInt(moduloIdx || '0', 10);
       const mod = modArr[idx] || {};
-      setModulo(mod);
-      if (Array.isArray(mod.clases) && mod.clases.length > 0) {
+      // 2. Buscar el id real del módulo en la tabla 'modulos' usando el curso y el título
+      let moduloReal = null;
+      if (mod.titulo) {
+        const { data: modData } = await supabase
+          .from('modulos')
+          .select('*')
+          .eq('curso_id', id)
+          .eq('titulo', mod.titulo)
+          .single();
+        moduloReal = modData;
+      }
+      // 3. Si existe, usar el id real; si no, fallback al objeto embebido
+      setModulo(moduloReal ? { ...mod, id: moduloReal.id } : mod);
+      // 4. Cargar videos desde la tabla videos usando el id real
+      if (moduloReal?.id) {
+        const { data: videosData } = await supabase
+          .from('videos')
+          .select('*')
+          .eq('modulo_id', moduloReal.id)
+          .order('orden', { ascending: true });
+        setClases(videosData || []);
+      } else if (Array.isArray(mod.clases) && mod.clases.length > 0) {
         setClases(mod.clases);
+      } else {
+        setClases([]);
       }
       setClaseActual(0);
       setLoading(false);
