@@ -192,17 +192,6 @@ const ModuloDetalle = () => {
 
   return (
     <div className="min-h-screen bg-black text-white flex flex-col md:flex-row">
-      {/* Encabezado centrado con botón de edición */}
-      <div className="w-full flex justify-center items-center pt-8 pb-2">
-        {isAdmin && (
-          <button
-            className="px-6 py-2 rounded-full bg-cyan-700 hover:bg-cyan-500 text-white font-bold shadow transition-all text-lg"
-            onClick={() => setShowEditor(true)}
-          >
-            Editar videos del módulo
-          </button>
-        )}
-      </div>
       {/* Panel principal */}
       <div className="flex-1 flex flex-col items-center justify-center p-8">
         <div className="w-full max-w-5xl bg-gradient-to-br from-neutral-900 to-black rounded-3xl shadow-2xl p-8 flex flex-col items-center border border-cyan-900/40">
@@ -248,6 +237,14 @@ const ModuloDetalle = () => {
       </div>
       {/* Sidebar de clases */}
       <div className="w-full md:w-[420px] bg-gradient-to-br from-neutral-950 to-black p-6 flex flex-col gap-5 rounded-3xl border-l border-cyan-900/30 shadow-2xl min-h-screen">
+        {isAdmin && (
+          <button
+            className="mb-4 px-6 py-2 rounded-full bg-cyan-700 hover:bg-cyan-500 text-white font-bold shadow transition-all text-lg w-full"
+            onClick={() => setShowEditor(true)}
+          >
+            Editar videos del módulo
+          </button>
+        )}
         <h3 className="text-2xl font-bold mb-4 text-cyan-300 tracking-tight uppercase text-center">Clases del módulo</h3>
         {clases.length === 0 && <div className="text-cyan-400 text-center">No hay videos cargados. Usa el editor admin para agregar clases.</div>}
         {clases.map((c, idx) => (
