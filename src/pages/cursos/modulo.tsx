@@ -243,15 +243,16 @@ const ModuloDetalle = () => {
   return (
     <div className={`min-h-screen bg-black text-white flex flex-col ${fullscreen ? '' : 'md:flex-row'}`}>
       {/* Panel principal mejorado */}
-      <div className={`flex-1 flex flex-col items-center justify-center ${fullscreen ? 'fixed inset-0 z-50 bg-black' : 'p-2 md:p-8'} transition-all duration-300`} style={fullscreen ? {maxWidth: '100vw', maxHeight: '100vh'} : {}}>
-        <div className={`w-full ${fullscreen ? '' : 'max-w-6xl'} bg-gradient-to-br from-neutral-950 to-black rounded-3xl shadow-2xl p-0 md:p-0 flex flex-col items-center border border-cyan-900/40`}>
+      <div className={`flex-1 flex flex-col items-center justify-center ${fullscreen ? 'fixed inset-0 z-50 bg-black overflow-auto' : 'p-2 md:p-8'} transition-all duration-300`} style={fullscreen ? {maxWidth: '100vw', maxHeight: '100vh', overflow: 'auto'} : {}}>
+        <div className={`w-full ${fullscreen ? '' : 'max-w-6xl'} bg-gradient-to-br from-neutral-950 to-black rounded-3xl shadow-2xl p-0 md:p-0 flex flex-col items-center border border-cyan-900/40`} style={fullscreen ? {minHeight: '100vh', justifyContent: 'center', alignItems: 'center', display: 'flex', padding: 0} : {}}>
           {/* Video grande y protagonista, sin bordes extras */}
-          <div className={`relative w-full aspect-video bg-black ${fullscreen ? '' : 'rounded-t-3xl'} overflow-hidden flex items-center justify-center border-b-4 border-cyan-900/30 shadow-lg`} style={fullscreen ? {minHeight: '60vh', maxHeight: '90vh', margin: 'auto', padding: 16, display: 'flex', alignItems: 'center', justifyContent: 'center'} : {minHeight: 400, maxHeight: 700}}>
+          <div className={`relative w-full aspect-video bg-black ${fullscreen ? '' : 'rounded-t-3xl'} overflow-visible flex flex-col items-center justify-center border-b-4 border-cyan-900/30 shadow-lg`} style={fullscreen ? {minHeight: '60vh', maxHeight: '80vh', margin: 'auto', padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center'} : {minHeight: 400, maxHeight: 700}}>
             {/* Botón pantalla completa y ESC */}
             <button
-              className="absolute top-4 right-4 z-20 bg-cyan-700 hover:bg-cyan-500 text-white p-2 rounded-full shadow-lg border border-cyan-400 transition"
+              className="absolute top-4 right-4 z-30 bg-cyan-700 hover:bg-cyan-500 text-white p-2 rounded-full shadow-lg border border-cyan-400 transition"
               onClick={() => setFullscreen(f => !f)}
               title={fullscreen ? 'Salir de pantalla completa' : 'Ver en pantalla completa'}
+              style={{boxShadow: '0 2px 12px #0008'}}
             >
               {fullscreen ? (
                 <svg width="28" height="28" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 19L5 23M5 23h6M5 23v-6M19 9l4-4m0 0v6m0-6h-6"/></svg>
@@ -260,7 +261,7 @@ const ModuloDetalle = () => {
               )}
             </button>
             {fullscreen && (
-              <div className="absolute top-4 left-4 z-20 flex items-center gap-2 bg-black/70 px-3 py-1 rounded-full text-cyan-200 text-base font-bold shadow-lg">
+              <div className="absolute top-4 left-4 z-30 flex items-center gap-2 bg-black/70 px-3 py-1 rounded-full text-cyan-200 text-base font-bold shadow-lg">
                 <span className="hidden md:inline">Presiona</span> <kbd className="bg-cyan-800 px-2 py-1 rounded text-white font-mono">ESC</kbd> <span className="hidden md:inline">para salir</span>
               </div>
             )}
@@ -268,10 +269,10 @@ const ModuloDetalle = () => {
               <iframe
                 src={embedUrl + '?autoplay=0&title=0&byline=0&portrait=0'}
                 title={clase.titulo}
-                className="w-full h-full min-h-[200px] md:min-h-[400px]"
+                className="w-full h-full min-h-[200px] md:min-h-[400px] max-w-[100vw] max-h-[70vh] md:max-h-[80vh] rounded-2xl"
                 allow="autoplay; fullscreen"
                 allowFullScreen
-                style={{ border: 'none', width: '100%', height: '100%', aspectRatio: '16/9', maxHeight: fullscreen ? '80vh' : 700, borderRadius: fullscreen ? 24 : 0 }}
+                style={{ border: 'none', width: '100%', height: '100%', aspectRatio: '16/9', maxHeight: fullscreen ? '70vh' : 700, borderRadius: fullscreen ? 24 : 0, background: '#000' }}
               />
             ) : (
               <div className="w-full h-full flex items-center justify-center text-cyan-400 text-lg">No hay video para mostrar</div>
@@ -284,7 +285,7 @@ const ModuloDetalle = () => {
             </span>
           </div>
           {/* Botones de navegación */}
-          <div className="flex gap-4 md:gap-6 mt-2 mb-8 justify-center flex-wrap px-2 md:px-0">
+          <div className="flex gap-4 md:gap-6 mt-2 mb-8 justify-center flex-wrap px-2 md:px-0" style={fullscreen ? {marginBottom: 32, marginTop: 16, zIndex: 20} : {}}>
             <button
               className="bg-cyan-700 hover:bg-cyan-500 text-white px-6 md:px-8 py-2 md:py-3 rounded-full font-bold text-base md:text-lg shadow-md transition-all"
               onClick={() => setClaseActual((prev) => Math.max(prev - 1, 0))}
