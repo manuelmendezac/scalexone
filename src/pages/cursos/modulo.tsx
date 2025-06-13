@@ -48,9 +48,16 @@ const ModuloDetalle = () => {
         modData = foundMod;
         if (!modData) {
           // Intentar crear el módulo si no existe
+          const moduloToInsert: any = {
+            curso_id: id,
+            titulo: mod.titulo,
+            descripcion: mod.descripcion || '',
+            nivel: mod.nivel || '',
+            orden: Number.isFinite(idx) ? idx : 0
+          };
           const { data: newMod, error: insError } = await supabase
             .from('modulos')
-            .insert([{ curso_id: id, titulo: mod.titulo, descripcion: mod.descripcion || '', nivel: mod.nivel || '', orden: idx }])
+            .insert([moduloToInsert])
             .select()
             .maybeSingle();
           insertError = insError;
