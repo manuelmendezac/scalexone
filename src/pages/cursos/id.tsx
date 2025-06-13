@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../../supabase';
 import useNeuroState from '../../store/useNeuroState';
-import { BookOpen, Users, Award, UploadCloud, Layers, PlayCircle, X, Video, VideoIcon, VideoOff, Link2, ExternalLink, Users as UsersIcon, Calendar, Globe, Video as VideoLucide, VideoOff as VideoOffLucide } from 'lucide-react';
+import { BookOpen, Users, Award, UploadCloud, Layers, PlayCircle, X, Video, VideoIcon, VideoOff, Link2, ExternalLink, Users as UsersIcon, Calendar, Globe, Video as VideoLucide, VideoOff as VideoOffLucide, ChevronLeft, ChevronRight } from 'lucide-react';
 import ModalFuturista from '../../components/ModalFuturista';
 import CertificacionSection from '../../components/CertificacionSection';
 
