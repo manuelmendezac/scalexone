@@ -66,27 +66,6 @@ const ModulosCurso = () => {
       const { data: portada } = await supabase.from('cursos_portada').select('*').eq('curso_id', id).single();
       let modArr = (portada && portada.modulos) ? portada.modulos : [];
       if (!Array.isArray(modArr)) modArr = [];
-      // Si el primer módulo no tiene clases, agregamos 4 de ejemplo
-      if (modArr[0] && !Array.isArray(modArr[0].clases)) {
-        modArr[0].clases = [
-          {
-            titulo: 'Bienvenida a Traffic',
-            descripcion: '¡Felicidades! Esta es tu puerta de entrada para entrenarte como Traffic Master. Te convertirás en un profesional del marketing digital, pero primero, debes conocer la plataforma y la comunidad que te acompañará durante este proceso.'
-          },
-          {
-            titulo: '¿Qué es un Trafficker?',
-            descripcion: 'Descubre el rol del trafficker digital y por qué es una de las profesiones más demandadas en el mundo del marketing online.'
-          },
-          {
-            titulo: 'Oportunidades del Tráfico Pago',
-            descripcion: 'Explora las oportunidades que ofrece el tráfico pago para emprender, escalar negocios y generar resultados medibles.'
-          },
-          {
-            titulo: 'Tu Camino en Traffic Master',
-            descripcion: 'Conoce la estructura del curso, los módulos y cómo aprovechar al máximo cada clase para tu crecimiento profesional.'
-          }
-        ];
-      }
       setModulos(modArr);
       setLoading(false);
     }
