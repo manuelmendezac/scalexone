@@ -127,7 +127,7 @@ const ModulosCurso = () => {
                   <div className="flex gap-2 mt-auto justify-center">
                     <button
                       className="bg-white text-black font-bold py-2 px-6 rounded-full transition-all text-base shadow hover:bg-cyan-200"
-                      onClick={() => navigate(`/cursos/${id}/modulo/${moduloActivo}`)}
+                      onClick={() => navigate(`/cursos/${id}/modulo/${moduloActivo}?video=${idx}`)}
                     >
                       Iniciar
                     </button>
