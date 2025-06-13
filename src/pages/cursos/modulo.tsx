@@ -399,7 +399,7 @@ const ModuloDetalle = () => {
   }
 
   // Eliminar material
-  async function handleDeleteMaterial(id) {
+  async function handleDeleteMaterial(id: string) {
     await supabase
       .from('modulos_materiales')
       .delete()
@@ -415,7 +415,7 @@ const ModuloDetalle = () => {
       <div className={`flex-1 flex flex-col items-center justify-center ${fullscreen ? 'fixed inset-0 z-50 bg-black overflow-auto' : 'p-1 sm:p-2 md:p-8'} transition-all duration-300`} style={fullscreen ? {maxWidth: '100vw', maxHeight: '100vh', overflow: 'auto'} : {}}>
         <div className={`w-full ${fullscreen ? '' : 'max-w-6xl'} bg-gradient-to-br from-neutral-950 to-black rounded-3xl shadow-2xl p-0 md:p-0 flex flex-col items-center border border-cyan-900/40`} style={fullscreen ? {minHeight: '100vh', justifyContent: 'center', alignItems: 'center', display: 'flex', padding: 0} : {}}>
           {/* Video grande y protagonista, sin bordes extras */}
-          <div className={`relative w-full aspect-video bg-black ${fullscreen ? '' : 'rounded-t-3xl'} overflow-visible flex flex-col items-center justify-center border-b-4 border-cyan-900/30 shadow-lg`} style={fullscreen ? {minHeight: '60vh', maxHeight: '80vh', margin: 'auto', padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center'} : {minHeight: 200, maxHeight: 700}}>
+          <div className={`relative w-full aspect-video bg-black ${fullscreen ? '' : 'rounded-t-3xl'} overflow-visible flex flex-col items-center justify-center border-b-4 border-cyan-900/30 shadow-lg`} style={fullscreen ? {minHeight: '60vh', maxHeight: '100vh', margin: 'auto', padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center'} : {minHeight: 200, maxHeight: 700}}>
             {/* Botón pantalla completa y ESC */}
             <button
               className="absolute top-2 right-2 sm:top-4 sm:right-4 z-30 bg-cyan-700 hover:bg-cyan-500 text-white p-2 rounded-full shadow-lg border border-cyan-400 transition"
@@ -438,56 +438,61 @@ const ModuloDetalle = () => {
               <iframe
                 src={embedUrl + '?autoplay=0&title=0&byline=0&portrait=0'}
                 title={videoActual.titulo}
-                className="w-full h-full min-h-[180px] sm:min-h-[200px] md:min-h-[400px] max-w-[100vw] max-h-[40vh] sm:max-h-[60vh] md:max-h-[80vh] rounded-2xl"
+                className="w-full h-full min-h-[180px] sm:min-h-[200px] md:min-h-[400px] max-w-[100vw] max-h-[100vh] rounded-2xl"
                 allow="autoplay; fullscreen"
                 allowFullScreen
-                style={{ border: 'none', width: '100%', height: '100%', aspectRatio: '16/9', maxHeight: fullscreen ? '70vh' : 700, borderRadius: fullscreen ? 24 : 0, background: '#000' }}
+                style={{ border: 'none', width: '100%', height: fullscreen ? '100vh' : '100%', aspectRatio: '16/9', maxHeight: fullscreen ? '100vh' : 700, borderRadius: fullscreen ? 0 : 24, background: '#000' }}
               />
             ) : (
               <div className="w-full h-full flex items-center justify-center text-cyan-400 text-lg">No hay video para mostrar</div>
             )}
           </div>
-          {/* Título grande debajo del video */}
-          <div className="w-full flex flex-col items-center mb-2 mt-4 sm:mb-4 sm:mt-6 px-1 sm:px-2 md:px-0">
-            <div className="flex items-center gap-3">
-              <span className="text-cyan-200 text-lg sm:text-xl md:text-3xl font-bold uppercase tracking-tight text-center bg-cyan-900/20 px-2 sm:px-4 md:px-6 py-2 md:py-3 rounded-xl shadow">
-                {videoActual.titulo || 'Sin título'}
-              </span>
-              <button
-                className={`ml-2 px-3 py-1 rounded-full text-xs font-bold transition-all border ${completados[claseActual] ? 'bg-green-500 text-black border-green-600' : 'bg-neutral-800 text-cyan-300 border-cyan-700 hover:bg-cyan-900'}`}
-                onClick={() => {
-                  setCompletados(prev => ({...prev, [claseActual]: true}));
-                  // Si no es el último video, pasar al siguiente automáticamente
-                  if (claseActual < clasesOrdenadas.length - 1) {
-                    setTimeout(() => setClaseActual(prev => prev + 1), 400);
-                  }
-                  // Si es el último, no hacer nada (se mostrará la pantalla de finalización)
-                }}
-                disabled={completados[claseActual]}
-              >
-                {completados[claseActual] ? 'Completado ✓' : 'Marcar como completado'}
-              </button>
-            </div>
-          </div>
-          {/* Botones de navegación */}
-          <div className="flex gap-4 mt-2 justify-center">
-            <button
-              className="bg-cyan-700 hover:bg-cyan-500 text-white p-2 rounded-full shadow-md transition-all disabled:opacity-40"
-              onClick={() => setClaseActual((prev) => Math.max(prev - 1, 0))}
-              disabled={claseActual === 0}
-              aria-label="Anterior"
-            >
-              <ChevronLeft className="w-6 h-6" />
-            </button>
-            <button
-              className="bg-cyan-700 hover:bg-cyan-500 text-white p-2 rounded-full shadow-md transition-all disabled:opacity-40"
-              onClick={() => setClaseActual((prev) => Math.min(prev + 1, clasesOrdenadas.length - 1))}
-              disabled={esUltimoVideo}
-              aria-label="Siguiente"
-            >
-              <ChevronRight className="w-6 h-6" />
-            </button>
-          </div>
+          {/* Solo mostrar el resto del layout si no está en fullscreen */}
+          {!fullscreen && (
+            <>
+              {/* Título grande debajo del video */}
+              <div className="w-full flex flex-col items-center mb-2 mt-4 sm:mb-4 sm:mt-6 px-1 sm:px-2 md:px-0">
+                <div className="flex items-center gap-3">
+                  <span className="text-cyan-200 text-lg sm:text-xl md:text-3xl font-bold uppercase tracking-tight text-center bg-cyan-900/20 px-2 sm:px-4 md:px-6 py-2 md:py-3 rounded-xl shadow">
+                    {videoActual.titulo || 'Sin título'}
+                  </span>
+                  <button
+                    className={`ml-2 px-3 py-1 rounded-full text-xs font-bold transition-all border ${completados[claseActual] ? 'bg-green-500 text-black border-green-600' : 'bg-neutral-800 text-cyan-300 border-cyan-700 hover:bg-cyan-900'}`}
+                    onClick={() => {
+                      setCompletados(prev => ({...prev, [claseActual]: true}));
+                      // Si no es el último video, pasar al siguiente automáticamente
+                      if (claseActual < clasesOrdenadas.length - 1) {
+                        setTimeout(() => setClaseActual(prev => prev + 1), 400);
+                      }
+                      // Si es el último, no hacer nada (se mostrará la pantalla de finalización)
+                    }}
+                    disabled={completados[claseActual]}
+                  >
+                    {completados[claseActual] ? 'Completado ✓' : 'Marcar como completado'}
+                  </button>
+                </div>
+              </div>
+              {/* Botones de navegación */}
+              <div className="flex gap-4 mt-2 justify-center">
+                <button
+                  className="bg-cyan-700 hover:bg-cyan-500 text-white p-2 rounded-full shadow-md transition-all disabled:opacity-40"
+                  onClick={() => setClaseActual((prev) => Math.max(prev - 1, 0))}
+                  disabled={claseActual === 0}
+                  aria-label="Anterior"
+                >
+                  <ChevronLeft className="w-6 h-6" />
+                </button>
+                <button
+                  className="bg-cyan-700 hover:bg-cyan-500 text-white p-2 rounded-full shadow-md transition-all disabled:opacity-40"
+                  onClick={() => setClaseActual((prev) => Math.min(prev + 1, clasesOrdenadas.length - 1))}
+                  disabled={esUltimoVideo}
+                  aria-label="Siguiente"
+                >
+                  <ChevronRight className="w-6 h-6" />
+                </button>
+              </div>
+            </>
+          )}
           <div className="w-full max-w-5xl mx-auto mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Bloque de información del módulo */}
             <div className="bg-neutral-900 rounded-2xl border-2 border-cyan-700 p-6 shadow-lg flex flex-col gap-3 relative">
