@@ -27,6 +27,7 @@ const ModuloDetalle = () => {
   const [nuevoVideo, setNuevoVideo] = useState<any>({ titulo: '', descripcion: '', url: '', miniatura_url: '', orden: 0 });
   const [fullscreen, setFullscreen] = useState(false);
   const { userInfo } = useNeuroState();
+  const [completados, setCompletados] = useState<{[key:number]:boolean}>({});
 
   useEffect(() => {
     async function fetchData() {
@@ -320,9 +321,25 @@ const ModuloDetalle = () => {
           </div>
           {/* Título grande debajo del video */}
           <div className="w-full flex flex-col items-center mb-2 mt-4 sm:mb-4 sm:mt-6 px-1 sm:px-2 md:px-0">
-            <span className="text-cyan-200 text-lg sm:text-xl md:text-3xl font-bold uppercase tracking-tight text-center bg-cyan-900/20 px-2 sm:px-4 md:px-6 py-2 md:py-3 rounded-xl shadow">
-              {videoActual.titulo || 'Sin título'}
-            </span>
+            <div className="flex items-center gap-3">
+              <span className="text-cyan-200 text-lg sm:text-xl md:text-3xl font-bold uppercase tracking-tight text-center bg-cyan-900/20 px-2 sm:px-4 md:px-6 py-2 md:py-3 rounded-xl shadow">
+                {videoActual.titulo || 'Sin título'}
+              </span>
+              <button
+                className={`ml-2 px-3 py-1 rounded-full text-xs font-bold transition-all border ${completados[claseActual] ? 'bg-green-500 text-black border-green-600' : 'bg-neutral-800 text-cyan-300 border-cyan-700 hover:bg-cyan-900'}`}
+                onClick={() => {
+                  setCompletados(prev => ({...prev, [claseActual]: true}));
+                  // Si no es el último video, pasar al siguiente automáticamente
+                  if (claseActual < clasesOrdenadas.length - 1) {
+                    setTimeout(() => setClaseActual(prev => prev + 1), 400);
+                  }
+                  // Si es el último, no hacer nada (se mostrará la pantalla de finalización)
+                }}
+                disabled={completados[claseActual]}
+              >
+                {completados[claseActual] ? 'Completado ✓' : 'Marcar como completado'}
+              </button>
+            </div>
           </div>
           {/* Botones de navegación */}
           <div className="flex gap-4 mt-2 justify-center">
@@ -360,24 +377,23 @@ const ModuloDetalle = () => {
         <h3 className="text-xl sm:text-2xl md:text-3xl font-bold mb-4 sm:mb-6 text-cyan-300 tracking-tight uppercase text-center drop-shadow-glow">Clases del módulo</h3>
         {videosSiguientes.length === 0 && (
           <div className="flex flex-col items-center gap-6 mt-8 transition-opacity duration-700 opacity-100">
-            {/* Animación de check */}
             <div className="flex flex-col items-center">
-              <CheckCircle className="w-24 h-24 text-green-400" />
+              <CheckCircle className="w-20 h-20 text-green-400" />
             </div>
-            <div className="text-2xl font-bold text-cyan-300 text-center">¡Has completado el módulo!</div>
+            <div className="text-xl font-bold text-cyan-300 text-center">¡Has completado el módulo!</div>
             <audio id="felicitacion-audio" src="/audio/felicitacion-modulo.mp3" autoPlay onEnded={e => { e.currentTarget.currentTime = 0; }} />
-            <div className="flex flex-row gap-4 mt-4 w-full justify-center">
+            <div className="flex flex-row gap-2 mt-4 w-full justify-center">
               <button
-                className="flex items-center gap-2 px-6 py-3 rounded-full bg-neutral-800 hover:bg-cyan-900 text-cyan-200 font-bold text-lg shadow transition-all border border-cyan-700"
+                className="flex items-center gap-2 px-4 py-2 rounded-full bg-neutral-800 hover:bg-cyan-900 text-cyan-200 font-bold text-base shadow transition-all border border-cyan-700"
                 onClick={() => navigate(`/cursos/${id}`)}
               >
-                <ArrowLeft className="w-5 h-5" /> Regresar al Inicio
+                <ArrowLeft className="w-4 h-4" /> Regresar al Inicio
               </button>
               <button
-                className="flex items-center gap-2 px-6 py-3 rounded-full bg-green-500 hover:bg-green-400 text-black font-bold text-lg shadow transition-all border border-green-700"
+                className="flex items-center gap-2 px-4 py-2 rounded-full bg-green-500 hover:bg-green-400 text-black font-bold text-base shadow transition-all border border-green-700"
                 onClick={() => navigate(`/cursos/${id}/modulo/${parseInt(moduloIdx || '0', 10) + 1}`)}
               >
-                Siguiente Módulo <ArrowRight className="w-5 h-5" />
+                Siguiente Módulo <ArrowRight className="w-4 h-4" />
               </button>
             </div>
           </div>
