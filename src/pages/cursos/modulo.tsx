@@ -6,6 +6,8 @@ import ModalFuturista from '../../components/ModalFuturista';
 import { createClient } from '@supabase/supabase-js';
 import useNeuroState from '../../store/useNeuroState';
 import { ChevronLeft, ChevronRight, CheckCircle, ArrowLeft, ArrowRight } from 'lucide-react';
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css';
 
 const supabaseUrl = process.env.REACT_APP_SUPABASE_URL || import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = process.env.REACT_APP_SUPABASE_ANON_KEY || import.meta.env.VITE_SUPABASE_ANON_KEY;
@@ -28,6 +30,13 @@ const ModuloDetalle = () => {
   const [fullscreen, setFullscreen] = useState(false);
   const { userInfo } = useNeuroState();
   const [completados, setCompletados] = useState<{[key:number]:boolean}>({});
+  const [showEditDescripcion, setShowEditDescripcion] = useState(false);
+  const [showEditMateriales, setShowEditMateriales] = useState(false);
+  const [descripcionHtml, setDescripcionHtml] = useState(modulo?.descripcion_html || '');
+  const [materiales, setMateriales] = useState<any[]>([]);
+  const [materialEdit, setMaterialEdit] = useState<{titulo:string, url:string, id?:number}|null>(null);
+  const [materialFile, setMaterialFile] = useState<File|null>(null);
+  const [materialLoading, setMaterialLoading] = useState(false);
 
   useEffect(() => {
     async function fetchData() {
@@ -279,6 +288,52 @@ const ModuloDetalle = () => {
     return () => window.removeEventListener('keydown', handleEsc);
   }, [fullscreen]);
 
+  // Cargar materiales al cargar el módulo
+  useEffect(() => {
+    if (!modulo?.id) return;
+    supabase.from('materiales_modulo').select('*').eq('modulo_id', modulo.id).then(({data}) => setMateriales(data||[]));
+    setDescripcionHtml(modulo?.descripcion_html || '');
+  }, [modulo?.id]);
+
+  // Guardar descripción enriquecida
+  async function handleSaveDescripcion() {
+    setEditorLoading(true);
+    await supabase.from('modulos_curso').update({descripcion_html: descripcionHtml}).eq('id', modulo.id);
+    setShowEditDescripcion(false);
+    setEditorLoading(false);
+  }
+  // Guardar material (nuevo o editado)
+  async function handleSaveMaterial() {
+    setMaterialLoading(true);
+    let url = materialEdit?.url;
+    if (materialFile) {
+      const ext = materialFile.name.split('.').pop();
+      const fileName = `material_${modulo.id}_${Date.now()}.${ext}`;
+      const { error } = await supabaseStorage.storage.from('cursos').upload(fileName, materialFile, { upsert: true });
+      if (!error) {
+        const { data: publicUrlData } = supabaseStorage.storage.from('cursos').getPublicUrl(fileName);
+        url = publicUrlData?.publicUrl || url;
+      }
+    }
+    if (materialEdit?.id) {
+      await supabase.from('materiales_modulo').update({titulo: materialEdit.titulo, url}).eq('id', materialEdit.id);
+    } else {
+      await supabase.from('materiales_modulo').insert([{modulo_id: modulo.id, titulo: materialEdit?.titulo, url}]);
+    }
+    setShowEditMateriales(false);
+    setMaterialEdit(null);
+    setMaterialFile(null);
+    // Recargar materiales
+    const {data} = await supabase.from('materiales_modulo').select('*').eq('modulo_id', modulo.id);
+    setMateriales(data||[]);
+    setMaterialLoading(false);
+  }
+  // Eliminar material
+  async function handleDeleteMaterial(id:number) {
+    await supabase.from('materiales_modulo').delete().eq('id', id);
+    setMateriales(materiales.filter(m=>m.id!==id));
+  }
+
   if (loading) return <div className="text-cyan-400 text-center py-10">Cargando módulo...</div>;
 
   return (
@@ -362,35 +417,32 @@ const ModuloDetalle = () => {
           </div>
           <div className="w-full max-w-5xl mx-auto mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Bloque de información del módulo */}
-            <div className="bg-neutral-900 rounded-2xl border-2 border-cyan-700 p-6 shadow-lg flex flex-col gap-3">
+            <div className="bg-neutral-900 rounded-2xl border-2 border-cyan-700 p-6 shadow-lg flex flex-col gap-3 relative">
               <h3 className="text-cyan-300 text-xl font-bold mb-2 flex items-center gap-2">
                 <span>Sobre este módulo</span>
+                {isAdmin && <button className="ml-2 px-3 py-1 rounded-full text-xs font-bold bg-cyan-800 text-white hover:bg-cyan-600 transition" onClick={()=>setShowEditDescripcion(true)}>Editar</button>}
               </h3>
-              <div className="text-cyan-100 text-base leading-relaxed" dangerouslySetInnerHTML={{__html: videoActual.descripcion || 'Sin descripción'}} />
-              {/* Aquí puedes agregar más info, enlaces, etc. */}
+              <div className="text-cyan-100 text-base leading-relaxed" dangerouslySetInnerHTML={{__html: modulo?.descripcion_html || 'Sin descripción'}} />
             </div>
             {/* Bloque de materiales y herramientas */}
-            <div className="bg-neutral-900 rounded-2xl border-2 border-green-600 p-6 shadow-lg flex flex-col gap-3">
+            <div className="bg-neutral-900 rounded-2xl border-2 border-green-600 p-6 shadow-lg flex flex-col gap-3 relative">
               <h3 className="text-green-400 text-xl font-bold mb-2 flex items-center gap-2">
                 <span>Material y herramientas</span>
+                {isAdmin && <button className="ml-2 px-3 py-1 rounded-full text-xs font-bold bg-green-700 text-white hover:bg-green-500 transition" onClick={()=>{setMaterialEdit(null);setShowEditMateriales(true);}}>Editar</button>}
               </h3>
-              {/* Lista de materiales descargables (ejemplo) */}
               <ul className="flex flex-col gap-3">
-                {/* Reemplaza estos ejemplos por tus archivos reales */}
-                <li className="flex items-center gap-3">
-                  <a href="#" className="flex items-center gap-2 text-green-300 hover:text-green-200 font-semibold transition">
-                    <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v8m0 0l-3-3m3 3l3-3"/><rect x="4" y="15" width="16" height="4" rx="2"/></svg>
-                    Descargar PDF de la clase
-                  </a>
-                </li>
-                <li className="flex items-center gap-3">
-                  <a href="#" className="flex items-center gap-2 text-green-300 hover:text-green-200 font-semibold transition">
-                    <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v8m0 0l-3-3m3 3l3-3"/><rect x="4" y="15" width="16" height="4" rx="2"/></svg>
-                    Herramienta editable (Word)
-                  </a>
-                </li>
+                {materiales.length === 0 && <li className="text-green-200">No hay materiales cargados.</li>}
+                {materiales.map(m => (
+                  <li key={m.id} className="flex items-center gap-3">
+                    <a href={m.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-green-300 hover:text-green-200 font-semibold transition">
+                      <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v8m0 0l-3-3m3 3l3-3"/><rect x="4" y="15" width="16" height="4" rx="2"/></svg>
+                      {m.titulo}
+                    </a>
+                    {isAdmin && <button className="ml-2 px-2 py-1 rounded bg-red-700 text-white text-xs" onClick={()=>handleDeleteMaterial(m.id)}>Eliminar</button>}
+                    {isAdmin && <button className="ml-2 px-2 py-1 rounded bg-cyan-700 text-white text-xs" onClick={()=>{setMaterialEdit(m);setShowEditMateriales(true);}}>Editar</button>}
+                  </li>
+                ))}
               </ul>
-              {/* Puedes mapear aquí una lista de archivos reales en el futuro */}
             </div>
           </div>
         </div>
@@ -559,6 +611,24 @@ const ModuloDetalle = () => {
             }} disabled={editorLoading}>Agregar video</button>
           </div>
           <button className="mt-8 px-4 py-2 rounded-full bg-cyan-700 hover:bg-cyan-500 text-white font-bold shadow w-full" onClick={() => setShowEditor(false)}>Cerrar</button>
+        </div>
+      </ModalFuturista>
+      {/* Modal edición descripción */}
+      <ModalFuturista open={showEditDescripcion} onClose={()=>setShowEditDescripcion(false)}>
+        <div className="flex flex-col gap-4 w-full">
+          <h3 className="text-xl font-bold text-cyan-400 mb-2 text-center">Editar descripción del módulo</h3>
+          <ReactQuill value={descripcionHtml} onChange={setDescripcionHtml} className="bg-white text-black rounded" />
+          <button className="mt-4 px-4 py-2 rounded-full bg-cyan-700 hover:bg-cyan-500 text-white font-bold shadow w-full" onClick={handleSaveDescripcion}>Guardar</button>
+        </div>
+      </ModalFuturista>
+      {/* Modal edición materiales */}
+      <ModalFuturista open={showEditMateriales} onClose={()=>{setShowEditMateriales(false);setMaterialEdit(null);}}>
+        <div className="flex flex-col gap-4 w-full">
+          <h3 className="text-xl font-bold text-green-400 mb-2 text-center">{materialEdit ? 'Editar material' : 'Agregar material'}</h3>
+          <input className="px-3 py-2 rounded bg-black text-green-200 border border-green-700 mb-1" value={materialEdit?.titulo||''} onChange={e=>setMaterialEdit({...materialEdit, titulo: e.target.value || '', url: materialEdit?.url || ''})} placeholder="Título del material" />
+          <input className="px-3 py-2 rounded bg-black text-green-200 border border-green-700 mb-1" value={materialEdit?.url||''} onChange={e=>setMaterialEdit({...materialEdit, url: e.target.value || '', titulo: materialEdit?.titulo || ''})} placeholder="Enlace o deja vacío para subir archivo" />
+          <input type="file" accept="*" onChange={e=>e.target.files&&setMaterialFile(e.target.files[0])} />
+          <button className="mt-4 px-4 py-2 rounded-full bg-green-700 hover:bg-green-500 text-white font-bold shadow w-full" onClick={handleSaveMaterial} disabled={materialLoading}>{materialLoading?'Guardando...':'Guardar'}</button>
         </div>
       </ModalFuturista>
     </div>
