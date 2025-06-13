@@ -135,6 +135,11 @@ const ModuloDetalle = () => {
         setEditorLoading(false);
         return;
       }
+      if (!modulo?.id) {
+        setEditorError('Error: No se encontró el ID del módulo. Intenta recargar la página o selecciona el módulo nuevamente.');
+        setEditorLoading(false);
+        return;
+      }
       const { data, error } = await supabase
         .from('videos')
         .insert([{ ...nuevoVideo, modulo_id: modulo.id }])
