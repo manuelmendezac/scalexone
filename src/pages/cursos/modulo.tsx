@@ -359,10 +359,10 @@ const ModuloDetalle = () => {
         )}
         <h3 className="text-xl sm:text-2xl md:text-3xl font-bold mb-4 sm:mb-6 text-cyan-300 tracking-tight uppercase text-center drop-shadow-glow">Clases del módulo</h3>
         {videosSiguientes.length === 0 && (
-          <div className="flex flex-col items-center gap-6 mt-8 animate-fadein">
+          <div className="flex flex-col items-center gap-6 mt-8 transition-opacity duration-700 opacity-100">
             {/* Animación de check */}
             <div className="flex flex-col items-center">
-              <CheckCircle className="w-24 h-24 text-green-400 animate-bounce-in" />
+              <CheckCircle className="w-24 h-24 text-green-400" />
             </div>
             <div className="text-2xl font-bold text-cyan-300 text-center">¡Has completado el módulo!</div>
             <audio id="felicitacion-audio" src="/audio/felicitacion-modulo.mp3" autoPlay onEnded={e => { e.currentTarget.currentTime = 0; }} />
@@ -513,24 +513,6 @@ const ModuloDetalle = () => {
         </div>
       </ModalFuturista>
     </div>
-    {/* Animación simple con CSS */}
-    <style>{`
-    @keyframes bounce-in {
-      0% { transform: scale(0.5); opacity: 0; }
-      60% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); }
-    }
-    .animate-bounce-in {
-      animation: bounce-in 0.8s cubic-bezier(.68,-0.55,.27,1.55);
-    }
-    .animate-fadein {
-      animation: fadein 1s;
-    }
-    @keyframes fadein {
-      from { opacity: 0; }
-      to { opacity: 1; }
-    }
-    `}</style>
   );
 };
 
