@@ -239,7 +239,9 @@ const ModuloDetalle = () => {
                   </div>
                   <div className="flex gap-3 mt-2">
                     <button className="px-4 py-2 rounded bg-cyan-700 text-white font-bold" onClick={() => handleGuardarVideo(video, idx)} disabled={editorLoading}>Guardar</button>
-                    <button className="px-4 py-2 rounded bg-red-700 text-white font-bold" onClick={() => handleEliminarVideo(video.id)} disabled={editorLoading}>Eliminar</button>
+                    <button className="px-4 py-2 rounded bg-red-700 text-white font-bold" onClick={() => {
+                      if(window.confirm('¿Seguro que quieres eliminar este video?')) handleEliminarVideo(video.id);
+                    }} disabled={editorLoading}>Eliminar</button>
                   </div>
                 </div>
               ))}
@@ -280,15 +282,14 @@ const ModuloDetalle = () => {
               <button className="mt-8 px-4 py-2 rounded-full bg-cyan-700 hover:bg-cyan-500 text-white font-bold shadow w-full" onClick={() => setShowEditor(false)}>Cerrar</button>
             </div>
           </ModalFuturista>
-          <div className="w-full aspect-video bg-black rounded-2xl overflow-hidden mb-6 flex items-center justify-center border-2 border-cyan-900/30 shadow-lg">
-            {/* Video protegido (ejemplo con Vimeo) */}
+          <div className="w-full aspect-video bg-black rounded-2xl overflow-hidden mb-6 flex items-center justify-center border-2 border-cyan-900/30 shadow-lg" style={{maxWidth: '100%', minHeight: 180}}>
             <iframe
               src={clase.video_url + '?autoplay=0&title=0&byline=0&portrait=0'}
               title={clase.titulo}
-              className="w-full h-full"
+              className="w-full h-full min-h-[180px]"
               allow="autoplay; fullscreen"
               allowFullScreen
-              style={{ border: 'none' }}
+              style={{ border: 'none', width: '100%', height: '100%', aspectRatio: '16/9', maxHeight: 480 }}
             />
           </div>
           {/* Título pequeño debajo del video */}
