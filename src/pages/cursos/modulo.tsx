@@ -162,6 +162,23 @@ const ModuloDetalle = () => {
 
   const embedUrl = toEmbedUrl(videoActual.url);
 
+  // Función utilitaria para obtener miniatura de YouTube o Vimeo
+  function getVideoThumbnail(url: string): string | null {
+    if (!url) return null;
+    // YouTube
+    const ytMatch = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([\w-]{11})/);
+    if (ytMatch) {
+      return `https://img.youtube.com/vi/${ytMatch[1]}/hqdefault.jpg`;
+    }
+    // Vimeo (esto requiere una llamada a la API de Vimeo para obtener la miniatura real, pero como placeholder se puede usar un frame de Vimeo)
+    const vimeoMatch = url.match(/vimeo\.com\/(\d+)/);
+    if (vimeoMatch) {
+      // Placeholder: usar un frame de Vimeo, aunque no es la miniatura real
+      return `https://vumbnail.com/${vimeoMatch[1]}.jpg`;
+    }
+    return null;
+  }
+
   const handleMiniaturaUpload = async (file: File, idx: number | null = null) => {
     if (!file) return;
     setEditorLoading(true);
@@ -347,28 +364,34 @@ const ModuloDetalle = () => {
             <button className="bg-green-600 hover:bg-green-500 text-white font-bold px-4 sm:px-6 py-2 sm:py-3 rounded-full shadow-lg text-base sm:text-lg transition-all" onClick={() => {/* Aquí puedes navegar al siguiente módulo */}}>Siguiente módulo</button>
           </div>
         )}
-        {videosSiguientes.map((c, idx) => (
-          <div
-            key={c.id || idx}
-            className={`flex items-center gap-4 p-3 rounded-2xl cursor-pointer transition border-2 bg-neutral-900 border-neutral-800 hover:bg-cyan-900/10 group`}
-            onClick={() => setClaseActual(claseActual + idx + 1)}
-            style={{ minHeight: 110 }}
-          >
-            <div className="flex-shrink-0 w-32 h-20 bg-black rounded-xl overflow-hidden flex items-center justify-center border-2 border-cyan-800 group-hover:border-cyan-400 transition">
-              {c.miniatura_url ? (
-                <img src={c.miniatura_url} alt={c.titulo} className="w-full h-full object-cover" />
-              ) : c.url ? (
-                <video src={c.url} className="w-full h-full object-cover" muted playsInline preload="metadata" style={{pointerEvents:'none'}} />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center text-cyan-400">Sin video</div>
-              )}
+        {videosSiguientes.map((c, idx) => {
+          let thumb = c.miniatura_url;
+          if (!thumb && c.url) {
+            thumb = getVideoThumbnail(c.url);
+          }
+          return (
+            <div
+              key={c.id || idx}
+              className={`flex items-center gap-4 p-3 rounded-2xl cursor-pointer transition border-2 bg-neutral-900 border-neutral-800 hover:bg-cyan-900/10 group`}
+              onClick={() => setClaseActual(claseActual + idx + 1)}
+              style={{ minHeight: 110 }}
+            >
+              <div className="flex-shrink-0 w-32 h-20 bg-black rounded-xl overflow-hidden flex items-center justify-center border-2 border-cyan-800 group-hover:border-cyan-400 transition">
+                {thumb ? (
+                  <img src={thumb} alt={c.titulo} className="w-full h-full object-cover" />
+                ) : c.url && (c.url.endsWith('.mp4') || c.url.endsWith('.webm')) ? (
+                  <video src={c.url} className="w-full h-full object-cover" muted playsInline preload="metadata" style={{pointerEvents:'none'}} />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-cyan-400">Sin video</div>
+                )}
+              </div>
+              <div className="flex-1 flex flex-col justify-center min-w-0">
+                <div className="font-bold text-cyan-200 text-base truncate mb-1" style={{fontSize:'1rem'}}>{c.titulo}</div>
+                <div className="text-xs text-cyan-400 opacity-70">Video</div>
+              </div>
             </div>
-            <div className="flex-1 flex flex-col justify-center min-w-0">
-              <div className="font-bold text-cyan-200 text-base truncate mb-1" style={{fontSize:'1rem'}}>{c.titulo}</div>
-              <div className="text-xs text-cyan-400 opacity-70">Video</div>
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
       {/* Modal de edición admin (sin cambios, ya implementado) */}
       <ModalFuturista open={showEditor} onClose={() => setShowEditor(false)}>
