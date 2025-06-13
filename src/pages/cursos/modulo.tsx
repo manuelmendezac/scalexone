@@ -33,14 +33,14 @@ const ModuloDetalle = () => {
       if (!Array.isArray(modArr)) modArr = [];
       const idx = parseInt(moduloIdx || '0', 10);
       const mod = modArr[idx] || {};
-      // 2. Buscar el id real del módulo en la tabla 'modulos' usando el curso y el título
+      // 2. Buscar el id real del módulo en la tabla 'modulos_curso' usando el curso y el título
       let moduloReal = null;
       if (mod.titulo) {
         let modData = null;
         let insertError = null;
         // Buscar el módulo existente
         const { data: foundMod, error: findError } = await supabase
-          .from('modulos')
+          .from('modulos_curso')
           .select('*')
           .eq('curso_id', id)
           .eq('titulo', mod.titulo)
@@ -56,7 +56,7 @@ const ModuloDetalle = () => {
             orden: Number.isFinite(idx) ? idx : 0
           };
           const { data: newMod, error: insError } = await supabase
-            .from('modulos')
+            .from('modulos_curso')
             .insert([moduloToInsert])
             .select()
             .maybeSingle();
@@ -75,10 +75,10 @@ const ModuloDetalle = () => {
       }
       // 3. Si existe, usar el id real; si no, fallback al objeto embebido
       setModulo(moduloReal ? { ...mod, id: moduloReal.id } : mod);
-      // 4. Cargar videos desde la tabla videos usando el id real
+      // 4. Cargar videos desde la tabla videos_modulo usando el id real
       if (moduloReal?.id) {
         const { data: videosData } = await supabase
-          .from('videos')
+          .from('videos_modulo')
           .select('*')
           .eq('modulo_id', moduloReal.id)
           .order('orden', { ascending: true });
@@ -104,7 +104,7 @@ const ModuloDetalle = () => {
     if (!modulo?.id) return;
     setEditorLoading(true);
     supabase
-      .from('videos')
+      .from('videos_modulo')
       .select('*')
       .eq('modulo_id', modulo.id)
       .order('orden', { ascending: true })
@@ -145,7 +145,7 @@ const ModuloDetalle = () => {
     setSuccessMsg(null);
     try {
       const { error } = await supabase
-        .from('videos')
+        .from('videos_modulo')
         .update({
           titulo: video.titulo,
           descripcion: video.descripcion,
@@ -167,7 +167,7 @@ const ModuloDetalle = () => {
     setEditorError(null);
     setSuccessMsg(null);
     try {
-      const { error } = await supabase.from('videos').delete().eq('id', videoId);
+      const { error } = await supabase.from('videos_modulo').delete().eq('id', videoId);
       if (error) throw error;
       setVideos((prev) => prev.filter((v) => v.id !== videoId));
       setSuccessMsg('Video eliminado');
@@ -193,7 +193,7 @@ const ModuloDetalle = () => {
         return;
       }
       const { data, error } = await supabase
-        .from('videos')
+        .from('videos_modulo')
         .insert([{ ...nuevoVideo, modulo_id: modulo.id }])
         .select();
       if (error) throw error;
