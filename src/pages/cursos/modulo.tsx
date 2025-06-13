@@ -34,6 +34,10 @@ const ModuloDetalle = () => {
   const [showEditMateriales, setShowEditMateriales] = useState(false);
   const [descripcionHtml, setDescripcionHtml] = useState<string | null>(null);
   const [materiales, setMateriales] = useState<any[]>([]);
+  const [materialFile, setMaterialFile] = useState<File|null>(null);
+  const [materialUrl, setMaterialUrl] = useState('');
+  const [materialTitulo, setMaterialTitulo] = useState('');
+  const [materialLoading, setMaterialLoading] = useState(false);
 
   useEffect(() => {
     async function fetchData() {
@@ -329,19 +333,40 @@ const ModuloDetalle = () => {
     setShowEditDescripcion(false);
   }
 
-  // Guardar material (nuevo)
-  async function handleAddMaterial(material) {
+  // Guardar material (nuevo o archivo)
+  async function handleAddMaterialV2(e: React.FormEvent) {
+    e.preventDefault();
     if (!modulo?.id) return;
+    setMaterialLoading(true);
+    let url = materialUrl;
+    // Si hay archivo, subirlo
+    if (materialFile) {
+      const ext = materialFile.name.split('.').pop();
+      const fileName = `material_${modulo.id}_${Date.now()}.${ext}`;
+      const { error: uploadError } = await supabaseStorage.storage.from('cursos').upload(fileName, materialFile, { upsert: true });
+      if (uploadError) {
+        setMaterialLoading(false);
+        alert('Error al subir archivo: ' + uploadError.message);
+        return;
+      }
+      const { data: publicUrlData } = supabaseStorage.storage.from('cursos').getPublicUrl(fileName);
+      url = publicUrlData?.publicUrl || url;
+    }
     await supabase
       .from('modulos_materiales')
-      .insert([{ ...material, modulo_id: modulo.id }]);
+      .insert([{ titulo: materialTitulo, url, modulo_id: modulo.id }]);
     // Recargar materiales
     const { data } = await supabase
       .from('modulos_materiales')
       .select('*')
       .eq('modulo_id', modulo.id);
     setMateriales(data || []);
+    setMaterialTitulo('');
+    setMaterialUrl('');
+    setMaterialFile(null);
+    setMaterialLoading(false);
   }
+
   // Eliminar material
   async function handleDeleteMaterial(id) {
     await supabase
@@ -664,10 +689,11 @@ const ModuloDetalle = () => {
       <ModalFuturista open={showEditMateriales} onClose={() => setShowEditMateriales(false)}>
         <div className="flex flex-col gap-4 w-full">
           <h3 className="text-xl font-bold text-green-400 mb-2 text-center">Editar materiales y herramientas</h3>
-          <form onSubmit={async e => { e.preventDefault(); await handleAddMaterial({ titulo: e.target.titulo.value, url: e.target.url.value }); e.target.reset(); }} className="flex flex-col gap-2">
-            <input name="titulo" placeholder="Título del material" className="px-3 py-2 rounded bg-black text-green-200 border border-green-700" required />
-            <input name="url" placeholder="Enlace o URL de archivo" className="px-3 py-2 rounded bg-black text-green-200 border border-green-700" required />
-            <button type="submit" className="px-4 py-2 rounded-full bg-green-700 hover:bg-green-500 text-white font-bold shadow w-full">Agregar material</button>
+          <form onSubmit={handleAddMaterialV2} className="flex flex-col gap-2">
+            <input name="titulo" value={materialTitulo} onChange={e => setMaterialTitulo(e.target.value)} placeholder="Título del material" className="px-3 py-2 rounded bg-black text-green-200 border border-green-700" required />
+            <input name="url" value={materialUrl} onChange={e => setMaterialUrl(e.target.value)} placeholder="Enlace o URL de archivo (opcional si subes archivo)" className="px-3 py-2 rounded bg-black text-green-200 border border-green-700" />
+            <input type="file" accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg,.zip,.rar,.ppt,.pptx,.txt" onChange={e => e.target.files && setMaterialFile(e.target.files[0])} />
+            <button type="submit" className="px-4 py-2 rounded-full bg-green-700 hover:bg-green-500 text-white font-bold shadow w-full" disabled={materialLoading}>{materialLoading ? 'Guardando...' : 'Agregar material'}</button>
           </form>
           <ul className="flex flex-col gap-2 mt-2">
             {materiales.map((mat, idx) => (
