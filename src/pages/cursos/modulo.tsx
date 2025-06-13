@@ -133,11 +133,16 @@ const ModuloDetalle = () => {
     return url;
   }
 
-  const clase = clases[claseActual] || {};
-  const embedUrl = toEmbedUrl(clase.url);
-
   // Ordenar videos por el campo 'orden' antes de renderizar
   const clasesOrdenadas = [...clases].sort((a, b) => (a.orden || 0) - (b.orden || 0));
+  // El video actual es el principal
+  const videoActual = clasesOrdenadas[claseActual] || {};
+  // La lista lateral muestra solo los videos siguientes al actual
+  const videosSiguientes = clasesOrdenadas.slice(claseActual + 1);
+  // Saber si estamos en el último video
+  const esUltimoVideo = claseActual === clasesOrdenadas.length - 1;
+
+  const embedUrl = toEmbedUrl(videoActual.url);
 
   const handleMiniaturaUpload = async (file: File, idx: number | null = null) => {
     if (!file) return;
@@ -268,7 +273,7 @@ const ModuloDetalle = () => {
             {embedUrl ? (
               <iframe
                 src={embedUrl + '?autoplay=0&title=0&byline=0&portrait=0'}
-                title={clase.titulo}
+                title={videoActual.titulo}
                 className="w-full h-full min-h-[200px] md:min-h-[400px] max-w-[100vw] max-h-[70vh] md:max-h-[80vh] rounded-2xl"
                 allow="autoplay; fullscreen"
                 allowFullScreen
@@ -281,7 +286,7 @@ const ModuloDetalle = () => {
           {/* Título grande debajo del video */}
           <div className="w-full flex flex-col items-center mb-4 mt-6 px-2 md:px-0">
             <span className="text-cyan-200 text-xl md:text-3xl font-bold uppercase tracking-tight text-center bg-cyan-900/20 px-4 md:px-6 py-2 md:py-3 rounded-xl shadow">
-              {clase.titulo || 'Sin título'}
+              {videoActual.titulo || 'Sin título'}
             </span>
           </div>
           {/* Botones de navegación */}
@@ -295,8 +300,8 @@ const ModuloDetalle = () => {
             </button>
             <button
               className="bg-cyan-700 hover:bg-cyan-500 text-white px-6 md:px-8 py-2 md:py-3 rounded-full font-bold text-base md:text-lg shadow-md transition-all"
-              onClick={() => setClaseActual((prev) => Math.min(prev + 1, clases.length - 1))}
-              disabled={claseActual === clases.length - 1}
+              onClick={() => setClaseActual((prev) => Math.min(prev + 1, clasesOrdenadas.length - 1))}
+              disabled={esUltimoVideo}
             >
               Siguiente →
             </button>
@@ -316,12 +321,17 @@ const ModuloDetalle = () => {
           </button>
         )}
         <h3 className="text-3xl font-bold mb-6 text-cyan-300 tracking-tight uppercase text-center drop-shadow-glow">Clases del módulo</h3>
-        {clasesOrdenadas.length === 0 && <div className="text-cyan-400 text-center">No hay videos cargados. Usa el editor admin para agregar clases.</div>}
-        {clasesOrdenadas.map((c, idx) => (
+        {videosSiguientes.length === 0 && (
+          <div className="flex flex-col items-center gap-4 mt-8">
+            <div className="text-cyan-400 text-center">¡Has completado todos los videos de este módulo!</div>
+            <button className="bg-green-600 hover:bg-green-500 text-white font-bold px-6 py-3 rounded-full shadow-lg text-lg transition-all" onClick={() => {/* Aquí puedes navegar al siguiente módulo */}}>Siguiente módulo</button>
+          </div>
+        )}
+        {videosSiguientes.map((c, idx) => (
           <div
             key={c.id || idx}
-            className={`flex items-center gap-4 p-4 rounded-2xl cursor-pointer transition border-2 ${idx === claseActual ? 'bg-cyan-900/30 border-cyan-400 shadow-lg' : 'bg-neutral-900 border-neutral-800 hover:bg-cyan-900/10'} group`}
-            onClick={() => setClaseActual(idx)}
+            className={`flex items-center gap-4 p-4 rounded-2xl cursor-pointer transition border-2 bg-neutral-900 border-neutral-800 hover:bg-cyan-900/10 group`}
+            onClick={() => setClaseActual(claseActual + idx + 1)}
             style={{ minHeight: 90 }}
           >
             <img
