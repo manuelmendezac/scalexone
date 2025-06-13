@@ -1,4 +1,4 @@
-// Deploy fantasma para restaurar commit 6e679ed
+// Cambio fantasma para forzar build y deploy en Vercel
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../../supabase';
