@@ -228,17 +228,26 @@ const ModuloDetalle = () => {
     setEditorLoading(false);
   };
 
+  // Evento para salir con ESC en fullscreen
+  useEffect(() => {
+    if (!fullscreen) return;
+    const handleEsc = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setFullscreen(false);
+    };
+    window.addEventListener('keydown', handleEsc);
+    return () => window.removeEventListener('keydown', handleEsc);
+  }, [fullscreen]);
+
   if (loading) return <div className="text-cyan-400 text-center py-10">Cargando módulo...</div>;
 
   return (
-    <div className="min-h-screen bg-black text-white flex flex-col md:flex-row">
+    <div className={`min-h-screen bg-black text-white flex flex-col ${fullscreen ? '' : 'md:flex-row'}`}>
       {/* Panel principal mejorado */}
-      <div className={`flex-1 flex flex-col items-center justify-center p-2 md:p-8 transition-all duration-300 ${fullscreen ? 'fixed inset-0 z-50 bg-black' : ''}`}
-        style={fullscreen ? {maxWidth: '100vw', maxHeight: '100vh'} : {}}>
+      <div className={`flex-1 flex flex-col items-center justify-center ${fullscreen ? 'fixed inset-0 z-50 bg-black' : 'p-2 md:p-8'} transition-all duration-300`} style={fullscreen ? {maxWidth: '100vw', maxHeight: '100vh'} : {}}>
         <div className={`w-full ${fullscreen ? '' : 'max-w-6xl'} bg-gradient-to-br from-neutral-950 to-black rounded-3xl shadow-2xl p-0 md:p-0 flex flex-col items-center border border-cyan-900/40`}>
           {/* Video grande y protagonista, sin bordes extras */}
-          <div className={`relative w-full aspect-video bg-black ${fullscreen ? '' : 'rounded-t-3xl'} overflow-hidden flex items-center justify-center border-b-4 border-cyan-900/30 shadow-lg`} style={fullscreen ? {minHeight: 400, maxHeight: '90vh'} : {minHeight: 400, maxHeight: 700}}>
-            {/* Botón pantalla completa */}
+          <div className={`relative w-full aspect-video bg-black ${fullscreen ? '' : 'rounded-t-3xl'} overflow-hidden flex items-center justify-center border-b-4 border-cyan-900/30 shadow-lg`} style={fullscreen ? {minHeight: '60vh', maxHeight: '90vh', margin: 'auto', padding: 16, display: 'flex', alignItems: 'center', justifyContent: 'center'} : {minHeight: 400, maxHeight: 700}}>
+            {/* Botón pantalla completa y ESC */}
             <button
               className="absolute top-4 right-4 z-20 bg-cyan-700 hover:bg-cyan-500 text-white p-2 rounded-full shadow-lg border border-cyan-400 transition"
               onClick={() => setFullscreen(f => !f)}
@@ -250,36 +259,41 @@ const ModuloDetalle = () => {
                 <svg width="28" height="28" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 9V5h4M19 5h4v4M5 19v4h4M19 23h4v-4"/></svg>
               )}
             </button>
+            {fullscreen && (
+              <div className="absolute top-4 left-4 z-20 flex items-center gap-2 bg-black/70 px-3 py-1 rounded-full text-cyan-200 text-base font-bold shadow-lg">
+                <span className="hidden md:inline">Presiona</span> <kbd className="bg-cyan-800 px-2 py-1 rounded text-white font-mono">ESC</kbd> <span className="hidden md:inline">para salir</span>
+              </div>
+            )}
             {embedUrl ? (
               <iframe
                 src={embedUrl + '?autoplay=0&title=0&byline=0&portrait=0'}
                 title={clase.titulo}
-                className="w-full h-full min-h-[400px]"
+                className="w-full h-full min-h-[200px] md:min-h-[400px]"
                 allow="autoplay; fullscreen"
                 allowFullScreen
-                style={{ border: 'none', width: '100%', height: '100%', aspectRatio: '16/9', maxHeight: fullscreen ? '90vh' : 700 }}
+                style={{ border: 'none', width: '100%', height: '100%', aspectRatio: '16/9', maxHeight: fullscreen ? '80vh' : 700, borderRadius: fullscreen ? 24 : 0 }}
               />
             ) : (
               <div className="w-full h-full flex items-center justify-center text-cyan-400 text-lg">No hay video para mostrar</div>
             )}
           </div>
           {/* Título grande debajo del video */}
-          <div className="w-full flex flex-col items-center mb-4 mt-6">
-            <span className="text-cyan-200 text-2xl md:text-3xl font-bold uppercase tracking-tight text-center bg-cyan-900/20 px-6 py-3 rounded-xl shadow">
+          <div className="w-full flex flex-col items-center mb-4 mt-6 px-2 md:px-0">
+            <span className="text-cyan-200 text-xl md:text-3xl font-bold uppercase tracking-tight text-center bg-cyan-900/20 px-4 md:px-6 py-2 md:py-3 rounded-xl shadow">
               {clase.titulo || 'Sin título'}
             </span>
           </div>
           {/* Botones de navegación */}
-          <div className="flex gap-6 mt-2 mb-8 justify-center">
+          <div className="flex gap-4 md:gap-6 mt-2 mb-8 justify-center flex-wrap px-2 md:px-0">
             <button
-              className="bg-cyan-700 hover:bg-cyan-500 text-white px-8 py-3 rounded-full font-bold text-lg shadow-md transition-all"
+              className="bg-cyan-700 hover:bg-cyan-500 text-white px-6 md:px-8 py-2 md:py-3 rounded-full font-bold text-base md:text-lg shadow-md transition-all"
               onClick={() => setClaseActual((prev) => Math.max(prev - 1, 0))}
               disabled={claseActual === 0}
             >
               ← Anterior
             </button>
             <button
-              className="bg-cyan-700 hover:bg-cyan-500 text-white px-8 py-3 rounded-full font-bold text-lg shadow-md transition-all"
+              className="bg-cyan-700 hover:bg-cyan-500 text-white px-6 md:px-8 py-2 md:py-3 rounded-full font-bold text-base md:text-lg shadow-md transition-all"
               onClick={() => setClaseActual((prev) => Math.min(prev + 1, clases.length - 1))}
               disabled={claseActual === clases.length - 1}
             >
@@ -288,8 +302,9 @@ const ModuloDetalle = () => {
           </div>
         </div>
       </div>
-      {/* Sidebar elegante y angosta */}
-      <div className="w-full md:w-[320px] bg-gradient-to-br from-neutral-950 to-black p-4 md:p-6 flex flex-col gap-6 rounded-3xl border-l-4 border-cyan-900/30 shadow-2xl min-h-screen transition-all duration-300">
+      {/* Sidebar elegante y angosta, debajo en móvil */}
+      <div className={`w-full md:w-[320px] bg-gradient-to-br from-neutral-950 to-black p-4 md:p-6 flex flex-col gap-6 rounded-3xl border-l-4 border-cyan-900/30 shadow-2xl min-h-[320px] md:min-h-screen transition-all duration-300 ${fullscreen ? 'hidden' : ''}`}
+        style={{marginTop: fullscreen ? 0 : 24}}>
         {/* Solo mostrar el botón de editar si es admin */}
         {isAdmin && (
           <button
