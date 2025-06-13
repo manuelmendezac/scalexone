@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../../supabase';
+import ModalFuturista from '../../components/ModalFuturista';
 
 const videosDemo = [
   {
@@ -40,6 +41,8 @@ const ModuloDetalle = () => {
   const [clases, setClases] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [claseActual, setClaseActual] = useState(0);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [showEditor, setShowEditor] = useState(false);
 
   useEffect(() => {
     async function fetchData() {
@@ -61,6 +64,12 @@ const ModuloDetalle = () => {
     if (id && moduloIdx !== undefined) fetchData();
   }, [id, moduloIdx]);
 
+  useEffect(() => {
+    // Activar modo admin automáticamente
+    localStorage.setItem('adminMode', 'true');
+    setIsAdmin(true);
+  }, []);
+
   if (loading) return <div className="text-cyan-400 text-center py-10">Cargando módulo...</div>;
   const clase = clases[claseActual] || {};
 
@@ -69,8 +78,29 @@ const ModuloDetalle = () => {
       {/* Panel principal */}
       <div className="flex-1 flex flex-col items-center justify-center p-8">
         <div className="w-full max-w-3xl bg-gradient-to-br from-neutral-900 to-black rounded-3xl shadow-2xl p-8 flex flex-col items-center border border-cyan-900/40">
-          <h2 className="text-4xl md:text-5xl font-bold mb-4 text-cyan-400 drop-shadow-glow text-center uppercase tracking-tight" style={{letterSpacing: '-1px'}}>{clase.titulo}</h2>
-          <p className="mb-6 text-cyan-200 text-lg text-center max-w-2xl">{clase.descripcion}</p>
+          {/* Botón de edición solo para admin */}
+          {isAdmin && (
+            <button
+              className="mb-4 px-5 py-2 rounded-full bg-cyan-700 hover:bg-cyan-500 text-white font-bold shadow transition-all"
+              onClick={() => setShowEditor(true)}
+            >
+              Editar videos del módulo
+            </button>
+          )}
+          {/* Modal de edición */}
+          <ModalFuturista open={showEditor} onClose={() => setShowEditor(false)}>
+            <div className="p-2 w-full">
+              <h3 className="text-xl font-bold text-cyan-400 mb-4">Editor de videos del módulo</h3>
+              {/* Aquí irá el formulario de edición de videos y miniaturas */}
+              <div className="text-cyan-200">(Próximamente: edición de videos y miniaturas aquí)</div>
+              <button
+                className="mt-6 px-4 py-2 rounded-full bg-cyan-700 hover:bg-cyan-500 text-white font-bold shadow"
+                onClick={() => setShowEditor(false)}
+              >
+                Cerrar
+              </button>
+            </div>
+          </ModalFuturista>
           <div className="w-full aspect-video bg-black rounded-2xl overflow-hidden mb-6 flex items-center justify-center border-2 border-cyan-900/30 shadow-lg">
             {/* Video protegido (ejemplo con Vimeo) */}
             <iframe
@@ -82,6 +112,13 @@ const ModuloDetalle = () => {
               style={{ border: 'none' }}
             />
           </div>
+          {/* Título pequeño debajo del video */}
+          <div className="w-full flex flex-col items-center mb-4">
+            <span className="text-cyan-200 text-base font-semibold uppercase tracking-tight text-center bg-cyan-900/20 px-4 py-2 rounded-xl shadow">
+              {clase.titulo}
+            </span>
+          </div>
+          {/* Aquí irá la tabla o botón de marcar como completado */}
           {/* Botones de navegación */}
           <div className="flex gap-6 mt-2 justify-center">
             <button
