@@ -1,4 +1,4 @@
-// Cambio fantasma para forzar build y deploy en Vercel
+// Deploy fantasma para forzar build en Vercel
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../../supabase';
@@ -28,6 +28,10 @@ const ModuloDetalle = () => {
   const [fullscreen, setFullscreen] = useState(false);
   const { userInfo } = useNeuroState();
   const [completados, setCompletados] = useState<{[key:number]:boolean}>({});
+  const [showEditDescripcion, setShowEditDescripcion] = useState(false);
+  const [showEditMateriales, setShowEditMateriales] = useState(false);
+  const [descripcionHtml, setDescripcionHtml] = useState<string | null>(null);
+  const [materiales, setMateriales] = useState<any[]>([]);
 
   useEffect(() => {
     async function fetchData() {
@@ -362,35 +366,55 @@ const ModuloDetalle = () => {
           </div>
           <div className="w-full max-w-5xl mx-auto mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Bloque de información del módulo */}
-            <div className="bg-neutral-900 rounded-2xl border-2 border-cyan-700 p-6 shadow-lg flex flex-col gap-3">
+            <div className="bg-neutral-900 rounded-2xl border-2 border-cyan-700 p-6 shadow-lg flex flex-col gap-3 relative">
               <h3 className="text-cyan-300 text-xl font-bold mb-2 flex items-center gap-2">
                 <span>Sobre este módulo</span>
+                {isAdmin && (
+                  <button
+                    className="ml-auto px-3 py-1 rounded bg-cyan-700 text-white text-xs font-bold hover:bg-cyan-500 transition"
+                    onClick={() => setShowEditDescripcion(true)}
+                  >
+                    Editar
+                  </button>
+                )}
               </h3>
-              <div className="text-cyan-100 text-base leading-relaxed" dangerouslySetInnerHTML={{__html: videoActual.descripcion || 'Sin descripción'}} />
-              {/* Aquí puedes agregar más info, enlaces, etc. */}
+              <div className="text-cyan-100 text-base leading-relaxed">
+                {descripcionHtml ? (
+                  <span dangerouslySetInnerHTML={{ __html: descripcionHtml }} />
+                ) : (
+                  <span className="opacity-60">Sin descripción</span>
+                )}
+              </div>
             </div>
             {/* Bloque de materiales y herramientas */}
-            <div className="bg-neutral-900 rounded-2xl border-2 border-green-600 p-6 shadow-lg flex flex-col gap-3">
+            <div className="bg-neutral-900 rounded-2xl border-2 border-green-700 p-6 shadow-lg flex flex-col gap-3 relative">
               <h3 className="text-green-400 text-xl font-bold mb-2 flex items-center gap-2">
                 <span>Material y herramientas</span>
+                {isAdmin && (
+                  <button
+                    className="ml-auto px-3 py-1 rounded bg-green-700 text-white text-xs font-bold hover:bg-green-500 transition"
+                    onClick={() => setShowEditMateriales(true)}
+                  >
+                    Editar
+                  </button>
+                )}
               </h3>
-              {/* Lista de materiales descargables (ejemplo) */}
-              <ul className="flex flex-col gap-3">
-                {/* Reemplaza estos ejemplos por tus archivos reales */}
-                <li className="flex items-center gap-3">
-                  <a href="#" className="flex items-center gap-2 text-green-300 hover:text-green-200 font-semibold transition">
-                    <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v8m0 0l-3-3m3 3l3-3"/><rect x="4" y="15" width="16" height="4" rx="2"/></svg>
-                    Descargar PDF de la clase
-                  </a>
-                </li>
-                <li className="flex items-center gap-3">
-                  <a href="#" className="flex items-center gap-2 text-green-300 hover:text-green-200 font-semibold transition">
-                    <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v8m0 0l-3-3m3 3l3-3"/><rect x="4" y="15" width="16" height="4" rx="2"/></svg>
-                    Herramienta editable (Word)
-                  </a>
-                </li>
-              </ul>
-              {/* Puedes mapear aquí una lista de archivos reales en el futuro */}
+              <div className="text-green-100 text-base leading-relaxed">
+                {materiales.length > 0 ? (
+                  <ul className="flex flex-col gap-2 mt-2">
+                    {materiales.map((mat, idx) => (
+                      <li key={mat.id || idx} className="flex items-center gap-2">
+                        <a href={mat.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 hover:underline text-green-200">
+                          <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14m0 0l-4-4m4 4l4-4"/></svg>
+                          {mat.titulo}
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <span className="opacity-60">No hay materiales cargados.</span>
+                )}
+              </div>
             </div>
           </div>
         </div>
