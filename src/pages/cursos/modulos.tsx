@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../../supabase';
+import ModalFuturista from '../../components/ModalFuturista';
 
 // Barra de progreso circular (copiada de id.tsx)
 const CircularProgress = ({ percent = 0, size = 64, stroke = 8 }) => {
@@ -60,6 +61,8 @@ const ModulosCurso = () => {
   const [loading, setLoading] = useState(true);
   const [moduloActivo, setModuloActivo] = useState<number>(0);
   const [videosModulo, setVideosModulo] = useState<any[]>([]);
+  const [modalInfoOpen, setModalInfoOpen] = useState(false);
+  const [modalInfoModulo, setModalInfoModulo] = useState<any>(null);
 
   useEffect(() => {
     async function fetchData() {
@@ -139,6 +142,12 @@ const ModulosCurso = () => {
                     >
                       Iniciar
                     </button>
+                    <button
+                      className="bg-cyan-700 text-white font-bold py-2 px-6 rounded-full transition-all text-base shadow hover:bg-cyan-500"
+                      onClick={() => { setModalInfoModulo({ modulo: modulos[moduloActivo], videos: videosModulo }); setModalInfoOpen(true); }}
+                    >
+                      Más información
+                    </button>
                   </div>
                 </div>
               ))
@@ -148,6 +157,29 @@ const ModulosCurso = () => {
           </div>
         </div>
       )}
+      {/* Modal de información de módulo */}
+      <ModalFuturista open={modalInfoOpen} onClose={() => setModalInfoOpen(false)}>
+        {modalInfoModulo && (
+          <div className="flex flex-col gap-4 w-full">
+            <h2 className="text-2xl font-bold text-cyan-300 mb-2 text-center">{modalInfoModulo.modulo.titulo}</h2>
+            <p className="text-cyan-100 text-base mb-4 text-center">{modalInfoModulo.modulo.descripcion}</p>
+            <div className="flex flex-col gap-3">
+              {modalInfoModulo.videos.map((v: any, idx: number) => (
+                <div key={v.id} className="bg-neutral-800 rounded-xl p-3 flex flex-col gap-2 border border-cyan-900/40">
+                  <div className="font-bold text-cyan-200 text-base">{v.titulo}</div>
+                  <div className="text-cyan-400 text-sm mb-2">{v.descripcion}</div>
+                  <button
+                    className="bg-cyan-600 hover:bg-cyan-400 text-white font-bold py-1 px-4 rounded-full w-fit self-end"
+                    onClick={() => { setModalInfoOpen(false); navigate(`/cursos/${id}/modulo/${moduloActivo}?video=${idx}`); }}
+                  >
+                    Ver este video
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </ModalFuturista>
     </div>
   );
 };
