@@ -360,6 +360,39 @@ const ModuloDetalle = () => {
               <ChevronRight className="w-6 h-6" />
             </button>
           </div>
+          <div className="w-full max-w-5xl mx-auto mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Bloque de información del módulo */}
+            <div className="bg-neutral-900 rounded-2xl border-2 border-cyan-700 p-6 shadow-lg flex flex-col gap-3">
+              <h3 className="text-cyan-300 text-xl font-bold mb-2 flex items-center gap-2">
+                <span>Sobre este módulo</span>
+              </h3>
+              <div className="text-cyan-100 text-base leading-relaxed" dangerouslySetInnerHTML={{__html: videoActual.descripcion || 'Sin descripción'}} />
+              {/* Aquí puedes agregar más info, enlaces, etc. */}
+            </div>
+            {/* Bloque de materiales y herramientas */}
+            <div className="bg-neutral-900 rounded-2xl border-2 border-green-600 p-6 shadow-lg flex flex-col gap-3">
+              <h3 className="text-green-400 text-xl font-bold mb-2 flex items-center gap-2">
+                <span>Material y herramientas</span>
+              </h3>
+              {/* Lista de materiales descargables (ejemplo) */}
+              <ul className="flex flex-col gap-3">
+                {/* Reemplaza estos ejemplos por tus archivos reales */}
+                <li className="flex items-center gap-3">
+                  <a href="#" className="flex items-center gap-2 text-green-300 hover:text-green-200 font-semibold transition">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v8m0 0l-3-3m3 3l3-3"/><rect x="4" y="15" width="16" height="4" rx="2"/></svg>
+                    Descargar PDF de la clase
+                  </a>
+                </li>
+                <li className="flex items-center gap-3">
+                  <a href="#" className="flex items-center gap-2 text-green-300 hover:text-green-200 font-semibold transition">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v8m0 0l-3-3m3 3l3-3"/><rect x="4" y="15" width="16" height="4" rx="2"/></svg>
+                    Herramienta editable (Word)
+                  </a>
+                </li>
+              </ul>
+              {/* Puedes mapear aquí una lista de archivos reales en el futuro */}
+            </div>
+          </div>
         </div>
       </div>
       {/* Sidebar elegante y angosta, debajo en móvil */}
