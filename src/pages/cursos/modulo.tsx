@@ -4,6 +4,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../../supabase';
 import ModalFuturista from '../../components/ModalFuturista';
 import { createClient } from '@supabase/supabase-js';
+import useNeuroState from '../../store/useNeuroState';
 
 const supabaseUrl = process.env.REACT_APP_SUPABASE_URL || import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = process.env.REACT_APP_SUPABASE_ANON_KEY || import.meta.env.VITE_SUPABASE_ANON_KEY;
@@ -24,6 +25,7 @@ const ModuloDetalle = () => {
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [nuevoVideo, setNuevoVideo] = useState<any>({ titulo: '', descripcion: '', url: '', miniatura_url: '', orden: 0 });
   const [fullscreen, setFullscreen] = useState(false);
+  const { userInfo } = useNeuroState();
 
   useEffect(() => {
     async function fetchData() {
@@ -96,10 +98,25 @@ const ModuloDetalle = () => {
   }, [id, moduloIdx]);
 
   useEffect(() => {
-    // Activar modo admin automáticamente
-    localStorage.setItem('adminMode', 'true');
-    setIsAdmin(true);
-  }, []);
+    async function checkAdmin() {
+      if (!userInfo?.email) {
+        setIsAdmin(false);
+        return;
+      }
+      // Consultar el rol del usuario por email
+      const { data, error } = await supabase
+        .from('usuarios')
+        .select('rol')
+        .eq('email', userInfo.email)
+        .single();
+      if (error || !data) {
+        setIsAdmin(false);
+        return;
+      }
+      setIsAdmin(data.rol === 'admin');
+    }
+    checkAdmin();
+  }, [userInfo?.email]);
 
   useEffect(() => {
     if (!modulo?.id) return;
@@ -246,15 +263,15 @@ const ModuloDetalle = () => {
   if (loading) return <div className="text-cyan-400 text-center py-10">Cargando módulo...</div>;
 
   return (
-    <div className={`min-h-screen bg-black text-white flex flex-col ${fullscreen ? '' : 'md:flex-row'}`}>
+    <div className={`min-h-screen bg-black text-white flex flex-col ${fullscreen ? '' : 'md:flex-row'} px-1 sm:px-2`}>
       {/* Panel principal mejorado */}
-      <div className={`flex-1 flex flex-col items-center justify-center ${fullscreen ? 'fixed inset-0 z-50 bg-black overflow-auto' : 'p-2 md:p-8'} transition-all duration-300`} style={fullscreen ? {maxWidth: '100vw', maxHeight: '100vh', overflow: 'auto'} : {}}>
+      <div className={`flex-1 flex flex-col items-center justify-center ${fullscreen ? 'fixed inset-0 z-50 bg-black overflow-auto' : 'p-1 sm:p-2 md:p-8'} transition-all duration-300`} style={fullscreen ? {maxWidth: '100vw', maxHeight: '100vh', overflow: 'auto'} : {}}>
         <div className={`w-full ${fullscreen ? '' : 'max-w-6xl'} bg-gradient-to-br from-neutral-950 to-black rounded-3xl shadow-2xl p-0 md:p-0 flex flex-col items-center border border-cyan-900/40`} style={fullscreen ? {minHeight: '100vh', justifyContent: 'center', alignItems: 'center', display: 'flex', padding: 0} : {}}>
           {/* Video grande y protagonista, sin bordes extras */}
-          <div className={`relative w-full aspect-video bg-black ${fullscreen ? '' : 'rounded-t-3xl'} overflow-visible flex flex-col items-center justify-center border-b-4 border-cyan-900/30 shadow-lg`} style={fullscreen ? {minHeight: '60vh', maxHeight: '80vh', margin: 'auto', padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center'} : {minHeight: 400, maxHeight: 700}}>
+          <div className={`relative w-full aspect-video bg-black ${fullscreen ? '' : 'rounded-t-3xl'} overflow-visible flex flex-col items-center justify-center border-b-4 border-cyan-900/30 shadow-lg`} style={fullscreen ? {minHeight: '60vh', maxHeight: '80vh', margin: 'auto', padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center'} : {minHeight: 200, maxHeight: 700}}>
             {/* Botón pantalla completa y ESC */}
             <button
-              className="absolute top-4 right-4 z-30 bg-cyan-700 hover:bg-cyan-500 text-white p-2 rounded-full shadow-lg border border-cyan-400 transition"
+              className="absolute top-2 right-2 sm:top-4 sm:right-4 z-30 bg-cyan-700 hover:bg-cyan-500 text-white p-2 rounded-full shadow-lg border border-cyan-400 transition"
               onClick={() => setFullscreen(f => !f)}
               title={fullscreen ? 'Salir de pantalla completa' : 'Ver en pantalla completa'}
               style={{boxShadow: '0 2px 12px #0008'}}
@@ -266,7 +283,7 @@ const ModuloDetalle = () => {
               )}
             </button>
             {fullscreen && (
-              <div className="absolute top-4 left-4 z-30 flex items-center gap-2 bg-black/70 px-3 py-1 rounded-full text-cyan-200 text-base font-bold shadow-lg">
+              <div className="absolute top-2 left-2 sm:top-4 sm:left-4 z-30 flex items-center gap-2 bg-black/70 px-2 sm:px-3 py-1 rounded-full text-cyan-200 text-xs sm:text-base font-bold shadow-lg">
                 <span className="hidden md:inline">Presiona</span> <kbd className="bg-cyan-800 px-2 py-1 rounded text-white font-mono">ESC</kbd> <span className="hidden md:inline">para salir</span>
               </div>
             )}
@@ -274,7 +291,7 @@ const ModuloDetalle = () => {
               <iframe
                 src={embedUrl + '?autoplay=0&title=0&byline=0&portrait=0'}
                 title={videoActual.titulo}
-                className="w-full h-full min-h-[200px] md:min-h-[400px] max-w-[100vw] max-h-[70vh] md:max-h-[80vh] rounded-2xl"
+                className="w-full h-full min-h-[180px] sm:min-h-[200px] md:min-h-[400px] max-w-[100vw] max-h-[40vh] sm:max-h-[60vh] md:max-h-[80vh] rounded-2xl"
                 allow="autoplay; fullscreen"
                 allowFullScreen
                 style={{ border: 'none', width: '100%', height: '100%', aspectRatio: '16/9', maxHeight: fullscreen ? '70vh' : 700, borderRadius: fullscreen ? 24 : 0, background: '#000' }}
@@ -284,22 +301,22 @@ const ModuloDetalle = () => {
             )}
           </div>
           {/* Título grande debajo del video */}
-          <div className="w-full flex flex-col items-center mb-4 mt-6 px-2 md:px-0">
-            <span className="text-cyan-200 text-xl md:text-3xl font-bold uppercase tracking-tight text-center bg-cyan-900/20 px-4 md:px-6 py-2 md:py-3 rounded-xl shadow">
+          <div className="w-full flex flex-col items-center mb-2 mt-4 sm:mb-4 sm:mt-6 px-1 sm:px-2 md:px-0">
+            <span className="text-cyan-200 text-lg sm:text-xl md:text-3xl font-bold uppercase tracking-tight text-center bg-cyan-900/20 px-2 sm:px-4 md:px-6 py-2 md:py-3 rounded-xl shadow">
               {videoActual.titulo || 'Sin título'}
             </span>
           </div>
           {/* Botones de navegación */}
-          <div className="flex gap-4 md:gap-6 mt-2 mb-8 justify-center flex-wrap px-2 md:px-0" style={fullscreen ? {marginBottom: 32, marginTop: 16, zIndex: 20} : {}}>
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 md:gap-6 mt-2 mb-4 sm:mb-8 justify-center flex-wrap px-1 sm:px-2 md:px-0 w-full max-w-xs mx-auto" style={fullscreen ? {marginBottom: 32, marginTop: 16, zIndex: 20} : {}}>
             <button
-              className="bg-cyan-700 hover:bg-cyan-500 text-white px-6 md:px-8 py-2 md:py-3 rounded-full font-bold text-base md:text-lg shadow-md transition-all"
+              className="bg-cyan-700 hover:bg-cyan-500 text-white px-4 sm:px-6 md:px-8 py-2 md:py-3 rounded-full font-bold text-base md:text-lg shadow-md transition-all w-full"
               onClick={() => setClaseActual((prev) => Math.max(prev - 1, 0))}
               disabled={claseActual === 0}
             >
               ← Anterior
             </button>
             <button
-              className="bg-cyan-700 hover:bg-cyan-500 text-white px-6 md:px-8 py-2 md:py-3 rounded-full font-bold text-base md:text-lg shadow-md transition-all"
+              className="bg-cyan-700 hover:bg-cyan-500 text-white px-4 sm:px-6 md:px-8 py-2 md:py-3 rounded-full font-bold text-base md:text-lg shadow-md transition-all w-full"
               onClick={() => setClaseActual((prev) => Math.min(prev + 1, clasesOrdenadas.length - 1))}
               disabled={esUltimoVideo}
             >
@@ -309,38 +326,38 @@ const ModuloDetalle = () => {
         </div>
       </div>
       {/* Sidebar elegante y angosta, debajo en móvil */}
-      <div className={`w-full md:w-[320px] bg-gradient-to-br from-neutral-950 to-black p-4 md:p-6 flex flex-col gap-6 rounded-3xl border-l-4 border-cyan-900/30 shadow-2xl min-h-[320px] md:min-h-screen transition-all duration-300 ${fullscreen ? 'hidden' : ''}`}
-        style={{marginTop: fullscreen ? 0 : 24}}>
+      <div className={`w-full md:w-[320px] bg-gradient-to-br from-neutral-950 to-black p-2 sm:p-4 md:p-6 flex flex-col gap-4 sm:gap-6 rounded-3xl border-l-4 border-cyan-900/30 shadow-2xl min-h-[220px] sm:min-h-[320px] md:min-h-screen transition-all duration-300 ${fullscreen ? 'hidden' : ''}`}
+        style={{marginTop: fullscreen ? 0 : 12}}>
         {/* Solo mostrar el botón de editar si es admin */}
         {isAdmin && (
           <button
-            className="mb-6 px-6 py-3 rounded-full bg-cyan-700 hover:bg-cyan-500 text-white font-bold shadow transition-all text-lg w-full"
+            className="mb-4 sm:mb-6 px-4 sm:px-6 py-2 sm:py-3 rounded-full bg-cyan-700 hover:bg-cyan-500 text-white font-bold shadow transition-all text-base sm:text-lg w-full"
             onClick={() => setShowEditor(true)}
           >
             Editar videos del módulo
           </button>
         )}
-        <h3 className="text-3xl font-bold mb-6 text-cyan-300 tracking-tight uppercase text-center drop-shadow-glow">Clases del módulo</h3>
+        <h3 className="text-xl sm:text-2xl md:text-3xl font-bold mb-4 sm:mb-6 text-cyan-300 tracking-tight uppercase text-center drop-shadow-glow">Clases del módulo</h3>
         {videosSiguientes.length === 0 && (
-          <div className="flex flex-col items-center gap-4 mt-8">
-            <div className="text-cyan-400 text-center">¡Has completado todos los videos de este módulo!</div>
-            <button className="bg-green-600 hover:bg-green-500 text-white font-bold px-6 py-3 rounded-full shadow-lg text-lg transition-all" onClick={() => {/* Aquí puedes navegar al siguiente módulo */}}>Siguiente módulo</button>
+          <div className="flex flex-col items-center gap-2 sm:gap-4 mt-4 sm:mt-8">
+            <div className="text-cyan-400 text-center text-base sm:text-lg">¡Has completado todos los videos de este módulo!</div>
+            <button className="bg-green-600 hover:bg-green-500 text-white font-bold px-4 sm:px-6 py-2 sm:py-3 rounded-full shadow-lg text-base sm:text-lg transition-all" onClick={() => {/* Aquí puedes navegar al siguiente módulo */}}>Siguiente módulo</button>
           </div>
         )}
         {videosSiguientes.map((c, idx) => (
           <div
             key={c.id || idx}
-            className={`flex items-center gap-4 p-4 rounded-2xl cursor-pointer transition border-2 bg-neutral-900 border-neutral-800 hover:bg-cyan-900/10 group`}
+            className={`flex items-center gap-2 sm:gap-4 p-2 sm:p-4 rounded-2xl cursor-pointer transition border-2 bg-neutral-900 border-neutral-800 hover:bg-cyan-900/10 group`}
             onClick={() => setClaseActual(claseActual + idx + 1)}
-            style={{ minHeight: 90 }}
+            style={{ minHeight: 60, fontSize: '0.98rem' }}
           >
             <img
               src={c.miniatura_url || '/images/placeholder-video.png'}
               alt={c.titulo}
-              className="w-16 h-12 object-cover rounded-xl border-2 border-cyan-800 group-hover:border-cyan-400 transition"
+              className="w-12 h-9 sm:w-16 sm:h-12 object-cover rounded-xl border-2 border-cyan-800 group-hover:border-cyan-400 transition"
             />
             <div className="flex-1">
-              <div className="font-bold text-cyan-200 text-lg uppercase tracking-tight group-hover:text-cyan-400 transition">{c.titulo}</div>
+              <div className="font-bold text-cyan-200 text-base sm:text-lg uppercase tracking-tight group-hover:text-cyan-400 transition">{c.titulo}</div>
               <div className="text-xs text-cyan-400 mt-1">Video</div>
             </div>
           </div>
