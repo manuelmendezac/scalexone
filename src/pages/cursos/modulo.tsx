@@ -350,20 +350,22 @@ const ModuloDetalle = () => {
         {videosSiguientes.map((c, idx) => (
           <div
             key={c.id || idx}
-            className={`flex items-center gap-2 sm:gap-4 p-2 sm:p-4 rounded-2xl cursor-pointer transition border-2 bg-neutral-900 border-neutral-800 hover:bg-cyan-900/10 group`}
+            className={`flex items-center gap-4 p-3 rounded-2xl cursor-pointer transition border-2 bg-neutral-900 border-neutral-800 hover:bg-cyan-900/10 group`}
             onClick={() => setClaseActual(claseActual + idx + 1)}
-            style={{ minHeight: 60, fontSize: '0.98rem' }}
+            style={{ minHeight: 110 }}
           >
-            {c.miniatura_url ? (
-              <img src={c.miniatura_url} alt={c.titulo} className="w-16 h-12 object-cover rounded-xl border-2 border-cyan-800 group-hover:border-cyan-400 transition" />
-            ) : c.url ? (
-              <video src={c.url} className="w-16 h-12 object-cover rounded-xl border-2 border-cyan-800 group-hover:border-cyan-400 transition" muted playsInline preload="metadata" style={{pointerEvents:'none'}} />
-            ) : (
-              <div className="w-16 h-12 bg-cyan-950 rounded-xl flex items-center justify-center text-cyan-400">Sin video</div>
-            )}
-            <div className="flex-1">
-              <div className="font-bold text-cyan-200 text-base sm:text-lg uppercase tracking-tight group-hover:text-cyan-400 transition">{c.titulo}</div>
-              <div className="text-xs text-cyan-400 mt-1">Video</div>
+            <div className="flex-shrink-0 w-32 h-20 bg-black rounded-xl overflow-hidden flex items-center justify-center border-2 border-cyan-800 group-hover:border-cyan-400 transition">
+              {c.miniatura_url ? (
+                <img src={c.miniatura_url} alt={c.titulo} className="w-full h-full object-cover" />
+              ) : c.url ? (
+                <video src={c.url} className="w-full h-full object-cover" muted playsInline preload="metadata" style={{pointerEvents:'none'}} />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-cyan-400">Sin video</div>
+              )}
+            </div>
+            <div className="flex-1 flex flex-col justify-center min-w-0">
+              <div className="font-bold text-cyan-200 text-base truncate mb-1" style={{fontSize:'1rem'}}>{c.titulo}</div>
+              <div className="text-xs text-cyan-400 opacity-70">Video</div>
             </div>
           </div>
         ))}
