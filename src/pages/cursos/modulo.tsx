@@ -6,6 +6,8 @@ import ModalFuturista from '../../components/ModalFuturista';
 import { createClient } from '@supabase/supabase-js';
 import useNeuroState from '../../store/useNeuroState';
 import { ChevronLeft, ChevronRight, CheckCircle, ArrowLeft, ArrowRight } from 'lucide-react';
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css';
 
 const supabaseUrl = process.env.REACT_APP_SUPABASE_URL || import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = process.env.REACT_APP_SUPABASE_ANON_KEY || import.meta.env.VITE_SUPABASE_ANON_KEY;
@@ -282,6 +284,72 @@ const ModuloDetalle = () => {
     window.addEventListener('keydown', handleEsc);
     return () => window.removeEventListener('keydown', handleEsc);
   }, [fullscreen]);
+
+  // Cargar descripción y materiales al montar el componente o cambiar de módulo
+  useEffect(() => {
+    if (!modulo?.id) return;
+    // Cargar descripción
+    supabase
+      .from('modulos_descripcion')
+      .select('*')
+      .eq('modulo_id', modulo.id)
+      .single()
+      .then(({ data }) => {
+        setDescripcionHtml(data?.descripcion_html || '');
+      });
+    // Cargar materiales
+    supabase
+      .from('modulos_materiales')
+      .select('*')
+      .eq('modulo_id', modulo.id)
+      .then(({ data }) => {
+        setMateriales(data || []);
+      });
+  }, [modulo?.id]);
+
+  // Guardar descripción
+  async function handleSaveDescripcion() {
+    if (!modulo?.id) return;
+    // Verificar si ya existe
+    const { data: existente } = await supabase
+      .from('modulos_descripcion')
+      .select('id')
+      .eq('modulo_id', modulo.id)
+      .single();
+    if (existente) {
+      await supabase
+        .from('modulos_descripcion')
+        .update({ descripcion_html: descripcionHtml })
+        .eq('id', existente.id);
+    } else {
+      await supabase
+        .from('modulos_descripcion')
+        .insert([{ modulo_id: modulo.id, descripcion_html: descripcionHtml }]);
+    }
+    setShowEditDescripcion(false);
+  }
+
+  // Guardar material (nuevo)
+  async function handleAddMaterial(material) {
+    if (!modulo?.id) return;
+    await supabase
+      .from('modulos_materiales')
+      .insert([{ ...material, modulo_id: modulo.id }]);
+    // Recargar materiales
+    const { data } = await supabase
+      .from('modulos_materiales')
+      .select('*')
+      .eq('modulo_id', modulo.id);
+    setMateriales(data || []);
+  }
+  // Eliminar material
+  async function handleDeleteMaterial(id) {
+    await supabase
+      .from('modulos_materiales')
+      .delete()
+      .eq('id', id);
+    setMateriales(materiales.filter(m => m.id !== id));
+  }
 
   if (loading) return <div className="text-cyan-400 text-center py-10">Cargando módulo...</div>;
 
@@ -583,6 +651,32 @@ const ModuloDetalle = () => {
             }} disabled={editorLoading}>Agregar video</button>
           </div>
           <button className="mt-8 px-4 py-2 rounded-full bg-cyan-700 hover:bg-cyan-500 text-white font-bold shadow w-full" onClick={() => setShowEditor(false)}>Cerrar</button>
+        </div>
+      </ModalFuturista>
+      {/* Modales de edición */}
+      <ModalFuturista open={showEditDescripcion} onClose={() => setShowEditDescripcion(false)}>
+        <div className="flex flex-col gap-4 w-full">
+          <h3 className="text-xl font-bold text-cyan-400 mb-2 text-center">Editar descripción del módulo</h3>
+          <ReactQuill value={descripcionHtml} onChange={setDescripcionHtml} className="bg-white text-black rounded" />
+          <button className="mt-4 px-4 py-2 rounded-full bg-cyan-700 hover:bg-cyan-500 text-white font-bold shadow w-full" onClick={handleSaveDescripcion}>Guardar</button>
+        </div>
+      </ModalFuturista>
+      <ModalFuturista open={showEditMateriales} onClose={() => setShowEditMateriales(false)}>
+        <div className="flex flex-col gap-4 w-full">
+          <h3 className="text-xl font-bold text-green-400 mb-2 text-center">Editar materiales y herramientas</h3>
+          <form onSubmit={async e => { e.preventDefault(); await handleAddMaterial({ titulo: e.target.titulo.value, url: e.target.url.value }); e.target.reset(); }} className="flex flex-col gap-2">
+            <input name="titulo" placeholder="Título del material" className="px-3 py-2 rounded bg-black text-green-200 border border-green-700" required />
+            <input name="url" placeholder="Enlace o URL de archivo" className="px-3 py-2 rounded bg-black text-green-200 border border-green-700" required />
+            <button type="submit" className="px-4 py-2 rounded-full bg-green-700 hover:bg-green-500 text-white font-bold shadow w-full">Agregar material</button>
+          </form>
+          <ul className="flex flex-col gap-2 mt-2">
+            {materiales.map((mat, idx) => (
+              <li key={mat.id || idx} className="flex items-center gap-2">
+                <a href={mat.url} target="_blank" rel="noopener noreferrer" className="flex-1 hover:underline text-green-200">{mat.titulo}</a>
+                <button className="text-xs text-red-400 hover:text-red-600 font-bold" onClick={() => handleDeleteMaterial(mat.id)}>Eliminar</button>
+              </li>
+            ))}
+          </ul>
         </div>
       </ModalFuturista>
     </div>
