@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../../supabase';
 import ModalFuturista from '../../components/ModalFuturista';
+import { createClient } from '@supabase/supabase-js';
 
 const videosDemo = [
   {
@@ -34,6 +35,10 @@ const miniaturasDemo = [
   'https://i.vimeocdn.com/video/452001751_640.jpg',
 ];
 
+const supabaseUrl = process.env.REACT_APP_SUPABASE_URL || import.meta.env.VITE_SUPABASE_URL;
+const supabaseAnonKey = process.env.REACT_APP_SUPABASE_ANON_KEY || import.meta.env.VITE_SUPABASE_ANON_KEY;
+const supabaseStorage = createClient(supabaseUrl, supabaseAnonKey);
+
 const ModuloDetalle = () => {
   const { id, moduloIdx } = useParams();
   const navigate = useNavigate();
@@ -43,6 +48,11 @@ const ModuloDetalle = () => {
   const [claseActual, setClaseActual] = useState(0);
   const [isAdmin, setIsAdmin] = useState(false);
   const [showEditor, setShowEditor] = useState(false);
+  const [videos, setVideos] = useState<any[]>([]);
+  const [editorLoading, setEditorLoading] = useState(false);
+  const [editorError, setEditorError] = useState<string | null>(null);
+  const [successMsg, setSuccessMsg] = useState<string | null>(null);
+  const [nuevoVideo, setNuevoVideo] = useState<any>({ titulo: '', descripcion: '', url: '', miniatura_url: '', orden: 0 });
 
   useEffect(() => {
     async function fetchData() {
@@ -70,8 +80,108 @@ const ModuloDetalle = () => {
     setIsAdmin(true);
   }, []);
 
-  if (loading) return <div className="text-cyan-400 text-center py-10">Cargando módulo...</div>;
+  useEffect(() => {
+    if (!modulo?.id) return;
+    setEditorLoading(true);
+    supabase
+      .from('videos')
+      .select('*')
+      .eq('modulo_id', modulo.id)
+      .order('orden', { ascending: true })
+      .then(({ data, error }) => {
+        if (error) setEditorError('Error al cargar videos: ' + error.message);
+        setVideos(data || []);
+        setEditorLoading(false);
+      });
+  }, [modulo?.id, showEditor]);
+
   const clase = clases[claseActual] || {};
+
+  const handleMiniaturaUpload = async (file: File, idx: number | null = null) => {
+    if (!file) return;
+    setEditorLoading(true);
+    setEditorError(null);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Date.now()}-${Math.random().toString(36).substring(2,8)}.${fileExt}`;
+      const { data, error } = await supabaseStorage.storage.from('cursos').upload(fileName, file, { upsert: true });
+      if (error) throw error;
+      const { data: publicUrlData } = supabaseStorage.storage.from('cursos').getPublicUrl(fileName);
+      if (idx === null) {
+        setNuevoVideo((prev: any) => ({ ...prev, miniatura_url: publicUrlData?.publicUrl || '' }));
+      } else {
+        setVideos((prev) => prev.map((v, i) => i === idx ? { ...v, miniatura_url: publicUrlData?.publicUrl || '' } : v));
+      }
+      setSuccessMsg('Miniatura subida correctamente');
+    } catch (err: any) {
+      setEditorError('Error al subir miniatura: ' + (err.message || ''));
+    }
+    setEditorLoading(false);
+  };
+
+  const handleGuardarVideo = async (video: any, idx: number) => {
+    setEditorLoading(true);
+    setEditorError(null);
+    setSuccessMsg(null);
+    try {
+      const { error } = await supabase
+        .from('videos')
+        .update({
+          titulo: video.titulo,
+          descripcion: video.descripcion,
+          url: video.url,
+          miniatura_url: video.miniatura_url,
+          orden: video.orden,
+        })
+        .eq('id', video.id);
+      if (error) throw error;
+      setSuccessMsg('Video actualizado');
+    } catch (err: any) {
+      setEditorError('Error al guardar: ' + (err.message || ''));
+    }
+    setEditorLoading(false);
+  };
+
+  const handleEliminarVideo = async (videoId: string) => {
+    setEditorLoading(true);
+    setEditorError(null);
+    setSuccessMsg(null);
+    try {
+      const { error } = await supabase.from('videos').delete().eq('id', videoId);
+      if (error) throw error;
+      setVideos((prev) => prev.filter((v) => v.id !== videoId));
+      setSuccessMsg('Video eliminado');
+    } catch (err: any) {
+      setEditorError('Error al eliminar: ' + (err.message || ''));
+    }
+    setEditorLoading(false);
+  };
+
+  const handleAgregarVideo = async () => {
+    setEditorLoading(true);
+    setEditorError(null);
+    setSuccessMsg(null);
+    try {
+      if (!nuevoVideo.titulo || !nuevoVideo.url) {
+        setEditorError('El título y la URL del video son obligatorios');
+        setEditorLoading(false);
+        return;
+      }
+      const { data, error } = await supabase
+        .from('videos')
+        .insert([{ ...nuevoVideo, modulo_id: modulo.id }])
+        .select();
+      if (error) throw error;
+      setVideos((prev) => [...prev, data[0]]);
+      setNuevoVideo({ titulo: '', descripcion: '', url: '', miniatura_url: '', orden: 0 });
+      setSuccessMsg('Video agregado');
+    } catch (err: any) {
+      setEditorError('Error al agregar: ' + (err.message || ''));
+    }
+    setEditorLoading(false);
+  };
+
+  if (loading) return <div className="text-cyan-400 text-center py-10">Cargando módulo...</div>;
 
   return (
     <div className="min-h-screen bg-black text-white flex flex-col md:flex-row">
@@ -91,14 +201,83 @@ const ModuloDetalle = () => {
           <ModalFuturista open={showEditor} onClose={() => setShowEditor(false)}>
             <div className="p-2 w-full">
               <h3 className="text-xl font-bold text-cyan-400 mb-4">Editor de videos del módulo</h3>
-              {/* Aquí irá el formulario de edición de videos y miniaturas */}
-              <div className="text-cyan-200">(Próximamente: edición de videos y miniaturas aquí)</div>
-              <button
-                className="mt-6 px-4 py-2 rounded-full bg-cyan-700 hover:bg-cyan-500 text-white font-bold shadow"
-                onClick={() => setShowEditor(false)}
-              >
-                Cerrar
-              </button>
+              {editorLoading && <div className="text-cyan-300 mb-2">Cargando...</div>}
+              {editorError && <div className="text-red-400 mb-2">{editorError}</div>}
+              {successMsg && <div className="text-green-400 mb-2">{successMsg}</div>}
+              {/* Listado y edición de videos existentes */}
+              {videos.map((video, idx) => (
+                <div key={video.id} className="mb-6 p-4 rounded-xl bg-[#101c2c] border border-cyan-900/40 flex flex-col gap-2">
+                  <input
+                    className="px-3 py-2 rounded bg-black text-cyan-200 border border-cyan-700 mb-1"
+                    value={video.titulo}
+                    onChange={e => setVideos(videos.map((v, i) => i === idx ? { ...v, titulo: e.target.value } : v))}
+                    placeholder="Título"
+                  />
+                  <textarea
+                    className="px-3 py-2 rounded bg-black text-cyan-200 border border-cyan-700 mb-1"
+                    value={video.descripcion || ''}
+                    onChange={e => setVideos(videos.map((v, i) => i === idx ? { ...v, descripcion: e.target.value } : v))}
+                    placeholder="Descripción"
+                  />
+                  <input
+                    className="px-3 py-2 rounded bg-black text-cyan-200 border border-cyan-700 mb-1"
+                    value={video.url}
+                    onChange={e => setVideos(videos.map((v, i) => i === idx ? { ...v, url: e.target.value } : v))}
+                    placeholder="URL del video"
+                  />
+                  <input
+                    className="px-3 py-2 rounded bg-black text-cyan-200 border border-cyan-700 mb-1"
+                    value={video.orden || 0}
+                    type="number"
+                    onChange={e => setVideos(videos.map((v, i) => i === idx ? { ...v, orden: parseInt(e.target.value) } : v))}
+                    placeholder="Orden"
+                  />
+                  {/* Miniatura */}
+                  <div className="flex items-center gap-3 mb-2">
+                    {video.miniatura_url && <img src={video.miniatura_url} alt="Miniatura" className="w-20 h-14 object-cover rounded border border-cyan-700" />}
+                    <input type="file" accept="image/*" onChange={e => e.target.files && handleMiniaturaUpload(e.target.files[0], idx)} />
+                  </div>
+                  <div className="flex gap-3 mt-2">
+                    <button className="px-4 py-2 rounded bg-cyan-700 text-white font-bold" onClick={() => handleGuardarVideo(video, idx)} disabled={editorLoading}>Guardar</button>
+                    <button className="px-4 py-2 rounded bg-red-700 text-white font-bold" onClick={() => handleEliminarVideo(video.id)} disabled={editorLoading}>Eliminar</button>
+                  </div>
+                </div>
+              ))}
+              {/* Formulario para agregar nuevo video */}
+              <div className="mt-8 p-4 rounded-xl bg-[#1a2a3f] border border-cyan-900/40 flex flex-col gap-2">
+                <input
+                  className="px-3 py-2 rounded bg-black text-cyan-200 border border-cyan-700 mb-1"
+                  value={nuevoVideo.titulo}
+                  onChange={e => setNuevoVideo({ ...nuevoVideo, titulo: e.target.value })}
+                  placeholder="Título"
+                />
+                <textarea
+                  className="px-3 py-2 rounded bg-black text-cyan-200 border border-cyan-700 mb-1"
+                  value={nuevoVideo.descripcion}
+                  onChange={e => setNuevoVideo({ ...nuevoVideo, descripcion: e.target.value })}
+                  placeholder="Descripción"
+                />
+                <input
+                  className="px-3 py-2 rounded bg-black text-cyan-200 border border-cyan-700 mb-1"
+                  value={nuevoVideo.url}
+                  onChange={e => setNuevoVideo({ ...nuevoVideo, url: e.target.value })}
+                  placeholder="URL del video"
+                />
+                <input
+                  className="px-3 py-2 rounded bg-black text-cyan-200 border border-cyan-700 mb-1"
+                  value={nuevoVideo.orden}
+                  type="number"
+                  onChange={e => setNuevoVideo({ ...nuevoVideo, orden: parseInt(e.target.value) })}
+                  placeholder="Orden"
+                />
+                {/* Miniatura nueva */}
+                <div className="flex items-center gap-3 mb-2">
+                  {nuevoVideo.miniatura_url && <img src={nuevoVideo.miniatura_url} alt="Miniatura" className="w-20 h-14 object-cover rounded border border-cyan-700" />}
+                  <input type="file" accept="image/*" onChange={e => e.target.files && handleMiniaturaUpload(e.target.files[0], null)} />
+                </div>
+                <button className="px-4 py-2 rounded bg-green-700 text-white font-bold mt-2" onClick={handleAgregarVideo} disabled={editorLoading}>Agregar video</button>
+              </div>
+              <button className="mt-8 px-4 py-2 rounded-full bg-cyan-700 hover:bg-cyan-500 text-white font-bold shadow w-full" onClick={() => setShowEditor(false)}>Cerrar</button>
             </div>
           </ModalFuturista>
           <div className="w-full aspect-video bg-black rounded-2xl overflow-hidden mb-6 flex items-center justify-center border-2 border-cyan-900/30 shadow-lg">
