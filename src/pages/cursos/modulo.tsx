@@ -298,40 +298,110 @@ const ModuloDetalle = () => {
   // Guardar descripción enriquecida
   async function handleSaveDescripcion() {
     setEditorLoading(true);
-    await supabase.from('modulos_curso').update({descripcion_html: descripcionHtml}).eq('id', modulo.id);
-    setShowEditDescripcion(false);
-    setEditorLoading(false);
+    try {
+      const { error } = await supabase
+        .from('modulos_curso')
+        .update({ descripcion_html: descripcionHtml })
+        .eq('id', modulo.id);
+      
+      if (error) throw error;
+      
+      // Actualizar el estado local
+      setModulo(prev => ({ ...prev, descripcion_html: descripcionHtml }));
+      setSuccessMsg('Descripción guardada correctamente');
+      setShowEditDescripcion(false);
+    } catch (err: any) {
+      setEditorError('Error al guardar: ' + (err.message || ''));
+    } finally {
+      setEditorLoading(false);
+    }
   }
+
   // Guardar material (nuevo o editado)
   async function handleSaveMaterial() {
+    if (!materialEdit?.titulo) {
+      setEditorError('El título es obligatorio');
+      return;
+    }
+
     setMaterialLoading(true);
-    let url = materialEdit?.url;
-    if (materialFile) {
-      const ext = materialFile.name.split('.').pop();
-      const fileName = `material_${modulo.id}_${Date.now()}.${ext}`;
-      const { error } = await supabaseStorage.storage.from('cursos').upload(fileName, materialFile, { upsert: true });
-      if (!error) {
-        const { data: publicUrlData } = supabaseStorage.storage.from('cursos').getPublicUrl(fileName);
+    try {
+      let url = materialEdit.url;
+      
+      // Si hay un archivo nuevo, subirlo
+      if (materialFile) {
+        const ext = materialFile.name.split('.').pop();
+        const fileName = `material_${modulo.id}_${Date.now()}.${ext}`;
+        const { error: uploadError } = await supabaseStorage.storage
+          .from('cursos')
+          .upload(fileName, materialFile, { upsert: true });
+        
+        if (uploadError) throw uploadError;
+        
+        const { data: publicUrlData } = supabaseStorage.storage
+          .from('cursos')
+          .getPublicUrl(fileName);
         url = publicUrlData?.publicUrl || url;
       }
+
+      // Guardar en la base de datos
+      if (materialEdit.id) {
+        const { error } = await supabase
+          .from('materiales_modulo')
+          .update({ titulo: materialEdit.titulo, url })
+          .eq('id', materialEdit.id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from('materiales_modulo')
+          .insert([{ 
+            modulo_id: modulo.id, 
+            titulo: materialEdit.titulo, 
+            url 
+          }]);
+        if (error) throw error;
+      }
+
+      // Recargar materiales
+      const { data, error } = await supabase
+        .from('materiales_modulo')
+        .select('*')
+        .eq('modulo_id', modulo.id);
+      
+      if (error) throw error;
+      
+      setMateriales(data || []);
+      setSuccessMsg('Material guardado correctamente');
+      setShowEditMateriales(false);
+      setMaterialEdit(null);
+      setMaterialFile(null);
+    } catch (err: any) {
+      setEditorError('Error al guardar: ' + (err.message || ''));
+    } finally {
+      setMaterialLoading(false);
     }
-    if (materialEdit?.id) {
-      await supabase.from('materiales_modulo').update({titulo: materialEdit.titulo, url}).eq('id', materialEdit.id);
-    } else {
-      await supabase.from('materiales_modulo').insert([{modulo_id: modulo.id, titulo: materialEdit?.titulo, url}]);
-    }
-    setShowEditMateriales(false);
-    setMaterialEdit(null);
-    setMaterialFile(null);
-    // Recargar materiales
-    const {data} = await supabase.from('materiales_modulo').select('*').eq('modulo_id', modulo.id);
-    setMateriales(data||[]);
-    setMaterialLoading(false);
   }
+
   // Eliminar material
-  async function handleDeleteMaterial(id:number) {
-    await supabase.from('materiales_modulo').delete().eq('id', id);
-    setMateriales(materiales.filter(m=>m.id!==id));
+  async function handleDeleteMaterial(id: number) {
+    if (!window.confirm('¿Estás seguro de eliminar este material?')) return;
+    
+    setMaterialLoading(true);
+    try {
+      const { error } = await supabase
+        .from('materiales_modulo')
+        .delete()
+        .eq('id', id);
+      
+      if (error) throw error;
+      
+      setMateriales(prev => prev.filter(m => m.id !== id));
+      setSuccessMsg('Material eliminado correctamente');
+    } catch (err: any) {
+      setEditorError('Error al eliminar: ' + (err.message || ''));
+    } finally {
+      setMaterialLoading(false);
+    }
   }
 
   if (loading) return <div className="text-cyan-400 text-center py-10">Cargando módulo...</div>;
@@ -614,21 +684,71 @@ const ModuloDetalle = () => {
         </div>
       </ModalFuturista>
       {/* Modal edición descripción */}
-      <ModalFuturista open={showEditDescripcion} onClose={()=>setShowEditDescripcion(false)}>
+      <ModalFuturista open={showEditDescripcion} onClose={() => setShowEditDescripcion(false)}>
         <div className="flex flex-col gap-4 w-full">
           <h3 className="text-xl font-bold text-cyan-400 mb-2 text-center">Editar descripción del módulo</h3>
-          <ReactQuill value={descripcionHtml} onChange={setDescripcionHtml} className="bg-white text-black rounded" />
-          <button className="mt-4 px-4 py-2 rounded-full bg-cyan-700 hover:bg-cyan-500 text-white font-bold shadow w-full" onClick={handleSaveDescripcion}>Guardar</button>
+          {editorError && <div className="text-red-400 text-sm">{editorError}</div>}
+          {successMsg && <div className="text-green-400 text-sm">{successMsg}</div>}
+          <ReactQuill 
+            value={descripcionHtml} 
+            onChange={setDescripcionHtml} 
+            className="bg-white text-black rounded" 
+          />
+          <button 
+            className="mt-4 px-4 py-2 rounded-full bg-cyan-700 hover:bg-cyan-500 text-white font-bold shadow w-full" 
+            onClick={handleSaveDescripcion}
+            disabled={editorLoading}
+          >
+            {editorLoading ? 'Guardando...' : 'Guardar'}
+          </button>
         </div>
       </ModalFuturista>
       {/* Modal edición materiales */}
-      <ModalFuturista open={showEditMateriales} onClose={()=>{setShowEditMateriales(false);setMaterialEdit(null);}}>
+      <ModalFuturista open={showEditMateriales} onClose={() => {
+        setShowEditMateriales(false);
+        setMaterialEdit(null);
+        setMaterialFile(null);
+        setEditorError(null);
+        setSuccessMsg(null);
+      }}>
         <div className="flex flex-col gap-4 w-full">
-          <h3 className="text-xl font-bold text-green-400 mb-2 text-center">{materialEdit ? 'Editar material' : 'Agregar material'}</h3>
-          <input className="px-3 py-2 rounded bg-black text-green-200 border border-green-700 mb-1" value={materialEdit?.titulo||''} onChange={e=>setMaterialEdit({...materialEdit, titulo: e.target.value || '', url: materialEdit?.url || ''})} placeholder="Título del material" />
-          <input className="px-3 py-2 rounded bg-black text-green-200 border border-green-700 mb-1" value={materialEdit?.url||''} onChange={e=>setMaterialEdit({...materialEdit, url: e.target.value || '', titulo: materialEdit?.titulo || ''})} placeholder="Enlace o deja vacío para subir archivo" />
-          <input type="file" accept="*" onChange={e=>e.target.files&&setMaterialFile(e.target.files[0])} />
-          <button className="mt-4 px-4 py-2 rounded-full bg-green-700 hover:bg-green-500 text-white font-bold shadow w-full" onClick={handleSaveMaterial} disabled={materialLoading}>{materialLoading?'Guardando...':'Guardar'}</button>
+          <h3 className="text-xl font-bold text-green-400 mb-2 text-center">
+            {materialEdit?.id ? 'Editar material' : 'Agregar material'}
+          </h3>
+          {editorError && <div className="text-red-400 text-sm">{editorError}</div>}
+          {successMsg && <div className="text-green-400 text-sm">{successMsg}</div>}
+          <input 
+            className="px-3 py-2 rounded bg-black text-green-200 border border-green-700 mb-1" 
+            value={materialEdit?.titulo || ''} 
+            onChange={e => setMaterialEdit(prev => ({ 
+              ...prev, 
+              titulo: e.target.value || '', 
+              url: prev?.url || '' 
+            }))} 
+            placeholder="Título del material" 
+          />
+          <input 
+            className="px-3 py-2 rounded bg-black text-green-200 border border-green-700 mb-1" 
+            value={materialEdit?.url || ''} 
+            onChange={e => setMaterialEdit(prev => ({ 
+              ...prev, 
+              url: e.target.value || '', 
+              titulo: prev?.titulo || '' 
+            }))} 
+            placeholder="Enlace o deja vacío para subir archivo" 
+          />
+          <input 
+            type="file" 
+            accept="*" 
+            onChange={e => e.target.files && setMaterialFile(e.target.files[0])} 
+          />
+          <button 
+            className="mt-4 px-4 py-2 rounded-full bg-green-700 hover:bg-green-500 text-white font-bold shadow w-full" 
+            onClick={handleSaveMaterial} 
+            disabled={materialLoading}
+          >
+            {materialLoading ? 'Guardando...' : 'Guardar'}
+          </button>
         </div>
       </ModalFuturista>
     </div>
