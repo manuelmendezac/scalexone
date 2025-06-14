@@ -5,6 +5,7 @@ import useNeuroState from '../../store/useNeuroState';
 import { BookOpen, Users, Award, UploadCloud, Layers, PlayCircle, X, Video, VideoIcon, VideoOff, Link2, ExternalLink, Users as UsersIcon, Calendar, Globe, Video as VideoLucide, VideoOff as VideoOffLucide, ChevronLeft, ChevronRight } from 'lucide-react';
 import ModalFuturista from '../../components/ModalFuturista';
 import CertificacionSection from '../../components/CertificacionSection';
+import CertificacionAdminModal from '../../components/CertificacionAdminModal';
 
 const mockCurso = {
   id: 1,
@@ -247,6 +248,8 @@ const CursoDetalle = () => {
   const [modalVideosOpen, setModalVideosOpen] = useState(false);
   const [videosPrimerModulo, setVideosPrimerModulo] = useState<any[]>([]);
   const [infoPrimerModulo, setInfoPrimerModulo] = useState<any>(null);
+
+  const [editCertificacionOpen, setEditCertificacionOpen] = useState(false);
 
   const handleVerClasesModulo = async (mod: any, idx: number) => {
     // Buscar el id real del módulo
@@ -1087,14 +1090,28 @@ const CursoDetalle = () => {
 
       {/* Certificación */}
       <section className="certificacion mb-10">
+        {isAdmin && (
+          <button
+            className="text-xs bg-cyan-700 hover:bg-cyan-500 text-white px-3 py-1 rounded-full font-bold shadow mb-3"
+            onClick={() => setEditCertificacionOpen(true)}
+          >
+            Editar certificación
+          </button>
+        )}
         <CertificacionSection
-          videoUrl="https://www.youtube.com/embed/1Q8fG0TtVAY" // Ejemplo de video motivacional
+          videoUrl="https://www.youtube.com/embed/1Q8fG0TtVAY"
           onCertificar={() => alert('Aquí irá la lógica para certificar o abrir el quiz')}
           certificadoImg="/img/certificado-demo.png"
           alianzas={[
             { logo: "/logos/cel.png", nombre: "Center of Education and Leadership", url: "https://cel.com" },
             { logo: "/logos/fguni.png", nombre: "Florida Global University", url: "https://floridaglobal.university" }
           ]}
+        />
+        <CertificacionAdminModal
+          open={editCertificacionOpen}
+          onClose={() => setEditCertificacionOpen(false)}
+          curso_id={id || ''}
+          isAdmin={isAdmin}
         />
       </section>
 
