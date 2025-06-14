@@ -221,11 +221,10 @@ const ModulosCurso = () => {
                 <div key={v.id} className="relative group flex flex-row items-center gap-4 bg-neutral-900 rounded-2xl border-4 border-cyan-400 p-3 shadow-2xl w-full">
                   {/* Tooltip informativo */}
                   <div
-                    className={`absolute z-30 hidden group-hover:flex flex-col min-w-[220px] max-w-xs px-4 py-3 bg-black border-2 border-cyan-400 text-white text-sm rounded-2xl shadow-xl transition-all duration-200 animate-fadein
-                      ${isLeft ? 'left-full ml-4 top-1/2 -translate-y-1/2' : 'right-full mr-4 top-1/2 -translate-y-1/2'}
-                      sm:flex
+                    className={`pointer-events-none absolute z-30 opacity-0 group-hover:opacity-100 group-hover:pointer-events-auto transition-opacity duration-200 delay-150 flex-col min-w-[220px] max-w-xs px-4 py-3 bg-black border-2 border-cyan-400 text-white text-sm rounded-2xl shadow-xl
+                      ${isLeft ? 'left-full ml-6 top-1/2 -translate-y-1/2' : 'right-full mr-6 top-1/2 -translate-y-1/2'}
+                      hidden sm:flex
                     `}
-                    style={{ pointerEvents: 'none' }}
                   >
                     <div className="mb-1 font-bold text-cyan-300">{v.titulo}</div>
                     <div className="text-white/90">{v.descripcion || 'Sin descripción'}</div>
@@ -237,8 +236,7 @@ const ModulosCurso = () => {
                   </div>
                   {/* Tooltip móvil */}
                   <div
-                    className="absolute z-30 left-1/2 -translate-x-1/2 bottom-[-70px] w-[90vw] max-w-xs px-4 py-3 bg-black border-2 border-cyan-400 text-white text-sm rounded-2xl shadow-xl transition-all duration-200 animate-fadein flex-col items-center sm:hidden hidden group-hover:flex"
-                    style={{ pointerEvents: 'none' }}
+                    className="pointer-events-none absolute z-30 left-1/2 -translate-x-1/2 bottom-[-70px] w-[90vw] max-w-xs px-4 py-3 bg-black border-2 border-cyan-400 text-white text-sm rounded-2xl shadow-xl opacity-0 group-hover:opacity-100 group-hover:pointer-events-auto transition-opacity duration-200 delay-150 flex-col items-center sm:hidden"
                   >
                     <div className="mb-1 font-bold text-cyan-300">{v.titulo}</div>
                     <div className="text-white/90">{v.descripcion || 'Sin descripción'}</div>
