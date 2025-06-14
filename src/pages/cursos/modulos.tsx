@@ -160,10 +160,16 @@ const ModulosCurso = () => {
                 el.scrollIntoView({ behavior: 'smooth', block: 'start' });
               }
             }}
-            className="bg-black border border-white text-white px-8 py-3 rounded-2xl text-lg font-semibold transition-all hover:bg-white hover:text-black hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-cyan-400"
-            style={{ minWidth: '170px' }}
+            className="bg-black border border-white text-white px-8 py-3 rounded-2xl text-lg font-semibold transition-all hover:bg-white hover:text-black hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-cyan-400 flex items-center gap-4"
+            style={{ minWidth: '220px' }}
           >
-            {mod.titulo || `Módulo ${idx + 1}`}
+            {/* Icono del módulo */}
+            {mod.icono ? (
+              <img src={mod.icono} alt="icono" className="w-16 h-16 object-cover rounded-full bg-black/80" style={{minWidth: '64px', minHeight: '64px', maxWidth: '64px', maxHeight: '64px', border: 'none', boxShadow: 'none'}} />
+            ) : (
+              <svg width="64" height="64" fill="none" stroke="#22d3ee" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="text-cyan-400"><circle cx="32" cy="32" r="26" /><path d="M48 48L40 40" /><circle cx="32" cy="32" r="10" /></svg>
+            )}
+            <span className="truncate text-left">{mod.titulo || `Módulo ${idx + 1}`}</span>
           </button>
         ))}
       </div>
@@ -171,8 +177,20 @@ const ModulosCurso = () => {
       {modulos.map((mod, idx) => (
         <div key={idx} id={`modulo-${idx}`} className="bg-black/80 border-2 border-cyan-400 rounded-2xl p-8 shadow-xl flex flex-col min-h-[340px] max-w-3xl w-full mx-auto mb-10">
           <div className="flex flex-col items-center mb-4">
-            <div className="mb-2">{focoSVG}</div>
-            <CircularProgress percent={Math.floor(Math.random()*60+40)} size={54} stroke={7} />
+            <div className="flex flex-row items-center justify-center gap-6 w-full md:flex-row flex-col">
+              {/* Barra de progreso circular */}
+              <div className="flex flex-col items-center">
+                <CircularProgress percent={Math.floor(Math.random()*60+40)} size={54} stroke={7} />
+              </div>
+              {/* Icono grande, ajustado automáticamente */}
+              <div className="flex flex-col items-center">
+                {mod.icono ? (
+                  <img src={mod.icono} alt="icono" className="w-16 h-16 md:w-20 md:h-20 object-cover rounded-full bg-black/80" style={{minWidth: '64px', minHeight: '64px', maxWidth: '80px', maxHeight: '80px', border: 'none', boxShadow: 'none'}} />
+                ) : (
+                  <svg width="64" height="64" fill="none" stroke="#22d3ee" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="text-cyan-400"><circle cx="32" cy="32" r="26" /><path d="M48 48L40 40" /><circle cx="32" cy="32" r="10" /></svg>
+                )}
+              </div>
+            </div>
           </div>
           <div className="text-xl font-bold text-white mb-2 text-center uppercase">{mod.titulo}</div>
           <div className="text-white/90 text-base mb-6 text-center">{mod.descripcion}</div>
