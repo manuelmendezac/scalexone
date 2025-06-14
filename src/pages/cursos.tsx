@@ -53,7 +53,7 @@ const CursosPage: React.FC = () => {
   if (error) return <div className="min-h-screen flex items-center justify-center text-red-400">{error}</div>;
 
   return (
-    <div className="min-h-screen bg-black text-white flex flex-col items-center justify-start py-10 px-2">
+    <div className="w-full min-h-screen" style={{ background: '#10192b' }}>
       {isAdmin && <CursosAdminPanel />}
       {/* Header */}
       <div className="w-full flex justify-end items-center mb-8 px-2 max-w-7xl mx-auto">

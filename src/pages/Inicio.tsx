@@ -33,7 +33,7 @@ const Inicio: React.FC = () => {
   }, [userName]);
 
   return (
-    <div className="w-full min-h-screen bg-transparent">
+    <div className="w-full min-h-screen" style={{ background: '#10192b' }}>
       <div className="max-w-7xl w-full mx-auto px-4 md:px-8">
         <BannerSlider />
         {/* Botón de acceso a Classroom */}
