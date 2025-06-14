@@ -696,6 +696,20 @@ const CursoDetalle = () => {
     return null;
   }
 
+  // Función para convertir enlaces de YouTube/Vimeo a embed
+  function getEmbedUrl(url: string) {
+    if (!url) return '';
+    // YouTube normal
+    const ytMatch = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([\w-]{11})/);
+    if (ytMatch) return `https://www.youtube.com/embed/${ytMatch[1]}`;
+    // Vimeo
+    const vimeoMatch = url.match(/vimeo\.com\/(\d+)/);
+    if (vimeoMatch) return `https://player.vimeo.com/video/${vimeoMatch[1]}`;
+    // Ya embed
+    if (url.includes('embed')) return url;
+    return url;
+  }
+
   return (
     <div className="curso-detalle-page bg-black min-h-screen text-white p-0">
       {/* Editor solo para admin, siempre visible arriba */}
@@ -1109,7 +1123,7 @@ const CursoDetalle = () => {
           </button>
         )}
         <CertificacionSection
-          videoUrl={certificacion?.video_url || ''}
+          videoUrl={getEmbedUrl(certificacion?.video_url || '')}
           onCertificar={() => window.open(certificacion?.enlace_boton || '#', '_blank')}
           certificadoImg={certificacion?.imagen_certificado || ''}
           alianzas={certificacion?.imagenes_alianzas?.map((url: string) => ({ logo: url, nombre: '', url: '' })) || []}
