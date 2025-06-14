@@ -22,7 +22,16 @@ const ModalFuturista: React.FC<ModalFuturistaProps> = ({ open, onClose, avatarUr
       onClick={handleOverlayClick}
       style={{padding: '32px 0'}}
     >
-      <div className="relative bg-gradient-to-br from-[#101c2c] via-[#1a2a3f] to-[#101c2c] rounded-3xl shadow-2xl border-2 border-[#3ec6f7] p-6 w-full max-w-[420px] flex flex-col items-center" style={{maxHeight: '95vh', overflowY: 'auto', minWidth: 0}}>
+      <div
+        className="relative bg-gradient-to-br from-[#101c2c] via-[#1a2a3f] to-[#101c2c] rounded-3xl shadow-2xl border-2 border-[#3ec6f7] p-6 w-full max-w-[700px] flex flex-col items-center"
+        style={{
+          maxHeight: '95vh',
+          overflowY: 'auto',
+          minWidth: 0,
+          width: '100%',
+          padding: '1.5rem',
+        }}
+      >
         {/* Cerrar */}
         <button onClick={onClose} className="absolute top-4 right-4 text-[#3ec6f7] text-3xl font-bold hover:text-[#aef1ff] transition z-20">×</button>
         {/* Avatar y progreso (opcional) */}
