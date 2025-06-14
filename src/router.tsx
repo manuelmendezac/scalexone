@@ -43,6 +43,7 @@ import CursosPage from './pages/cursos';
 import CursoDetalle from './pages/cursos/id';
 import ModulosCurso from './pages/cursos/modulos';
 import ModuloDetalle from './pages/cursos/modulo';
+import Classroom from './pages/classroom';
 
 export const router = createBrowserRouter([
   {
@@ -87,6 +88,7 @@ export const router = createBrowserRouter([
       { path: 'cursos/:id', element: <ProtectedRoute><CursoDetalle /></ProtectedRoute> },
       { path: 'cursos/:id/modulos', element: <ProtectedRoute><ModulosCurso /></ProtectedRoute> },
       { path: 'cursos/:id/modulo/:moduloIdx', element: <ProtectedRoute><ModuloDetalle /></ProtectedRoute> },
+      { path: 'classroom', element: <ProtectedRoute><Classroom /></ProtectedRoute> },
     ]
   },
   { path: '/afiliados', element: <AfiliadosPage /> },
