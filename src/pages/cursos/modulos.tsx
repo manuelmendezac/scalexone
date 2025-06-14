@@ -149,9 +149,27 @@ const ModulosCurso = () => {
 
   return (
     <div className="max-w-6xl mx-auto py-10 px-4">
+      {/* Barra de botones de anclaje */}
+      <div className="flex flex-wrap gap-4 justify-center mb-8">
+        {modulos.map((mod, idx) => (
+          <button
+            key={idx}
+            onClick={() => {
+              const el = document.getElementById(`modulo-${idx}`);
+              if (el) {
+                el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              }
+            }}
+            className="bg-black border border-white text-white px-8 py-3 rounded-2xl text-lg font-semibold transition-all hover:bg-white hover:text-black hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-cyan-400"
+            style={{ minWidth: '170px' }}
+          >
+            {mod.titulo || `Módulo ${idx + 1}`}
+          </button>
+        ))}
+      </div>
       <h1 className="text-3xl font-bold text-cyan-400 mb-8">Módulos del Curso</h1>
       {modulos.map((mod, idx) => (
-        <div key={idx} className="bg-black/80 border-2 border-cyan-400 rounded-2xl p-8 shadow-xl flex flex-col min-h-[340px] max-w-3xl w-full mx-auto mb-10">
+        <div key={idx} id={`modulo-${idx}`} className="bg-black/80 border-2 border-cyan-400 rounded-2xl p-8 shadow-xl flex flex-col min-h-[340px] max-w-3xl w-full mx-auto mb-10">
           <div className="flex flex-col items-center mb-4">
             <div className="mb-2">{focoSVG}</div>
             <CircularProgress percent={Math.floor(Math.random()*60+40)} size={54} stroke={7} />
