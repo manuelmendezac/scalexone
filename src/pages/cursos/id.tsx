@@ -738,7 +738,14 @@ const CursoDetalle = () => {
               >
                 <BookOpen className="w-4 h-4"/>Módulos
               </button>
-              <button className="flex items-center gap-1.5 px-4 py-1.5 rounded-full border border-cyan-400 text-cyan-400 font-semibold text-sm shadow-none bg-black hover:bg-cyan-900/10 transition-all"><Users className="w-4 h-4"/>Complementario</button>
+              <button className="flex items-center gap-1.5 px-4 py-1.5 rounded-full border border-cyan-400 text-cyan-400 font-semibold text-sm shadow-none bg-black hover:bg-cyan-900/10 transition-all" 
+                onClick={() => {
+                  const el = document.getElementById('complementario-section');
+                  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }}
+              >
+                <Users className="w-4 h-4"/>Complementario
+              </button>
               <button className="flex items-center gap-1.5 px-4 py-1.5 rounded-full border border-cyan-400 text-cyan-400 font-semibold text-sm shadow-none bg-black hover:bg-cyan-900/10 transition-all"><Award className="w-4 h-4"/>Master Adventure</button>
             </div>
             <h1 className="text-4xl md:text-5xl font-bold mb-4 text-cyan-400" style={{letterSpacing: '-1px'}}>{data.titulo}</h1>
@@ -872,7 +879,7 @@ const CursoDetalle = () => {
       </section>
 
       {/* Complementario centrado */}
-      <section className="complementario mb-10 w-full flex justify-center">
+      <section className="complementario mb-10 w-full flex justify-center" id="complementario-section">
         <div className="w-full max-w-6xl">
           <h2 className="text-2xl font-bold mb-4 text-center">Complementario</h2>
           {categoriasComplementario.map(cat => {
