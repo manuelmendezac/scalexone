@@ -157,142 +157,103 @@ const ModulosCurso = () => {
 
   return (
     <div className="max-w-6xl mx-auto py-10 px-4">
-      {/* Barra de botones de anclaje */}
-      <div className="flex flex-wrap gap-3 justify-center mb-8">
-        {modulos.map((mod, idx) => (
-          <button
-            key={idx}
-            onClick={() => {
-              const el = document.getElementById(`modulo-${idx}`);
-              if (el) {
-                el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-              }
-            }}
-            className="bg-black border border-white text-white px-4 py-2 rounded-xl text-base font-semibold transition-all hover:bg-white hover:text-black hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-cyan-400 flex items-center gap-2 min-w-[120px] sm:min-w-[160px] md:min-w-[180px]"
-            style={{ maxWidth: '95vw' }}
-          >
-            {/* Icono del módulo reducido */}
-            {mod.icono ? (
-              <img src={mod.icono} alt="icono" className="w-[45px] h-[45px] object-cover rounded-full bg-black/80" style={{minWidth: '45px', minHeight: '45px', maxWidth: '45px', maxHeight: '45px', border: 'none', boxShadow: 'none'}} />
-            ) : (
-              <svg width="45" height="45" fill="none" stroke="#22d3ee" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="text-cyan-400"><circle cx="22.5" cy="22.5" r="18" /><path d="M40 40L32 32" /><circle cx="22.5" cy="22.5" r="7" /></svg>
-            )}
-            <span className="truncate text-left max-w-[80px] sm:max-w-[120px] md:max-w-[150px]">{mod.titulo || `Módulo ${idx + 1}`}</span>
-          </button>
-        ))}
-      </div>
       <h1 className="text-3xl font-bold text-cyan-400 mb-8">Módulos del Curso</h1>
-      {/* Carrusel horizontal de módulos */}
-      <div className="relative w-full">
-        <button className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-cyan-900/80 hover:bg-cyan-400 text-white rounded-full p-2 shadow-lg" onClick={scrollLeft} style={{fontSize: 28}}>
-          <svg width="28" height="28" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6L10 14L18 22"/></svg>
-        </button>
-        <div
-          className="flex overflow-x-auto gap-8 py-4 px-2 scroll-smooth"
-          ref={carouselRef}
-          style={{ scrollBehavior: 'smooth' }}
-        >
-          {modulos.map((mod, idx) => (
-            <div key={idx} id={`modulo-${idx}`} className="bg-black/80 border-2 border-cyan-400 rounded-2xl p-8 shadow-xl flex flex-col min-h-[340px] max-w-3xl w-[350px] mx-auto mb-10 flex-shrink-0">
-              <div className="flex flex-col items-center mb-4">
-                <div className="flex flex-row items-center justify-center gap-6 w-full md:flex-row flex-col">
-                  {/* Barra de progreso circular */}
-                  <div className="flex flex-col items-center">
-                    <CircularProgress percent={Math.floor(Math.random()*60+40)} size={54} stroke={7} />
-                  </div>
-                  {/* Icono grande, ajustado automáticamente */}
-                  <div className="flex flex-col items-center">
-                    {mod.icono ? (
-                      <img src={mod.icono} alt="icono" className="w-16 h-16 md:w-20 md:h-20 object-cover rounded-full bg-black/80" style={{minWidth: '64px', minHeight: '64px', maxWidth: '80px', maxHeight: '80px', border: 'none', boxShadow: 'none'}} />
-                    ) : (
-                      <svg width="64" height="64" fill="none" stroke="#22d3ee" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="text-cyan-400"><circle cx="32" cy="32" r="26" /><path d="M48 48L40 40" /><circle cx="32" cy="32" r="10" /></svg>
-                    )}
-                  </div>
-                </div>
+      {modulos.map((mod, idx) => (
+        <div key={idx} id={`modulo-${idx}`} className="bg-black/80 border-2 border-cyan-400 rounded-2xl p-8 shadow-xl flex flex-col min-h-[340px] max-w-3xl w-full mx-auto mb-10">
+          <div className="flex flex-col items-center mb-4">
+            <div className="flex flex-row items-center justify-center gap-6 w-full md:flex-row flex-col">
+              {/* Barra de progreso circular */}
+              <div className="flex flex-col items-center">
+                <CircularProgress percent={Math.floor(Math.random()*60+40)} size={54} stroke={7} />
               </div>
-              <div className="text-xl font-bold text-white mb-2 text-center uppercase">{mod.titulo}</div>
-              <div className="text-white/90 text-base mb-6 text-center">{mod.descripcion}</div>
-              <div className="flex gap-2 mb-8 justify-center">
-                <button
-                  className="bg-white text-black font-bold py-2 px-6 rounded-full transition-all text-base shadow hover:bg-cyan-200"
-                  onClick={() => navigate(`/cursos/${id}/modulo/${idx}?video=0`)}
-                >
-                  Iniciar
-                </button>
-                <button
-                  className="bg-cyan-700 text-white font-bold py-2 px-6 rounded-full transition-all text-base shadow hover:bg-cyan-500"
-                  onClick={() => handleVerClases(mod, idx)}
-                >
-                  Ver clases
-                </button>
-              </div>
-              {/* Tarjetas de videos del módulo */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
-                {videosPorModulo[idx] && videosPorModulo[idx].map((v: any, vidx: number) => {
-                  let thumb = v.miniatura_url;
-                  if (!thumb && v.url) {
-                    thumb = getVideoThumbnail(v.url);
-                  }
-                  // Determinar si es columna izquierda (par) o derecha (impar)
-                  const isLeft = vidx % 2 === 0;
-                  // Tooltip: si es izquierda, sale a la izquierda; si es derecha, sale a la derecha
-                  const tooltipPosition = isLeft ? 'right-full mr-6' : 'left-full ml-6';
-                  const flechaPosition = isLeft ? '-right-3' : '-left-3';
-                  const flechaBorder = isLeft ? { borderLeft: '12px solid #fff' } : { borderRight: '12px solid #fff' };
-                  return (
-                    <div key={v.id} className="relative group flex flex-row items-center gap-4 bg-neutral-900 rounded-2xl border-4 border-cyan-400 p-3 shadow-2xl w-full">
-                      {/* Tooltip informativo */}
-                      <div
-                        className={`pointer-events-none absolute z-30 opacity-0 group-hover:opacity-100 group-hover:pointer-events-auto transition-opacity duration-200 delay-150 flex-col min-w-[220px] max-w-xs px-4 py-3 bg-white border-2 border-cyan-400 text-black text-sm rounded-2xl shadow-lg
-                          ${tooltipPosition} top-1/2 -translate-y-1/2 hidden sm:flex
-                        `}
-                        style={{ boxShadow: '0 4px 24px 0 rgba(0,0,0,0.12)' }}
-                      >
-                        <div className="mb-1 font-bold text-cyan-600">{v.titulo}</div>
-                        <div className="text-black/90">{v.descripcion || 'Sin descripción'}</div>
-                        {/* Flecha */}
-                        <div className={`absolute top-1/2 -translate-y-1/2 ${flechaPosition}`}
-                          style={{ width: 0, height: 0, borderTop: '8px solid transparent', borderBottom: '8px solid transparent', ...flechaBorder }}
-                        />
-                      </div>
-                      {/* Tooltip móvil */}
-                      <div
-                        className="pointer-events-none absolute z-30 left-1/2 -translate-x-1/2 bottom-[-50px] w-[85vw] max-w-[320px] px-2 py-2 bg-white border-2 border-cyan-400 text-black text-xs rounded-2xl shadow-lg opacity-0 group-hover:opacity-100 group-hover:pointer-events-auto transition-opacity duration-200 delay-150 flex-col items-center sm:hidden"
-                        style={{ boxShadow: '0 4px 24px 0 rgba(0,0,0,0.12)', wordBreak: 'break-word' }}
-                      >
-                        <div className="mb-1 font-bold text-cyan-600 text-sm">{v.titulo}</div>
-                        <div className="text-black/90 text-xs leading-tight">{v.descripcion || 'Sin descripción'}</div>
-                      </div>
-                      {/* Tarjeta de video */}
-                      <div className="w-[120px] h-[80px] sm:w-[120px] sm:h-[80px] w-[90vw] h-[56vw] max-w-[120px] max-h-[80px] sm:max-w-[120px] sm:max-h-[80px] bg-black rounded-2xl overflow-hidden flex items-center justify-center border-4 border-cyan-400 shadow-lg">
-                        {thumb ? (
-                          <img src={thumb} alt={v.titulo} className="w-full h-full object-cover" />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center text-cyan-400">Sin imagen</div>
-                        )}
-                      </div>
-                      <div className="flex-1 flex flex-col justify-center min-w-0">
-                        <div className="font-bold text-cyan-200 text-base truncate mb-1">{v.titulo}</div>
-                        <div className="text-xs text-cyan-400 opacity-70">Video</div>
-                      </div>
-                      <button
-                        className="bg-cyan-600 hover:bg-cyan-400 text-white font-bold p-2 rounded-full w-10 h-10 flex items-center justify-center"
-                        onClick={() => navigate(`/cursos/${id}/modulo/${idx}?video=${vidx}`)}
-                        title="Ir a video"
-                      >
-                        <svg width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><polygon points="6,4 20,12 6,20" fill="currentColor" /></svg>
-                      </button>
-                    </div>
-                  );
-                })}
+              {/* Icono grande, ajustado automáticamente */}
+              <div className="flex flex-col items-center">
+                {mod.icono ? (
+                  <img src={mod.icono} alt="icono" className="w-16 h-16 md:w-20 md:h-20 object-cover rounded-full bg-black/80" style={{minWidth: '64px', minHeight: '64px', maxWidth: '80px', maxHeight: '80px', border: 'none', boxShadow: 'none'}} />
+                ) : (
+                  <svg width="64" height="64" fill="none" stroke="#22d3ee" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="text-cyan-400"><circle cx="32" cy="32" r="26" /><path d="M48 48L40 40" /><circle cx="32" cy="32" r="10" /></svg>
+                )}
               </div>
             </div>
-          ))}
+          </div>
+          <div className="text-xl font-bold text-white mb-2 text-center uppercase">{mod.titulo}</div>
+          <div className="text-white/90 text-base mb-6 text-center">{mod.descripcion}</div>
+          <div className="flex gap-2 mb-8 justify-center">
+            <button
+              className="bg-white text-black font-bold py-2 px-6 rounded-full transition-all text-base shadow hover:bg-cyan-200"
+              onClick={() => navigate(`/cursos/${id}/modulo/${idx}?video=0`)}
+            >
+              Iniciar
+            </button>
+            <button
+              className="bg-cyan-700 text-white font-bold py-2 px-6 rounded-full transition-all text-base shadow hover:bg-cyan-500"
+              onClick={() => handleVerClases(mod, idx)}
+            >
+              Ver clases
+            </button>
+          </div>
+          {/* Tarjetas de videos del módulo */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
+            {videosPorModulo[idx] && videosPorModulo[idx].map((v: any, vidx: number) => {
+              let thumb = v.miniatura_url;
+              if (!thumb && v.url) {
+                thumb = getVideoThumbnail(v.url);
+              }
+              // Determinar si es columna izquierda (par) o derecha (impar)
+              const isLeft = vidx % 2 === 0;
+              // Tooltip: si es izquierda, sale a la izquierda; si es derecha, sale a la derecha
+              const tooltipPosition = isLeft ? 'right-full mr-6' : 'left-full ml-6';
+              const flechaPosition = isLeft ? '-right-3' : '-left-3';
+              const flechaBorder = isLeft ? { borderLeft: '12px solid #fff' } : { borderRight: '12px solid #fff' };
+              return (
+                <div key={v.id} className="relative group flex flex-row items-center gap-4 bg-neutral-900 rounded-2xl border-4 border-cyan-400 p-3 shadow-2xl w-full">
+                  {/* Tooltip informativo */}
+                  <div
+                    className={`pointer-events-none absolute z-30 opacity-0 group-hover:opacity-100 group-hover:pointer-events-auto transition-opacity duration-200 delay-150 flex-col min-w-[220px] max-w-xs px-4 py-3 bg-white border-2 border-cyan-400 text-black text-sm rounded-2xl shadow-lg
+                      ${tooltipPosition} top-1/2 -translate-y-1/2 hidden sm:flex
+                    `}
+                    style={{ boxShadow: '0 4px 24px 0 rgba(0,0,0,0.12)' }}
+                  >
+                    <div className="mb-1 font-bold text-cyan-600">{v.titulo}</div>
+                    <div className="text-black/90">{v.descripcion || 'Sin descripción'}</div>
+                    {/* Flecha */}
+                    <div className={`absolute top-1/2 -translate-y-1/2 ${flechaPosition}`}
+                      style={{ width: 0, height: 0, borderTop: '8px solid transparent', borderBottom: '8px solid transparent', ...flechaBorder }}
+                    />
+                  </div>
+                  {/* Tooltip móvil */}
+                  <div
+                    className="pointer-events-none absolute z-30 left-1/2 -translate-x-1/2 bottom-[-50px] w-[85vw] max-w-[320px] px-2 py-2 bg-white border-2 border-cyan-400 text-black text-xs rounded-2xl shadow-lg opacity-0 group-hover:opacity-100 group-hover:pointer-events-auto transition-opacity duration-200 delay-150 flex-col items-center sm:hidden"
+                    style={{ boxShadow: '0 4px 24px 0 rgba(0,0,0,0.12)', wordBreak: 'break-word' }}
+                  >
+                    <div className="mb-1 font-bold text-cyan-600 text-sm">{v.titulo}</div>
+                    <div className="text-black/90 text-xs leading-tight">{v.descripcion || 'Sin descripción'}</div>
+                  </div>
+                  {/* Tarjeta de video */}
+                  <div className="w-[120px] h-[80px] sm:w-[120px] sm:h-[80px] w-[90vw] h-[56vw] max-w-[120px] max-h-[80px] sm:max-w-[120px] sm:max-h-[80px] bg-black rounded-2xl overflow-hidden flex items-center justify-center border-4 border-cyan-400 shadow-lg">
+                    {thumb ? (
+                      <img src={thumb} alt={v.titulo} className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-cyan-400">Sin imagen</div>
+                    )}
+                  </div>
+                  <div className="flex-1 flex flex-col justify-center min-w-0">
+                    <div className="font-bold text-cyan-200 text-base truncate mb-1">{v.titulo}</div>
+                    <div className="text-xs text-cyan-400 opacity-70">Video</div>
+                  </div>
+                  <button
+                    className="bg-cyan-600 hover:bg-cyan-400 text-white font-bold p-2 rounded-full w-10 h-10 flex items-center justify-center"
+                    onClick={() => navigate(`/cursos/${id}/modulo/${idx}?video=${vidx}`)}
+                    title="Ir a video"
+                  >
+                    <svg width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><polygon points="6,4 20,12 6,20" fill="currentColor" /></svg>
+                  </button>
+                </div>
+              );
+            })}
+          </div>
         </div>
-        <button className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-cyan-900/80 hover:bg-cyan-400 text-white rounded-full p-2 shadow-lg" onClick={scrollRight} style={{fontSize: 28}}>
-          <svg width="28" height="28" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 6L18 14L10 22"/></svg>
-        </button>
-      </div>
+      ))}
       {/* Modal de información de módulo */}
       <ModalFuturista open={modalInfoOpen} onClose={() => setModalInfoOpen(false)}>
         {modalInfoModulo && (
