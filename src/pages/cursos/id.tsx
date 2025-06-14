@@ -710,6 +710,84 @@ const CursoDetalle = () => {
     return url;
   }
 
+  const handleClonarModulo = async (mod: any, idx: number) => {
+    // Buscar el id real del módulo original
+    const { data: moduloReal } = await supabase
+      .from('modulos_curso')
+      .select('id')
+      .eq('curso_id', id)
+      .eq('titulo', mod.titulo)
+      .maybeSingle();
+    if (!moduloReal?.id) {
+      alert('No se encontró el módulo original en la base de datos.');
+      return;
+    }
+    // Clonar el objeto módulo
+    const nuevoModulo = {
+      ...mod,
+      titulo: mod.titulo + ' (Copia)',
+    };
+    // Insertar el nuevo módulo en la tabla 'modulos_curso'
+    const { data: moduloInsertado, error: errorModulo } = await supabase
+      .from('modulos_curso')
+      .insert([{ ...nuevoModulo, curso_id: id }])
+      .select()
+      .maybeSingle();
+    if (errorModulo || !moduloInsertado) {
+      alert('Error al clonar el módulo');
+      return;
+    }
+    // Traer los videos del módulo original
+    const { data: videosOriginales } = await supabase
+      .from('videos_modulo')
+      .select('*')
+      .eq('modulo_id', moduloReal.id);
+    // Clonar cada video para el nuevo módulo
+    if (videosOriginales && videosOriginales.length > 0) {
+      const videosClonados = videosOriginales.map((v) => {
+        const { id, ...rest } = v;
+        return {
+          ...rest,
+          modulo_id: moduloInsertado.id,
+          titulo: v.titulo + ' (Copia)',
+        };
+      });
+      await supabase.from('videos_modulo').insert(videosClonados);
+    }
+    // Actualizar la portada visualmente
+    const nuevosModulos = [...modulos, nuevoModulo];
+    setModulos(nuevosModulos);
+    if (portada && portada.id) {
+      await supabase.from('cursos_portada').update({ modulos: nuevosModulos }).eq('id', portada.id);
+    }
+    alert('¡Módulo clonado exitosamente!');
+  };
+
+  const handleEliminarModulo = async (mod: any, idx: number) => {
+    if (!window.confirm('¿Estás seguro de que quieres eliminar este módulo? Esta acción no se puede deshacer.')) return;
+    if (!window.confirm('Confirma de nuevo: ¿Eliminar módulo y todos sus videos?')) return;
+    // Buscar el id real del módulo
+    const { data: moduloReal } = await supabase
+      .from('modulos_curso')
+      .select('id')
+      .eq('curso_id', id)
+      .eq('titulo', mod.titulo)
+      .maybeSingle();
+    if (moduloReal?.id) {
+      // Eliminar videos asociados
+      await supabase.from('videos_modulo').delete().eq('modulo_id', moduloReal.id);
+      // Eliminar el módulo
+      await supabase.from('modulos_curso').delete().eq('id', moduloReal.id);
+    }
+    // Quitar el módulo de la portada visualmente
+    const nuevosModulos = modulos.filter((_, i) => i !== idx);
+    setModulos(nuevosModulos);
+    if (portada && portada.id) {
+      await supabase.from('cursos_portada').update({ modulos: nuevosModulos }).eq('id', portada.id);
+    }
+    alert('Módulo eliminado correctamente.');
+  };
+
   return (
     <div className="curso-detalle-page bg-black min-h-screen text-white p-0">
       {/* Editor solo para admin, siempre visible arriba */}
@@ -863,7 +941,11 @@ const CursoDetalle = () => {
                   Ver clases <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 9h8m0 0-3-3m3 3-3 3"/></svg>
                 </button>
                 {isAdmin && (
-                  <button className="ml-2 px-3 py-1 rounded bg-yellow-400 text-black font-bold hover:bg-yellow-500 transition" onClick={() => handleEditModulo(idx)}>Editar</button>
+                  <>
+                    <button className="ml-2 px-3 py-1 rounded bg-yellow-400 text-black font-bold hover:bg-yellow-500 transition" onClick={() => handleClonarModulo(mod, idx)}>Clonar</button>
+                    <button className="ml-2 px-3 py-1 rounded bg-red-500 text-white font-bold hover:bg-red-700 transition" onClick={() => handleEliminarModulo(mod, idx)}>Eliminar</button>
+                    <button className="ml-2 px-3 py-1 rounded bg-cyan-700 text-white font-bold hover:bg-cyan-500 transition" onClick={() => handleEditModulo(idx)}>Editar</button>
+                  </>
                 )}
               </div>
             </div>
