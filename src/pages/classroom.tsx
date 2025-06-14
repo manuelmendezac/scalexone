@@ -102,7 +102,7 @@ const Classroom = () => {
   }, []);
 
   const fetchModulos = async () => {
-    const { data } = await supabase.from('classroom_modulos').select('*').order('orden');
+    const { data } = await supabase.from('classroom_modulos').select('*').order('orden', { ascending: true });
     if (data && data.length > 0) setModulos(data as Modulo[]);
     else setModulos([]);
   };
