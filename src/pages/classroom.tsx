@@ -215,8 +215,21 @@ const Classroom = () => {
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
           <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md flex flex-col gap-4">
             <h2 className="text-xl font-bold text-gray-800 mb-2">Editar portada y color</h2>
-            <label className="text-gray-700 font-semibold">URL de la imagen de portada</label>
-            <input type="text" className="p-2 rounded border border-gray-300" value={editImg} onChange={e => setEditImg(e.target.value)} />
+            <label className="text-gray-700 font-semibold">Imagen de portada (sugerido 600x240px, JPG o PNG)</label>
+            <input type="file" accept="image/*" className="mb-4" onChange={async (e) => {
+              const file = e.target.files?.[0];
+              if (!file) return;
+              // Subir a Supabase Storage
+              const fileExt = file.name.split('.').pop();
+              const fileName = `${Date.now()}_${Math.random().toString(36).substring(2, 8)}.${fileExt}`;
+              const { data, error } = await supabase.storage.from('portadas-classroom').upload(fileName, file);
+              if (!error && data) {
+                const { data: urlData } = supabase.storage.from('portadas-classroom').getPublicUrl(data.path);
+                setEditImg(urlData.publicUrl);
+              } else {
+                alert('Error al subir la imagen');
+              }
+            }} />
             <label className="text-gray-700 font-semibold">Color de fondo de la tarjeta</label>
             <HexColorPicker color={editColor} onChange={setEditColor} />
             <div className="flex gap-4 mt-2">
