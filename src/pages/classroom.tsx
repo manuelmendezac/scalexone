@@ -105,8 +105,8 @@ const Classroom = () => {
     else setModulos([]);
   };
 
-  // Simulación de progreso y badges (en real, consulta a Supabase)
-  const getProgreso = (mod: Modulo, idx: number) => Math.floor(Math.random() * 100);
+  // Progreso real: por ahora, siempre 0%
+  const getProgreso = (mod: Modulo, idx: number) => 0;
   const getBadge = (mod: Modulo, idx: number) => mod.badge_url || (getProgreso(mod, idx) === 100 ? '🏆' : null);
 
   const handleEdit = (idx: number) => {
