@@ -8,7 +8,6 @@ import type { DropResult } from 'react-beautiful-dnd';
 // Modelo de módulo con imagen de portada
 type Modulo = {
   id?: string;
-  uuid?: string;
   titulo: string;
   descripcion: string;
   icono?: string;
@@ -105,7 +104,7 @@ const Classroom = () => {
 
   const fetchModulos = async () => {
     const { data } = await supabase.from('classroom_modulos').select('*').order('orden', { ascending: true });
-    if (data && data.length > 0) setModulos(data.map((row: any) => ({ ...row, id: row.uuid })) as Modulo[]);
+    if (data && data.length > 0) setModulos(data as Modulo[]);
     else setModulos([]);
   };
 
@@ -186,16 +185,16 @@ const Classroom = () => {
     let errores: any[] = [];
     for (let i = 0; i < newModulos.length; i++) {
       newModulos[i].orden = i + 1;
-      if (newModulos[i].uuid) {
-        const { error } = await supabase.from('classroom_modulos').update({ orden: i + 1 }).eq('uuid', newModulos[i].uuid);
+      if (newModulos[i].id) {
+        const { error } = await supabase.from('classroom_modulos').update({ orden: i + 1 }).eq('id', newModulos[i].id);
         if (error) {
-          console.error(`Error actualizando módulo uuid=${newModulos[i].uuid}:`, error);
-          errores.push({ uuid: newModulos[i].uuid, error });
+          console.error(`Error actualizando módulo id=${newModulos[i].id}:`, error);
+          errores.push({ id: newModulos[i].id, error });
         } else {
-          console.log(`Módulo uuid=${newModulos[i].uuid} actualizado a orden ${i + 1}`);
+          console.log(`Módulo id=${newModulos[i].id} actualizado a orden ${i + 1}`);
         }
       } else {
-        console.warn('Módulo sin uuid:', newModulos[i]);
+        console.warn('Módulo sin id:', newModulos[i]);
       }
     }
     setModulos(newModulos);
