@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../supabase';
 import { HexColorPicker } from 'react-colorful';
+import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
+import type { DropResult } from 'react-beautiful-dnd';
 
 // Modelo de módulo con imagen de portada
 type Modulo = {
@@ -170,15 +172,24 @@ const Classroom = () => {
     setEditIdx(null);
   };
 
-  // Reordena todos los módulos para que el campo 'orden' sea único y consecutivo
-  const reordenarModulos = async () => {
-    const { data } = await supabase.from('classroom_modulos').select('id').order('orden');
-    if (data) {
-      for (let i = 0; i < data.length; i++) {
-        await supabase.from('classroom_modulos').update({ orden: i + 1 }).eq('id', data[i].id);
+  // Función para manejar el drag & drop
+  const handleDragEnd = async (result: DropResult) => {
+    if (!result.destination) return;
+    const sourceIdx = result.source.index;
+    const destIdx = result.destination.index;
+    if (sourceIdx === destIdx) return;
+    // Reordenar localmente
+    const newModulos = Array.from(modulos);
+    const [removed] = newModulos.splice(sourceIdx, 1);
+    newModulos.splice(destIdx, 0, removed);
+    // Actualizar el campo 'orden' en todos los módulos
+    for (let i = 0; i < newModulos.length; i++) {
+      newModulos[i].orden = i + 1;
+      if (newModulos[i].id) {
+        await supabase.from('classroom_modulos').update({ orden: i + 1 }).eq('id', newModulos[i].id);
       }
-      await fetchModulos();
     }
+    setModulos(newModulos);
   };
 
   const handleDelete = async (idx: number) => {
@@ -186,7 +197,7 @@ const Classroom = () => {
     if (!mod.id) return;
     if (!window.confirm('¿Seguro que deseas eliminar este módulo? Esta acción no se puede deshacer.')) return;
     const { error } = await supabase.from('classroom_modulos').delete().eq('id', mod.id);
-    if (!error) await reordenarModulos();
+    if (!error) await fetchModulos();
     else alert('Error al eliminar: ' + error.message);
   };
 
@@ -207,42 +218,59 @@ const Classroom = () => {
           </button>
         </div>
       )}
-      <div className="max-w-6xl mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-10 justify-items-center">
-        {modulosPagina.map((mod, idx) => (
-          <div
-            key={mod.id || idx}
-            className="w-full max-w-xs bg-white rounded-2xl shadow-xl border border-gray-200 flex flex-col cursor-pointer hover:scale-105 transition-transform relative group"
-            style={{ background: mod.color || '#fff' }}
-            onClick={() => navigate(`/classroom/modulo/${mod.id || idx}`)}
-          >
-            {/* Imagen de portada */}
-            <div className="h-40 w-full rounded-t-2xl overflow-hidden flex items-center justify-center bg-gray-100">
-              {mod.imagen_url ? (
-                <img src={mod.imagen_url} alt={mod.titulo} className="object-cover w-full h-full" />
-              ) : (
-                <span className="text-6xl">{mod.icono || '📦'}</span>
-              )}
+      <DragDropContext onDragEnd={handleDragEnd}>
+        <Droppable droppableId="modulos-droppable" direction="horizontal">
+          {(provided) => (
+            <div
+              className="max-w-6xl mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-10 justify-items-center"
+              ref={provided.innerRef}
+              {...provided.droppableProps}
+            >
+              {modulosPagina.map((mod, idx) => (
+                <Draggable key={mod.id || idx} draggableId={String(mod.id || idx)} index={idx} isDragDisabled={!isAdmin}>
+                  {(provided, snapshot) => (
+                    <div
+                      ref={provided.innerRef}
+                      {...provided.draggableProps}
+                      {...provided.dragHandleProps}
+                      className={`w-full max-w-xs bg-white rounded-2xl shadow-xl border border-gray-200 flex flex-col cursor-pointer hover:scale-105 transition-transform relative group ${isAdmin ? 'draggable' : ''}`}
+                      style={{ background: mod.color || '#fff', ...provided.draggableProps.style }}
+                      onClick={() => navigate(`/classroom/modulo/${mod.id || idx}`)}
+                    >
+                      {/* Imagen de portada */}
+                      <div className="h-40 w-full rounded-t-2xl overflow-hidden flex items-center justify-center bg-gray-100">
+                        {mod.imagen_url ? (
+                          <img src={mod.imagen_url} alt={mod.titulo} className="object-cover w-full h-full" />
+                        ) : (
+                          <span className="text-6xl">{mod.icono || '📦'}</span>
+                        )}
+                      </div>
+                      {/* Badge si aplica */}
+                      {getBadge(mod, idx) && (
+                        <div className="absolute top-3 right-3 text-2xl z-10">{getBadge(mod, idx)}</div>
+                      )}
+                      <div className="flex-1 flex flex-col p-6">
+                        <h2 className="text-xl font-bold text-gray-900 mb-2 text-center">{mod.titulo}</h2>
+                        <p className="text-gray-600 text-sm mb-4 text-center">{mod.descripcion}</p>
+                        <ProgresoFuturista porcentaje={getProgreso(mod, idx)} />
+                      </div>
+                      {/* Overlay de edición solo admin */}
+                      {isAdmin && (
+                        <div className="absolute top-2 left-2 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition z-20">
+                          <button className="bg-yellow-400 text-black px-2 py-1 rounded text-xs font-bold" onClick={e => { e.stopPropagation(); handleEdit(idx); }}>Editar portada/color</button>
+                          <button className="bg-red-500 text-white px-2 py-1 rounded text-xs font-bold" onClick={e => { e.stopPropagation(); handleDelete(idx); }}>Eliminar</button>
+                          <button className="bg-blue-600 text-white px-2 py-1 rounded text-xs font-bold" onClick={e => { e.stopPropagation(); setEditIdx(null); setEditImg(''); setEditColor('#fff'); setEditTitulo(''); setEditDescripcion(''); setShowEditModal(true); }}>Crear nuevo módulo</button>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </Draggable>
+              ))}
+              {provided.placeholder}
             </div>
-            {/* Badge si aplica */}
-            {getBadge(mod, idx) && (
-              <div className="absolute top-3 right-3 text-2xl z-10">{getBadge(mod, idx)}</div>
-            )}
-            <div className="flex-1 flex flex-col p-6">
-              <h2 className="text-xl font-bold text-gray-900 mb-2 text-center">{mod.titulo}</h2>
-              <p className="text-gray-600 text-sm mb-4 text-center">{mod.descripcion}</p>
-              <ProgresoFuturista porcentaje={getProgreso(mod, idx)} />
-            </div>
-            {/* Overlay de edición solo admin */}
-            {isAdmin && (
-              <div className="absolute top-2 left-2 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition z-20">
-                <button className="bg-yellow-400 text-black px-2 py-1 rounded text-xs font-bold" onClick={e => { e.stopPropagation(); handleEdit(idx); }}>Editar portada/color</button>
-                <button className="bg-red-500 text-white px-2 py-1 rounded text-xs font-bold" onClick={e => { e.stopPropagation(); handleDelete(idx); }}>Eliminar</button>
-                <button className="bg-blue-600 text-white px-2 py-1 rounded text-xs font-bold" onClick={e => { e.stopPropagation(); setEditIdx(null); setEditImg(''); setEditColor('#fff'); setEditTitulo(''); setEditDescripcion(''); setShowEditModal(true); }}>Crear nuevo módulo</button>
-              </div>
-            )}
-          </div>
-        ))}
-      </div>
+          )}
+        </Droppable>
+      </DragDropContext>
       {modulosPagina.length === 0 && (
         <div className="flex flex-col items-center mb-8">
           <div className="text-center text-gray-400 text-lg mb-4">No hay módulos creados. Usa el botón para agregar el primero.</div>
