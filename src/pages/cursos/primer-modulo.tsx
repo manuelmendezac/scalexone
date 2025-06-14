@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import ModalFuturista from '../../components/ModalFuturista';
 
 // Datos provisionales
 const videos = [
@@ -36,8 +37,24 @@ const videos = [
   },
 ];
 
+function getVideoThumbnail(url: string): string | null {
+  if (!url) return null;
+  // YouTube
+  const ytMatch = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([\w-]{11})/);
+  if (ytMatch) {
+    return `https://img.youtube.com/vi/${ytMatch[1]}/hqdefault.jpg`;
+  }
+  // Vimeo
+  const vimeoMatch = url.match(/vimeo\.com\/(\d+)/);
+  if (vimeoMatch) {
+    return `https://vumbnail.com/${vimeoMatch[1]}.jpg`;
+  }
+  return null;
+}
+
 const PrimerModulo = () => {
   const [videoActual, setVideoActual] = useState(videos[0]);
+  const [modalOpen, setModalOpen] = useState(false);
 
   // NOTA SOBRE PROTECCIÓN DE VIDEO:
   // - Para evitar descargas fáciles, usa Vimeo Pro/Business o servicios con protección HLS/DRM.
@@ -62,7 +79,7 @@ const PrimerModulo = () => {
               style={{ border: 'none' }}
             />
           </div>
-          {/* Botones de navegación */}
+          {/* Botones de navegación y ver clases */}
           <div className="flex gap-4 mt-2">
             <button
               className="bg-cyan-700 hover:bg-cyan-500 text-white px-4 py-2 rounded-full font-bold"
@@ -84,6 +101,12 @@ const PrimerModulo = () => {
             >
               Siguiente →
             </button>
+            <button
+              className="bg-cyan-700 hover:bg-cyan-500 text-white px-4 py-2 rounded-full font-bold"
+              onClick={() => setModalOpen(true)}
+            >
+              Ver clases
+            </button>
           </div>
         </div>
       </div>
@@ -104,6 +127,43 @@ const PrimerModulo = () => {
           </div>
         ))}
       </div>
+      {/* Popup de clases */}
+      <ModalFuturista open={modalOpen} onClose={() => setModalOpen(false)}>
+        <div className="flex flex-col gap-4 w-full">
+          <h2 className="text-2xl font-bold text-cyan-300 mb-2 text-center">Clases del módulo</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
+            {videos.map((v, idx) => {
+              let thumb = v.miniatura_url as string;
+              if ((!thumb || thumb === 'null') && v.video_url) {
+                const t = getVideoThumbnail(v.video_url);
+                thumb = t ? t : '';
+              }
+              return (
+                <div key={v.id} className="flex flex-row items-center gap-4 bg-neutral-900 rounded-2xl border-4 border-cyan-400 p-3 shadow-2xl w-full">
+                  <div className="w-[120px] h-[80px] sm:w-[120px] sm:h-[80px] w-[90vw] h-[56vw] max-w-[120px] max-h-[80px] sm:max-w-[120px] sm:max-h-[80px] bg-black rounded-2xl overflow-hidden flex items-center justify-center border-4 border-cyan-400 shadow-lg">
+                    {thumb ? (
+                      <img src={thumb || ''} alt={v.titulo} className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-cyan-400">Sin imagen</div>
+                    )}
+                  </div>
+                  <div className="flex-1 flex flex-col justify-center min-w-0">
+                    <div className="font-bold text-cyan-200 text-base truncate mb-1">{v.titulo}</div>
+                    <div className="text-xs text-cyan-400 opacity-70">Video</div>
+                  </div>
+                  <button
+                    className="bg-cyan-600 hover:bg-cyan-400 text-white font-bold p-2 rounded-full w-10 h-10 flex items-center justify-center"
+                    onClick={() => { setModalOpen(false); setVideoActual(v); }}
+                    title="Ir a video"
+                  >
+                    <svg width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><polygon points="6,4 20,12 6,20" fill="currentColor" /></svg>
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </ModalFuturista>
     </div>
   );
 };
