@@ -170,6 +170,30 @@ const Classroom = () => {
     setEditIdx(null);
   };
 
+  const handleClone = async (idx: number) => {
+    const mod = modulos[idx];
+    const { error } = await supabase.from('classroom_modulos').insert({
+      titulo: mod.titulo + ' (Copia)',
+      descripcion: mod.descripcion,
+      icono: mod.icono,
+      imagen_url: mod.imagen_url,
+      orden: modulos.length + 1,
+      color: mod.color,
+      badge_url: mod.badge_url
+    });
+    if (!error) await fetchModulos();
+    else alert('Error al clonar: ' + error.message);
+  };
+
+  const handleDelete = async (idx: number) => {
+    const mod = modulos[idx];
+    if (!mod.id) return;
+    if (!window.confirm('¿Seguro que deseas eliminar este módulo? Esta acción no se puede deshacer.')) return;
+    const { error } = await supabase.from('classroom_modulos').delete().eq('id', mod.id);
+    if (!error) await fetchModulos();
+    else alert('Error al eliminar: ' + error.message);
+  };
+
   return (
     <div className="min-h-screen w-full py-12 px-2" style={{ background: '#10192b' }}>
       <h1 className="text-4xl font-bold text-white text-center mb-12">Classroom de Inducción</h1>
@@ -228,7 +252,8 @@ const Classroom = () => {
             {isAdmin && (
               <div className="absolute top-2 left-2 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition z-20">
                 <button className="bg-yellow-400 text-black px-2 py-1 rounded text-xs font-bold" onClick={e => { e.stopPropagation(); handleEdit(idx); }}>Editar portada/color</button>
-                <button className="bg-red-500 text-white px-2 py-1 rounded text-xs font-bold">Eliminar</button>
+                <button className="bg-green-600 text-white px-2 py-1 rounded text-xs font-bold" onClick={e => { e.stopPropagation(); handleClone(idx); }}>Clonar</button>
+                <button className="bg-red-500 text-white px-2 py-1 rounded text-xs font-bold" onClick={e => { e.stopPropagation(); handleDelete(idx); }}>Eliminar</button>
                 <button className="bg-blue-700 text-white px-2 py-1 rounded text-xs font-bold">Personalizar</button>
               </div>
             )}
@@ -239,19 +264,30 @@ const Classroom = () => {
         <div className="flex flex-col items-center mb-8">
           <div className="text-center text-gray-400 text-lg mb-4">No hay módulos creados. Usa el botón para agregar el primero.</div>
           {isAdmin && (
-            <button
-              className="px-6 py-3 rounded bg-blue-600 text-white font-bold shadow hover:bg-blue-700 transition"
-              onClick={() => {
-                setEditIdx(null);
-                setEditImg('');
-                setEditColor('#fff');
-                setEditTitulo('');
-                setEditDescripcion('');
-                setShowEditModal(true);
-              }}
-            >
-              Crear nuevo módulo
-            </button>
+            <div className="flex flex-col items-center mb-8 gap-4">
+              <button
+                className="px-6 py-3 rounded bg-blue-600 text-white font-bold shadow hover:bg-blue-700 transition"
+                onClick={() => {
+                  setEditIdx(null);
+                  setEditImg('');
+                  setEditColor('#fff');
+                  setEditTitulo('');
+                  setEditDescripcion('');
+                  setShowEditModal(true);
+                }}
+              >
+                Crear nuevo módulo
+              </button>
+              <button
+                className="px-4 py-2 rounded bg-yellow-400 text-black font-bold shadow hover:bg-yellow-500 transition"
+                onClick={() => {
+                  localStorage.setItem('adminMode', 'false');
+                  window.location.reload();
+                }}
+              >
+                Desactivar modo edición
+              </button>
+            </div>
           )}
         </div>
       )}
