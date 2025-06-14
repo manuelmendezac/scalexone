@@ -85,6 +85,8 @@ const Classroom = () => {
   const [editImg, setEditImg] = useState('');
   const [editColor, setEditColor] = useState('#fff');
   const [showEditModal, setShowEditModal] = useState(false);
+  const [editTitulo, setEditTitulo] = useState('');
+  const [editDescripcion, setEditDescripcion] = useState('');
   const navigate = useNavigate();
   const MODULOS_POR_PAGINA = 9;
   const [pagina, setPagina] = useState(1);
@@ -110,6 +112,8 @@ const Classroom = () => {
     setEditIdx(idx);
     setEditImg(modulos[idx].imagen_url || '');
     setEditColor(modulos[idx].color || '#fff');
+    setEditTitulo(modulos[idx].titulo);
+    setEditDescripcion(modulos[idx].descripcion);
     setShowEditModal(true);
   };
 
@@ -117,13 +121,13 @@ const Classroom = () => {
     if (editIdx === null) return;
     const mod = modulos[editIdx];
     if (mod.id) {
-      await supabase.from('classroom_modulos').update({ imagen_url: editImg, color: editColor }).eq('id', mod.id);
+      await supabase.from('classroom_modulos').update({ imagen_url: editImg, color: editColor, titulo: editTitulo, descripcion: editDescripcion }).eq('id', mod.id);
       await fetchModulos();
     } else {
       // Si es modelo local, insertar en Supabase y refrescar
       const { data, error } = await supabase.from('classroom_modulos').insert({
-        titulo: mod.titulo,
-        descripcion: mod.descripcion,
+        titulo: editTitulo,
+        descripcion: editDescripcion,
         icono: mod.icono,
         imagen_url: editImg,
         orden: mod.orden,
@@ -239,6 +243,10 @@ const Classroom = () => {
             }} />
             <label className="text-gray-700 font-semibold">Color de fondo de la tarjeta</label>
             <HexColorPicker color={editColor} onChange={setEditColor} />
+            <label className="text-gray-700 font-semibold">Título del módulo</label>
+            <input type="text" className="p-2 rounded border border-gray-300 mb-2" value={editTitulo} onChange={e => setEditTitulo(e.target.value)} />
+            <label className="text-gray-700 font-semibold">Descripción</label>
+            <textarea className="p-2 rounded border border-gray-300 mb-2" value={editDescripcion} onChange={e => setEditDescripcion(e.target.value)} rows={2} />
             <div className="flex gap-4 mt-2">
               <button onClick={handleSaveEdit} className="bg-blue-600 text-white px-4 py-2 rounded font-bold hover:bg-blue-700">Guardar</button>
               <button onClick={() => setShowEditModal(false)} className="bg-gray-300 text-gray-800 px-4 py-2 rounded font-bold hover:bg-gray-400">Cancelar</button>
