@@ -25,12 +25,27 @@ const camposIniciales = {
   texto_final: 'En alianza con\nCenter of Education and Leadership\nFlorida Global University',
 };
 
+// Función para convertir enlaces de YouTube/Vimeo a embed
+function getEmbedUrl(url: string) {
+  if (!url) return '';
+  // YouTube normal
+  const ytMatch = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([\w-]{11})/);
+  if (ytMatch) return `https://www.youtube.com/embed/${ytMatch[1]}`;
+  // Vimeo
+  const vimeoMatch = url.match(/vimeo\.com\/(\d+)/);
+  if (vimeoMatch) return `https://player.vimeo.com/video/${vimeoMatch[1]}`;
+  // Ya embed
+  if (url.includes('embed')) return url;
+  return url;
+}
+
 const CertificacionAdminModal: React.FC<CertificacionAdminModalProps> = ({ open, onClose, curso_id, isAdmin }) => {
   const [form, setForm] = useState<any>(camposIniciales);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [certId, setCertId] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
 
   // Cargar datos existentes
   useEffect(() => {
@@ -88,18 +103,23 @@ const CertificacionAdminModal: React.FC<CertificacionAdminModalProps> = ({ open,
   const handleSave = async () => {
     setSaving(true);
     setError(null);
+    setSuccess(null);
     const payload = { ...form, curso_id };
+    let ok = false;
     if (certId) {
       // update
       const { error } = await supabase.from('certificaciones_curso').update(payload).eq('id', certId);
       if (error) setError('Error al guardar');
+      else ok = true;
     } else {
       // insert
       const { error } = await supabase.from('certificaciones_curso').insert([payload]);
       if (error) setError('Error al crear');
+      else ok = true;
     }
     setSaving(false);
-    onClose();
+    if (ok) setSuccess('¡Guardado exitosamente!');
+    // No cerrar el modal automáticamente
   };
 
   if (!isAdmin) return null;
@@ -112,7 +132,7 @@ const CertificacionAdminModal: React.FC<CertificacionAdminModalProps> = ({ open,
           <input name="titulo" value={form.titulo} onChange={handleChange} placeholder="Título principal" className="p-2 rounded bg-neutral-800 border border-cyan-400 text-white" />
           <input name="texto_secundario" value={form.texto_secundario} onChange={handleChange} placeholder="Texto secundario" className="p-2 rounded bg-neutral-800 border border-cyan-400 text-white" />
           <input name="video_url" value={form.video_url} onChange={handleChange} placeholder="Enlace de video (YouTube/Vimeo)" className="p-2 rounded bg-neutral-800 border border-cyan-400 text-white" />
-          {form.video_url && <iframe src={form.video_url.replace('watch?v=', 'embed/')} className="w-full aspect-video rounded my-2" allowFullScreen />}
+          {form.video_url && <iframe src={getEmbedUrl(form.video_url)} className="w-full aspect-video rounded my-2" allowFullScreen />}
           <input name="texto_llamado" value={form.texto_llamado} onChange={handleChange} placeholder="Texto de llamado a la acción" className="p-2 rounded bg-neutral-800 border border-cyan-400 text-white" />
           <div className="flex gap-2">
             <input name="texto_boton" value={form.texto_boton} onChange={handleChange} placeholder="Texto del botón" className="p-2 rounded bg-neutral-800 border border-cyan-400 text-white flex-1" />
@@ -134,6 +154,7 @@ const CertificacionAdminModal: React.FC<CertificacionAdminModalProps> = ({ open,
             </div>
           </div>
           <textarea name="texto_final" value={form.texto_final} onChange={handleChange} placeholder="Texto final (alianzas, disclaimers, etc)" className="p-2 rounded bg-neutral-800 border border-cyan-400 text-white" />
+          {success && <div className="text-green-400 font-bold">{success}</div>}
           {error && <div className="text-red-400 font-bold">{error}</div>}
           <button onClick={handleSave} disabled={saving} className="bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-2 rounded transition mt-2">{saving ? 'Guardando...' : 'Guardar'}</button>
         </>}
