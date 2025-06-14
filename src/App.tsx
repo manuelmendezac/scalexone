@@ -122,7 +122,7 @@ function App() {
 
   return (
     <BibliotecaProvider>
-      <div className="min-h-screen w-full" style={{background: 'transparent'}}>
+      <div className="min-h-screen w-full" style={{background: '#10192b'}}>
         {/* Mostrar menú solo si está logueado, no en launchpad ni en rutas públicas */}
         {!hideMenu && isLoggedIn && (
           <>
