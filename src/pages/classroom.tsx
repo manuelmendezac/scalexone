@@ -8,6 +8,7 @@ import type { DropResult } from 'react-beautiful-dnd';
 // Modelo de módulo con imagen de portada
 type Modulo = {
   id?: string;
+  uuid?: string;
   titulo: string;
   descripcion: string;
   icono?: string;
@@ -104,7 +105,7 @@ const Classroom = () => {
 
   const fetchModulos = async () => {
     const { data } = await supabase.from('classroom_modulos').select('*').order('orden', { ascending: true });
-    if (data && data.length > 0) setModulos(data as Modulo[]);
+    if (data && data.length > 0) setModulos(data.map((row: any) => ({ ...row, id: row.uuid })) as Modulo[]);
     else setModulos([]);
   };
 
@@ -184,8 +185,8 @@ const Classroom = () => {
     newModulos.splice(destIdx, 0, removed);
     for (let i = 0; i < newModulos.length; i++) {
       newModulos[i].orden = i + 1;
-      if (newModulos[i].id) {
-        await supabase.from('classroom_modulos').update({ orden: i + 1 }).eq('id', newModulos[i].id);
+      if (newModulos[i].uuid) {
+        await supabase.from('classroom_modulos').update({ orden: i + 1 }).eq('uuid', newModulos[i].uuid);
       }
     }
     setModulos(newModulos);
