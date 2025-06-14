@@ -175,10 +175,10 @@ const Classroom = () => {
   // Función para manejar el drag & drop
   const handleDragEnd = async (result: DropResult) => {
     if (!result.destination) return;
-    const sourceIdx = result.source.index;
-    const destIdx = result.destination.index;
+    const sourceIdx = result.source.index + (pagina - 1) * MODULOS_POR_PAGINA;
+    const destIdx = result.destination.index + (pagina - 1) * MODULOS_POR_PAGINA;
     if (sourceIdx === destIdx) return;
-    // Reordenar localmente
+    // Reordenar en el array completo, no solo en la página
     const newModulos = Array.from(modulos);
     const [removed] = newModulos.splice(sourceIdx, 1);
     newModulos.splice(destIdx, 0, removed);
