@@ -118,7 +118,20 @@ const Classroom = () => {
   };
 
   const handleSaveEdit = async () => {
-    if (editIdx === null) return;
+    if (editIdx === null) {
+      const { data, error } = await supabase.from('classroom_modulos').insert({
+        titulo: editTitulo,
+        descripcion: editDescripcion,
+        icono: '',
+        imagen_url: editImg,
+        orden: modulos.length + 1,
+        color: editColor,
+        badge_url: ''
+      });
+      if (!error) await fetchModulos();
+      setShowEditModal(false);
+      return;
+    }
     const mod = modulos[editIdx];
     if (mod.id) {
       await supabase.from('classroom_modulos').update({ imagen_url: editImg, color: editColor, titulo: editTitulo, descripcion: editDescripcion }).eq('id', mod.id);
@@ -206,7 +219,24 @@ const Classroom = () => {
         ))}
       </div>
       {modulosPagina.length === 0 && (
-        <div className="text-center text-gray-400 text-lg mb-8">No hay módulos creados. Usa el modo edición para agregar el primero.</div>
+        <div className="flex flex-col items-center mb-8">
+          <div className="text-center text-gray-400 text-lg mb-4">No hay módulos creados. Usa el botón para agregar el primero.</div>
+          {isAdmin && (
+            <button
+              className="px-6 py-3 rounded bg-blue-600 text-white font-bold shadow hover:bg-blue-700 transition"
+              onClick={() => {
+                setEditIdx(null);
+                setEditImg('');
+                setEditColor('#fff');
+                setEditTitulo('');
+                setEditDescripcion('');
+                setShowEditModal(true);
+              }}
+            >
+              Crear nuevo módulo
+            </button>
+          )}
+        </div>
       )}
       {/* Controles de paginación */}
       {totalPaginas > 1 && (
