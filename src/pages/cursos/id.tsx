@@ -668,6 +668,22 @@ const CursoDetalle = () => {
     }
   };
 
+  // Copiar función getVideoThumbnail del módulo
+  function getVideoThumbnail(url: string): string | null {
+    if (!url) return null;
+    // YouTube
+    const ytMatch = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([\w-]{11})/);
+    if (ytMatch) {
+      return `https://img.youtube.com/vi/${ytMatch[1]}/hqdefault.jpg`;
+    }
+    // Vimeo
+    const vimeoMatch = url.match(/vimeo\.com\/(\d+)/);
+    if (vimeoMatch) {
+      return `https://vumbnail.com/${vimeoMatch[1]}.jpg`;
+    }
+    return null;
+  }
+
   return (
     <div className="curso-detalle-page bg-black min-h-screen text-white p-0">
       {/* Editor solo para admin, siempre visible arriba */}
@@ -1337,28 +1353,34 @@ const CursoDetalle = () => {
           <div className="flex flex-col gap-4 w-full">
             <h2 className="text-2xl font-bold text-cyan-300 mb-2 text-center">{infoPrimerModulo.titulo}</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
-              {videosPrimerModulo.map((v: any, idx: number) => (
-                <div key={v.id} className="flex flex-row items-center gap-4 bg-neutral-900 rounded-2xl border-4 border-cyan-400 p-3 shadow-2xl w-full">
-                  <div className="w-[120px] h-[80px] sm:w-[120px] sm:h-[80px] w-[90vw] h-[56vw] max-w-[120px] max-h-[80px] sm:max-w-[120px] sm:max-h-[80px] bg-black rounded-2xl overflow-hidden flex items-center justify-center border-4 border-cyan-400 shadow-lg">
-                    {v.miniatura_url ? (
-                      <img src={v.miniatura_url} alt={v.titulo} className="w-full h-full object-cover" />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-cyan-400">Sin imagen</div>
-                    )}
+              {videosPrimerModulo.map((v: any, idx: number) => {
+                let thumb = v.miniatura_url;
+                if (!thumb && v.url) {
+                  thumb = getVideoThumbnail(v.url);
+                }
+                return (
+                  <div key={v.id} className="flex flex-row items-center gap-4 bg-neutral-900 rounded-2xl border-4 border-cyan-400 p-3 shadow-2xl w-full">
+                    <div className="w-[120px] h-[80px] sm:w-[120px] sm:h-[80px] w-[90vw] h-[56vw] max-w-[120px] max-h-[80px] sm:max-w-[120px] sm:max-h-[80px] bg-black rounded-2xl overflow-hidden flex items-center justify-center border-4 border-cyan-400 shadow-lg">
+                      {thumb ? (
+                        <img src={thumb} alt={v.titulo} className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-cyan-400">Sin imagen</div>
+                      )}
+                    </div>
+                    <div className="flex-1 flex flex-col justify-center min-w-0">
+                      <div className="font-bold text-cyan-200 text-base truncate mb-1">{v.titulo}</div>
+                      <div className="text-xs text-cyan-400 opacity-70">Video</div>
+                    </div>
+                    <button
+                      className="bg-cyan-600 hover:bg-cyan-400 text-white font-bold p-2 rounded-full w-10 h-10 flex items-center justify-center"
+                      onClick={() => { setModalVideosOpen(false); navigate(`/cursos/${id}/modulo/0?video=${idx}`); }}
+                      title="Ir a video"
+                    >
+                      <svg width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><polygon points="6,4 20,12 6,20" fill="currentColor" /></svg>
+                    </button>
                   </div>
-                  <div className="flex-1 flex flex-col justify-center min-w-0">
-                    <div className="font-bold text-cyan-200 text-base truncate mb-1">{v.titulo}</div>
-                    <div className="text-xs text-cyan-400 opacity-70">Video</div>
-                  </div>
-                  <button
-                    className="bg-cyan-600 hover:bg-cyan-400 text-white font-bold p-2 rounded-full w-10 h-10 flex items-center justify-center"
-                    onClick={() => { setModalVideosOpen(false); navigate(`/cursos/${id}/modulo/0?video=${idx}`); }}
-                    title="Ir a video"
-                  >
-                    <svg width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><polygon points="6,4 20,12 6,20" fill="currentColor" /></svg>
-                  </button>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         )}
