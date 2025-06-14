@@ -150,7 +150,7 @@ const ModulosCurso = () => {
   return (
     <div className="max-w-6xl mx-auto py-10 px-4">
       {/* Barra de botones de anclaje */}
-      <div className="flex flex-wrap gap-4 justify-center mb-8">
+      <div className="flex flex-wrap gap-3 justify-center mb-8">
         {modulos.map((mod, idx) => (
           <button
             key={idx}
@@ -160,16 +160,16 @@ const ModulosCurso = () => {
                 el.scrollIntoView({ behavior: 'smooth', block: 'start' });
               }
             }}
-            className="bg-black border border-white text-white px-8 py-3 rounded-2xl text-lg font-semibold transition-all hover:bg-white hover:text-black hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-cyan-400 flex items-center gap-4"
-            style={{ minWidth: '220px' }}
+            className="bg-black border border-white text-white px-4 py-2 rounded-xl text-base font-semibold transition-all hover:bg-white hover:text-black hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-cyan-400 flex items-center gap-2 min-w-[120px] sm:min-w-[160px] md:min-w-[180px]"
+            style={{ maxWidth: '95vw' }}
           >
-            {/* Icono del módulo */}
+            {/* Icono del módulo reducido */}
             {mod.icono ? (
-              <img src={mod.icono} alt="icono" className="w-16 h-16 object-cover rounded-full bg-black/80" style={{minWidth: '64px', minHeight: '64px', maxWidth: '64px', maxHeight: '64px', border: 'none', boxShadow: 'none'}} />
+              <img src={mod.icono} alt="icono" className="w-[45px] h-[45px] object-cover rounded-full bg-black/80" style={{minWidth: '45px', minHeight: '45px', maxWidth: '45px', maxHeight: '45px', border: 'none', boxShadow: 'none'}} />
             ) : (
-              <svg width="64" height="64" fill="none" stroke="#22d3ee" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="text-cyan-400"><circle cx="32" cy="32" r="26" /><path d="M48 48L40 40" /><circle cx="32" cy="32" r="10" /></svg>
+              <svg width="45" height="45" fill="none" stroke="#22d3ee" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="text-cyan-400"><circle cx="22.5" cy="22.5" r="18" /><path d="M40 40L32 32" /><circle cx="22.5" cy="22.5" r="7" /></svg>
             )}
-            <span className="truncate text-left">{mod.titulo || `Módulo ${idx + 1}`}</span>
+            <span className="truncate text-left max-w-[80px] sm:max-w-[120px] md:max-w-[150px]">{mod.titulo || `Módulo ${idx + 1}`}</span>
           </button>
         ))}
       </div>
@@ -239,11 +239,11 @@ const ModulosCurso = () => {
                   </div>
                   {/* Tooltip móvil */}
                   <div
-                    className="pointer-events-none absolute z-30 left-1/2 -translate-x-1/2 bottom-[-70px] w-[90vw] max-w-xs px-4 py-3 bg-white border-2 border-cyan-400 text-black text-sm rounded-2xl shadow-lg opacity-0 group-hover:opacity-100 group-hover:pointer-events-auto transition-opacity duration-200 delay-150 flex-col items-center sm:hidden"
-                    style={{ boxShadow: '0 4px 24px 0 rgba(0,0,0,0.12)' }}
+                    className="pointer-events-none absolute z-30 left-1/2 -translate-x-1/2 bottom-[-50px] w-[85vw] max-w-[320px] px-2 py-2 bg-white border-2 border-cyan-400 text-black text-xs rounded-2xl shadow-lg opacity-0 group-hover:opacity-100 group-hover:pointer-events-auto transition-opacity duration-200 delay-150 flex-col items-center sm:hidden"
+                    style={{ boxShadow: '0 4px 24px 0 rgba(0,0,0,0.12)', wordBreak: 'break-word' }}
                   >
-                    <div className="mb-1 font-bold text-cyan-600">{v.titulo}</div>
-                    <div className="text-black/90">{v.descripcion || 'Sin descripción'}</div>
+                    <div className="mb-1 font-bold text-cyan-600 text-sm">{v.titulo}</div>
+                    <div className="text-black/90 text-xs leading-tight">{v.descripcion || 'Sin descripción'}</div>
                   </div>
                   {/* Tarjeta de video */}
                   <div className="w-[120px] h-[80px] sm:w-[120px] sm:h-[80px] w-[90vw] h-[56vw] max-w-[120px] max-h-[80px] sm:max-w-[120px] sm:max-h-[80px] bg-black rounded-2xl overflow-hidden flex items-center justify-center border-4 border-cyan-400 shadow-lg">
