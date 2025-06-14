@@ -178,15 +178,15 @@ const ModulosCurso = () => {
         {modalInfoModulo && (
           <div className="flex flex-col gap-4 w-full">
             <h2 className="text-2xl font-bold text-cyan-300 mb-2 text-center">{modalInfoModulo.modulo.titulo}</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
               {modalInfoModulo.videos.map((v: any, idx: number) => {
                 let thumb = v.miniatura_url;
                 if (!thumb && v.url) {
                   thumb = getVideoThumbnail(v.url);
                 }
                 return (
-                  <div key={v.id} className="flex flex-row items-center gap-4 bg-neutral-900 rounded-2xl border-2 border-cyan-800 p-3 shadow-md">
-                    <div className="w-20 h-14 bg-black rounded-xl overflow-hidden flex items-center justify-center border-2 border-cyan-800">
+                  <div key={v.id} className="flex flex-row items-center gap-4 bg-neutral-900 rounded-2xl border-4 border-cyan-400 p-3 shadow-2xl w-full">
+                    <div className="w-[120px] h-[80px] sm:w-[120px] sm:h-[80px] w-[90vw] h-[56vw] max-w-[120px] max-h-[80px] sm:max-w-[120px] sm:max-h-[80px] bg-black rounded-2xl overflow-hidden flex items-center justify-center border-4 border-cyan-400 shadow-lg">
                       {thumb ? (
                         <img src={thumb} alt={v.titulo} className="w-full h-full object-cover" />
                       ) : (
