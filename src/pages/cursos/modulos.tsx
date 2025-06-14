@@ -217,29 +217,33 @@ const ModulosCurso = () => {
               }
               // Determinar si es columna izquierda (par) o derecha (impar)
               const isLeft = vidx % 2 === 0;
+              // Tooltip: si es izquierda, sale a la izquierda; si es derecha, sale a la derecha
+              const tooltipPosition = isLeft ? 'right-full mr-6' : 'left-full ml-6';
+              const flechaPosition = isLeft ? '-right-3' : '-left-3';
+              const flechaBorder = isLeft ? { borderLeft: '12px solid #fff' } : { borderRight: '12px solid #fff' };
               return (
                 <div key={v.id} className="relative group flex flex-row items-center gap-4 bg-neutral-900 rounded-2xl border-4 border-cyan-400 p-3 shadow-2xl w-full">
                   {/* Tooltip informativo */}
                   <div
-                    className={`pointer-events-none absolute z-30 opacity-0 group-hover:opacity-100 group-hover:pointer-events-auto transition-opacity duration-200 delay-150 flex-col min-w-[220px] max-w-xs px-4 py-3 bg-black border-2 border-cyan-400 text-white text-sm rounded-2xl shadow-xl
-                      ${isLeft ? 'left-full ml-6 top-1/2 -translate-y-1/2' : 'right-full mr-6 top-1/2 -translate-y-1/2'}
-                      hidden sm:flex
+                    className={`pointer-events-none absolute z-30 opacity-0 group-hover:opacity-100 group-hover:pointer-events-auto transition-opacity duration-200 delay-150 flex-col min-w-[220px] max-w-xs px-4 py-3 bg-white border-2 border-cyan-400 text-black text-sm rounded-2xl shadow-lg
+                      ${tooltipPosition} top-1/2 -translate-y-1/2 hidden sm:flex
                     `}
+                    style={{ boxShadow: '0 4px 24px 0 rgba(0,0,0,0.12)' }}
                   >
-                    <div className="mb-1 font-bold text-cyan-300">{v.titulo}</div>
-                    <div className="text-white/90">{v.descripcion || 'Sin descripción'}</div>
+                    <div className="mb-1 font-bold text-cyan-600">{v.titulo}</div>
+                    <div className="text-black/90">{v.descripcion || 'Sin descripción'}</div>
                     {/* Flecha */}
-                    <div className={`absolute top-1/2 -translate-y-1/2 ${isLeft ? '-left-3' : '-right-3'}`}
-                      style={{ width: 0, height: 0, borderTop: '8px solid transparent', borderBottom: '8px solid transparent',
-                        [isLeft ? 'borderRight' : 'borderLeft']: '12px solid #22d3ee' }}
+                    <div className={`absolute top-1/2 -translate-y-1/2 ${flechaPosition}`}
+                      style={{ width: 0, height: 0, borderTop: '8px solid transparent', borderBottom: '8px solid transparent', ...flechaBorder }}
                     />
                   </div>
                   {/* Tooltip móvil */}
                   <div
-                    className="pointer-events-none absolute z-30 left-1/2 -translate-x-1/2 bottom-[-70px] w-[90vw] max-w-xs px-4 py-3 bg-black border-2 border-cyan-400 text-white text-sm rounded-2xl shadow-xl opacity-0 group-hover:opacity-100 group-hover:pointer-events-auto transition-opacity duration-200 delay-150 flex-col items-center sm:hidden"
+                    className="pointer-events-none absolute z-30 left-1/2 -translate-x-1/2 bottom-[-70px] w-[90vw] max-w-xs px-4 py-3 bg-white border-2 border-cyan-400 text-black text-sm rounded-2xl shadow-lg opacity-0 group-hover:opacity-100 group-hover:pointer-events-auto transition-opacity duration-200 delay-150 flex-col items-center sm:hidden"
+                    style={{ boxShadow: '0 4px 24px 0 rgba(0,0,0,0.12)' }}
                   >
-                    <div className="mb-1 font-bold text-cyan-300">{v.titulo}</div>
-                    <div className="text-white/90">{v.descripcion || 'Sin descripción'}</div>
+                    <div className="mb-1 font-bold text-cyan-600">{v.titulo}</div>
+                    <div className="text-black/90">{v.descripcion || 'Sin descripción'}</div>
                   </div>
                   {/* Tarjeta de video */}
                   <div className="w-[120px] h-[80px] sm:w-[120px] sm:h-[80px] w-[90vw] h-[56vw] max-w-[120px] max-h-[80px] sm:max-w-[120px] sm:max-h-[80px] bg-black rounded-2xl overflow-hidden flex items-center justify-center border-4 border-cyan-400 shadow-lg">
