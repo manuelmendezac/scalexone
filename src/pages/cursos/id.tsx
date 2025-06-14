@@ -722,15 +722,19 @@ const CursoDetalle = () => {
       alert('No se encontró el módulo original en la base de datos.');
       return;
     }
-    // Clonar el objeto módulo
+    // Limpiar el objeto para insertar solo los campos válidos
     const nuevoModulo = {
-      ...mod,
+      curso_id: id,
       titulo: mod.titulo + ' (Copia)',
+      descripcion: mod.descripcion || '',
+      nivel: mod.nivel || '',
+      orden: typeof mod.orden === 'number' ? mod.orden + 1 : modulos.length,
+      icono: mod.icono || null
     };
     // Insertar el nuevo módulo en la tabla 'modulos_curso'
     const { data: moduloInsertado, error: errorModulo } = await supabase
       .from('modulos_curso')
-      .insert([{ ...nuevoModulo, curso_id: id }])
+      .insert([nuevoModulo])
       .select()
       .maybeSingle();
     if (errorModulo || !moduloInsertado) {
@@ -744,18 +748,25 @@ const CursoDetalle = () => {
       .eq('modulo_id', moduloReal.id);
     // Clonar cada video para el nuevo módulo
     if (videosOriginales && videosOriginales.length > 0) {
-      const videosClonados = videosOriginales.map((v) => {
-        const { id, ...rest } = v;
-        return {
-          ...rest,
-          modulo_id: moduloInsertado.id,
-          titulo: v.titulo + ' (Copia)',
-        };
-      });
+      const videosClonados = videosOriginales.map((v: any) => ({
+        titulo: v.titulo + ' (Copia)',
+        descripcion: v.descripcion || '',
+        url: v.url || '',
+        miniatura_url: v.miniatura_url || '',
+        orden: v.orden || 0,
+        modulo_id: moduloInsertado.id
+      }));
       await supabase.from('videos_modulo').insert(videosClonados);
     }
     // Actualizar la portada visualmente
-    const nuevosModulos = [...modulos, nuevoModulo];
+    const nuevosModulos = [...modulos, {
+      ...mod,
+      titulo: nuevoModulo.titulo,
+      icono: nuevoModulo.icono,
+      descripcion: nuevoModulo.descripcion,
+      nivel: nuevoModulo.nivel,
+      orden: nuevoModulo.orden
+    }];
     setModulos(nuevosModulos);
     if (portada && portada.id) {
       await supabase.from('cursos_portada').update({ modulos: nuevosModulos }).eq('id', portada.id);
