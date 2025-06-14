@@ -101,7 +101,7 @@ const Classroom = () => {
   const fetchModulos = async () => {
     const { data } = await supabase.from('classroom_modulos').select('*').order('orden');
     if (data && data.length > 0) setModulos(data as Modulo[]);
-    else setModulos(MODULOS_MODELO);
+    else setModulos([]);
   };
 
   // Simulación de progreso y badges (en real, consulta a Supabase)
@@ -205,6 +205,9 @@ const Classroom = () => {
           </div>
         ))}
       </div>
+      {modulosPagina.length === 0 && (
+        <div className="text-center text-gray-400 text-lg mb-8">No hay módulos creados. Usa el modo edición para agregar el primero.</div>
+      )}
       {/* Controles de paginación */}
       {totalPaginas > 1 && (
         <div className="flex justify-center items-center gap-4 mt-10">
