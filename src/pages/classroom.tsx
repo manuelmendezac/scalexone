@@ -181,23 +181,6 @@ const Classroom = () => {
     }
   };
 
-  const handleClone = async (idx: number) => {
-    const mod = modulos[idx];
-    // Buscar el mayor orden actual
-    const maxOrden = modulos.reduce((max, m) => m.orden && m.orden > max ? m.orden : max, 0);
-    const { error } = await supabase.from('classroom_modulos').insert({
-      titulo: mod.titulo + ' (Copia)',
-      descripcion: mod.descripcion,
-      icono: mod.icono,
-      imagen_url: mod.imagen_url,
-      orden: maxOrden + 1,
-      color: mod.color,
-      badge_url: mod.badge_url
-    });
-    if (!error) await reordenarModulos();
-    else alert('Error al clonar: ' + error.message);
-  };
-
   const handleDelete = async (idx: number) => {
     const mod = modulos[idx];
     if (!mod.id) return;
@@ -265,7 +248,6 @@ const Classroom = () => {
             {isAdmin && (
               <div className="absolute top-2 left-2 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition z-20">
                 <button className="bg-yellow-400 text-black px-2 py-1 rounded text-xs font-bold" onClick={e => { e.stopPropagation(); handleEdit(idx); }}>Editar portada/color</button>
-                <button className="bg-green-600 text-white px-2 py-1 rounded text-xs font-bold" onClick={e => { e.stopPropagation(); handleClone(idx); }}>Clonar</button>
                 <button className="bg-red-500 text-white px-2 py-1 rounded text-xs font-bold" onClick={e => { e.stopPropagation(); handleDelete(idx); }}>Eliminar</button>
                 <button className="bg-blue-600 text-white px-2 py-1 rounded text-xs font-bold" onClick={e => { e.stopPropagation(); setEditIdx(null); setEditImg(''); setEditColor('#fff'); setEditTitulo(''); setEditDescripcion(''); setShowEditModal(true); }}>Crear nuevo módulo</button>
               </div>
