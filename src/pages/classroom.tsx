@@ -130,7 +130,7 @@ const Classroom = () => {
   };
 
   return (
-    <div className="min-h-screen w-full py-12 px-2" style={{ background: '#f5f6fa' }}>
+    <div className="min-h-screen w-full py-12 px-2" style={{ background: '#10192b' }}>
       <h1 className="text-4xl font-bold text-gray-800 text-center mb-12">Classroom de Inducción</h1>
       <div className="max-w-6xl mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-10 justify-items-center">
         {modulosPagina.map((mod, idx) => (
