@@ -4,7 +4,7 @@ import Sidebar from './Sidebar';
 
 const DashboardLayout = () => {
   return (
-    <div className="flex min-h-screen bg-black">
+    <div className="flex min-h-screen" style={{ background: '#10192b' }}>
       <Sidebar />
       <main className="flex-1 p-6 md:p-8 bg-transparent">
         <Outlet />
