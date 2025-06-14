@@ -90,6 +90,7 @@ const Classroom = () => {
   const [editTitulo, setEditTitulo] = useState('');
   const [editDescripcion, setEditDescripcion] = useState('');
   const [saveMsg, setSaveMsg] = useState<string | null>(null);
+  const [orderMsg, setOrderMsg] = useState<string | null>(null);
   const navigate = useNavigate();
   const MODULOS_POR_PAGINA = 9;
   const [pagina, setPagina] = useState(1);
@@ -178,11 +179,9 @@ const Classroom = () => {
     const sourceIdx = result.source.index + (pagina - 1) * MODULOS_POR_PAGINA;
     const destIdx = result.destination.index + (pagina - 1) * MODULOS_POR_PAGINA;
     if (sourceIdx === destIdx) return;
-    // Reordenar en el array completo, no solo en la página
     const newModulos = Array.from(modulos);
     const [removed] = newModulos.splice(sourceIdx, 1);
     newModulos.splice(destIdx, 0, removed);
-    // Actualizar el campo 'orden' en todos los módulos
     for (let i = 0; i < newModulos.length; i++) {
       newModulos[i].orden = i + 1;
       if (newModulos[i].id) {
@@ -190,6 +189,8 @@ const Classroom = () => {
       }
     }
     setModulos(newModulos);
+    setOrderMsg('¡Orden guardado!');
+    setTimeout(() => setOrderMsg(null), 2000);
   };
 
   const handleDelete = async (idx: number) => {
@@ -216,6 +217,11 @@ const Classroom = () => {
           >
             Desactivar modo edición
           </button>
+        </div>
+      )}
+      {orderMsg && (
+        <div className="fixed top-8 left-1/2 -translate-x-1/2 bg-green-500 text-white px-6 py-3 rounded-xl shadow-lg z-50 text-lg font-bold animate-fade-in">
+          {orderMsg}
         </div>
       )}
       <DragDropContext onDragEnd={handleDragEnd}>
