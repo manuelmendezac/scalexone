@@ -897,12 +897,12 @@ const CursoDetalle = () => {
                       <div className="relative w-full h-[170px] bg-black">
                         <img src={video.imagen} alt={video.titulo} className="w-full h-full object-cover" />
                         <button
-                          className="absolute bottom-3 left-1/2 -translate-x-1/2 bg-red-600 hover:bg-red-700 text-white font-bold py-1.5 px-4 rounded-full flex items-center gap-2 text-base shadow-lg z-10"
-                          style={{minWidth: '110px'}}
+                          className="absolute bottom-3 left-1/2 -translate-x-1/2 bg-cyan-100 hover:bg-cyan-200 text-cyan-700 font-bold py-1.5 px-4 rounded-full flex items-center gap-2 text-base shadow z-10 border border-cyan-400"
+                          style={{minWidth: '90px', fontWeight: 600, fontSize: '1rem', boxShadow: '0 2px 8px #00fff733'}}
                           onClick={() => setVideoModal({ url: video.video_url, titulo: video.titulo })}
                         >
-                          <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><polygon points="6,4 20,11 6,18" fill="currentColor" /></svg>
-                          Ver Ahora
+                          <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{opacity:0.7}}><polygon points="6,4 20,11 6,18" fill="currentColor" /></svg>
+                          <span className="text-cyan-700 font-semibold" style={{fontSize:'1rem', opacity:0.8}}>Ver</span>
                         </button>
                       </div>
                       <div className="p-4 flex-1 flex flex-col justify-between">
