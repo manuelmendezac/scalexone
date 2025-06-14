@@ -153,74 +153,6 @@ const ModulosCurso = () => {
     setModalInfoOpen(true);
   };
 
-  // Lógica para clonar módulo y sus videos
-  const handleClonarModulo = async (mod: any, idx: number) => {
-    try {
-      // 1. Buscar el id real del módulo original
-      const { data: moduloReal } = await supabase
-        .from('modulos_curso')
-        .select('id')
-        .eq('curso_id', id)
-        .eq('titulo', mod.titulo)
-        .maybeSingle();
-      if (!moduloReal?.id) {
-        alert('No se encontró el módulo original en la base de datos.');
-        return;
-      }
-      // 2. Clonar el objeto módulo (nuevo título sugerido)
-      const nuevoModulo = {
-        ...mod,
-        titulo: mod.titulo + ' (Copia)',
-        // Puedes agregar lógica para evitar duplicados exactos
-      };
-      // 3. Insertar el nuevo módulo en la tabla 'modulos_curso'
-      const { data: moduloInsertado, error: errorModulo } = await supabase
-        .from('modulos_curso')
-        .insert([{ ...nuevoModulo, curso_id: id }])
-        .select()
-        .maybeSingle();
-      if (errorModulo || !moduloInsertado) {
-        alert('Error al clonar el módulo');
-        return;
-      }
-      // 4. Traer los videos del módulo original
-      const { data: videosOriginales } = await supabase
-        .from('videos_modulo')
-        .select('*')
-        .eq('modulo_id', moduloReal.id);
-      // 5. Clonar cada video para el nuevo módulo
-      if (videosOriginales && videosOriginales.length > 0) {
-        const videosClonados = videosOriginales.map((v: any) => {
-          const { id, ...rest } = v;
-          return {
-            ...rest,
-            modulo_id: moduloInsertado.id,
-            titulo: v.titulo + ' (Copia)',
-          };
-        });
-        await supabase.from('videos_modulo').insert(videosClonados);
-      }
-      // 6. Actualizar la lista de módulos en el estado y en la portada
-      setModulos((prev) => [...prev, nuevoModulo]);
-      // Opcional: recargar desde la base de datos para asegurar consistencia
-      alert('¡Módulo clonado exitosamente!');
-    } catch (e) {
-      alert('Error inesperado al clonar el módulo.');
-    }
-  };
-
-  // Carrusel: funciones de scroll
-  const scrollLeft = () => {
-    if (carouselRef.current) {
-      carouselRef.current.scrollBy({ left: -350, behavior: 'smooth' });
-    }
-  };
-  const scrollRight = () => {
-    if (carouselRef.current) {
-      carouselRef.current.scrollBy({ left: 350, behavior: 'smooth' });
-    }
-  };
-
   if (loading) return <div className="text-cyan-400 text-center py-10">Cargando módulos...</div>;
 
   return (
@@ -293,15 +225,6 @@ const ModulosCurso = () => {
                 >
                   Ver clases
                 </button>
-                {isAdmin && (
-                  <button
-                    className="bg-yellow-400 text-black font-bold py-2 px-6 rounded-full transition-all text-base shadow hover:bg-yellow-300 ml-2"
-                    onClick={() => handleClonarModulo(mod, idx)}
-                    title="Clonar módulo"
-                  >
-                    Clonar
-                  </button>
-                )}
               </div>
               {/* Tarjetas de videos del módulo */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
