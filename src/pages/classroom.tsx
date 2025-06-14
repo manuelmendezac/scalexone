@@ -267,7 +267,7 @@ const Classroom = () => {
                 <button className="bg-yellow-400 text-black px-2 py-1 rounded text-xs font-bold" onClick={e => { e.stopPropagation(); handleEdit(idx); }}>Editar portada/color</button>
                 <button className="bg-green-600 text-white px-2 py-1 rounded text-xs font-bold" onClick={e => { e.stopPropagation(); handleClone(idx); }}>Clonar</button>
                 <button className="bg-red-500 text-white px-2 py-1 rounded text-xs font-bold" onClick={e => { e.stopPropagation(); handleDelete(idx); }}>Eliminar</button>
-                <button className="bg-blue-700 text-white px-2 py-1 rounded text-xs font-bold">Personalizar</button>
+                <button className="bg-blue-600 text-white px-2 py-1 rounded text-xs font-bold" onClick={e => { e.stopPropagation(); setEditIdx(null); setEditImg(''); setEditColor('#fff'); setEditTitulo(''); setEditDescripcion(''); setShowEditModal(true); }}>Crear nuevo módulo</button>
               </div>
             )}
           </div>
