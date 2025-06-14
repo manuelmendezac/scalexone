@@ -133,45 +133,36 @@ function App() {
               darkMode={darkMode}
               isLoggedIn={isLoggedIn}
             />
-            {/* Barra de accesos directos tipo cápsula visible en todas las resoluciones */}
-            <div className="flex gap-2 px-2 py-2 bg-transparent overflow-x-auto w-full">
-              <button onClick={() => navigate('/home')} className="flex items-center gap-2 px-3 py-1 rounded-full bg-gradient-to-r from-blue-700 to-cyan-700 text-white font-semibold shadow hover:from-blue-600 hover:to-cyan-600 transition whitespace-nowrap text-xs md:text-xs md:px-2 md:py-1 md:gap-1">
-                <FaHome className="w-4 h-4" /> <span>Inicio</span>
-              </button>
-              <button onClick={() => navigate('/dashboard')} className="flex items-center gap-2 px-3 py-1 rounded-full bg-gradient-to-r from-gray-700 to-gray-900 text-white font-semibold shadow hover:from-gray-600 hover:to-gray-800 transition whitespace-nowrap text-xs md:text-xs md:px-2 md:py-1 md:gap-1">
-                <FiBarChart2 className="w-4 h-4" /> <span>Dashboard</span>
-              </button>
-              <button onClick={() => navigate('/classroom')} className="flex items-center gap-2 px-3 py-1 rounded-full bg-gradient-to-r from-purple-700 to-indigo-700 text-white font-semibold shadow hover:from-purple-600 hover:to-indigo-600 transition whitespace-nowrap text-xs md:text-xs md:px-2 md:py-1 md:gap-1">
-                <MdOutlineSchool className="w-4 h-4" /> <span>Classroom</span>
-              </button>
-              <button onClick={() => navigate('/cursos')} className="flex items-center gap-2 px-3 py-1 rounded-full bg-gradient-to-r from-cyan-700 to-blue-700 text-white font-semibold shadow hover:from-cyan-600 hover:to-blue-600 transition whitespace-nowrap text-xs md:text-xs md:px-2 md:py-1 md:gap-1">
-                <MdOutlineSchool className="w-5 h-5" /> <span className="text-xs font-bold">Cursos</span>
-              </button>
-              <button onClick={() => navigate('/launchpad')} className="flex items-center gap-2 px-3 py-1 rounded-full bg-gradient-to-r from-cyan-700 to-blue-700 text-white font-semibold shadow hover:from-cyan-600 hover:to-blue-600 transition whitespace-nowrap text-xs md:text-xs md:px-2 md:py-1 md:gap-1">
-                <FaBrain className="w-4 h-4" /> <span>Launchpad</span>
-              </button>
-              <button onClick={() => navigate('/community')} className="flex items-center gap-2 px-3 py-1 rounded-full bg-gradient-to-r from-green-700 to-green-900 text-white font-semibold shadow hover:from-green-600 hover:to-green-800 transition whitespace-nowrap text-xs md:text-xs md:px-2 md:py-1 md:gap-1">
-                <FaUsers className="w-4 h-4" /> <span>Comunidad</span>
-              </button>
-              <button onClick={() => navigate('/gamificacion')} className="flex items-center gap-2 px-3 py-1 rounded-full bg-gradient-to-r from-yellow-500 to-yellow-700 text-white font-semibold shadow hover:from-yellow-400 hover:to-yellow-600 transition whitespace-nowrap text-xs md:text-xs md:px-2 md:py-1 md:gap-1">
-                <FaTrophy className="w-4 h-4" /> <span>Gamificación</span>
-              </button>
-              <button onClick={() => navigate('/funnels')} className="flex items-center gap-2 px-3 py-1 rounded-full bg-gradient-to-r from-cyan-700 to-blue-700 text-white font-semibold shadow hover:from-cyan-600 hover:to-blue-600 transition whitespace-nowrap text-xs md:text-xs md:px-2 md:py-1 md:gap-1">
-                <MdFilterAlt className="w-4 h-4" /> <span>Embudos</span>
-              </button>
-              <button onClick={() => navigate('/ia')} className="flex items-center gap-2 px-3 py-1 rounded-full bg-gradient-to-r from-fuchsia-700 to-pink-600 text-white font-semibold shadow hover:from-fuchsia-600 hover:to-pink-500 transition whitespace-nowrap text-xs md:text-xs md:px-2 md:py-1 md:gap-1">
-                <FaRobot className="w-4 h-4" /> <span>IA</span>
-              </button>
-              <button onClick={() => navigate('/automatizaciones')} className="flex items-center gap-2 px-3 py-1 rounded-full bg-gradient-to-r from-yellow-500 to-yellow-700 text-white font-semibold shadow hover:from-yellow-400 hover:to-yellow-600 transition whitespace-nowrap text-xs md:text-xs md:px-2 md:py-1 md:gap-1">
-                <FiZap className="w-4 h-4" /> <span>Automatizaciones</span>
-              </button>
-              <button onClick={() => navigate('/whatsapp-crm')} className="flex items-center gap-2 px-3 py-1 rounded-full bg-gradient-to-r from-green-600 to-green-800 text-white font-semibold shadow hover:from-green-500 hover:to-green-700 transition whitespace-nowrap text-xs md:text-xs md:px-2 md:py-1 md:gap-1">
-                <FaWhatsapp className="w-4 h-4" /> <span>WhatsApp CRM</span>
-              </button>
-              <button onClick={() => navigate('/configuracion')} className="flex items-center gap-2 px-3 py-1 rounded-full bg-gradient-to-r from-gray-700 to-gray-900 text-white font-semibold shadow hover:from-gray-600 hover:to-gray-800 transition whitespace-nowrap text-xs md:text-xs md:px-2 md:py-1 md:gap-1">
-                <FiSettings className="w-4 h-4" /> <span>Configuración</span>
-              </button>
-            </div>
+            {/* Menú tipo tabs moderno */}
+            <nav className="flex gap-2 px-2 py-2 bg-[#181c24] border-b border-[#23283a] overflow-x-auto w-full">
+              {[
+                { path: '/home', label: 'Inicio', icon: <FaHome className="w-4 h-4" /> },
+                { path: '/dashboard', label: 'Dashboard', icon: <FiBarChart2 className="w-4 h-4" /> },
+                { path: '/classroom', label: 'Classroom', icon: <MdOutlineSchool className="w-4 h-4" /> },
+                { path: '/cursos', label: 'Cursos', icon: <MdOutlineSchool className="w-5 h-5" /> },
+                { path: '/launchpad', label: 'Launchpad', icon: <FaBrain className="w-4 h-4" /> },
+                { path: '/community', label: 'Comunidad', icon: <FaUsers className="w-4 h-4" /> },
+                { path: '/gamificacion', label: 'Gamificación', icon: <FaTrophy className="w-4 h-4" /> },
+                { path: '/funnels', label: 'Embudos', icon: <MdFilterAlt className="w-4 h-4" /> },
+                { path: '/ia', label: 'IA', icon: <FaRobot className="w-4 h-4" /> },
+                { path: '/automatizaciones', label: 'Automatizaciones', icon: <FiZap className="w-4 h-4" /> },
+                { path: '/whatsapp-crm', label: 'WhatsApp CRM', icon: <FaWhatsapp className="w-4 h-4" /> },
+                { path: '/configuracion', label: 'Configuración', icon: <FiSettings className="w-4 h-4" /> },
+              ].map(tab => (
+                <button
+                  key={tab.path}
+                  onClick={() => navigate(tab.path)}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-t-lg font-semibold text-base transition-all border-b-4
+                    ${location.pathname.startsWith(tab.path)
+                      ? 'border-cyan-400 text-cyan-300 bg-[#23283a] shadow'
+                      : 'border-transparent text-[#b0c4d8] hover:text-cyan-200 hover:bg-[#23283a44]'}
+                  `}
+                  style={{ minWidth: 120 }}
+                >
+                  {tab.icon} <span>{tab.label}</span>
+                </button>
+              ))}
+            </nav>
             <SecondNavbar />
           </>
         )}
