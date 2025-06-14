@@ -106,16 +106,17 @@ const ModuloDetalle = () => {
       } else {
         setClases([]);
       }
-      setClaseActual(0);
+      // Leer el query param 'video' y posicionar el video actual
+      const params = new URLSearchParams(location.search);
+      const videoIdx = params.get('video');
+      if (videoIdx !== null && !isNaN(Number(videoIdx))) {
+        setClaseActual(Number(videoIdx));
+      } else {
+        setClaseActual(0);
+      }
       setLoading(false);
     }
     if (id && moduloIdx !== undefined) fetchData();
-    // Leer el query param 'video' y posicionar el video actual
-    const params = new URLSearchParams(location.search);
-    const videoIdx = params.get('video');
-    if (videoIdx !== null && !isNaN(Number(videoIdx))) {
-      setClaseActual(Number(videoIdx));
-    }
   }, [id, moduloIdx, location.search]);
 
   useEffect(() => {
