@@ -183,15 +183,28 @@ const Classroom = () => {
     const newModulos = Array.from(modulos);
     const [removed] = newModulos.splice(sourceIdx, 1);
     newModulos.splice(destIdx, 0, removed);
+    let errores: any[] = [];
     for (let i = 0; i < newModulos.length; i++) {
       newModulos[i].orden = i + 1;
       if (newModulos[i].uuid) {
-        await supabase.from('classroom_modulos').update({ orden: i + 1 }).eq('uuid', newModulos[i].uuid);
+        const { error } = await supabase.from('classroom_modulos').update({ orden: i + 1 }).eq('uuid', newModulos[i].uuid);
+        if (error) {
+          console.error(`Error actualizando módulo uuid=${newModulos[i].uuid}:`, error);
+          errores.push({ uuid: newModulos[i].uuid, error });
+        } else {
+          console.log(`Módulo uuid=${newModulos[i].uuid} actualizado a orden ${i + 1}`);
+        }
+      } else {
+        console.warn('Módulo sin uuid:', newModulos[i]);
       }
     }
     setModulos(newModulos);
-    setOrderMsg('¡Orden guardado!');
-    setTimeout(() => setOrderMsg(null), 2000);
+    if (errores.length > 0) {
+      setOrderMsg('Error al guardar el orden. Revisa la consola.');
+    } else {
+      setOrderMsg('¡Orden guardado!');
+    }
+    setTimeout(() => setOrderMsg(null), 3000);
   };
 
   const handleDelete = async (idx: number) => {
