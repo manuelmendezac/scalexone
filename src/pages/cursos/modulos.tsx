@@ -162,10 +162,20 @@ const ModulosCurso = () => {
         {modalInfoModulo && (
           <div className="flex flex-col gap-4 w-full">
             <h2 className="text-2xl font-bold text-cyan-300 mb-2 text-center">{modalInfoModulo.modulo.titulo}</h2>
-            <div className="flex flex-col gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {modalInfoModulo.videos.map((v: any, idx: number) => (
-                <div key={v.id} className="bg-neutral-800 rounded-xl p-3 flex flex-row items-center gap-4 border border-cyan-900/40">
-                  <div className="font-bold text-cyan-200 text-base flex-1">{v.titulo}</div>
+                <div key={v.id} className="flex flex-row items-center gap-4 bg-neutral-900 rounded-2xl border-2 border-cyan-800 p-3 shadow-md">
+                  <div className="w-20 h-14 bg-black rounded-xl overflow-hidden flex items-center justify-center border-2 border-cyan-800">
+                    {v.miniatura_url ? (
+                      <img src={v.miniatura_url} alt={v.titulo} className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-cyan-400">Sin imagen</div>
+                    )}
+                  </div>
+                  <div className="flex-1 flex flex-col justify-center min-w-0">
+                    <div className="font-bold text-cyan-200 text-base truncate mb-1">{v.titulo}</div>
+                    <div className="text-xs text-cyan-400 opacity-70">Video</div>
+                  </div>
                   <button
                     className="bg-cyan-600 hover:bg-cyan-400 text-white font-bold p-2 rounded-full w-10 h-10 flex items-center justify-center"
                     onClick={() => { setModalInfoOpen(false); navigate(`/cursos/${id}/modulo/${moduloActivo}?video=${idx}`); }}
