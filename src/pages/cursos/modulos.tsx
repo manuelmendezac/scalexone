@@ -120,6 +120,28 @@ const ModulosCurso = () => {
     if (modulos.length > 0) fetchVideosModulo();
   }, [modulos, moduloActivo, id]);
 
+  // Nueva función para abrir el popup de un módulo específico
+  const handleVerClases = async (mod: any, idx: number) => {
+    // Buscar el id real del módulo
+    const { data: moduloReal } = await supabase
+      .from('modulos_curso')
+      .select('id')
+      .eq('curso_id', id)
+      .eq('titulo', mod.titulo)
+      .maybeSingle();
+    let videos = [];
+    if (moduloReal?.id) {
+      const { data: videosData } = await supabase
+        .from('videos_modulo')
+        .select('*')
+        .eq('modulo_id', moduloReal.id)
+        .order('orden', { ascending: true });
+      videos = videosData || [];
+    }
+    setModalInfoModulo({ modulo: mod, videos });
+    setModalInfoOpen(true);
+  };
+
   if (loading) return <div className="text-cyan-400 text-center py-10">Cargando módulos...</div>;
 
   return (
@@ -127,52 +149,30 @@ const ModulosCurso = () => {
       <h1 className="text-3xl font-bold text-cyan-400 mb-8">Módulos del Curso</h1>
       <div className="flex flex-wrap gap-3 mb-10 justify-center">
         {modulos.map((mod, idx) => (
-          <button
-            key={idx}
-            className={`px-5 py-2 rounded-full border font-bold transition-all text-base ${moduloActivo === idx ? 'bg-cyan-400 text-black border-cyan-400' : 'bg-black text-cyan-300 border-cyan-700 hover:bg-cyan-900/20'}`}
-            onClick={() => setModuloActivo(idx)}
-          >
-            Módulo {idx + 1}
-          </button>
+          <div key={idx} className="relative bg-black/80 border-2 border-cyan-400 rounded-2xl p-8 shadow-xl flex flex-col min-h-[340px] max-w-md w-full mx-auto mb-6">
+            <div className="flex flex-col items-center mb-4">
+              <div className="mb-2">{focoSVG}</div>
+              <CircularProgress percent={Math.floor(Math.random()*60+40)} size={54} stroke={7} />
+            </div>
+            <div className="text-xl font-bold text-white mb-2 text-center uppercase">{mod.titulo}</div>
+            <div className="text-white/90 text-base mb-6 text-center">{mod.descripcion}</div>
+            <div className="flex gap-2 mt-8 justify-center">
+              <button
+                className="bg-white text-black font-bold py-2 px-6 rounded-full transition-all text-base shadow hover:bg-cyan-200"
+                onClick={() => navigate(`/cursos/${id}/modulo/${idx}?video=0`)}
+              >
+                Iniciar
+              </button>
+              <button
+                className="bg-cyan-700 text-white font-bold py-2 px-6 rounded-full transition-all text-base shadow hover:bg-cyan-500"
+                onClick={() => handleVerClases(mod, idx)}
+              >
+                Ver clases
+              </button>
+            </div>
+          </div>
         ))}
       </div>
-      {modulos.length > 0 && (
-        <div className="mb-12">
-          <h2 className="text-2xl font-bold text-white mb-2">{modulos[moduloActivo].titulo}</h2>
-          <p className="text-white/80 mb-6">{modulos[moduloActivo].descripcion}</p>
-          <div className="grid md:grid-cols-3 gap-8">
-            {/* Renderizar tarjetas de videos reales */}
-            {videosModulo.length > 0 ? (
-              videosModulo.map((video, idx) => (
-                <div key={video.id} className="bg-neutral-900 rounded-2xl p-8 shadow-xl flex flex-col min-h-[340px] justify-between border border-neutral-800">
-                  <div className="flex flex-col items-center mb-4">
-                    <div className="mb-2">{focoSVG}</div>
-                    <CircularProgress percent={Math.floor(Math.random()*60+40)} size={54} stroke={7} />
-                  </div>
-                  <div className="text-xl font-bold text-white mb-2 text-center uppercase">{video.titulo}</div>
-                  <div className="text-white/90 text-base mb-6 text-center">{video.descripcion}</div>
-                  <div className="flex gap-2 mt-auto justify-center">
-                    <button
-                      className="bg-white text-black font-bold py-2 px-6 rounded-full transition-all text-base shadow hover:bg-cyan-200"
-                      onClick={() => navigate(`/cursos/${id}/modulo/${moduloActivo}?video=${idx}`)}
-                    >
-                      Iniciar
-                    </button>
-                    <button
-                      className="bg-cyan-700 text-white font-bold py-2 px-6 rounded-full transition-all text-base shadow hover:bg-cyan-500"
-                      onClick={() => { setModalInfoModulo({ modulo: modulos[moduloActivo], videos: videosModulo }); setModalInfoOpen(true); }}
-                    >
-                      Más información
-                    </button>
-                  </div>
-                </div>
-              ))
-            ) : (
-              <div className="text-cyan-300 col-span-3 text-center">No hay videos cargados para este módulo.</div>
-            )}
-          </div>
-        </div>
-      )}
       {/* Modal de información de módulo */}
       <ModalFuturista open={modalInfoOpen} onClose={() => setModalInfoOpen(false)}>
         {modalInfoModulo && (
