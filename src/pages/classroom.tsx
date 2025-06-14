@@ -86,6 +86,10 @@ const Classroom = () => {
   const [editColor, setEditColor] = useState('#fff');
   const [showEditModal, setShowEditModal] = useState(false);
   const navigate = useNavigate();
+  const MODULOS_POR_PAGINA = 9;
+  const [pagina, setPagina] = useState(1);
+  const totalPaginas = Math.ceil(modulos.length / MODULOS_POR_PAGINA);
+  const modulosPagina = modulos.slice((pagina-1)*MODULOS_POR_PAGINA, pagina*MODULOS_POR_PAGINA);
 
   useEffect(() => {
     setIsAdmin(localStorage.getItem('adminMode') === 'true');
@@ -129,7 +133,7 @@ const Classroom = () => {
     <div className="min-h-screen w-full py-12 px-2" style={{ background: '#f5f6fa' }}>
       <h1 className="text-4xl font-bold text-gray-800 text-center mb-12">Classroom de Inducción</h1>
       <div className="max-w-6xl mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-10 justify-items-center">
-        {modulos.map((mod, idx) => (
+        {modulosPagina.map((mod, idx) => (
           <div
             key={mod.id || idx}
             className="w-full max-w-xs bg-white rounded-2xl shadow-xl border border-gray-200 flex flex-col cursor-pointer hover:scale-105 transition-transform relative group"
@@ -164,6 +168,22 @@ const Classroom = () => {
           </div>
         ))}
       </div>
+      {/* Controles de paginación */}
+      {totalPaginas > 1 && (
+        <div className="flex justify-center items-center gap-4 mt-10">
+          <button
+            onClick={() => setPagina(p => Math.max(1, p-1))}
+            disabled={pagina === 1}
+            className="px-4 py-2 rounded bg-gray-200 text-gray-700 font-bold disabled:opacity-50"
+          >Anterior</button>
+          <span className="text-lg font-bold text-gray-700">Página {pagina} de {totalPaginas}</span>
+          <button
+            onClick={() => setPagina(p => Math.min(totalPaginas, p+1))}
+            disabled={pagina === totalPaginas}
+            className="px-4 py-2 rounded bg-gray-200 text-gray-700 font-bold disabled:opacity-50"
+          >Siguiente</button>
+        </div>
+      )}
       {/* Modal de edición de portada y color */}
       {showEditModal && (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
