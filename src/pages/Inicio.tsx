@@ -7,9 +7,11 @@ import useNeuroState from '../store/useNeuroState';
 import { FaUserAstronaut } from 'react-icons/fa';
 import { WaveSurfer, WaveForm } from "wavesurfer-react";
 import OnboardingMentor from '../components/OnboardingMentor';
+import { useNavigate } from 'react-router-dom';
 
 const Inicio: React.FC = () => {
   const { userName } = useNeuroState();
+  const navigate = useNavigate();
   // Simulación de datos
   const kpis = {
     microtasks: 82,
@@ -34,6 +36,15 @@ const Inicio: React.FC = () => {
     <div className="w-full min-h-screen bg-transparent">
       <div className="max-w-7xl w-full mx-auto px-4 md:px-8">
         <BannerSlider />
+        {/* Botón de acceso a Classroom */}
+        <div className="flex justify-center my-6">
+          <button
+            onClick={() => navigate('/classroom')}
+            className="bg-cyan-400 text-black font-bold px-8 py-4 rounded-full text-xl shadow-lg hover:bg-cyan-300 transition-all border-2 border-cyan-600"
+          >
+            🚀 Ir al Classroom
+          </button>
+        </div>
         <div className="flex flex-col md:flex-row gap-8 mb-8">
           {/* Onboarding Mentor IA centrado */}
           <div className="flex-1 flex items-center justify-center mx-auto">
