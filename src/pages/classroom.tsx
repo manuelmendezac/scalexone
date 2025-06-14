@@ -120,10 +120,17 @@ const Classroom = () => {
       await supabase.from('classroom_modulos').update({ imagen_url: editImg, color: editColor }).eq('id', mod.id);
       await fetchModulos();
     } else {
-      // Si es modelo local, solo actualiza el estado local
-      const nuevos = [...modulos];
-      nuevos[editIdx] = { ...nuevos[editIdx], imagen_url: editImg, color: editColor };
-      setModulos(nuevos);
+      // Si es modelo local, insertar en Supabase y refrescar
+      const { data, error } = await supabase.from('classroom_modulos').insert({
+        titulo: mod.titulo,
+        descripcion: mod.descripcion,
+        icono: mod.icono,
+        imagen_url: editImg,
+        orden: mod.orden,
+        color: editColor,
+        badge_url: mod.badge_url
+      });
+      if (!error) await fetchModulos();
     }
     setShowEditModal(false);
     setEditIdx(null);
