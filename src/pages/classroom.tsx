@@ -193,6 +193,7 @@ const Classroom = () => {
   return (
     <div className="min-h-screen w-full py-12 px-2" style={{ background: '#10192b' }}>
       <h1 className="text-4xl font-bold text-white text-center mb-12">Classroom de Inducción</h1>
+      {/* Mostrar solo a admin */}
       {isAdmin && (
         <div className="flex justify-center mb-8">
           <button
@@ -203,19 +204,6 @@ const Classroom = () => {
             }}
           >
             Desactivar modo edición
-          </button>
-        </div>
-      )}
-      {!isAdmin && (
-        <div className="flex justify-center mb-8">
-          <button
-            className="px-4 py-2 rounded bg-blue-600 text-white font-bold shadow hover:bg-blue-700 transition"
-            onClick={() => {
-              localStorage.setItem('adminMode', 'true');
-              window.location.reload();
-            }}
-          >
-            Activar modo edición (admin)
           </button>
         </div>
       )}
