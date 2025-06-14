@@ -87,6 +87,7 @@ const Classroom = () => {
   const [showEditModal, setShowEditModal] = useState(false);
   const [editTitulo, setEditTitulo] = useState('');
   const [editDescripcion, setEditDescripcion] = useState('');
+  const [saveMsg, setSaveMsg] = useState<string | null>(null);
   const navigate = useNavigate();
   const MODULOS_POR_PAGINA = 9;
   const [pagina, setPagina] = useState(1);
@@ -118,6 +119,7 @@ const Classroom = () => {
   };
 
   const handleSaveEdit = async () => {
+    setSaveMsg(null);
     if (editIdx === null) {
       const { data, error } = await supabase.from('classroom_modulos').insert({
         titulo: editTitulo,
@@ -128,16 +130,26 @@ const Classroom = () => {
         color: editColor,
         badge_url: ''
       });
-      if (!error) await fetchModulos();
-      setShowEditModal(false);
+      if (!error) {
+        setSaveMsg('¡Módulo creado con éxito!');
+        await fetchModulos();
+        setShowEditModal(false);
+      } else {
+        setSaveMsg('Error al crear el módulo: ' + error.message);
+      }
       return;
     }
     const mod = modulos[editIdx];
     if (mod.id) {
-      await supabase.from('classroom_modulos').update({ imagen_url: editImg, color: editColor, titulo: editTitulo, descripcion: editDescripcion }).eq('id', mod.id);
-      await fetchModulos();
+      const { error } = await supabase.from('classroom_modulos').update({ imagen_url: editImg, color: editColor, titulo: editTitulo, descripcion: editDescripcion }).eq('id', mod.id);
+      if (!error) {
+        setSaveMsg('¡Módulo actualizado con éxito!');
+        await fetchModulos();
+        setShowEditModal(false);
+      } else {
+        setSaveMsg('Error al actualizar el módulo: ' + error.message);
+      }
     } else {
-      // Si es modelo local, insertar en Supabase y refrescar
       const { data, error } = await supabase.from('classroom_modulos').insert({
         titulo: editTitulo,
         descripcion: editDescripcion,
@@ -147,9 +159,14 @@ const Classroom = () => {
         color: editColor,
         badge_url: mod.badge_url
       });
-      if (!error) await fetchModulos();
+      if (!error) {
+        setSaveMsg('¡Módulo creado con éxito!');
+        await fetchModulos();
+        setShowEditModal(false);
+      } else {
+        setSaveMsg('Error al crear el módulo: ' + error.message);
+      }
     }
-    setShowEditModal(false);
     setEditIdx(null);
   };
 
@@ -280,6 +297,9 @@ const Classroom = () => {
             <input type="text" className="p-2 rounded border border-gray-300 mb-2" value={editTitulo} onChange={e => setEditTitulo(e.target.value)} />
             <label className="text-gray-700 font-semibold">Descripción</label>
             <textarea className="p-2 rounded border border-gray-300 mb-2" value={editDescripcion} onChange={e => setEditDescripcion(e.target.value)} rows={2} />
+            {saveMsg && (
+              <div className={`mb-2 text-center font-bold ${saveMsg.startsWith('¡') ? 'text-green-600' : 'text-red-600'}`}>{saveMsg}</div>
+            )}
             <div className="flex gap-4 mt-2">
               <button onClick={handleSaveEdit} className="bg-blue-600 text-white px-4 py-2 rounded font-bold hover:bg-blue-700">Guardar</button>
               <button onClick={() => setShowEditModal(false)} className="bg-gray-300 text-gray-800 px-4 py-2 rounded font-bold hover:bg-gray-400">Cancelar</button>
