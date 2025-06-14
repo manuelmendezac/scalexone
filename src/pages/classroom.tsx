@@ -131,7 +131,33 @@ const Classroom = () => {
 
   return (
     <div className="min-h-screen w-full py-12 px-2" style={{ background: '#10192b' }}>
-      <h1 className="text-4xl font-bold text-gray-800 text-center mb-12">Classroom de Inducción</h1>
+      <h1 className="text-4xl font-bold text-white text-center mb-12">Classroom de Inducción</h1>
+      {isAdmin && (
+        <div className="flex justify-center mb-8">
+          <button
+            className="px-4 py-2 rounded bg-yellow-400 text-black font-bold shadow hover:bg-yellow-500 transition"
+            onClick={() => {
+              localStorage.setItem('adminMode', 'false');
+              window.location.reload();
+            }}
+          >
+            Desactivar modo edición
+          </button>
+        </div>
+      )}
+      {!isAdmin && (
+        <div className="flex justify-center mb-8">
+          <button
+            className="px-4 py-2 rounded bg-blue-600 text-white font-bold shadow hover:bg-blue-700 transition"
+            onClick={() => {
+              localStorage.setItem('adminMode', 'true');
+              window.location.reload();
+            }}
+          >
+            Activar modo edición (admin)
+          </button>
+        </div>
+      )}
       <div className="max-w-6xl mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-10 justify-items-center">
         {modulosPagina.map((mod, idx) => (
           <div
