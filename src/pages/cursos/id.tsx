@@ -738,7 +738,7 @@ const CursoDetalle = () => {
       .select()
       .maybeSingle();
     if (errorModulo || !moduloInsertado) {
-      alert('Error al clonar el módulo');
+      alert('Error al clonar el módulo: ' + (errorModulo?.message || 'Error desconocido'));
       return;
     }
     // Traer los videos del módulo original
@@ -938,26 +938,40 @@ const CursoDetalle = () => {
                 <span className="flex items-center gap-1 text-xs"><PlayCircle className="w-4 h-4"/>Clases: {mod.clases}</span>
               </div>
               {/* Botones */}
-              <div className="flex gap-2 mt-auto">
-                <button
-                  className="flex-1 bg-white text-black font-bold py-2 rounded-full transition-all text-sm shadow group-hover:scale-105 border border-white hover:bg-cyan-400 hover:text-black hover:border-cyan-400"
-                  onClick={() => navigate(`/cursos/${id}/modulo/${idx}`)}
-                >
-                  Iniciar
-                </button>
-                <button
-                  className="flex-1 border border-cyan-400 text-cyan-400 hover:bg-cyan-400 hover:text-black font-bold py-2 rounded-full transition-all text-sm shadow group-hover:scale-105 flex items-center justify-center gap-1 bg-black"
-                  onClick={() => handleVerClasesModulo(mod, idx)}
-                >
-                  Ver clases <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 9h8m0 0-3-3m3 3-3 3"/></svg>
-                </button>
-                {isAdmin && (
-                  <>
-                    <button className="ml-2 px-3 py-1 rounded bg-yellow-400 text-black font-bold hover:bg-yellow-500 transition" onClick={() => handleClonarModulo(mod, idx)}>Clonar</button>
-                    <button className="ml-2 px-3 py-1 rounded bg-red-500 text-white font-bold hover:bg-red-700 transition" onClick={() => handleEliminarModulo(mod, idx)}>Eliminar</button>
-                    <button className="ml-2 px-3 py-1 rounded bg-cyan-700 text-white font-bold hover:bg-cyan-500 transition" onClick={() => handleEditModulo(idx)}>Editar</button>
-                  </>
-                )}
+              <div className="flex flex-col gap-1 mt-auto">
+                <div className="flex flex-row w-full justify-end">
+                  {isAdmin && (
+                    <button
+                      className="mb-2 px-2 py-1 rounded bg-cyan-700 text-white text-xs font-bold hover:bg-cyan-500 transition w-fit"
+                      style={{ fontSize: '0.85rem', minWidth: 60 }}
+                      onClick={() => handleEditModulo(idx)}
+                    >
+                      Editar
+                    </button>
+                  )}
+                </div>
+                <div className="flex flex-row gap-2 justify-end">
+                  {isAdmin && (
+                    <>
+                      <button className="px-3 py-1 rounded bg-yellow-400 text-black text-xs font-bold hover:bg-yellow-500 transition" style={{ fontSize: '0.85rem', minWidth: 60 }} onClick={() => handleClonarModulo(mod, idx)}>Clonar</button>
+                      <button className="px-3 py-1 rounded bg-red-500 text-white text-xs font-bold hover:bg-red-700 transition" style={{ fontSize: '0.85rem', minWidth: 60 }} onClick={() => handleEliminarModulo(mod, idx)}>Eliminar</button>
+                    </>
+                  )}
+                </div>
+                <div className="flex flex-row gap-2 mt-2">
+                  <button
+                    className="flex-1 bg-white text-black font-bold py-2 rounded-full transition-all text-sm shadow group-hover:scale-105 border border-white hover:bg-cyan-400 hover:text-black hover:border-cyan-400"
+                    onClick={() => navigate(`/cursos/${id}/modulo/${idx}`)}
+                  >
+                    Iniciar
+                  </button>
+                  <button
+                    className="flex-1 border border-cyan-400 text-cyan-400 hover:bg-cyan-400 hover:text-black font-bold py-2 rounded-full transition-all text-sm shadow group-hover:scale-105 flex items-center justify-center gap-1 bg-black"
+                    onClick={() => handleVerClasesModulo(mod, idx)}
+                  >
+                    Ver clases <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 9h8m0 0-3-3m3 3-3 3"/></svg>
+                  </button>
+                </div>
               </div>
             </div>
           ))}
