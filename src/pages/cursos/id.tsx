@@ -248,14 +248,13 @@ const CursoDetalle = () => {
   const [videosPrimerModulo, setVideosPrimerModulo] = useState<any[]>([]);
   const [infoPrimerModulo, setInfoPrimerModulo] = useState<any>(null);
 
-  const handleVerClasesPortada = async () => {
-    if (!modulos[0]) return;
-    // Buscar el id real del primer módulo
+  const handleVerClasesModulo = async (mod: any, idx: number) => {
+    // Buscar el id real del módulo
     const { data: moduloReal } = await supabase
       .from('modulos_curso')
       .select('id')
       .eq('curso_id', id)
-      .eq('titulo', modulos[0].titulo)
+      .eq('titulo', mod.titulo)
       .maybeSingle();
     let videos = [];
     if (moduloReal?.id) {
@@ -266,7 +265,7 @@ const CursoDetalle = () => {
         .order('orden', { ascending: true });
       videos = videosData || [];
     }
-    setInfoPrimerModulo(modulos[0]);
+    setInfoPrimerModulo(mod);
     setVideosPrimerModulo(videos);
     setModalVideosOpen(true);
   };
@@ -757,7 +756,7 @@ const CursoDetalle = () => {
               </button>
               <button
                 className="flex-1 border border-cyan-400 text-cyan-400 hover:bg-cyan-400 hover:text-black font-bold py-2 rounded-full transition-all text-sm shadow group-hover:scale-105 flex items-center justify-center gap-1 bg-black"
-                onClick={handleVerClasesPortada}
+                onClick={() => handleVerClasesModulo(modulos[0], 0)}
               >
                 Ver clases <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 9h8m0 0-3-3m3 3-3 3"/></svg>
               </button>
@@ -825,7 +824,7 @@ const CursoDetalle = () => {
                 </button>
                 <button
                   className="flex-1 border border-cyan-400 text-cyan-400 hover:bg-cyan-400 hover:text-black font-bold py-2 rounded-full transition-all text-sm shadow group-hover:scale-105 flex items-center justify-center gap-1 bg-black"
-                  onClick={() => navigate(`/cursos/${id}/modulo/${idx}`)}
+                  onClick={() => handleVerClasesModulo(mod, idx)}
                 >
                   Ver clases <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 9h8m0 0-3-3m3 3-3 3"/></svg>
                 </button>
