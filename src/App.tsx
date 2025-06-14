@@ -133,33 +133,36 @@ function App() {
               darkMode={darkMode}
               isLoggedIn={isLoggedIn}
             />
-            {/* Menú tipo tabs moderno */}
-            <nav className="flex gap-2 px-2 py-2 bg-[#181c24] border-b border-[#23283a] overflow-x-auto w-full">
+            {/* Menú tipo tabs minimalista, solo texto subrayado */}
+            <nav className="flex gap-2 px-2 py-2 bg-transparent border-b border-[#23283a] overflow-x-auto w-full whitespace-nowrap">
               {[
-                { path: '/home', label: 'Inicio', icon: <FaHome className="w-4 h-4" /> },
-                { path: '/dashboard', label: 'Dashboard', icon: <FiBarChart2 className="w-4 h-4" /> },
-                { path: '/classroom', label: 'Classroom', icon: <MdOutlineSchool className="w-4 h-4" /> },
-                { path: '/cursos', label: 'Cursos', icon: <MdOutlineSchool className="w-5 h-5" /> },
-                { path: '/launchpad', label: 'Launchpad', icon: <FaBrain className="w-4 h-4" /> },
-                { path: '/community', label: 'Comunidad', icon: <FaUsers className="w-4 h-4" /> },
-                { path: '/gamificacion', label: 'Gamificación', icon: <FaTrophy className="w-4 h-4" /> },
-                { path: '/funnels', label: 'Embudos', icon: <MdFilterAlt className="w-4 h-4" /> },
-                { path: '/ia', label: 'IA', icon: <FaRobot className="w-4 h-4" /> },
-                { path: '/automatizaciones', label: 'Automatizaciones', icon: <FiZap className="w-4 h-4" /> },
-                { path: '/whatsapp-crm', label: 'WhatsApp CRM', icon: <FaWhatsapp className="w-4 h-4" /> },
-                { path: '/configuracion', label: 'Configuración', icon: <FiSettings className="w-4 h-4" /> },
+                { path: '/home', label: 'Inicio' },
+                { path: '/dashboard', label: 'Dashboard' },
+                { path: '/classroom', label: 'Classroom' },
+                { path: '/cursos', label: 'Cursos' },
+                { path: '/launchpad', label: 'Launchpad' },
+                { path: '/community', label: 'Comunidad' },
+                { path: '/gamificacion', label: 'Gamificación' },
+                { path: '/funnels', label: 'Embudos' },
+                { path: '/ia', label: 'IA' },
+                { path: '/automatizaciones', label: 'Automatizaciones' },
+                { path: '/whatsapp-crm', label: 'WhatsApp CRM' },
+                { path: '/configuracion', label: 'Configuración' },
               ].map(tab => (
                 <button
                   key={tab.path}
                   onClick={() => navigate(tab.path)}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-t-lg font-semibold text-base transition-all border-b-4
+                  className={`relative px-2 md:px-3 py-1 text-xs md:text-sm font-medium transition-colors
                     ${location.pathname.startsWith(tab.path)
-                      ? 'border-cyan-400 text-cyan-300 bg-[#23283a] shadow'
-                      : 'border-transparent text-[#b0c4d8] hover:text-cyan-200 hover:bg-[#23283a44]'}
+                      ? 'text-cyan-300'
+                      : 'text-[#b0c4d8] hover:text-cyan-200'}
                   `}
-                  style={{ minWidth: 120 }}
+                  style={{ background: 'none', border: 'none', outline: 'none' }}
                 >
-                  {tab.icon} <span>{tab.label}</span>
+                  <span>{tab.label}</span>
+                  {location.pathname.startsWith(tab.path) && (
+                    <span className="absolute left-0 right-0 -bottom-0.5 h-[2px] bg-cyan-400 rounded-full animate-fadein-sci-fi" style={{transition:'all 0.2s'}} />
+                  )}
                 </button>
               ))}
             </nav>
