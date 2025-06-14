@@ -215,8 +215,35 @@ const ModulosCurso = () => {
               if (!thumb && v.url) {
                 thumb = getVideoThumbnail(v.url);
               }
+              // Determinar si es columna izquierda (par) o derecha (impar)
+              const isLeft = vidx % 2 === 0;
               return (
-                <div key={v.id} className="flex flex-row items-center gap-4 bg-neutral-900 rounded-2xl border-4 border-cyan-400 p-3 shadow-2xl w-full">
+                <div key={v.id} className="relative group flex flex-row items-center gap-4 bg-neutral-900 rounded-2xl border-4 border-cyan-400 p-3 shadow-2xl w-full">
+                  {/* Tooltip informativo */}
+                  <div
+                    className={`absolute z-30 hidden group-hover:flex flex-col min-w-[220px] max-w-xs px-4 py-3 bg-black border-2 border-cyan-400 text-white text-sm rounded-2xl shadow-xl transition-all duration-200 animate-fadein
+                      ${isLeft ? 'left-full ml-4 top-1/2 -translate-y-1/2' : 'right-full mr-4 top-1/2 -translate-y-1/2'}
+                      sm:flex
+                    `}
+                    style={{ pointerEvents: 'none' }}
+                  >
+                    <div className="mb-1 font-bold text-cyan-300">{v.titulo}</div>
+                    <div className="text-white/90">{v.descripcion || 'Sin descripción'}</div>
+                    {/* Flecha */}
+                    <div className={`absolute top-1/2 -translate-y-1/2 ${isLeft ? '-left-3' : '-right-3'}`}
+                      style={{ width: 0, height: 0, borderTop: '8px solid transparent', borderBottom: '8px solid transparent',
+                        [isLeft ? 'borderRight' : 'borderLeft']: '12px solid #22d3ee' }}
+                    />
+                  </div>
+                  {/* Tooltip móvil */}
+                  <div
+                    className="absolute z-30 left-1/2 -translate-x-1/2 bottom-[-70px] w-[90vw] max-w-xs px-4 py-3 bg-black border-2 border-cyan-400 text-white text-sm rounded-2xl shadow-xl transition-all duration-200 animate-fadein flex-col items-center sm:hidden hidden group-hover:flex"
+                    style={{ pointerEvents: 'none' }}
+                  >
+                    <div className="mb-1 font-bold text-cyan-300">{v.titulo}</div>
+                    <div className="text-white/90">{v.descripcion || 'Sin descripción'}</div>
+                  </div>
+                  {/* Tarjeta de video */}
                   <div className="w-[120px] h-[80px] sm:w-[120px] sm:h-[80px] w-[90vw] h-[56vw] max-w-[120px] max-h-[80px] sm:max-w-[120px] sm:max-h-[80px] bg-black rounded-2xl overflow-hidden flex items-center justify-center border-4 border-cyan-400 shadow-lg">
                     {thumb ? (
                       <img src={thumb} alt={v.titulo} className="w-full h-full object-cover" />
