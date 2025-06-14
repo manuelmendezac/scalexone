@@ -10,16 +10,19 @@ interface CertificacionAdminModalProps {
 }
 
 const camposIniciales = {
-  titulo: '',
-  texto_secundario: '',
-  video_url: '',
-  texto_llamado: '',
-  texto_boton: '',
-  enlace_boton: '',
-  imagen_certificado: '',
-  texto_importante: '',
-  imagenes_alianzas: [],
-  texto_final: '',
+  titulo: '¡Ha llegado el momento de certificarte!',
+  texto_secundario: 'Pero primero, mira este video:',
+  video_url: 'https://www.youtube.com/embed/1Q8fG0TtVAY',
+  texto_llamado: 'Completa el quiz a continuación para reclamar tu certificado:',
+  texto_boton: '🚀 QUIERO CERTIFICARME',
+  enlace_boton: 'https://tucertificacion.com/quiz',
+  imagen_certificado: '/img/certificado-demo.png',
+  texto_importante: 'Importante: Si también deseas reclamar el certificado de CEL, avalado por la Florida Global University, debes seguir las instrucciones al final del quiz para solicitarlo.',
+  imagenes_alianzas: [
+    '/logos/cel.png',
+    '/logos/fguni.png'
+  ],
+  texto_final: 'En alianza con\nCenter of Education and Leadership\nFlorida Global University',
 };
 
 const CertificacionAdminModal: React.FC<CertificacionAdminModalProps> = ({ open, onClose, curso_id, isAdmin }) => {
