@@ -250,6 +250,7 @@ const CursoDetalle = () => {
   const [infoPrimerModulo, setInfoPrimerModulo] = useState<any>(null);
 
   const [editCertificacionOpen, setEditCertificacionOpen] = useState(false);
+  const [certificacion, setCertificacion] = useState<any>(null);
 
   const handleVerClasesModulo = async (mod: any, idx: number) => {
     // Buscar el id real del módulo
@@ -340,6 +341,15 @@ const CursoDetalle = () => {
     }
     if (id) fetchVideos();
   }, [id]);
+
+  useEffect(() => {
+    async function fetchCertificacion() {
+      if (!id) return;
+      const { data } = await supabase.from('certificaciones_curso').select('*').eq('curso_id', id).single();
+      setCertificacion(data);
+    }
+    fetchCertificacion();
+  }, [id, editCertificacionOpen]);
 
   const handleReload = () => {
     setLoading(true);
@@ -1099,13 +1109,14 @@ const CursoDetalle = () => {
           </button>
         )}
         <CertificacionSection
-          videoUrl="https://www.youtube.com/embed/1Q8fG0TtVAY"
-          onCertificar={() => alert('Aquí irá la lógica para certificar o abrir el quiz')}
-          certificadoImg="/img/certificado-demo.png"
-          alianzas={[
-            { logo: "/logos/cel.png", nombre: "Center of Education and Leadership", url: "https://cel.com" },
-            { logo: "/logos/fguni.png", nombre: "Florida Global University", url: "https://floridaglobal.university" }
-          ]}
+          videoUrl={certificacion?.video_url || ''}
+          onCertificar={() => window.open(certificacion?.enlace_boton || '#', '_blank')}
+          certificadoImg={certificacion?.imagen_certificado || ''}
+          alianzas={certificacion?.imagenes_alianzas?.map((url: string) => ({ logo: url, nombre: '', url: '' })) || []}
+          mensajeMotivador={certificacion?.titulo || '¡Ha llegado el momento de certificarte!'}
+          mensajeSecundario={certificacion?.texto_secundario || 'Pero primero, mira este video:'}
+          textoBoton={certificacion?.texto_boton || 'QUIERO CERTIFICARME'}
+          notaImportante={certificacion?.texto_importante || ''}
         />
         <CertificacionAdminModal
           open={editCertificacionOpen}
