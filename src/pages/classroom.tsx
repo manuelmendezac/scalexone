@@ -170,18 +170,31 @@ const Classroom = () => {
     setEditIdx(null);
   };
 
+  // Reordena todos los módulos para que el campo 'orden' sea único y consecutivo
+  const reordenarModulos = async () => {
+    const { data } = await supabase.from('classroom_modulos').select('id').order('orden');
+    if (data) {
+      for (let i = 0; i < data.length; i++) {
+        await supabase.from('classroom_modulos').update({ orden: i + 1 }).eq('id', data[i].id);
+      }
+      await fetchModulos();
+    }
+  };
+
   const handleClone = async (idx: number) => {
     const mod = modulos[idx];
+    // Buscar el mayor orden actual
+    const maxOrden = modulos.reduce((max, m) => m.orden && m.orden > max ? m.orden : max, 0);
     const { error } = await supabase.from('classroom_modulos').insert({
       titulo: mod.titulo + ' (Copia)',
       descripcion: mod.descripcion,
       icono: mod.icono,
       imagen_url: mod.imagen_url,
-      orden: modulos.length + 1,
+      orden: maxOrden + 1,
       color: mod.color,
       badge_url: mod.badge_url
     });
-    if (!error) await fetchModulos();
+    if (!error) await reordenarModulos();
     else alert('Error al clonar: ' + error.message);
   };
 
@@ -190,7 +203,7 @@ const Classroom = () => {
     if (!mod.id) return;
     if (!window.confirm('¿Seguro que deseas eliminar este módulo? Esta acción no se puede deshacer.')) return;
     const { error } = await supabase.from('classroom_modulos').delete().eq('id', mod.id);
-    if (!error) await fetchModulos();
+    if (!error) await reordenarModulos();
     else alert('Error al eliminar: ' + error.message);
   };
 
