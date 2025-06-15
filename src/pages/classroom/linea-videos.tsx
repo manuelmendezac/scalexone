@@ -39,33 +39,41 @@ const LineaVideosClassroom = () => {
   const fetchModuloYVideos = async () => {
     setLoading(true);
     // Traer datos del módulo de classroom
-    let { data: mod } = await supabase.from('classroom_modulos').select('*').eq('id', modulo_id).single();
+    let { data: mod, error: modError } = await supabase.from('classroom_modulos').select('*').eq('id', modulo_id).single();
+    console.log('[DEBUG] classroom_modulos:', mod, modError);
     let moduloCursoId = mod?.modulo_curso_id;
     if (!moduloCursoId && mod?.titulo) {
       // Buscar por título en modulos_curso
-      const { data: foundCursoMod } = await supabase
+      const { data: foundCursoMod, error: findError } = await supabase
         .from('modulos_curso')
         .select('id')
         .eq('titulo', mod.titulo)
         .maybeSingle();
+      console.log('[DEBUG] Buscar modulos_curso:', foundCursoMod, findError);
       if (foundCursoMod?.id) {
         moduloCursoId = foundCursoMod.id;
-        await supabase.from('classroom_modulos').update({ modulo_curso_id: moduloCursoId }).eq('id', mod.id);
+        const { error: updateError } = await supabase.from('classroom_modulos').update({ modulo_curso_id: moduloCursoId }).eq('id', mod.id);
+        console.log('[DEBUG] Update classroom_modulos:', updateError);
       } else {
         // Crear el módulo en cursos si no existe
-        const { data: newCursoMod } = await supabase
+        const { data: newCursoMod, error: createError } = await supabase
           .from('modulos_curso')
           .insert([{ titulo: mod.titulo, descripcion: mod.descripcion || '', orden: mod.orden || 0 }])
           .select()
           .maybeSingle();
+        console.log('[DEBUG] Crear modulos_curso:', newCursoMod, createError);
         if (newCursoMod?.id) {
           moduloCursoId = newCursoMod.id;
-          await supabase.from('classroom_modulos').update({ modulo_curso_id: moduloCursoId }).eq('id', mod.id);
+          const { error: updateError2 } = await supabase.from('classroom_modulos').update({ modulo_curso_id: moduloCursoId }).eq('id', mod.id);
+          console.log('[DEBUG] Update classroom_modulos tras crear:', updateError2);
         }
       }
-      // Refrescar mod con el nuevo id
-      mod = { ...mod, modulo_curso_id: moduloCursoId };
+      // Volver a consultar el registro actualizado
+      const { data: modActualizado } = await supabase.from('classroom_modulos').select('*').eq('id', mod.id).single();
+      mod = modActualizado;
+      moduloCursoId = mod?.modulo_curso_id;
     }
+    console.log('[DEBUG] modulo final:', mod);
     setModulo(mod);
     // Traer videos asociados
     const { data: vids } = await supabase.from('videos_classroom_modulo').select('*').eq('modulo_id', modulo_id).order('orden', { ascending: true });
