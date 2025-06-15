@@ -289,21 +289,73 @@ const LineaVideosClassroom = () => {
       </div>
       {/* Sidebar de videos */}
       {!fullscreen && (
-        <div className="w-full md:w-96 bg-neutral-950 p-6 flex flex-col gap-4">
-          <h3 className="text-xl font-bold mb-2 text-cyan-300">Clases del módulo</h3>
-          {clasesOrdenadas.map((v, idx) => (
-            <div
-              key={v.id}
-              className={`flex items-center gap-4 p-3 rounded-xl cursor-pointer transition border ${v.id === videoActual.id ? 'bg-cyan-900/30 border-cyan-400' : 'bg-neutral-900 border-neutral-800 hover:bg-cyan-900/10'}`}
-              onClick={() => setClaseActual(idx)}
+        <div className="w-full md:w-[320px] bg-gradient-to-br from-neutral-950 to-black p-2 sm:p-4 md:p-6 flex flex-col gap-4 sm:gap-6 rounded-3xl border-l-4 border-cyan-900/30 shadow-2xl min-h-[220px] sm:min-h-[320px] md:min-h-screen transition-all duration-300">
+          {/* Solo mostrar el botón de editar si es admin */}
+          {isAdmin && (
+            <button
+              className="mb-4 sm:mb-6 px-4 sm:px-6 py-2 sm:py-3 rounded-full bg-cyan-700 hover:bg-cyan-500 text-white font-bold shadow transition-all text-base sm:text-lg w-full"
+              onClick={() => navigate(`/classroom/editar-videos?modulo_id=${modulo_id}`)}
             >
-              <img src={v.miniatura_url} alt={v.titulo} className="w-20 h-14 object-cover rounded-lg" />
-              <div>
-                <div className="font-bold text-cyan-200 text-base">{v.titulo}</div>
-                <div className="text-xs text-cyan-400">Video</div>
+              Editar videos del módulo
+            </button>
+          )}
+          <h3 className="text-xl sm:text-2xl md:text-3xl font-bold mb-4 sm:mb-6 text-cyan-300 tracking-tight uppercase text-center drop-shadow-glow">Clases del módulo</h3>
+          {/* Bloque de completado */}
+          {claseActual === clasesOrdenadas.length - 1 && completados[claseActual] && (
+            <div className="flex flex-col items-center gap-6 mt-8 transition-opacity duration-700 opacity-100">
+              <div className="flex flex-col items-center">
+                <svg className="w-20 h-20 text-green-400" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2.2" fill="none"/><path d="M9 12l2 2l4-4" stroke="currentColor" strokeWidth="2.2" fill="none"/></svg>
+              </div>
+              <div className="text-xl font-bold text-cyan-300 text-center">¡Has completado el módulo!</div>
+              <div className="flex flex-row gap-2 mt-4 w-full justify-center">
+                <button
+                  className="flex items-center gap-2 px-4 py-2 rounded-full bg-neutral-800 hover:bg-cyan-900 text-cyan-200 font-bold text-base shadow transition-all border border-cyan-700"
+                  onClick={() => navigate('/classroom')}
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7"/></svg> Regresar al Inicio
+                </button>
+                <button
+                  className="flex items-center gap-2 px-4 py-2 rounded-full bg-green-500 hover:bg-green-400 text-black font-bold text-base shadow transition-all border border-green-700"
+                  onClick={() => navigate(`/classroom/modulo?modulo_id=${modulo?.siguiente_modulo_id || ''}`)}
+                >
+                  Siguiente Módulo <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg>
+                </button>
               </div>
             </div>
-          ))}
+          )}
+          {/* Lista de videos */}
+          {clasesOrdenadas.map((v, idx) => {
+            let thumb = v.miniatura_url;
+            if ((!thumb || thumb === 'null') && v.url) {
+              // Obtener miniatura de YouTube o Vimeo
+              const ytMatch = v.url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([\w-]{11})/);
+              if (ytMatch) thumb = `https://img.youtube.com/vi/${ytMatch[1]}/hqdefault.jpg`;
+              const vimeoMatch = v.url.match(/vimeo\.com\/(\d+)/);
+              if (vimeoMatch) thumb = `https://vumbnail.com/${vimeoMatch[1]}.jpg`;
+            }
+            return (
+              <div
+                key={v.id}
+                className={`flex items-center gap-4 p-3 rounded-2xl cursor-pointer transition border-2 ${v.id === videoActual.id ? 'bg-cyan-900/30 border-cyan-400' : 'bg-neutral-900 border-neutral-800 hover:bg-cyan-900/10'} group`}
+                onClick={() => setClaseActual(idx)}
+                style={{ minHeight: 110 }}
+              >
+                <div className="flex-shrink-0 w-32 h-20 bg-black rounded-xl overflow-hidden flex items-center justify-center border-2 border-cyan-800 group-hover:border-cyan-400 transition">
+                  {thumb ? (
+                    <img src={thumb} alt={v.titulo} className="w-full h-full object-cover" />
+                  ) : v.url && (v.url.endsWith('.mp4') || v.url.endsWith('.webm')) ? (
+                    <video src={v.url} className="w-full h-full object-cover" muted playsInline preload="metadata" style={{pointerEvents:'none'}} />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-cyan-400">Sin video</div>
+                  )}
+                </div>
+                <div className="flex-1 flex flex-col justify-center min-w-0">
+                  <div className="font-bold text-cyan-200 text-base truncate mb-1" style={{fontSize:'1rem'}}>{v.titulo}</div>
+                  <div className="text-xs text-cyan-400 opacity-70">Video</div>
+                </div>
+              </div>
+            );
+          })}
         </div>
       )}
       {/* Modal edición descripción */}
