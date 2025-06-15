@@ -37,8 +37,8 @@ const LineaVideosClassroom = () => {
   useEffect(() => {
     setIsAdmin(localStorage.getItem('adminMode') === 'true');
     if (modulo_id) fetchModuloYVideos();
-    // Cargar recursos del módulo fijo
-    fetchRecursosModuloFijo();
+    // Cargar recursos globales
+    fetchRecursosGlobales();
   }, [modulo_id]);
 
   const fetchModuloYVideos = async () => {
@@ -86,12 +86,13 @@ const LineaVideosClassroom = () => {
     setLoading(false);
   };
 
-  // Nueva función para cargar recursos del módulo fijo
-  const fetchRecursosModuloFijo = async () => {
-    // Traer descripción y materiales usando el ID fijo
-    const { data: desc } = await supabase.from('modulos_descripcion').select('*').eq('modulo_id', MODULO_CURSO_ID_RECURSOS).single();
+  // Cargar recursos globales
+  const fetchRecursosGlobales = async () => {
+    // Descripción global
+    const { data: desc } = await supabase.from('classroom_recursos_descripcion').select('*').eq('id', 'global').single();
     setDescripcionHtml(desc?.descripcion_html || '');
-    const { data: mats } = await supabase.from('modulos_materiales').select('*').eq('modulo_id', MODULO_CURSO_ID_RECURSOS);
+    // Materiales globales
+    const { data: mats } = await supabase.from('classroom_recursos_materiales').select('*').order('fecha_subida', { ascending: false });
     setMateriales(mats || []);
   };
 
@@ -110,46 +111,42 @@ const LineaVideosClassroom = () => {
   const esUltimoVideo = claseActual === clasesOrdenadas.length - 1;
   const embedUrl = toEmbedUrl(videoActual.url);
 
-  // Guardar descripción
+  // Guardar descripción global
   async function handleSaveDescripcion() {
-    // Usar el ID fijo
-    const moduloCursoId = MODULO_CURSO_ID_RECURSOS;
     setDescMsg(null);
     try {
       // Verificar si ya existe
       const { data: existente } = await supabase
-        .from('modulos_descripcion')
+        .from('classroom_recursos_descripcion')
         .select('id')
-        .eq('modulo_id', moduloCursoId)
+        .eq('id', 'global')
         .single();
       let error;
       if (existente) {
         ({ error } = await supabase
-          .from('modulos_descripcion')
+          .from('classroom_recursos_descripcion')
           .update({ descripcion_html: descripcionHtml })
-          .eq('id', existente.id));
+          .eq('id', 'global'));
       } else {
         ({ error } = await supabase
-          .from('modulos_descripcion')
-          .insert([{ modulo_id: moduloCursoId, descripcion_html: descripcionHtml }]));
+          .from('classroom_recursos_descripcion')
+          .insert([{ id: 'global', descripcion_html: descripcionHtml }]));
       }
       if (error) {
-        setDescMsg('Error al guardar: ' + error.message + ' | modulo_id: ' + moduloCursoId);
+        setDescMsg('Error al guardar: ' + error.message);
         return;
       }
       setDescMsg('¡Guardado con éxito!');
       setShowEditDescripcion(false);
-      // Recargar recursos
-      fetchRecursosModuloFijo();
+      fetchRecursosGlobales();
     } catch (err: any) {
       setDescMsg('Error inesperado: ' + (err.message || err));
     }
   }
 
-  // Guardar material (nuevo o archivo)
+  // Guardar material global
   async function handleAddMaterialV2(e: React.FormEvent) {
     e.preventDefault();
-    const moduloCursoId = MODULO_CURSO_ID_RECURSOS;
     setMaterialMsg(null);
     setMaterialLoading(true);
     let url = materialUrl;
@@ -157,7 +154,7 @@ const LineaVideosClassroom = () => {
       // Si hay archivo, subirlo
       if (materialFile) {
         const ext = materialFile.name.split('.').pop();
-        const fileName = `material_${moduloCursoId}_${Date.now()}.${ext}`;
+        const fileName = `material_classroom_${Date.now()}.${ext}`;
         const { error: uploadError } = await supabase.storage.from('cursos').upload(fileName, materialFile, { upsert: true });
         if (uploadError) {
           setMaterialLoading(false);
@@ -168,15 +165,14 @@ const LineaVideosClassroom = () => {
         url = publicUrlData?.publicUrl || url;
       }
       const { error } = await supabase
-        .from('modulos_materiales')
-        .insert([{ titulo: materialTitulo, url, modulo_id: moduloCursoId }]);
+        .from('classroom_recursos_materiales')
+        .insert([{ titulo: materialTitulo, url }]);
       if (error) {
-        setMaterialMsg('Error al guardar: ' + error.message + ' | modulo_id: ' + moduloCursoId);
+        setMaterialMsg('Error al guardar: ' + error.message);
         setMaterialLoading(false);
         return;
       }
-      // Recargar materiales
-      fetchRecursosModuloFijo();
+      fetchRecursosGlobales();
       setMaterialTitulo('');
       setMaterialUrl('');
       setMaterialFile(null);
@@ -188,10 +184,10 @@ const LineaVideosClassroom = () => {
     }
   }
 
-  // Eliminar material
+  // Eliminar material global
   async function handleDeleteMaterial(id: string) {
     await supabase
-      .from('modulos_materiales')
+      .from('classroom_recursos_materiales')
       .delete()
       .eq('id', id);
     setMateriales(materiales.filter(m => m.id !== id));
@@ -375,7 +371,7 @@ const LineaVideosClassroom = () => {
           {descMsg && <div className={descMsg.startsWith('¡Guardado') ? 'text-green-400' : 'text-red-400'}>{descMsg}</div>}
           <ReactQuill value={descripcionHtml || ''} onChange={setDescripcionHtml} className="bg-white text-black rounded" />
           <button className="mt-4 px-4 py-2 rounded-full bg-cyan-700 hover:bg-cyan-500 text-white font-bold shadow w-full" onClick={handleSaveDescripcion}>Guardar</button>
-          <div className="text-xs text-cyan-300 mt-2">modulo_id: {MODULO_CURSO_ID_RECURSOS}</div>
+          <div className="text-xs text-cyan-300 mt-2">Tabla: classroom_recursos_descripcion (global)</div>
         </div>
       </ModalFuturista>
       <ModalFuturista open={showEditMateriales} onClose={() => setShowEditMateriales(false)}>
@@ -388,7 +384,7 @@ const LineaVideosClassroom = () => {
             <input type="file" accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg,.zip,.rar,.ppt,.pptx,.txt" onChange={e => e.target.files && setMaterialFile(e.target.files[0])} />
             <button type="submit" className="px-4 py-2 rounded-full bg-green-700 hover:bg-green-500 text-white font-bold shadow w-full" disabled={materialLoading}>{materialLoading ? 'Guardando...' : 'Agregar material'}</button>
           </form>
-          <div className="text-xs text-green-300 mt-2">modulo_id: {MODULO_CURSO_ID_RECURSOS}</div>
+          <div className="text-xs text-green-300 mt-2">Tabla: classroom_recursos_materiales (global)</div>
           <ul className="flex flex-col gap-2 mt-2">
             {materiales.map((mat, idx) => (
               <li key={mat.id || idx} className="flex items-center gap-2">
