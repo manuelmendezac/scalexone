@@ -46,7 +46,7 @@ import ModuloDetalle from './pages/cursos/modulo';
 import Classroom from './pages/classroom';
 import EditarVideosClassroom from './pages/classroom/editar-videos';
 import LineaVideosClassroom from './pages/classroom/linea-videos';
-import ComunidadPage from './pages/comunidad.tsx';
+import ComunidadPage from './pages/comunidad';
 
 export const router = createBrowserRouter([
   {
