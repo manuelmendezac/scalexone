@@ -365,6 +365,37 @@ const LineaVideosClassroom = () => {
           })}
         </div>
       )}
+      {/* Modales de edición */}
+      <ModalFuturista open={showEditDescripcion} onClose={() => setShowEditDescripcion(false)}>
+        <div className="flex flex-col gap-4 w-full">
+          <h3 className="text-xl font-bold text-cyan-400 mb-2 text-center">Editar descripción del módulo</h3>
+          {descMsg && <div className={descMsg.startsWith('¡Guardado') ? 'text-green-400' : 'text-red-400'}>{descMsg}</div>}
+          <ReactQuill value={descripcionHtml || ''} onChange={setDescripcionHtml} className="bg-white text-black rounded" />
+          <button className="mt-4 px-4 py-2 rounded-full bg-cyan-700 hover:bg-cyan-500 text-white font-bold shadow w-full" onClick={handleSaveDescripcion}>Guardar</button>
+          <div className="text-xs text-cyan-300 mt-2">modulo_id: {modulo?.modulo_curso_id || 'N/A'}</div>
+        </div>
+      </ModalFuturista>
+      <ModalFuturista open={showEditMateriales} onClose={() => setShowEditMateriales(false)}>
+        <div className="flex flex-col gap-4 w-full">
+          <h3 className="text-xl font-bold text-green-400 mb-2 text-center">Editar materiales y herramientas</h3>
+          {materialMsg && <div className={materialMsg.startsWith('¡Guardado') ? 'text-green-400' : 'text-red-400'}>{materialMsg}</div>}
+          <form onSubmit={handleAddMaterialV2} className="flex flex-col gap-2">
+            <input name="titulo" value={materialTitulo} onChange={e => setMaterialTitulo(e.target.value)} placeholder="Título del material" className="px-3 py-2 rounded bg-black text-green-200 border border-green-700" required />
+            <input name="url" value={materialUrl} onChange={e => setMaterialUrl(e.target.value)} placeholder="Enlace o URL de archivo (opcional si subes archivo)" className="px-3 py-2 rounded bg-black text-green-200 border border-green-700" />
+            <input type="file" accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg,.zip,.rar,.ppt,.pptx,.txt" onChange={e => e.target.files && setMaterialFile(e.target.files[0])} />
+            <button type="submit" className="px-4 py-2 rounded-full bg-green-700 hover:bg-green-500 text-white font-bold shadow w-full" disabled={materialLoading}>{materialLoading ? 'Guardando...' : 'Agregar material'}</button>
+          </form>
+          <div className="text-xs text-green-300 mt-2">modulo_id: {modulo?.modulo_curso_id || 'N/A'}</div>
+          <ul className="flex flex-col gap-2 mt-2">
+            {materiales.map((mat, idx) => (
+              <li key={mat.id || idx} className="flex items-center gap-2">
+                <a href={mat.url} target="_blank" rel="noopener noreferrer" className="flex-1 hover:underline text-green-200">{mat.titulo}</a>
+                <button className="text-xs text-red-400 hover:text-red-600 font-bold" onClick={() => handleDeleteMaterial(mat.id)}>Eliminar</button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </ModalFuturista>
     </div>
   );
 };
