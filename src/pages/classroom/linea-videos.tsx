@@ -106,7 +106,90 @@ const LineaVideosClassroom = () => {
   const esUltimoVideo = claseActual === clasesOrdenadas.length - 1;
   const embedUrl = toEmbedUrl(videoActual.url);
 
-  if (loading) return <div className="text-cyan-400 text-center py-10">Cargando módulo...</div>;
+  // Guardar descripción
+  async function handleSaveDescripcion() {
+    if (!modulo?.modulo_curso_id) {
+      setDescMsg('Error: modulo_curso_id vacío o inválido');
+      return;
+    }
+    setDescMsg(null);
+    try {
+      // Verificar si ya existe
+      const { data: existente } = await supabase
+        .from('modulos_descripcion')
+        .select('id')
+        .eq('modulo_id', modulo.modulo_curso_id)
+        .single();
+      let error;
+      if (existente) {
+        ({ error } = await supabase
+          .from('modulos_descripcion')
+          .update({ descripcion_html: descripcionHtml })
+          .eq('id', existente.id));
+      } else {
+        ({ error } = await supabase
+          .from('modulos_descripcion')
+          .insert([{ modulo_id: modulo.modulo_curso_id, descripcion_html: descripcionHtml }]));
+      }
+      if (error) {
+        setDescMsg('Error al guardar: ' + error.message + ' | modulo_curso_id: ' + modulo.modulo_curso_id);
+        return;
+      }
+      setDescMsg('¡Guardado con éxito!');
+      setShowEditDescripcion(false);
+    } catch (err: any) {
+      setDescMsg('Error inesperado: ' + (err.message || err));
+    }
+  }
+
+  // Guardar material (nuevo o archivo)
+  async function handleAddMaterialV2(e: React.FormEvent) {
+    e.preventDefault();
+    if (!modulo?.modulo_curso_id) {
+      setMaterialMsg('Error: modulo_curso_id vacío o inválido');
+      return;
+    }
+    setMaterialMsg(null);
+    setMaterialLoading(true);
+    let url = materialUrl;
+    try {
+      // Si hay archivo, subirlo
+      if (materialFile) {
+        const ext = materialFile.name.split('.').pop();
+        const fileName = `material_${modulo.modulo_curso_id}_${Date.now()}.${ext}`;
+        const { error: uploadError } = await supabase.storage.from('cursos').upload(fileName, materialFile, { upsert: true });
+        if (uploadError) {
+          setMaterialLoading(false);
+          setMaterialMsg('Error al subir archivo: ' + uploadError.message);
+          return;
+        }
+        const { data: publicUrlData } = supabase.storage.from('cursos').getPublicUrl(fileName);
+        url = publicUrlData?.publicUrl || url;
+      }
+      const { error } = await supabase
+        .from('modulos_materiales')
+        .insert([{ titulo: materialTitulo, url, modulo_id: modulo.modulo_curso_id }]);
+      if (error) {
+        setMaterialMsg('Error al guardar: ' + error.message + ' | modulo_curso_id: ' + modulo.modulo_curso_id);
+        setMaterialLoading(false);
+        return;
+      }
+      // Recargar materiales
+      const { data } = await supabase
+        .from('modulos_materiales')
+        .select('*')
+        .eq('modulo_id', modulo.modulo_curso_id);
+      setMateriales(data || []);
+      setMaterialTitulo('');
+      setMaterialUrl('');
+      setMaterialFile(null);
+      setMaterialMsg('¡Guardado con éxito!');
+      setMaterialLoading(false);
+    } catch (err: any) {
+      setMaterialMsg('Error inesperado: ' + (err.message || err));
+      setMaterialLoading(false);
+    }
+  }
 
   // Eliminar material
   async function handleDeleteMaterial(id: string) {
@@ -116,6 +199,8 @@ const LineaVideosClassroom = () => {
       .eq('id', id);
     setMateriales(materiales.filter(m => m.id !== id));
   }
+
+  if (loading) return <div className="text-cyan-400 text-center py-10">Cargando módulo...</div>;
 
   return (
     <div className={`min-h-screen bg-black text-white flex flex-col ${fullscreen ? '' : 'md:flex-row'} px-1 sm:px-2`}>
@@ -206,58 +291,34 @@ const LineaVideosClassroom = () => {
                   <ChevronRight className="w-6 h-6" />
                 </button>
               </div>
-              {/* Bloques de recursos traídos de cursos */}
-              <div className="w-full max-w-5xl mx-auto mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Bloque de información del módulo */}
-                <div className="bg-neutral-900 rounded-2xl border-2 border-cyan-700 p-6 shadow-lg flex flex-col gap-3 relative">
-                  <h3 className="text-cyan-300 text-xl font-bold mb-2 flex items-center gap-2">
-                    <span>Sobre este módulo</span>
+              {/* Sección de descripción y materiales */}
+              <div className="w-full flex flex-col md:flex-row gap-6 mt-8">
+                <div className="flex-1 bg-neutral-900 rounded-2xl border-2 border-cyan-700 p-6 shadow-xl">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-cyan-400 text-lg font-bold">Sobre este módulo</span>
                     {isAdmin && (
-                      <button
-                        className="ml-auto px-3 py-1 rounded bg-cyan-700 text-white text-xs font-bold hover:bg-cyan-500 transition"
-                        onClick={() => setShowEditDescripcion(true)}
-                      >
-                        Editar
-                      </button>
-                    )}
-                  </h3>
-                  <div className="text-cyan-100 text-base leading-relaxed">
-                    {descripcionHtml ? (
-                      <span dangerouslySetInnerHTML={{ __html: descripcionHtml }} />
-                    ) : (
-                      <span className="opacity-60">Sin descripción</span>
+                      <button className="bg-cyan-700 text-white px-3 py-1 rounded text-xs font-bold" onClick={() => setShowEditDescripcion(true)}>Editar</button>
                     )}
                   </div>
+                  <div className="prose prose-invert max-w-none" dangerouslySetInnerHTML={{ __html: descripcionHtml }} />
                 </div>
-                {/* Bloque de materiales y herramientas */}
-                <div className="bg-neutral-900 rounded-2xl border-2 border-green-700 p-6 shadow-lg flex flex-col gap-3 relative">
-                  <h3 className="text-green-400 text-xl font-bold mb-2 flex items-center gap-2">
-                    <span>Material y herramientas</span>
+                <div className="flex-1 bg-neutral-900 rounded-2xl border-2 border-green-700 p-6 shadow-xl">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-green-400 text-lg font-bold">Material y herramientas</span>
                     {isAdmin && (
-                      <button
-                        className="ml-auto px-3 py-1 rounded bg-green-700 text-white text-xs font-bold hover:bg-green-500 transition"
-                        onClick={() => setShowEditMateriales(true)}
-                      >
-                        Editar
-                      </button>
-                    )}
-                  </h3>
-                  <div className="text-green-100 text-base leading-relaxed">
-                    {materiales.length > 0 ? (
-                      <ul className="flex flex-col gap-2 mt-2">
-                        {materiales.map((mat, idx) => (
-                          <li key={mat.id || idx} className="flex items-center gap-2">
-                            <a href={mat.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 hover:underline text-green-200">
-                              <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14m0 0l-4-4m4 4l4-4"/></svg>
-                              {mat.titulo}
-                            </a>
-                          </li>
-                        ))}
-                      </ul>
-                    ) : (
-                      <span className="opacity-60">No hay materiales cargados.</span>
+                      <button className="bg-green-700 text-white px-3 py-1 rounded text-xs font-bold" onClick={() => setShowEditMateriales(true)}>Editar</button>
                     )}
                   </div>
+                  <ul className="list-disc pl-5">
+                    {materiales.map((m) => (
+                      <li key={m.id} className="mb-2">
+                        <a href={m.url} target="_blank" rel="noopener noreferrer" className="text-green-300 hover:underline">{m.titulo}</a>
+                        {isAdmin && (
+                          <button className="ml-2 text-xs text-red-400 underline" onClick={() => handleDeleteMaterial(m.id)}>Eliminar</button>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
                 </div>
               </div>
             </>
@@ -310,49 +371,13 @@ const LineaVideosClassroom = () => {
           })}
         </div>
       )}
-      {/* Modales de edición restaurados */}
+      {/* Modales de edición */}
       <ModalFuturista open={showEditDescripcion} onClose={() => setShowEditDescripcion(false)}>
         <div className="flex flex-col gap-4 w-full">
           <h3 className="text-xl font-bold text-cyan-400 mb-2 text-center">Editar descripción del módulo</h3>
           {descMsg && <div className={descMsg.startsWith('¡Guardado') ? 'text-green-400' : 'text-red-400'}>{descMsg}</div>}
           <ReactQuill value={descripcionHtml || ''} onChange={setDescripcionHtml} className="bg-white text-black rounded" />
-          <button className="mt-4 px-4 py-2 rounded-full bg-cyan-700 hover:bg-cyan-500 text-white font-bold shadow w-full" onClick={async () => {
-            if (!modulo?.modulo_curso_id) {
-              setDescMsg('Error: modulo_curso_id vacío o inválido');
-              return;
-            }
-            setDescMsg(null);
-            try {
-              const { data: existente, error: selError } = await supabase
-                .from('modulos_descripcion')
-                .select('id')
-                .eq('modulo_id', modulo.modulo_curso_id)
-                .single();
-              if (selError && selError.code !== 'PGRST116') {
-                setDescMsg('Error al buscar: ' + selError.message);
-                return;
-              }
-              let error;
-              if (existente) {
-                ({ error } = await supabase
-                  .from('modulos_descripcion')
-                  .update({ descripcion_html: descripcionHtml })
-                  .eq('id', existente.id));
-              } else {
-                ({ error } = await supabase
-                  .from('modulos_descripcion')
-                  .insert([{ modulo_id: modulo.modulo_curso_id, descripcion_html: descripcionHtml }]));
-              }
-              if (error) {
-                setDescMsg('Error al guardar: ' + error.message);
-                return;
-              }
-              setDescMsg('¡Guardado con éxito!');
-              setShowEditDescripcion(false);
-            } catch (err: any) {
-              setDescMsg('Error inesperado: ' + (err.message || err));
-            }
-          }}>Guardar</button>
+          <button className="mt-4 px-4 py-2 rounded-full bg-cyan-700 hover:bg-cyan-500 text-white font-bold shadow w-full" onClick={handleSaveDescripcion}>Guardar</button>
           <div className="text-xs text-cyan-300 mt-2">modulo_id: {modulo?.modulo_curso_id || 'N/A'}</div>
         </div>
       </ModalFuturista>
@@ -360,52 +385,7 @@ const LineaVideosClassroom = () => {
         <div className="flex flex-col gap-4 w-full">
           <h3 className="text-xl font-bold text-green-400 mb-2 text-center">Editar materiales y herramientas</h3>
           {materialMsg && <div className={materialMsg.startsWith('¡Guardado') ? 'text-green-400' : 'text-red-400'}>{materialMsg}</div>}
-          <form onSubmit={async (e) => {
-            e.preventDefault();
-            if (!modulo?.modulo_curso_id) {
-              setMaterialMsg('Error: modulo_curso_id vacío o inválido');
-              return;
-            }
-            setMaterialMsg(null);
-            setMaterialLoading(true);
-            let url = materialUrl;
-            try {
-              if (materialFile) {
-                const ext = materialFile.name.split('.').pop();
-                const fileName = `material_${modulo.modulo_curso_id}_${Date.now()}.${ext}`;
-                const { error: uploadError } = await supabase.storage.from('cursos').upload(fileName, materialFile, { upsert: true });
-                if (uploadError) {
-                  setMaterialLoading(false);
-                  setMaterialMsg('Error al subir archivo: ' + uploadError.message);
-                  return;
-                }
-                const { data: publicUrlData } = supabase.storage.from('cursos').getPublicUrl(fileName);
-                url = publicUrlData?.publicUrl || url;
-              }
-              const { error } = await supabase
-                .from('modulos_materiales')
-                .insert([{ titulo: materialTitulo, url, modulo_id: modulo.modulo_curso_id }]);
-              if (error) {
-                setMaterialMsg('Error al guardar: ' + error.message);
-                setMaterialLoading(false);
-                return;
-              }
-              // Recargar materiales
-              const { data } = await supabase
-                .from('modulos_materiales')
-                .select('*')
-                .eq('modulo_id', modulo.modulo_curso_id);
-              setMateriales(data || []);
-              setMaterialTitulo('');
-              setMaterialUrl('');
-              setMaterialFile(null);
-              setMaterialMsg('¡Guardado con éxito!');
-              setMaterialLoading(false);
-            } catch (err: any) {
-              setMaterialMsg('Error inesperado: ' + (err.message || err));
-              setMaterialLoading(false);
-            }
-          }} className="flex flex-col gap-2">
+          <form onSubmit={handleAddMaterialV2} className="flex flex-col gap-2">
             <input name="titulo" value={materialTitulo} onChange={e => setMaterialTitulo(e.target.value)} placeholder="Título del material" className="px-3 py-2 rounded bg-black text-green-200 border border-green-700" required />
             <input name="url" value={materialUrl} onChange={e => setMaterialUrl(e.target.value)} placeholder="Enlace o URL de archivo (opcional si subes archivo)" className="px-3 py-2 rounded bg-black text-green-200 border border-green-700" />
             <input type="file" accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg,.zip,.rar,.ppt,.pptx,.txt" onChange={e => e.target.files && setMaterialFile(e.target.files[0])} />
