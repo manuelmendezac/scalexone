@@ -28,7 +28,7 @@ const menu = [
   {
     label: 'Comunidad',
     icon: <FiUser size={24} />,
-    to: '/community',
+    to: '/comunidad',
   },
   {
     label: 'Perfil',
