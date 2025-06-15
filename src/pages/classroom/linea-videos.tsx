@@ -40,10 +40,9 @@ const LineaVideosClassroom = () => {
     setLoading(true);
     // Traer datos del módulo de classroom
     let { data: mod } = await supabase.from('classroom_modulos').select('*').eq('id', modulo_id).single();
-    // Buscar o crear el módulo en modulos_curso
     let moduloCursoId = mod?.modulo_curso_id;
     if (!moduloCursoId && mod?.titulo) {
-      // Buscar por título
+      // Buscar por título en modulos_curso
       const { data: foundCursoMod } = await supabase
         .from('modulos_curso')
         .select('id')
@@ -51,7 +50,6 @@ const LineaVideosClassroom = () => {
         .maybeSingle();
       if (foundCursoMod?.id) {
         moduloCursoId = foundCursoMod.id;
-        // Actualizar classroom_modulos
         await supabase.from('classroom_modulos').update({ modulo_curso_id: moduloCursoId }).eq('id', mod.id);
       } else {
         // Crear el módulo en cursos si no existe
