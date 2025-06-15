@@ -254,7 +254,7 @@ const Classroom = () => {
                       {...provided.dragHandleProps}
                       className={`w-full max-w-xs bg-white rounded-2xl shadow-xl border border-gray-200 flex flex-col cursor-pointer hover:scale-105 transition-transform relative group ${isAdmin ? 'draggable' : ''}`}
                       style={{ background: mod.color || '#fff', ...provided.draggableProps.style }}
-                      onClick={() => navigate(`/classroom/editar-videos?modulo_id=${mod.id}`)}
+                      onClick={() => navigate(`/classroom/modulo?modulo_id=${mod.id}`)}
                     >
                       {/* Imagen de portada */}
                       <div className="h-40 w-full rounded-t-2xl overflow-hidden flex items-center justify-center bg-gray-100">
