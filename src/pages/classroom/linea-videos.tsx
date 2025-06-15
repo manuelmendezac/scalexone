@@ -206,34 +206,58 @@ const LineaVideosClassroom = () => {
                   <ChevronRight className="w-6 h-6" />
                 </button>
               </div>
-              {/* Sección de descripción y materiales */}
-              <div className="w-full flex flex-col md:flex-row gap-6 mt-8">
-                <div className="flex-1 bg-neutral-900 rounded-2xl border-2 border-cyan-700 p-6 shadow-xl">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-cyan-400 text-lg font-bold">Sobre este módulo</span>
+              {/* Bloques de recursos traídos de cursos */}
+              <div className="w-full max-w-5xl mx-auto mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Bloque de información del módulo */}
+                <div className="bg-neutral-900 rounded-2xl border-2 border-cyan-700 p-6 shadow-lg flex flex-col gap-3 relative">
+                  <h3 className="text-cyan-300 text-xl font-bold mb-2 flex items-center gap-2">
+                    <span>Sobre este módulo</span>
                     {isAdmin && (
-                      <button className="bg-cyan-700 text-white px-3 py-1 rounded text-xs font-bold" onClick={() => setShowEditDescripcion(true)}>Editar</button>
+                      <button
+                        className="ml-auto px-3 py-1 rounded bg-cyan-700 text-white text-xs font-bold hover:bg-cyan-500 transition"
+                        onClick={() => setShowEditDescripcion(true)}
+                      >
+                        Editar
+                      </button>
+                    )}
+                  </h3>
+                  <div className="text-cyan-100 text-base leading-relaxed">
+                    {descripcionHtml ? (
+                      <span dangerouslySetInnerHTML={{ __html: descripcionHtml }} />
+                    ) : (
+                      <span className="opacity-60">Sin descripción</span>
                     )}
                   </div>
-                  <div className="prose prose-invert max-w-none" dangerouslySetInnerHTML={{ __html: descripcionHtml }} />
                 </div>
-                <div className="flex-1 bg-neutral-900 rounded-2xl border-2 border-green-700 p-6 shadow-xl">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-green-400 text-lg font-bold">Material y herramientas</span>
+                {/* Bloque de materiales y herramientas */}
+                <div className="bg-neutral-900 rounded-2xl border-2 border-green-700 p-6 shadow-lg flex flex-col gap-3 relative">
+                  <h3 className="text-green-400 text-xl font-bold mb-2 flex items-center gap-2">
+                    <span>Material y herramientas</span>
                     {isAdmin && (
-                      <button className="bg-green-700 text-white px-3 py-1 rounded text-xs font-bold" onClick={() => setShowEditMateriales(true)}>Editar</button>
+                      <button
+                        className="ml-auto px-3 py-1 rounded bg-green-700 text-white text-xs font-bold hover:bg-green-500 transition"
+                        onClick={() => setShowEditMateriales(true)}
+                      >
+                        Editar
+                      </button>
+                    )}
+                  </h3>
+                  <div className="text-green-100 text-base leading-relaxed">
+                    {materiales.length > 0 ? (
+                      <ul className="flex flex-col gap-2 mt-2">
+                        {materiales.map((mat, idx) => (
+                          <li key={mat.id || idx} className="flex items-center gap-2">
+                            <a href={mat.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 hover:underline text-green-200">
+                              <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14m0 0l-4-4m4 4l4-4"/></svg>
+                              {mat.titulo}
+                            </a>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <span className="opacity-60">No hay materiales cargados.</span>
                     )}
                   </div>
-                  <ul className="list-disc pl-5">
-                    {materiales.map((m) => (
-                      <li key={m.id} className="mb-2">
-                        <a href={m.url} target="_blank" rel="noopener noreferrer" className="text-green-300 hover:underline">{m.titulo}</a>
-                        {isAdmin && (
-                          <button className="ml-2 text-xs text-red-400 underline" onClick={() => handleDeleteMaterial(m.id)}>Eliminar</button>
-                        )}
-                      </li>
-                    ))}
-                  </ul>
                 </div>
               </div>
             </>
