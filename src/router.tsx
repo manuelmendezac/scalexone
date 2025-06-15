@@ -46,6 +46,7 @@ import ModuloDetalle from './pages/cursos/modulo';
 import Classroom from './pages/classroom';
 import EditarVideosClassroom from './pages/classroom/editar-videos';
 import LineaVideosClassroom from './pages/classroom/linea-videos';
+import ComunidadPage from './pages/comunidad';
 
 export const router = createBrowserRouter([
   {
@@ -93,6 +94,7 @@ export const router = createBrowserRouter([
       { path: 'classroom', element: <ProtectedRoute><Classroom /></ProtectedRoute> },
       { path: 'classroom/editar-videos', element: <ProtectedRoute><EditarVideosClassroom /></ProtectedRoute> },
       { path: 'classroom/modulo', element: <ProtectedRoute><LineaVideosClassroom /></ProtectedRoute> },
+      { path: 'comunidad', element: <ProtectedRoute><ComunidadPage /></ProtectedRoute> },
     ]
   },
   { path: '/afiliados', element: <AfiliadosPage /> },
