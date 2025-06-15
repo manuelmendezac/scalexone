@@ -45,10 +45,10 @@ const LineaVideosClassroom = () => {
     const { data: vids } = await supabase.from('videos_classroom_modulo').select('*').eq('modulo_id', modulo_id).order('orden', { ascending: true });
     setClases(vids || []);
     // Traer descripción
-    const { data: desc } = await supabase.from('classroom_modulos_descripcion').select('*').eq('modulo_id', modulo_id).single();
+    const { data: desc } = await supabase.from('modulos_descripcion').select('*').eq('modulo_id', modulo_id).single();
     setDescripcionHtml(desc?.descripcion_html || '');
     // Traer materiales
-    const { data: mats } = await supabase.from('classroom_modulos_materiales').select('*').eq('modulo_id', modulo_id);
+    const { data: mats } = await supabase.from('modulos_materiales').select('*').eq('modulo_id', modulo_id);
     setMateriales(mats || []);
     setLoading(false);
   };
@@ -78,19 +78,19 @@ const LineaVideosClassroom = () => {
     try {
       // Verificar si ya existe
       const { data: existente } = await supabase
-        .from('classroom_modulos_descripcion')
+        .from('modulos_descripcion')
         .select('id')
         .eq('modulo_id', modulo.id)
         .single();
       let error;
       if (existente) {
         ({ error } = await supabase
-          .from('classroom_modulos_descripcion')
+          .from('modulos_descripcion')
           .update({ descripcion_html: descripcionHtml })
           .eq('id', existente.id));
       } else {
         ({ error } = await supabase
-          .from('classroom_modulos_descripcion')
+          .from('modulos_descripcion')
           .insert([{ modulo_id: modulo.id, descripcion_html: descripcionHtml }]));
       }
       if (error) {
@@ -119,17 +119,17 @@ const LineaVideosClassroom = () => {
       if (materialFile) {
         const ext = materialFile.name.split('.').pop();
         const fileName = `material_${modulo.id}_${Date.now()}.${ext}`;
-        const { error: uploadError } = await supabase.storage.from('classroom').upload(fileName, materialFile, { upsert: true });
+        const { error: uploadError } = await supabase.storage.from('cursos').upload(fileName, materialFile, { upsert: true });
         if (uploadError) {
           setMaterialLoading(false);
           setMaterialMsg('Error al subir archivo: ' + uploadError.message);
           return;
         }
-        const { data: publicUrlData } = supabase.storage.from('classroom').getPublicUrl(fileName);
+        const { data: publicUrlData } = supabase.storage.from('cursos').getPublicUrl(fileName);
         url = publicUrlData?.publicUrl || url;
       }
       const { error } = await supabase
-        .from('classroom_modulos_materiales')
+        .from('modulos_materiales')
         .insert([{ titulo: materialTitulo, url, modulo_id: modulo.id }]);
       if (error) {
         setMaterialMsg('Error al guardar: ' + error.message + ' | modulo_id: ' + modulo.id);
@@ -138,7 +138,7 @@ const LineaVideosClassroom = () => {
       }
       // Recargar materiales
       const { data } = await supabase
-        .from('classroom_modulos_materiales')
+        .from('modulos_materiales')
         .select('*')
         .eq('modulo_id', modulo.id);
       setMateriales(data || []);
@@ -156,7 +156,7 @@ const LineaVideosClassroom = () => {
   // Eliminar material
   async function handleDeleteMaterial(id: string) {
     await supabase
-      .from('classroom_modulos_materiales')
+      .from('modulos_materiales')
       .delete()
       .eq('id', id);
     setMateriales(materiales.filter(m => m.id !== id));
@@ -300,34 +300,9 @@ const LineaVideosClassroom = () => {
             </button>
           )}
           <h3 className="text-xl sm:text-2xl md:text-3xl font-bold mb-4 sm:mb-6 text-cyan-300 tracking-tight uppercase text-center drop-shadow-glow">Clases del módulo</h3>
-          {/* Bloque de completado */}
-          {claseActual === clasesOrdenadas.length - 1 && completados[claseActual] && (
-            <div className="flex flex-col items-center gap-6 mt-8 transition-opacity duration-700 opacity-100">
-              <div className="flex flex-col items-center">
-                <svg className="w-20 h-20 text-green-400" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2.2" fill="none"/><path d="M9 12l2 2l4-4" stroke="currentColor" strokeWidth="2.2" fill="none"/></svg>
-              </div>
-              <div className="text-xl font-bold text-cyan-300 text-center">¡Has completado el módulo!</div>
-              <div className="flex flex-row gap-2 mt-4 w-full justify-center">
-                <button
-                  className="flex items-center gap-2 px-4 py-2 rounded-full bg-neutral-800 hover:bg-cyan-900 text-cyan-200 font-bold text-base shadow transition-all border border-cyan-700"
-                  onClick={() => navigate('/classroom')}
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7"/></svg> Regresar al Inicio
-                </button>
-                <button
-                  className="flex items-center gap-2 px-4 py-2 rounded-full bg-green-500 hover:bg-green-400 text-black font-bold text-base shadow transition-all border border-green-700"
-                  onClick={() => navigate(`/classroom/modulo?modulo_id=${modulo?.siguiente_modulo_id || ''}`)}
-                >
-                  Siguiente Módulo <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg>
-                </button>
-              </div>
-            </div>
-          )}
-          {/* Lista de videos */}
           {clasesOrdenadas.map((v, idx) => {
             let thumb = v.miniatura_url;
             if ((!thumb || thumb === 'null') && v.url) {
-              // Obtener miniatura de YouTube o Vimeo
               const ytMatch = v.url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([\w-]{11})/);
               if (ytMatch) thumb = `https://img.youtube.com/vi/${ytMatch[1]}/hqdefault.jpg`;
               const vimeoMatch = v.url.match(/vimeo\.com\/(\d+)/);
@@ -358,36 +333,8 @@ const LineaVideosClassroom = () => {
           })}
         </div>
       )}
-      {/* Modal edición descripción */}
-      <ModalFuturista open={showEditDescripcion} onClose={() => setShowEditDescripcion(false)}>
-        <div className="p-4 w-full max-w-lg mx-auto">
-          <h3 className="text-xl font-bold text-cyan-400 mb-4 text-center">Editar descripción del módulo</h3>
-          <ReactQuill value={descripcionHtml} onChange={setDescripcionHtml} theme="snow" className="mb-4 bg-white text-black rounded" />
-          {descMsg && <div className="mb-2 text-center font-bold text-cyan-400">{descMsg}</div>}
-          <div className="flex gap-4 mt-2 justify-center">
-            <button onClick={handleSaveDescripcion} className="bg-blue-600 text-white px-4 py-2 rounded font-bold hover:bg-blue-700">Guardar</button>
-            <button onClick={() => setShowEditDescripcion(false)} className="bg-gray-300 text-gray-800 px-4 py-2 rounded font-bold hover:bg-gray-400">Cancelar</button>
-          </div>
-        </div>
-      </ModalFuturista>
-      {/* Modal edición materiales */}
-      <ModalFuturista open={showEditMateriales} onClose={() => setShowEditMateriales(false)}>
-        <div className="p-4 w-full max-w-lg mx-auto">
-          <h3 className="text-xl font-bold text-green-400 mb-4 text-center">Editar materiales y herramientas</h3>
-          <form onSubmit={handleAddMaterialV2} className="flex flex-col gap-4">
-            <input className="p-2 rounded border border-gray-300 mb-2 text-black" value={materialTitulo} onChange={e => setMaterialTitulo(e.target.value)} placeholder="Título del material" required />
-            <input className="p-2 rounded border border-gray-300 mb-2 text-black" value={materialUrl} onChange={e => setMaterialUrl(e.target.value)} placeholder="URL del material (opcional)" />
-            <input type="file" className="mb-2" onChange={e => setMaterialFile(e.target.files?.[0] || null)} />
-            <button type="submit" className="bg-green-600 text-white px-4 py-2 rounded font-bold hover:bg-green-700" disabled={materialLoading}>Agregar material</button>
-          </form>
-          {materialMsg && <div className="mb-2 text-center font-bold text-green-400">{materialMsg}</div>}
-          <div className="flex gap-4 mt-2 justify-center">
-            <button onClick={() => setShowEditMateriales(false)} className="bg-gray-300 text-gray-800 px-4 py-2 rounded font-bold hover:bg-gray-400">Cerrar</button>
-          </div>
-        </div>
-      </ModalFuturista>
     </div>
   );
 };
 
-export default LineaVideosClassroom; 
+export default LineaVideosClassroom;
