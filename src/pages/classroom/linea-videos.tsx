@@ -7,8 +7,8 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 
-// ID especial para el portal de recursos de classroom (sin lógica de módulos)
-const MODULO_CURSO_ID_RECURSOS = "classroom_recursos_portal";
+// UUID especial para el portal de recursos de classroom (válido para campos tipo uuid)
+const MODULO_CURSO_ID_RECURSOS = "11111111-1111-1111-1111-111111111111";
 
 const LineaVideosClassroom = () => {
   const [searchParams] = useSearchParams();
