@@ -106,90 +106,7 @@ const LineaVideosClassroom = () => {
   const esUltimoVideo = claseActual === clasesOrdenadas.length - 1;
   const embedUrl = toEmbedUrl(videoActual.url);
 
-  // Guardar descripción
-  async function handleSaveDescripcion() {
-    if (!modulo?.modulo_curso_id) {
-      setDescMsg('Error: modulo_curso_id vacío o inválido');
-      return;
-    }
-    setDescMsg(null);
-    try {
-      // Verificar si ya existe
-      const { data: existente } = await supabase
-        .from('modulos_descripcion')
-        .select('id')
-        .eq('modulo_id', modulo.modulo_curso_id)
-        .single();
-      let error;
-      if (existente) {
-        ({ error } = await supabase
-          .from('modulos_descripcion')
-          .update({ descripcion_html: descripcionHtml })
-          .eq('id', existente.id));
-      } else {
-        ({ error } = await supabase
-          .from('modulos_descripcion')
-          .insert([{ modulo_id: modulo.modulo_curso_id, descripcion_html: descripcionHtml }]));
-      }
-      if (error) {
-        setDescMsg('Error al guardar: ' + error.message + ' | modulo_curso_id: ' + modulo.modulo_curso_id);
-        return;
-      }
-      setDescMsg('¡Guardado con éxito!');
-      setShowEditDescripcion(false);
-    } catch (err: any) {
-      setDescMsg('Error inesperado: ' + (err.message || err));
-    }
-  }
-
-  // Guardar material (nuevo o archivo)
-  async function handleAddMaterialV2(e: React.FormEvent) {
-    e.preventDefault();
-    if (!modulo?.modulo_curso_id) {
-      setMaterialMsg('Error: modulo_curso_id vacío o inválido');
-      return;
-    }
-    setMaterialMsg(null);
-    setMaterialLoading(true);
-    let url = materialUrl;
-    try {
-      // Si hay archivo, subirlo
-      if (materialFile) {
-        const ext = materialFile.name.split('.').pop();
-        const fileName = `material_${modulo.modulo_curso_id}_${Date.now()}.${ext}`;
-        const { error: uploadError } = await supabase.storage.from('cursos').upload(fileName, materialFile, { upsert: true });
-        if (uploadError) {
-          setMaterialLoading(false);
-          setMaterialMsg('Error al subir archivo: ' + uploadError.message);
-          return;
-        }
-        const { data: publicUrlData } = supabase.storage.from('cursos').getPublicUrl(fileName);
-        url = publicUrlData?.publicUrl || url;
-      }
-      const { error } = await supabase
-        .from('modulos_materiales')
-        .insert([{ titulo: materialTitulo, url, modulo_id: modulo.modulo_curso_id }]);
-      if (error) {
-        setMaterialMsg('Error al guardar: ' + error.message + ' | modulo_curso_id: ' + modulo.modulo_curso_id);
-        setMaterialLoading(false);
-        return;
-      }
-      // Recargar materiales
-      const { data } = await supabase
-        .from('modulos_materiales')
-        .select('*')
-        .eq('modulo_id', modulo.modulo_curso_id);
-      setMateriales(data || []);
-      setMaterialTitulo('');
-      setMaterialUrl('');
-      setMaterialFile(null);
-      setMaterialMsg('¡Guardado con éxito!');
-      setMaterialLoading(false);
-    } catch (err: any) {
-      setMaterialMsg('Error inesperado: ' + (err.message || err));
-      setMaterialLoading(false);
-    }
-  }
+  if (loading) return <div className="text-cyan-400 text-center py-10">Cargando módulo...</div>;
 
   // Eliminar material
   async function handleDeleteMaterial(id: string) {
@@ -199,8 +116,6 @@ const LineaVideosClassroom = () => {
       .eq('id', id);
     setMateriales(materiales.filter(m => m.id !== id));
   }
-
-  if (loading) return <div className="text-cyan-400 text-center py-10">Cargando módulo...</div>;
 
   return (
     <div className={`min-h-screen bg-black text-white flex flex-col ${fullscreen ? '' : 'md:flex-row'} px-1 sm:px-2`}>
@@ -371,13 +286,49 @@ const LineaVideosClassroom = () => {
           })}
         </div>
       )}
-      {/* Modales de edición */}
+      {/* Modales de edición restaurados */}
       <ModalFuturista open={showEditDescripcion} onClose={() => setShowEditDescripcion(false)}>
         <div className="flex flex-col gap-4 w-full">
           <h3 className="text-xl font-bold text-cyan-400 mb-2 text-center">Editar descripción del módulo</h3>
           {descMsg && <div className={descMsg.startsWith('¡Guardado') ? 'text-green-400' : 'text-red-400'}>{descMsg}</div>}
           <ReactQuill value={descripcionHtml || ''} onChange={setDescripcionHtml} className="bg-white text-black rounded" />
-          <button className="mt-4 px-4 py-2 rounded-full bg-cyan-700 hover:bg-cyan-500 text-white font-bold shadow w-full" onClick={handleSaveDescripcion}>Guardar</button>
+          <button className="mt-4 px-4 py-2 rounded-full bg-cyan-700 hover:bg-cyan-500 text-white font-bold shadow w-full" onClick={async () => {
+            if (!modulo?.modulo_curso_id) {
+              setDescMsg('Error: modulo_curso_id vacío o inválido');
+              return;
+            }
+            setDescMsg(null);
+            try {
+              const { data: existente, error: selError } = await supabase
+                .from('modulos_descripcion')
+                .select('id')
+                .eq('modulo_id', modulo.modulo_curso_id)
+                .single();
+              if (selError && selError.code !== 'PGRST116') {
+                setDescMsg('Error al buscar: ' + selError.message);
+                return;
+              }
+              let error;
+              if (existente) {
+                ({ error } = await supabase
+                  .from('modulos_descripcion')
+                  .update({ descripcion_html: descripcionHtml })
+                  .eq('id', existente.id));
+              } else {
+                ({ error } = await supabase
+                  .from('modulos_descripcion')
+                  .insert([{ modulo_id: modulo.modulo_curso_id, descripcion_html: descripcionHtml }]));
+              }
+              if (error) {
+                setDescMsg('Error al guardar: ' + error.message);
+                return;
+              }
+              setDescMsg('¡Guardado con éxito!');
+              setShowEditDescripcion(false);
+            } catch (err: any) {
+              setDescMsg('Error inesperado: ' + (err.message || err));
+            }
+          }}>Guardar</button>
           <div className="text-xs text-cyan-300 mt-2">modulo_id: {modulo?.modulo_curso_id || 'N/A'}</div>
         </div>
       </ModalFuturista>
@@ -385,7 +336,52 @@ const LineaVideosClassroom = () => {
         <div className="flex flex-col gap-4 w-full">
           <h3 className="text-xl font-bold text-green-400 mb-2 text-center">Editar materiales y herramientas</h3>
           {materialMsg && <div className={materialMsg.startsWith('¡Guardado') ? 'text-green-400' : 'text-red-400'}>{materialMsg}</div>}
-          <form onSubmit={handleAddMaterialV2} className="flex flex-col gap-2">
+          <form onSubmit={async (e) => {
+            e.preventDefault();
+            if (!modulo?.modulo_curso_id) {
+              setMaterialMsg('Error: modulo_curso_id vacío o inválido');
+              return;
+            }
+            setMaterialMsg(null);
+            setMaterialLoading(true);
+            let url = materialUrl;
+            try {
+              if (materialFile) {
+                const ext = materialFile.name.split('.').pop();
+                const fileName = `material_${modulo.modulo_curso_id}_${Date.now()}.${ext}`;
+                const { error: uploadError } = await supabase.storage.from('cursos').upload(fileName, materialFile, { upsert: true });
+                if (uploadError) {
+                  setMaterialLoading(false);
+                  setMaterialMsg('Error al subir archivo: ' + uploadError.message);
+                  return;
+                }
+                const { data: publicUrlData } = supabase.storage.from('cursos').getPublicUrl(fileName);
+                url = publicUrlData?.publicUrl || url;
+              }
+              const { error } = await supabase
+                .from('modulos_materiales')
+                .insert([{ titulo: materialTitulo, url, modulo_id: modulo.modulo_curso_id }]);
+              if (error) {
+                setMaterialMsg('Error al guardar: ' + error.message);
+                setMaterialLoading(false);
+                return;
+              }
+              // Recargar materiales
+              const { data } = await supabase
+                .from('modulos_materiales')
+                .select('*')
+                .eq('modulo_id', modulo.modulo_curso_id);
+              setMateriales(data || []);
+              setMaterialTitulo('');
+              setMaterialUrl('');
+              setMaterialFile(null);
+              setMaterialMsg('¡Guardado con éxito!');
+              setMaterialLoading(false);
+            } catch (err: any) {
+              setMaterialMsg('Error inesperado: ' + (err.message || err));
+              setMaterialLoading(false);
+            }
+          }} className="flex flex-col gap-2">
             <input name="titulo" value={materialTitulo} onChange={e => setMaterialTitulo(e.target.value)} placeholder="Título del material" className="px-3 py-2 rounded bg-black text-green-200 border border-green-700" required />
             <input name="url" value={materialUrl} onChange={e => setMaterialUrl(e.target.value)} placeholder="Enlace o URL de archivo (opcional si subes archivo)" className="px-3 py-2 rounded bg-black text-green-200 border border-green-700" />
             <input type="file" accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg,.zip,.rar,.ppt,.pptx,.txt" onChange={e => e.target.files && setMaterialFile(e.target.files[0])} />
