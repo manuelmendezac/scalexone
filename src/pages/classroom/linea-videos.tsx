@@ -7,8 +7,8 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 
-// ID fijo del módulo de cursos para los bloques de recursos (debe coincidir exactamente con la base de datos)
-const MODULO_CURSO_ID_RECURSOS = "6c8cff16-ebba-4350-bc42-891dda8cd8e4";
+// ID especial para el portal de recursos de classroom (sin lógica de módulos)
+const MODULO_CURSO_ID_RECURSOS = "classroom_recursos_portal";
 
 const LineaVideosClassroom = () => {
   const [searchParams] = useSearchParams();
