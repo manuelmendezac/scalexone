@@ -38,18 +38,50 @@ const LineaVideosClassroom = () => {
 
   const fetchModuloYVideos = async () => {
     setLoading(true);
-    // Traer datos del módulo
-    const { data: mod } = await supabase.from('classroom_modulos').select('*').eq('id', modulo_id).single();
+    // Traer datos del módulo de classroom
+    let { data: mod } = await supabase.from('classroom_modulos').select('*').eq('id', modulo_id).single();
+    // Buscar o crear el módulo en modulos_curso
+    let moduloCursoId = mod?.modulo_curso_id;
+    if (!moduloCursoId && mod?.titulo) {
+      // Buscar por título
+      const { data: foundCursoMod } = await supabase
+        .from('modulos_curso')
+        .select('id')
+        .eq('titulo', mod.titulo)
+        .maybeSingle();
+      if (foundCursoMod?.id) {
+        moduloCursoId = foundCursoMod.id;
+        // Actualizar classroom_modulos
+        await supabase.from('classroom_modulos').update({ modulo_curso_id: moduloCursoId }).eq('id', mod.id);
+      } else {
+        // Crear el módulo en cursos si no existe
+        const { data: newCursoMod } = await supabase
+          .from('modulos_curso')
+          .insert([{ titulo: mod.titulo, descripcion: mod.descripcion || '', orden: mod.orden || 0 }])
+          .select()
+          .maybeSingle();
+        if (newCursoMod?.id) {
+          moduloCursoId = newCursoMod.id;
+          await supabase.from('classroom_modulos').update({ modulo_curso_id: moduloCursoId }).eq('id', mod.id);
+        }
+      }
+      // Refrescar mod con el nuevo id
+      mod = { ...mod, modulo_curso_id: moduloCursoId };
+    }
     setModulo(mod);
     // Traer videos asociados
     const { data: vids } = await supabase.from('videos_classroom_modulo').select('*').eq('modulo_id', modulo_id).order('orden', { ascending: true });
     setClases(vids || []);
-    // Traer descripción
-    const { data: desc } = await supabase.from('modulos_descripcion').select('*').eq('modulo_id', modulo_id).single();
-    setDescripcionHtml(desc?.descripcion_html || '');
-    // Traer materiales
-    const { data: mats } = await supabase.from('modulos_materiales').select('*').eq('modulo_id', modulo_id);
-    setMateriales(mats || []);
+    // Traer descripción y materiales usando modulo_curso_id
+    if (moduloCursoId) {
+      const { data: desc } = await supabase.from('modulos_descripcion').select('*').eq('modulo_id', moduloCursoId).single();
+      setDescripcionHtml(desc?.descripcion_html || '');
+      const { data: mats } = await supabase.from('modulos_materiales').select('*').eq('modulo_id', moduloCursoId);
+      setMateriales(mats || []);
+    } else {
+      setDescripcionHtml('');
+      setMateriales([]);
+    }
     setLoading(false);
   };
 
@@ -70,8 +102,8 @@ const LineaVideosClassroom = () => {
 
   // Guardar descripción
   async function handleSaveDescripcion() {
-    if (!modulo?.id) {
-      setDescMsg('Error: modulo_id vacío o inválido');
+    if (!modulo?.modulo_curso_id) {
+      setDescMsg('Error: modulo_curso_id vacío o inválido');
       return;
     }
     setDescMsg(null);
@@ -80,7 +112,7 @@ const LineaVideosClassroom = () => {
       const { data: existente } = await supabase
         .from('modulos_descripcion')
         .select('id')
-        .eq('modulo_id', modulo.id)
+        .eq('modulo_id', modulo.modulo_curso_id)
         .single();
       let error;
       if (existente) {
@@ -91,10 +123,10 @@ const LineaVideosClassroom = () => {
       } else {
         ({ error } = await supabase
           .from('modulos_descripcion')
-          .insert([{ modulo_id: modulo.id, descripcion_html: descripcionHtml }]));
+          .insert([{ modulo_id: modulo.modulo_curso_id, descripcion_html: descripcionHtml }]));
       }
       if (error) {
-        setDescMsg('Error al guardar: ' + error.message + ' | modulo_id: ' + modulo.id);
+        setDescMsg('Error al guardar: ' + error.message + ' | modulo_curso_id: ' + modulo.modulo_curso_id);
         return;
       }
       setDescMsg('¡Guardado con éxito!');
@@ -107,8 +139,8 @@ const LineaVideosClassroom = () => {
   // Guardar material (nuevo o archivo)
   async function handleAddMaterialV2(e: React.FormEvent) {
     e.preventDefault();
-    if (!modulo?.id) {
-      setMaterialMsg('Error: modulo_id vacío o inválido');
+    if (!modulo?.modulo_curso_id) {
+      setMaterialMsg('Error: modulo_curso_id vacío o inválido');
       return;
     }
     setMaterialMsg(null);
@@ -118,7 +150,7 @@ const LineaVideosClassroom = () => {
       // Si hay archivo, subirlo
       if (materialFile) {
         const ext = materialFile.name.split('.').pop();
-        const fileName = `material_${modulo.id}_${Date.now()}.${ext}`;
+        const fileName = `material_${modulo.modulo_curso_id}_${Date.now()}.${ext}`;
         const { error: uploadError } = await supabase.storage.from('cursos').upload(fileName, materialFile, { upsert: true });
         if (uploadError) {
           setMaterialLoading(false);
@@ -130,9 +162,9 @@ const LineaVideosClassroom = () => {
       }
       const { error } = await supabase
         .from('modulos_materiales')
-        .insert([{ titulo: materialTitulo, url, modulo_id: modulo.id }]);
+        .insert([{ titulo: materialTitulo, url, modulo_id: modulo.modulo_curso_id }]);
       if (error) {
-        setMaterialMsg('Error al guardar: ' + error.message + ' | modulo_id: ' + modulo.id);
+        setMaterialMsg('Error al guardar: ' + error.message + ' | modulo_curso_id: ' + modulo.modulo_curso_id);
         setMaterialLoading(false);
         return;
       }
@@ -140,7 +172,7 @@ const LineaVideosClassroom = () => {
       const { data } = await supabase
         .from('modulos_materiales')
         .select('*')
-        .eq('modulo_id', modulo.id);
+        .eq('modulo_id', modulo.modulo_curso_id);
       setMateriales(data || []);
       setMaterialTitulo('');
       setMaterialUrl('');
