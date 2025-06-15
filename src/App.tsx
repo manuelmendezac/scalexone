@@ -141,7 +141,7 @@ function App() {
                 { path: '/classroom', label: 'Classroom' },
                 { path: '/cursos', label: 'Cursos' },
                 { path: '/launchpad', label: 'Launchpad' },
-                { path: '/community', label: 'Comunidad' },
+                { path: '/comunidad', label: 'Comunidad' },
                 { path: '/gamificacion', label: 'Gamificación' },
                 { path: '/funnels', label: 'Embudos' },
                 { path: '/ia', label: 'IA' },
