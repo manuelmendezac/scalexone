@@ -80,7 +80,7 @@ const ReaccionesFacebook: React.FC<Props> = ({ postId, usuarioId, reacciones, mi
               type="button"
               className={`text-xl md:text-2xl px-0.5 transition-transform duration-150 ${miReaccion === r.tipo ? 'scale-125 ring-2 ring-yellow-400' : 'opacity-80 hover:scale-110'} bg-transparent rounded-full`}
               title={r.emoji}
-              onClick={() => { onReact(r.tipo); setHover(false); }}
+              onClick={e => { e.stopPropagation(); onReact(r.tipo); setHover(false); }}
               style={{ background: 'none', border: 'none', outline: 'none', cursor: 'pointer', minWidth: 28, boxShadow: 'none' }}
             >
               {r.emoji}
