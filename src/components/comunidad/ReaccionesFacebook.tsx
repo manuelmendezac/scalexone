@@ -9,6 +9,9 @@ const REACCIONES = [
   { tipo: '100', emoji: '💯' },
   { tipo: 'party', emoji: '🎉' },
   { tipo: 'fire', emoji: '🔥' },
+  { tipo: 'clap', emoji: '👏' },
+  { tipo: 'smile', emoji: '😁' },
+  { tipo: 'whale', emoji: '🐳' },
 ];
 
 interface Props {
@@ -21,47 +24,50 @@ interface Props {
 
 const ReaccionesFacebook: React.FC<Props> = ({ postId, usuarioId, reacciones, miReaccion, onReact }) => {
   const [hover, setHover] = useState(false);
-  const reaccionActual = REACCIONES.find(r => r.tipo === miReaccion) || REACCIONES[0];
+  // Solo mostrar las reacciones usadas en el post
+  const usadas = reacciones.filter(r => r.count > 0);
+  // Si no hay ninguna, mostrar solo el corazón
+  const mostrar = usadas.length > 0 ? usadas : [{ tipo: 'love', count: 0, usuarios: [] }];
+
+  // Para resaltar la reacción del usuario
+  const esMia = (tipo: string) => miReaccion === tipo;
 
   return (
     <div
-      className="relative flex items-center gap-2 select-none"
+      className="relative flex items-center gap-1 select-none"
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
-      style={{ minHeight: 40 }}
+      style={{ minHeight: 28 }}
     >
-      {/* Ícono de reacción actual */}
-      <button
-        className={`text-2xl transition-transform duration-150 px-1 scale-125 ring-2 ring-yellow-400 bg-black/30 rounded-full`}
-        title="Reaccionar"
-        style={{ background: 'none', border: 'none', outline: 'none', cursor: 'pointer' }}
-      >
-        {reaccionActual.emoji}
-      </button>
+      {/* Mostrar solo las reacciones usadas o el corazón */}
+      {mostrar.map(r => (
+        <button
+          key={r.tipo}
+          className={`text-xl md:text-2xl px-0.5 transition-transform duration-150 ${esMia(r.tipo) ? 'scale-110' : 'opacity-80 hover:scale-105'} bg-transparent rounded-full`}
+          title={REACCIONES.find(x => x.tipo === r.tipo)?.emoji || '❤️'}
+          style={{ background: 'none', border: 'none', outline: 'none', cursor: 'pointer', minWidth: 28 }}
+          onClick={() => setHover(true)}
+        >
+          {REACCIONES.find(x => x.tipo === r.tipo)?.emoji || '❤️'}
+          {r.count > 0 && <span className="ml-0.5 text-xs text-gray-400 font-bold align-middle">{r.count}</span>}
+        </button>
+      ))}
       {/* Menú de reacciones al hacer hover */}
       {hover && (
-        <div className="absolute -top-14 left-0 flex gap-2 bg-black/90 rounded-full px-4 py-2 shadow-lg z-20 animate-fade-in border border-[#e6a800]" style={{ minWidth: 260 }}>
+        <div className="absolute -top-12 left-0 flex gap-1 bg-black/90 rounded-full px-2 py-1 shadow-lg z-20 animate-fade-in border border-[#e6a800]" style={{ minWidth: 180 }}>
           {REACCIONES.map(r => (
             <button
               key={r.tipo}
-              className={`text-2xl transition-transform duration-150 px-1 ${miReaccion === r.tipo ? 'scale-125 ring-2 ring-yellow-400' : 'opacity-80 hover:scale-110'} bg-black/0 rounded-full`}
+              className={`text-xl md:text-2xl px-0.5 transition-transform duration-150 ${miReaccion === r.tipo ? 'scale-125 ring-2 ring-yellow-400' : 'opacity-80 hover:scale-110'} bg-transparent rounded-full`}
               title={r.emoji}
-              onClick={() => onReact(r.tipo)}
-              style={{ background: 'none', border: 'none', outline: 'none', cursor: 'pointer' }}
+              onClick={() => { onReact(r.tipo); setHover(false); }}
+              style={{ background: 'none', border: 'none', outline: 'none', cursor: 'pointer', minWidth: 28 }}
             >
               {r.emoji}
             </button>
           ))}
         </div>
       )}
-      {/* Contadores de reacciones */}
-      <div className="flex items-center gap-1 ml-2">
-        {reacciones.filter(r => r.count > 0).map(r => (
-          <span key={r.tipo} className="flex items-center text-base">
-            {REACCIONES.find(x => x.tipo === r.tipo)?.emoji} <span className="ml-0.5 text-xs text-gray-400">{r.count}</span>
-          </span>
-        ))}
-      </div>
     </div>
   );
 };
