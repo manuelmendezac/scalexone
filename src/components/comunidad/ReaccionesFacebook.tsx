@@ -47,7 +47,7 @@ const ReaccionesFacebook: React.FC<Props> = ({ postId, usuarioId, reacciones, mi
           className={`text-xl md:text-2xl px-0.5 transition-transform duration-150 ${esMia(r.tipo) ? 'scale-125 ring-2 ring-yellow-400' : 'opacity-80 hover:scale-105'} bg-transparent rounded-full`}
           title={REACCIONES.find(x => x.tipo === r.tipo)?.emoji || '❤️'}
           style={{ background: 'none', border: 'none', outline: 'none', cursor: 'pointer', minWidth: 28 }}
-          onClick={() => setHover(true)}
+          onClick={() => onReact(r.tipo)}
         >
           {REACCIONES.find(x => x.tipo === r.tipo)?.emoji || '❤️'}
           {r.count > 0 && <span className="ml-0.5 text-xs text-gray-400 font-bold align-middle">{r.count}</span>}
