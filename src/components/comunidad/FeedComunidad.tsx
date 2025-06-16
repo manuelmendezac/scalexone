@@ -11,6 +11,10 @@ interface Post {
   media_url: string | null;
   descripcion: string | null;
   created_at: string;
+  usuario?: {
+    avatar_url?: string;
+    name?: string;
+  };
 }
 
 const FeedComunidad = () => {
@@ -28,6 +32,7 @@ const FeedComunidad = () => {
   const [reaccionesPorPost, setReaccionesPorPost] = useState<Record<string, any>>({});
   const [miReaccionPorPost, setMiReaccionPorPost] = useState<Record<string, string | null>>({});
   const [usuarioId, setUsuarioId] = useState<string>('');
+  const [usuarios, setUsuarios] = useState<Record<string, { avatar_url?: string; name?: string }>>({});
 
   useEffect(() => {
     fetchPosts();
@@ -43,24 +48,33 @@ const FeedComunidad = () => {
     setLoading(true);
     const { data, error } = await supabase
       .from('comunidad_posts')
-      .select('*')
+      .select('*, usuario:usuario_id ( avatar_url, name )')
       .order('created_at', { ascending: false });
     if (!error && data) {
       setPosts(data);
       // Cargar reacciones para todos los posts
       data.forEach((post: any) => cargarReacciones(post.id));
+      // Guardar usuarios para lookup rápido
+      const usuariosMap: Record<string, { avatar_url?: string; name?: string }> = {};
+      data.forEach((post: any) => {
+        if (post.usuario_id && post.usuario) {
+          usuariosMap[post.usuario_id] = {
+            avatar_url: post.usuario.avatar_url,
+            name: post.usuario.name,
+          };
+        }
+      });
+      setUsuarios(usuariosMap);
     }
     setLoading(false);
   };
 
   const cargarReacciones = async (postId: string) => {
-    // Obtener todas las reacciones de este post
     const { data, error } = await supabase
       .from('comunidad_reacciones')
       .select('*')
       .eq('post_id', postId);
     if (!error && data) {
-      // Agrupar por tipo
       const agrupadas: Record<string, { tipo: string; count: number; usuarios: string[] }> = {};
       let miReaccion: string | null = null;
       data.forEach((r: any) => {
@@ -76,30 +90,27 @@ const FeedComunidad = () => {
 
   const manejarReaccion = async (postId: string, tipo: string) => {
     if (!usuarioId) return;
-    // Ver si ya reaccionó
     const miTipo = miReaccionPorPost[postId];
     if (miTipo === tipo) {
-      // Si hace clic en la misma reacción, eliminarla
       await supabase
         .from('comunidad_reacciones')
         .delete()
         .eq('post_id', postId)
         .eq('usuario_id', usuarioId);
     } else if (miTipo) {
-      // Si ya tenía otra reacción, actualizarla
       await supabase
         .from('comunidad_reacciones')
         .update({ tipo })
         .eq('post_id', postId)
         .eq('usuario_id', usuarioId);
     } else {
-      // Si no tenía reacción, insertarla
       await supabase
         .from('comunidad_reacciones')
         .insert({ post_id: postId, usuario_id: usuarioId, tipo });
     }
-    // Recargar reacciones
+    // Recargar reacciones y posts para refrescar nombre/avatar
     cargarReacciones(postId);
+    fetchPosts();
   };
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -311,9 +322,9 @@ const FeedComunidad = () => {
           posts.map((post) => (
             <div key={post.id} className="bg-[#23232b] rounded-2xl p-6 shadow flex flex-col gap-2">
               <div className="flex items-center gap-3 mb-2">
-                <img src={`https://ui-avatars.com/api/?name=Usuario&background=e6a800&color=fff&size=96`} alt="avatar" className="w-10 h-10 rounded-full border-2 border-[#e6a800]" />
+                <img src={usuarios[post.usuario_id]?.avatar_url || `https://ui-avatars.com/api/?name=Usuario&background=e6a800&color=fff&size=96`} alt="avatar" className="w-10 h-10 rounded-full border-2 border-[#e6a800] object-cover" />
                 <div>
-                  <span className="text-white font-bold">Usuario</span>
+                  <span className="text-white font-bold">{usuarios[post.usuario_id]?.name || 'Usuario'}</span>
                   <span className="ml-2 text-xs text-[#e6a800] font-semibold">{new Date(post.created_at).toLocaleString()}</span>
                 </div>
               </div>
@@ -331,7 +342,7 @@ const FeedComunidad = () => {
               {post.descripcion && (
                 <div className="text-gray-400 text-sm mb-2">{post.descripcion}</div>
               )}
-              {/* Reacciones tipo Facebook */}
+              {/* Reacciones tipo Facebook y botones unificados */}
               <div className="flex gap-4 mt-2 items-center">
                 <ReaccionesFacebook
                   postId={post.id}
@@ -340,9 +351,12 @@ const FeedComunidad = () => {
                   miReaccion={miReaccionPorPost[post.id] || null}
                   onReact={tipo => manejarReaccion(post.id, tipo)}
                 />
-                {/* Botón comentar y compartir (puedes mejorar visualmente después) */}
-                <button className="text-[#e6a800] font-bold hover:underline">Comentar</button>
-                <button className="text-[#e6a800] font-bold hover:underline">Compartir</button>
+                <button className="flex items-center gap-1 px-3 py-1 rounded-full font-bold border border-gray-700 bg-black/30 hover:bg-black/50 transition text-yellow-400">
+                  <span role="img" aria-label="comentar">💬</span> Comentar
+                </button>
+                <button className="flex items-center gap-1 px-3 py-1 rounded-full font-bold border border-gray-700 bg-black/30 hover:bg-black/50 transition text-cyan-400">
+                  <span role="img" aria-label="compartir">📤</span> Compartir
+                </button>
               </div>
               <ComunidadComentarios postId={post.id} />
             </div>
