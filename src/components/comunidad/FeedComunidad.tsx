@@ -98,20 +98,31 @@ const FeedComunidad = () => {
 
   const manejarReaccion = async (postId: string, tipo: string) => {
     if (!usuarioId) return;
-    const miTipo = miReaccionPorPost[postId];
-    if (miTipo === tipo) {
-      await supabase
-        .from('comunidad_reacciones')
-        .delete()
-        .eq('post_id', postId)
-        .eq('usuario_id', usuarioId);
-    } else if (miTipo) {
-      await supabase
-        .from('comunidad_reacciones')
-        .update({ tipo })
-        .eq('post_id', postId)
-        .eq('usuario_id', usuarioId);
+    // Consultar si ya existe una reacción para este usuario y post
+    const { data: existentes, error: errorExistente } = await supabase
+      .from('comunidad_reacciones')
+      .select('*')
+      .eq('post_id', postId)
+      .eq('usuario_id', usuarioId);
+    const reaccionActual = existentes && existentes.length > 0 ? existentes[0] : null;
+    if (reaccionActual) {
+      if (reaccionActual.tipo === tipo) {
+        // Si es la misma, eliminar (quitar reacción)
+        await supabase
+          .from('comunidad_reacciones')
+          .delete()
+          .eq('post_id', postId)
+          .eq('usuario_id', usuarioId);
+      } else {
+        // Si es diferente, actualizar
+        await supabase
+          .from('comunidad_reacciones')
+          .update({ tipo })
+          .eq('post_id', postId)
+          .eq('usuario_id', usuarioId);
+      }
     } else {
+      // Si no existe, insertar
       await supabase
         .from('comunidad_reacciones')
         .insert({ post_id: postId, usuario_id: usuarioId, tipo });
