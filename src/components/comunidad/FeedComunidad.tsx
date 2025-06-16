@@ -16,6 +16,7 @@ interface Post {
     avatar_url?: string;
     name?: string;
   };
+  imagenes_urls?: string[] | null;
 }
 
 const FeedComunidad = () => {
@@ -37,7 +38,9 @@ const FeedComunidad = () => {
   const [editandoPostId, setEditandoPostId] = useState<string | null>(null);
   const [editContenido, setEditContenido] = useState('');
   const [editDescripcion, setEditDescripcion] = useState('');
-  const [orientacion, setOrientacion] = useState<'vertical' | 'horizontal' | null>(null);
+  const [orientacion, setOrientacion] = useState<'vertical' | 'horizontal' | undefined>(undefined);
+  const [imagenesSeleccionadas, setImagenesSeleccionadas] = useState<File[]>([]);
+  const [imagenesPreview, setImagenesPreview] = useState<string[]>([]);
 
   useEffect(() => {
     fetchPosts();
@@ -119,31 +122,26 @@ const FeedComunidad = () => {
   };
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    // Validar tipo de archivo
-    if (tipo === 'imagen' && !file.type.startsWith('image/')) {
-      setError('Por favor selecciona una imagen válida.');
-      return;
-    }
-    if (tipo === 'video' && !file.type.startsWith('video/')) {
-      setError('Por favor selecciona un video válido.');
-      return;
-    }
-
-    // Validar tamaño (máximo 10MB)
-    if (file.size > 10 * 1024 * 1024) {
-      setError('El archivo es demasiado grande. Máximo 10MB.');
-      return;
-    }
-
-    setArchivoSeleccionado(file);
-    setPreviewUrl(URL.createObjectURL(file));
-    setError(null);
-
-    // Detectar orientación si es video
-    if (tipo === 'video') {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+    if (tipo === 'imagen') {
+      const validFiles = Array.from(files).filter(file => file.type.startsWith('image/'));
+      setImagenesSeleccionadas(validFiles);
+      setImagenesPreview(validFiles.map(file => URL.createObjectURL(file)));
+      setArchivoSeleccionado(null);
+      setPreviewUrl(null);
+      setOrientacion(undefined);
+    } else if (tipo === 'video') {
+      const file = files[0];
+      if (!file.type.startsWith('video/')) {
+        setError('Por favor selecciona un video válido.');
+        return;
+      }
+      setArchivoSeleccionado(file);
+      setPreviewUrl(URL.createObjectURL(file));
+      setImagenesSeleccionadas([]);
+      setImagenesPreview([]);
+      // Detectar orientación...
       const video = document.createElement('video');
       video.preload = 'metadata';
       video.onloadedmetadata = function () {
@@ -154,8 +152,6 @@ const FeedComunidad = () => {
         }
       };
       video.src = URL.createObjectURL(file);
-    } else {
-      setOrientacion(null);
     }
   };
 
@@ -166,19 +162,32 @@ const FeedComunidad = () => {
       return;
     }
     setSubiendo(true);
-
     try {
-      // Obtener el usuario actual
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         setError('Debes iniciar sesión para publicar.');
         return;
       }
-
       let mediaUrlFinal = mediaUrl;
-
-      // Si hay un archivo seleccionado, subirlo a Supabase Storage
-      if (archivoSeleccionado) {
+      let imagenesUrls: string[] = [];
+      if (tipo === 'imagen' && imagenesSeleccionadas.length > 0) {
+        for (const file of imagenesSeleccionadas) {
+          const fileExt = file.name.split('.').pop();
+          const fileName = `imagen_${Date.now()}_${Math.random().toString(36).substr(2, 6)}.${fileExt}`;
+          const { error: uploadError } = await supabase.storage
+            .from('comunidad-media')
+            .upload(fileName, file, {
+              contentType: file.type,
+              upsert: true
+            });
+          if (uploadError) throw uploadError;
+          const { data: publicUrlData } = supabase.storage
+            .from('comunidad-media')
+            .getPublicUrl(fileName);
+          if (publicUrlData?.publicUrl) imagenesUrls.push(publicUrlData.publicUrl);
+        }
+      }
+      if (tipo === 'video' && archivoSeleccionado) {
         const fileExt = archivoSeleccionado.name.split('.').pop();
         const fileName = `${tipo}_${Date.now()}.${fileExt}`;
         const { error: uploadError } = await supabase.storage
@@ -187,39 +196,33 @@ const FeedComunidad = () => {
             contentType: archivoSeleccionado.type,
             upsert: true
           });
-
         if (uploadError) throw uploadError;
-
         const { data: publicUrlData } = supabase.storage
           .from('comunidad-media')
           .getPublicUrl(fileName);
-        
         mediaUrlFinal = publicUrlData.publicUrl;
       }
-
-      // Insertar post con orientación
+      // Insertar post
       const { error: insertError } = await supabase.from('comunidad_posts').insert({
         usuario_id: user.id,
         contenido,
         tipo,
         media_url: mediaUrlFinal || null,
         descripcion: descripcion || null,
-        orientacion: orientacion || null
+        orientacion: orientacion ?? null,
+        imagenes_urls: imagenesUrls.length > 0 ? imagenesUrls : null
       });
-
       if (insertError) throw insertError;
-
-      // Limpiar formulario
       setContenido('');
       setTipo('texto');
       setMediaUrl('');
       setDescripcion('');
       setPreviewUrl(null);
       setArchivoSeleccionado(null);
-      setOrientacion(null);
+      setOrientacion(undefined);
+      setImagenesSeleccionadas([]);
+      setImagenesPreview([]);
       if (fileInputRef.current) fileInputRef.current.value = '';
-      
-      // Recargar posts
       fetchPosts();
     } catch (err: any) {
       setError('Error al publicar: ' + err.message);
@@ -286,12 +289,13 @@ const FeedComunidad = () => {
             <option value="video">Video</option>
             <option value="enlace">Enlace</option>
           </select>
-          {(tipo === 'imagen' || tipo === 'video') && (
+          {tipo === 'imagen' && (
             <div className="flex-1 flex flex-col gap-2">
               <input
                 type="file"
                 ref={fileInputRef}
-                accept={tipo === 'imagen' ? 'image/*' : 'video/*'}
+                accept="image/*"
+                multiple
                 onChange={handleFileSelect}
                 className="hidden"
                 disabled={subiendo}
@@ -301,44 +305,27 @@ const FeedComunidad = () => {
                 className="bg-[#18181b] text-[#e6a800] border border-[#e6a800] rounded-xl px-3 py-1 hover:bg-[#e6a800] hover:text-black transition"
                 disabled={subiendo}
               >
-                Seleccionar {tipo}
+                Seleccionar imágenes
               </button>
-              {previewUrl && (
-                <div className="relative">
-                  {tipo === 'imagen' ? (
-                    <img
-                      src={previewUrl}
-                      alt="preview"
-                      className="max-h-40 rounded-xl object-cover"
-                    />
-                  ) : (
-                    <div className={
-                      orientacion === 'vertical'
-                        ? 'w-[320px] h-[570px] mx-auto rounded-xl overflow-hidden mb-2 flex justify-center items-center bg-black'
-                        : 'w-full aspect-video rounded-xl overflow-hidden mb-2 flex justify-center items-center bg-black'
-                    }>
-                      <video
-                        src={previewUrl}
-                        controls
-                        className="w-full h-full object-contain"
-                      />
+              {imagenesPreview.length > 0 && (
+                <div className="flex gap-2 overflow-x-auto py-2">
+                  {imagenesPreview.map((url, idx) => (
+                    <div key={idx} className="relative">
+                      <img src={url} alt={`preview-${idx}`} className="h-24 w-24 object-cover rounded-xl border-2 border-[#e6a800]" />
+                      <button
+                        onClick={() => {
+                          setImagenesPreview(prev => prev.filter((_, i) => i !== idx));
+                          setImagenesSeleccionadas(prev => prev.filter((_, i) => i !== idx));
+                        }}
+                        className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
+                      >×</button>
                     </div>
-                  )}
-                  <button
-                    onClick={() => {
-                      setPreviewUrl(null);
-                      setArchivoSeleccionado(null);
-                      if (fileInputRef.current) fileInputRef.current.value = '';
-                    }}
-                    className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
-                  >
-                    ×
-                  </button>
+                  ))}
                 </div>
               )}
             </div>
           )}
-          {tipo === 'enlace' && (
+          {(tipo === 'video' || tipo === 'enlace') && (
             <input
               type="url"
               className="bg-[#18181b] text-white border border-[#e6a800] rounded-xl px-3 py-1 flex-1"
@@ -424,19 +411,16 @@ const FeedComunidad = () => {
                     <img src={post.media_url} alt="imagen" className="rounded-xl max-h-80 object-cover mb-2" />
                   )}
                   {post.tipo === 'video' && post.media_url && (
-                    <div className={
-                      post.orientacion === 'vertical'
-                        ? 'w-[320px] h-[570px] mx-auto rounded-xl overflow-hidden mb-2 flex justify-center items-center bg-black'
-                        : 'w-full aspect-video rounded-xl overflow-hidden mb-2 flex justify-center items-center bg-black'
-                    }>
-                      <video controls src={post.media_url} className="w-full h-full object-contain" />
-                    </div>
+                    <VideoWithOrientation src={post.media_url} orientacion={post.orientacion} />
                   )}
                   {post.tipo === 'enlace' && post.media_url && (
                     <a href={post.media_url} target="_blank" rel="noopener noreferrer" className="text-cyan-400 underline break-all mb-2">{post.media_url}</a>
                   )}
                   {post.descripcion && (
                     <div className="text-gray-400 text-sm mb-2">{post.descripcion}</div>
+                  )}
+                  {post.tipo === 'imagen' && post.imagenes_urls && post.imagenes_urls.length > 0 && (
+                    <CarruselImagenes imagenes={post.imagenes_urls} />
                   )}
                 </>
               )}
@@ -461,6 +445,68 @@ const FeedComunidad = () => {
           ))
         )}
       </div>
+    </div>
+  );
+};
+
+const isOrientation = (val: any): val is 'vertical' | 'horizontal' => val === 'vertical' || val === 'horizontal';
+
+const VideoWithOrientation: React.FC<{ src: string; orientacion?: string }> = ({ src, orientacion }) => {
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [detected, setDetected] = useState<'vertical' | 'horizontal' | undefined>(undefined);
+
+  useEffect(() => {
+    if (!isOrientation(orientacion) && videoRef.current) {
+      const video = videoRef.current;
+      const onLoaded = () => {
+        if (video.videoHeight > video.videoWidth) {
+          setDetected('vertical');
+        } else {
+          setDetected('horizontal');
+        }
+      };
+      video.addEventListener('loadedmetadata', onLoaded);
+      return () => video.removeEventListener('loadedmetadata', onLoaded);
+    }
+  }, [orientacion, src]);
+
+  const finalOrient: 'vertical' | 'horizontal' | undefined = isOrientation(orientacion)
+    ? orientacion
+    : detected;
+
+  return (
+    <div className={
+      finalOrient === 'vertical'
+        ? 'w-[320px] h-[570px] mx-auto rounded-xl overflow-hidden mb-2 flex justify-center items-center bg-black'
+        : 'w-full aspect-video rounded-xl overflow-hidden mb-2 flex justify-center items-center bg-black'
+    }>
+      <video ref={videoRef} controls src={src} className="w-full h-full object-contain" />
+    </div>
+  );
+};
+
+const CarruselImagenes: React.FC<{ imagenes: string[] }> = ({ imagenes }) => {
+  const [idx, setIdx] = useState(0);
+  return (
+    <div className="relative w-full flex flex-col items-center">
+      <div className="w-full flex justify-center items-center">
+        <img src={imagenes[idx]} alt={`img-${idx}`} className="max-h-80 rounded-xl object-contain border-2 border-[#e6a800]" />
+        <a
+          href={imagenes[idx]}
+          download
+          className="absolute top-2 right-4 bg-[#e6a800] text-black px-2 py-1 rounded-full font-bold text-xs hover:bg-[#ffb300] transition"
+          title="Descargar imagen"
+        >Descargar</a>
+      </div>
+      {imagenes.length > 1 && (
+        <div className="flex gap-2 mt-2">
+          <button onClick={() => setIdx(i => (i - 1 + imagenes.length) % imagenes.length)} className="px-2 py-1 bg-gray-700 text-white rounded-full">◀</button>
+          {imagenes.map((_, i) => (
+            <span key={i} className={`w-2 h-2 rounded-full ${i === idx ? 'bg-[#e6a800]' : 'bg-gray-400'} inline-block`} />
+          ))}
+          <button onClick={() => setIdx(i => (i + 1) % imagenes.length)} className="px-2 py-1 bg-gray-700 text-white rounded-full">▶</button>
+        </div>
+      )}
     </div>
   );
 };
