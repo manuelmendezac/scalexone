@@ -489,22 +489,52 @@ const CarruselImagenes: React.FC<{ imagenes: string[] }> = ({ imagenes }) => {
   const [idx, setIdx] = useState(0);
   return (
     <div className="relative w-full flex flex-col items-center">
-      <div className="w-full flex justify-center items-center">
-        <img src={imagenes[idx]} alt={`img-${idx}`} className="max-h-80 rounded-xl object-contain border-2 border-[#e6a800]" />
+      <div className="w-full flex justify-center items-center relative">
+        {/* Flecha izquierda */}
+        {imagenes.length > 1 && (
+          <button
+            onClick={() => setIdx(i => (i - 1 + imagenes.length) % imagenes.length)}
+            className="absolute left-2 top-1/2 -translate-y-1/2 bg-[#e6a800] hover:bg-[#ffb300] text-black rounded-full p-1 shadow-md z-10 flex items-center justify-center"
+            style={{ width: 32, height: 32 }}
+            aria-label="Anterior"
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6" /></svg>
+          </button>
+        )}
+        {/* Imagen principal */}
+        <img
+          src={imagenes[idx]}
+          alt={`img-${idx}`}
+          className="max-h-80 w-auto rounded-xl object-contain border-2 border-[#e6a800] mx-auto"
+          style={{ maxWidth: '100%' }}
+        />
+        {/* Botón de descarga */}
         <a
           href={imagenes[idx]}
           download
-          className="absolute top-2 right-4 bg-[#e6a800] text-black px-2 py-1 rounded-full font-bold text-xs hover:bg-[#ffb300] transition"
+          className="absolute top-2 right-2 bg-[#e6a800] hover:bg-[#ffb300] text-black rounded-full p-1 shadow-md z-10 flex items-center justify-center"
+          style={{ width: 32, height: 32 }}
           title="Descargar imagen"
-        >Descargar</a>
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        </a>
+        {/* Flecha derecha */}
+        {imagenes.length > 1 && (
+          <button
+            onClick={() => setIdx(i => (i + 1) % imagenes.length)}
+            className="absolute right-2 top-1/2 -translate-y-1/2 bg-[#e6a800] hover:bg-[#ffb300] text-black rounded-full p-1 shadow-md z-10 flex items-center justify-center"
+            style={{ width: 32, height: 32 }}
+            aria-label="Siguiente"
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6" /></svg>
+          </button>
+        )}
       </div>
       {imagenes.length > 1 && (
         <div className="flex gap-2 mt-2">
-          <button onClick={() => setIdx(i => (i - 1 + imagenes.length) % imagenes.length)} className="px-2 py-1 bg-gray-700 text-white rounded-full">◀</button>
           {imagenes.map((_, i) => (
             <span key={i} className={`w-2 h-2 rounded-full ${i === idx ? 'bg-[#e6a800]' : 'bg-gray-400'} inline-block`} />
           ))}
-          <button onClick={() => setIdx(i => (i + 1) % imagenes.length)} className="px-2 py-1 bg-gray-700 text-white rounded-full">▶</button>
         </div>
       )}
     </div>
