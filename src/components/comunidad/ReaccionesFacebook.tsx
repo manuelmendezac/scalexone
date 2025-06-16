@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 
 const REACCIONES = [
   { tipo: 'love', emoji: '❤️' },
@@ -24,7 +24,9 @@ interface Props {
 
 const ReaccionesFacebook: React.FC<Props> = ({ postId, usuarioId, reacciones, miReaccion, onReact }) => {
   const [hover, setHover] = useState(false);
-  // Solo mostrar las reacciones usadas en el post
+  const ref = useRef<HTMLDivElement>(null);
+
+  // Mostrar solo las reacciones usadas en el post
   const usadas = reacciones.filter(r => r.count > 0);
   // Si no hay ninguna, mostrar solo el corazón
   const mostrar = usadas.length > 0 ? usadas : [{ tipo: 'love', count: 0, usuarios: [] }];
@@ -32,10 +34,26 @@ const ReaccionesFacebook: React.FC<Props> = ({ postId, usuarioId, reacciones, mi
   // Para resaltar la reacción del usuario
   const esMia = (tipo: string) => miReaccion === tipo;
 
+  // Cerrar el menú al hacer clic fuera
+  useEffect(() => {
+    if (!hover) return;
+    const handleClick = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setHover(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, [hover]);
+
+  // Detectar si es móvil
+  const esMovil = typeof window !== 'undefined' && window.innerWidth < 768;
+
   return (
     <div
-      className="flex items-center gap-1 select-none"
+      className="flex items-center gap-1 select-none relative"
       style={{ minHeight: 28 }}
+      ref={ref}
     >
       {/* Mostrar solo las reacciones usadas o el corazón */}
       {mostrar.map(r => (
@@ -45,7 +63,9 @@ const ReaccionesFacebook: React.FC<Props> = ({ postId, usuarioId, reacciones, mi
           className={`text-xl md:text-2xl px-0.5 transition-transform duration-150 ${esMia(r.tipo) ? 'scale-125' : 'opacity-80 hover:scale-105'} bg-transparent rounded-full`}
           title={REACCIONES.find(x => x.tipo === r.tipo)?.emoji || '❤️'}
           style={{ background: 'none', border: 'none', outline: 'none', cursor: 'pointer', minWidth: 28, boxShadow: 'none' }}
-          onClick={() => onReact(r.tipo)}
+          onClick={() => setHover(h => !h)}
+          onMouseEnter={() => { if (!esMovil) setHover(true); }}
+          onMouseLeave={() => { if (!esMovil) setHover(false); }}
         >
           {REACCIONES.find(x => x.tipo === r.tipo)?.emoji || '❤️'}
           {r.count > 0 && <span className="ml-0.5 text-xs text-gray-400 font-bold align-middle">{r.count}</span>}
