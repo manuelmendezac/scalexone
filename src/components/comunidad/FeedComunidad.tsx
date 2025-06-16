@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { supabase } from '../../supabase';
 import ComunidadComentarios from './ComunidadComentarios';
+import ReaccionesFacebook from './ReaccionesFacebook';
 
 interface Post {
   id: string;
@@ -24,10 +25,19 @@ const FeedComunidad = () => {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [archivoSeleccionado, setArchivoSeleccionado] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [reaccionesPorPost, setReaccionesPorPost] = useState<Record<string, any>>({});
+  const [miReaccionPorPost, setMiReaccionPorPost] = useState<Record<string, string | null>>({});
+  const [usuarioId, setUsuarioId] = useState<string>('');
 
   useEffect(() => {
     fetchPosts();
+    obtenerUsuario();
   }, []);
+
+  const obtenerUsuario = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) setUsuarioId(user.id);
+  };
 
   const fetchPosts = async () => {
     setLoading(true);
@@ -35,8 +45,61 @@ const FeedComunidad = () => {
       .from('comunidad_posts')
       .select('*')
       .order('created_at', { ascending: false });
-    if (!error && data) setPosts(data);
+    if (!error && data) {
+      setPosts(data);
+      // Cargar reacciones para todos los posts
+      data.forEach((post: any) => cargarReacciones(post.id));
+    }
     setLoading(false);
+  };
+
+  const cargarReacciones = async (postId: string) => {
+    // Obtener todas las reacciones de este post
+    const { data, error } = await supabase
+      .from('comunidad_reacciones')
+      .select('*')
+      .eq('post_id', postId);
+    if (!error && data) {
+      // Agrupar por tipo
+      const agrupadas: Record<string, { tipo: string; count: number; usuarios: string[] }> = {};
+      let miReaccion: string | null = null;
+      data.forEach((r: any) => {
+        if (!agrupadas[r.tipo]) agrupadas[r.tipo] = { tipo: r.tipo, count: 0, usuarios: [] };
+        agrupadas[r.tipo].count++;
+        agrupadas[r.tipo].usuarios.push(r.usuario_id);
+        if (r.usuario_id === usuarioId) miReaccion = r.tipo;
+      });
+      setReaccionesPorPost(prev => ({ ...prev, [postId]: Object.values(agrupadas) }));
+      setMiReaccionPorPost(prev => ({ ...prev, [postId]: miReaccion }));
+    }
+  };
+
+  const manejarReaccion = async (postId: string, tipo: string) => {
+    if (!usuarioId) return;
+    // Ver si ya reaccionó
+    const miTipo = miReaccionPorPost[postId];
+    if (miTipo === tipo) {
+      // Si hace clic en la misma reacción, eliminarla
+      await supabase
+        .from('comunidad_reacciones')
+        .delete()
+        .eq('post_id', postId)
+        .eq('usuario_id', usuarioId);
+    } else if (miTipo) {
+      // Si ya tenía otra reacción, actualizarla
+      await supabase
+        .from('comunidad_reacciones')
+        .update({ tipo })
+        .eq('post_id', postId)
+        .eq('usuario_id', usuarioId);
+    } else {
+      // Si no tenía reacción, insertarla
+      await supabase
+        .from('comunidad_reacciones')
+        .insert({ post_id: postId, usuario_id: usuarioId, tipo });
+    }
+    // Recargar reacciones
+    cargarReacciones(postId);
   };
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -268,11 +331,18 @@ const FeedComunidad = () => {
               {post.descripcion && (
                 <div className="text-gray-400 text-sm mb-2">{post.descripcion}</div>
               )}
-              {/* Aquí irán reacciones, comentarios y compartir */}
-              <div className="flex gap-4 mt-2">
-                <button className="text-[#e6a800] font-bold hover:underline opacity-50 cursor-not-allowed">Reacciones</button>
-                <button className="text-[#e6a800] font-bold hover:underline opacity-50 cursor-not-allowed">Comentar</button>
-                <button className="text-[#e6a800] font-bold hover:underline opacity-50 cursor-not-allowed">Compartir</button>
+              {/* Reacciones tipo Facebook */}
+              <div className="flex gap-4 mt-2 items-center">
+                <ReaccionesFacebook
+                  postId={post.id}
+                  usuarioId={usuarioId}
+                  reacciones={reaccionesPorPost[post.id] || []}
+                  miReaccion={miReaccionPorPost[post.id] || null}
+                  onReact={tipo => manejarReaccion(post.id, tipo)}
+                />
+                {/* Botón comentar y compartir (puedes mejorar visualmente después) */}
+                <button className="text-[#e6a800] font-bold hover:underline">Comentar</button>
+                <button className="text-[#e6a800] font-bold hover:underline">Compartir</button>
               </div>
               <ComunidadComentarios postId={post.id} />
             </div>
