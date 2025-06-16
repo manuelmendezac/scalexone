@@ -26,7 +26,7 @@ const ComunidadPage = () => {
           <button className="flex-1 bg-[#23232b] text-white rounded-xl px-3 py-2 font-bold text-sm hover:bg-[#e6a800] hover:text-black transition">Chat General</button>
           <button className="flex-1 bg-[#23232b] text-white rounded-xl px-3 py-2 font-bold text-sm hover:bg-[#e6a800] hover:text-black transition">Preséntate</button>
         </div>
-        {/* Menú lateral solo muestra info de la comunidad, no los canales */}
+        {/* Menú lateral muestra info de la comunidad en móvil */}
         {esMovil && menuAbierto && (
           <div className="fixed inset-0 bg-black/60 z-40 flex justify-end" onClick={() => setMenuAbierto(false)}>
             <aside
@@ -40,7 +40,7 @@ const ComunidadPage = () => {
               >
                 ×
               </button>
-              {/* Solo info de la comunidad, no los canales */}
+              {/* Info de la comunidad */}
               <BarraLateralComunidad />
             </aside>
           </div>

@@ -1,50 +1,15 @@
-import React, { useState } from 'react';
+import React from 'react';
 
 const BarraLateralComunidad = () => {
-  const [abierto, setAbierto] = useState(false);
-
   // Detectar si es móvil
   const esMovil = typeof window !== 'undefined' && window.innerWidth < 768;
 
   return (
     <>
-      {/* Barra de canales y botón menú en móvil */}
-      {esMovil && (
-        <div className="flex items-center gap-2 px-2 py-2 bg-neutral-900 sticky top-[56px] z-30 border-b border-cyan-900/30">
-          <button
-            className="bg-[#e6a800] text-black rounded-full p-2 shadow focus:outline-none"
-            onClick={() => setAbierto(true)}
-            aria-label="Abrir menú comunidad"
-            style={{ minWidth: 40, minHeight: 40 }}
-          >
-            <span style={{ fontSize: 22 }}>☰</span>
-          </button>
-          {/* Botones de canales principales */}
-          <button className="flex-1 bg-[#23232b] text-white rounded-xl px-3 py-2 font-bold text-sm hover:bg-[#e6a800] hover:text-black transition">Chat General</button>
-          <button className="flex-1 bg-[#23232b] text-white rounded-xl px-3 py-2 font-bold text-sm hover:bg-[#e6a800] hover:text-black transition">Preséntate</button>
-        </div>
-      )}
-
       {/* Barra lateral como modal en móvil */}
-      {esMovil && abierto && (
-        <div className="fixed inset-0 bg-black/60 z-40 flex justify-end" onClick={() => setAbierto(false)}>
-          <aside
-            className="w-72 max-w-full h-full bg-neutral-900 p-4 border-l border-cyan-900/30 shadow-xl animate-slide-in-right"
-            onClick={e => e.stopPropagation()}
-          >
-            <button
-              className="absolute top-4 right-4 text-2xl text-[#e6a800] font-bold"
-              onClick={() => setAbierto(false)}
-              aria-label="Cerrar menú"
-            >
-              ×
-            </button>
-            {/* Contenido original de la barra lateral */}
-            <BarraLateralContenido />
-          </aside>
-        </div>
+      {esMovil && (
+        <></>
       )}
-
       {/* Barra lateral normal en desktop */}
       <aside className="hidden md:block w-[350px] p-4 bg-neutral-900 border-l border-cyan-900/30">
         <BarraLateralContenido />
@@ -53,9 +18,7 @@ const BarraLateralComunidad = () => {
   );
 };
 
-// Extraigo el contenido original a un componente para reutilizarlo
 const BarraLateralContenido = () => {
-  // Detectar si es móvil
   const esMovil = typeof window !== 'undefined' && window.innerWidth < 768;
   return (
     <div className="flex flex-col gap-6">
