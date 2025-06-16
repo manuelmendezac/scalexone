@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { supabase } from '../../supabase';
 import ComunidadComentarios from './ComunidadComentarios';
 
@@ -21,6 +21,9 @@ const FeedComunidad = () => {
   const [descripcion, setDescripcion] = useState('');
   const [subiendo, setSubiendo] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [archivoSeleccionado, setArchivoSeleccionado] = useState<File | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     fetchPosts();
@@ -36,6 +39,31 @@ const FeedComunidad = () => {
     setLoading(false);
   };
 
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validar tipo de archivo
+    if (tipo === 'imagen' && !file.type.startsWith('image/')) {
+      setError('Por favor selecciona una imagen válida.');
+      return;
+    }
+    if (tipo === 'video' && !file.type.startsWith('video/')) {
+      setError('Por favor selecciona un video válido.');
+      return;
+    }
+
+    // Validar tamaño (máximo 10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      setError('El archivo es demasiado grande. Máximo 10MB.');
+      return;
+    }
+
+    setArchivoSeleccionado(file);
+    setPreviewUrl(URL.createObjectURL(file));
+    setError(null);
+  };
+
   const handlePublicar = async () => {
     setError(null);
     if (!contenido.trim() && tipo === 'texto') {
@@ -43,31 +71,64 @@ const FeedComunidad = () => {
       return;
     }
     setSubiendo(true);
-    // Obtener el usuario actual
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      setError('Debes iniciar sesión para publicar.');
-      setSubiendo(false);
-      return;
-    }
-    // Insertar post
-    const { error: insertError } = await supabase.from('comunidad_posts').insert({
-      usuario_id: user.id,
-      contenido,
-      tipo,
-      media_url: mediaUrl || null,
-      descripcion: descripcion || null
-    });
-    if (insertError) {
-      setError('Error al publicar: ' + insertError.message);
-    } else {
+
+    try {
+      // Obtener el usuario actual
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        setError('Debes iniciar sesión para publicar.');
+        return;
+      }
+
+      let mediaUrlFinal = mediaUrl;
+
+      // Si hay un archivo seleccionado, subirlo a Supabase Storage
+      if (archivoSeleccionado) {
+        const fileExt = archivoSeleccionado.name.split('.').pop();
+        const fileName = `${tipo}_${Date.now()}.${fileExt}`;
+        const { error: uploadError } = await supabase.storage
+          .from('comunidad-media')
+          .upload(fileName, archivoSeleccionado, {
+            contentType: archivoSeleccionado.type,
+            upsert: true
+          });
+
+        if (uploadError) throw uploadError;
+
+        const { data: publicUrlData } = supabase.storage
+          .from('comunidad-media')
+          .getPublicUrl(fileName);
+        
+        mediaUrlFinal = publicUrlData.publicUrl;
+      }
+
+      // Insertar post
+      const { error: insertError } = await supabase.from('comunidad_posts').insert({
+        usuario_id: user.id,
+        contenido,
+        tipo,
+        media_url: mediaUrlFinal || null,
+        descripcion: descripcion || null
+      });
+
+      if (insertError) throw insertError;
+
+      // Limpiar formulario
       setContenido('');
       setTipo('texto');
       setMediaUrl('');
       setDescripcion('');
+      setPreviewUrl(null);
+      setArchivoSeleccionado(null);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+      
+      // Recargar posts
       fetchPosts();
+    } catch (err: any) {
+      setError('Error al publicar: ' + err.message);
+    } finally {
+      setSubiendo(false);
     }
-    setSubiendo(false);
   };
 
   return (
@@ -85,7 +146,13 @@ const FeedComunidad = () => {
           <select
             className="bg-[#18181b] text-[#e6a800] border border-[#e6a800] rounded-xl px-3 py-1"
             value={tipo}
-            onChange={e => setTipo(e.target.value as any)}
+            onChange={e => {
+              setTipo(e.target.value as any);
+              setMediaUrl('');
+              setPreviewUrl(null);
+              setArchivoSeleccionado(null);
+              if (fileInputRef.current) fileInputRef.current.value = '';
+            }}
             disabled={subiendo}
           >
             <option value="texto">Texto</option>
@@ -94,14 +161,50 @@ const FeedComunidad = () => {
             <option value="enlace">Enlace</option>
           </select>
           {(tipo === 'imagen' || tipo === 'video') && (
-            <input
-              type="url"
-              className="bg-[#18181b] text-white border border-[#e6a800] rounded-xl px-3 py-1 flex-1"
-              placeholder={`URL de ${tipo}`}
-              value={mediaUrl}
-              onChange={e => setMediaUrl(e.target.value)}
-              disabled={subiendo}
-            />
+            <div className="flex-1 flex flex-col gap-2">
+              <input
+                type="file"
+                ref={fileInputRef}
+                accept={tipo === 'imagen' ? 'image/*' : 'video/*'}
+                onChange={handleFileSelect}
+                className="hidden"
+                disabled={subiendo}
+              />
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                className="bg-[#18181b] text-[#e6a800] border border-[#e6a800] rounded-xl px-3 py-1 hover:bg-[#e6a800] hover:text-black transition"
+                disabled={subiendo}
+              >
+                Seleccionar {tipo}
+              </button>
+              {previewUrl && (
+                <div className="relative">
+                  {tipo === 'imagen' ? (
+                    <img
+                      src={previewUrl}
+                      alt="preview"
+                      className="max-h-40 rounded-xl object-cover"
+                    />
+                  ) : (
+                    <video
+                      src={previewUrl}
+                      controls
+                      className="max-h-40 rounded-xl"
+                    />
+                  )}
+                  <button
+                    onClick={() => {
+                      setPreviewUrl(null);
+                      setArchivoSeleccionado(null);
+                      if (fileInputRef.current) fileInputRef.current.value = '';
+                    }}
+                    className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
+                  >
+                    ×
+                  </button>
+                </div>
+              )}
+            </div>
           )}
           {tipo === 'enlace' && (
             <input
