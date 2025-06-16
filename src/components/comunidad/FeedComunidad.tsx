@@ -34,6 +34,7 @@ const FeedComunidad = () => {
   const [reaccionesPorPost, setReaccionesPorPost] = useState<Record<string, any>>({});
   const [miReaccionPorPost, setMiReaccionPorPost] = useState<Record<string, string | null>>({});
   const [usuarioId, setUsuarioId] = useState<string>('');
+  const [usuarioCargando, setUsuarioCargando] = useState(true);
   const [usuarios, setUsuarios] = useState<Record<string, { avatar_url?: string; name?: string }>>({});
   const [editandoPostId, setEditandoPostId] = useState<string | null>(null);
   const [editContenido, setEditContenido] = useState('');
@@ -44,13 +45,29 @@ const FeedComunidad = () => {
 
   useEffect(() => {
     fetchPosts();
-    obtenerUsuario();
   }, []);
 
-  const obtenerUsuario = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (user) setUsuarioId(user.id);
-  };
+  useEffect(() => {
+    let mounted = true;
+    const obtenerUsuario = async () => {
+      setUsuarioCargando(true);
+      const { data: { user } } = await supabase.auth.getUser();
+      if (mounted) {
+        setUsuarioId(user?.id || '');
+        setUsuarioCargando(false);
+      }
+    };
+    obtenerUsuario();
+    // Escuchar cambios de sesión
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUsuarioId(session?.user?.id || '');
+      setUsuarioCargando(false);
+    });
+    return () => {
+      mounted = false;
+      listener?.subscription.unsubscribe();
+    };
+  }, []);
 
   const fetchPosts = async () => {
     setLoading(true);
@@ -97,12 +114,19 @@ const FeedComunidad = () => {
   };
 
   const manejarReaccion = async (postId: string, tipo: string) => {
-    console.log('Intentando reaccionar:', postId, usuarioId, tipo);
-    if (!postId || !usuarioId || !tipo) {
-      alert('Faltan datos para reaccionar. postId: ' + postId + ', usuarioId: ' + usuarioId + ', tipo: ' + tipo);
-      console.error('Faltan datos para reaccionar:', { postId, usuarioId, tipo });
+    if (usuarioCargando) {
+      alert('Cargando usuario, intenta de nuevo en un momento.');
       return;
     }
+    if (!usuarioId) {
+      alert('Debes iniciar sesión para reaccionar.');
+      return;
+    }
+    if (!postId || !tipo) {
+      alert('Faltan datos para reaccionar.');
+      return;
+    }
+    console.log('Intentando reaccionar:', postId, usuarioId, tipo);
     // Consultar si ya existe una reacción para este usuario y post (comentario_id debe ser null)
     const { data: existentes, error: errorExistente } = await supabase
       .from('comunidad_reacciones')
