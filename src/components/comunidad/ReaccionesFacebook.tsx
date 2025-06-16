@@ -34,9 +34,7 @@ const ReaccionesFacebook: React.FC<Props> = ({ postId, usuarioId, reacciones, mi
 
   return (
     <div
-      className="relative flex items-center gap-1 select-none"
-      onMouseEnter={() => setHover(true)}
-      onMouseLeave={() => setHover(false)}
+      className="flex items-center gap-1 select-none"
       style={{ minHeight: 28 }}
     >
       {/* Mostrar solo las reacciones usadas o el corazón */}
@@ -44,9 +42,9 @@ const ReaccionesFacebook: React.FC<Props> = ({ postId, usuarioId, reacciones, mi
         <button
           key={r.tipo}
           type="button"
-          className={`text-xl md:text-2xl px-0.5 transition-transform duration-150 ${esMia(r.tipo) ? 'scale-125 ring-2 ring-yellow-400' : 'opacity-80 hover:scale-105'} bg-transparent rounded-full`}
+          className={`text-xl md:text-2xl px-0.5 transition-transform duration-150 ${esMia(r.tipo) ? 'scale-125' : 'opacity-80 hover:scale-105'} bg-transparent rounded-full`}
           title={REACCIONES.find(x => x.tipo === r.tipo)?.emoji || '❤️'}
-          style={{ background: 'none', border: 'none', outline: 'none', cursor: 'pointer', minWidth: 28 }}
+          style={{ background: 'none', border: 'none', outline: 'none', cursor: 'pointer', minWidth: 28, boxShadow: 'none' }}
           onClick={() => onReact(r.tipo)}
         >
           {REACCIONES.find(x => x.tipo === r.tipo)?.emoji || '❤️'}
@@ -63,7 +61,7 @@ const ReaccionesFacebook: React.FC<Props> = ({ postId, usuarioId, reacciones, mi
               className={`text-xl md:text-2xl px-0.5 transition-transform duration-150 ${miReaccion === r.tipo ? 'scale-125 ring-2 ring-yellow-400' : 'opacity-80 hover:scale-110'} bg-transparent rounded-full`}
               title={r.emoji}
               onClick={() => { onReact(r.tipo); setHover(false); }}
-              style={{ background: 'none', border: 'none', outline: 'none', cursor: 'pointer', minWidth: 28 }}
+              style={{ background: 'none', border: 'none', outline: 'none', cursor: 'pointer', minWidth: 28, boxShadow: 'none' }}
             >
               {r.emoji}
             </button>
