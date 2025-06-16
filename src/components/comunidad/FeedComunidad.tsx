@@ -113,6 +113,29 @@ const FeedComunidad = () => {
     }
   };
 
+  // Verifica y crea el usuario en la tabla si no existe
+  const asegurarUsuarioEnTabla = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return false;
+    // Verifica si existe en la tabla users
+    const { data: existe, error: errorExiste } = await supabase
+      .from('users')
+      .select('*')
+      .eq('id', user.id)
+      .single();
+    if (existe) return true;
+    // Si no existe, créalo
+    const nombre = user.user_metadata?.name || user.email?.split('@')[0] || 'Usuario';
+    const { error: errorInsert } = await supabase
+      .from('users')
+      .insert({ id: user.id, email: user.email, nombre });
+    if (errorInsert) {
+      console.error('Error al crear usuario en tabla:', errorInsert.message);
+      return false;
+    }
+    return true;
+  };
+
   const manejarReaccion = async (postId: string, tipo: string) => {
     if (usuarioCargando) {
       alert('Cargando usuario, intenta de nuevo en un momento.');
@@ -120,6 +143,12 @@ const FeedComunidad = () => {
     }
     if (!usuarioId) {
       alert('Debes iniciar sesión para reaccionar.');
+      return;
+    }
+    // Asegura que el usuario exista en la tabla antes de reaccionar
+    const ok = await asegurarUsuarioEnTabla();
+    if (!ok) {
+      alert('No se pudo registrar tu usuario. Intenta de nuevo.');
       return;
     }
     if (!postId || !tipo) {
