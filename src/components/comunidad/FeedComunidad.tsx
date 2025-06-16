@@ -127,9 +127,8 @@ const FeedComunidad = () => {
         .from('comunidad_reacciones')
         .insert({ post_id: postId, usuario_id: usuarioId, tipo });
     }
-    // Recargar reacciones y posts para refrescar nombre/avatar
+    // Solo recargar reacciones del post, no todo el feed
     cargarReacciones(postId);
-    fetchPosts();
   };
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
