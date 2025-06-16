@@ -117,23 +117,24 @@ const FeedComunidad = () => {
   const asegurarUsuarioEnTabla = async () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return false;
-    // Verifica si existe en la tabla users
+    // Verifica si existe en la tabla usuarios
     const { data: existe, error: errorExiste } = await supabase
-      .from('users')
+      .from('usuarios')
       .select('*')
       .eq('id', user.id)
       .single();
     if (existe) return true;
     // Si no existe, créalo
-    const nombre = user.user_metadata?.name || user.user_metadata?.full_name || user.email?.split('@')[0] || 'Usuario';
+    const name = user.user_metadata?.name || user.user_metadata?.full_name || user.email?.split('@')[0] || 'Usuario';
+    const avatar_url = user.user_metadata?.avatar_url || '';
     const { error: errorInsert } = await supabase
-      .from('users')
-      .insert({ id: user.id, email: user.email, nombre });
+      .from('usuarios')
+      .insert({ id: user.id, email: user.email, name, avatar_url });
     if (errorInsert) {
       // Si el error es por conflicto de email, busca el usuario por email y permite reaccionar
       if (errorInsert.code === '23505' || (errorInsert.message && errorInsert.message.includes('duplicate key')) || (errorInsert.details && errorInsert.details.includes('already exists'))) {
         const { data: usuarioPorEmail, error: errorEmail } = await supabase
-          .from('users')
+          .from('usuarios')
           .select('*')
           .eq('email', user.email)
           .single();
