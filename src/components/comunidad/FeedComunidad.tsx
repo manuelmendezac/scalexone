@@ -293,9 +293,9 @@ const FeedComunidad = () => {
           onChange={e => setContenido(e.target.value)}
           disabled={subiendo}
         />
-        <div className="flex gap-2 items-center">
+        <div className="flex gap-2 items-center justify-between">
           <select
-            className="bg-[#18181b] text-[#e6a800] border border-[#e6a800] rounded-xl px-3 py-1"
+            className="bg-[#18181b] text-[#e6a800] border border-[#e6a800] rounded-xl px-2 py-1 text-xs focus:outline-none focus:ring-2 focus:ring-[#e6a800] transition"
             value={tipo}
             onChange={e => {
               setTipo(e.target.value as any);
@@ -305,79 +305,79 @@ const FeedComunidad = () => {
               if (fileInputRef.current) fileInputRef.current.value = '';
             }}
             disabled={subiendo}
+            style={{ minWidth: 80 }}
           >
             <option value="texto">Texto</option>
             <option value="imagen">Imagen</option>
             <option value="video">Video</option>
             <option value="enlace">Enlace</option>
           </select>
-          {tipo === 'imagen' && (
-            <div className="flex-1 flex flex-col gap-2">
-              <input
-                type="file"
-                ref={fileInputRef}
-                accept="image/*"
-                multiple
-                onChange={handleFileSelect}
-                className="hidden"
-                disabled={subiendo}
-              />
-              <button
-                onClick={() => fileInputRef.current?.click()}
-                className="bg-[#18181b] text-[#e6a800] border border-[#e6a800] rounded-xl px-3 py-1 hover:bg-[#e6a800] hover:text-black transition"
-                disabled={subiendo}
-              >
-                Seleccionar imágenes
-              </button>
-              {imagenesPreview.length > 0 && (
-                <div className="flex gap-2 overflow-x-auto py-2">
-                  {imagenesPreview.map((url, idx) => (
-                    <div key={idx} className="relative">
-                      <img src={url} alt={`preview-${idx}`} className="h-24 w-24 object-cover rounded-xl border-2 border-[#e6a800]" />
-                      <button
-                        onClick={() => {
-                          setImagenesPreview(prev => prev.filter((_, i) => i !== idx));
-                          setImagenesSeleccionadas(prev => prev.filter((_, i) => i !== idx));
-                        }}
-                        className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
-                      >×</button>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-          {(tipo === 'video' || tipo === 'enlace') && (
-            <input
-              type="url"
-              className="bg-[#18181b] text-white border border-[#e6a800] rounded-xl px-3 py-1 flex-1"
-              placeholder="URL del enlace"
-              value={mediaUrl}
-              onChange={e => setMediaUrl(e.target.value)}
-              disabled={subiendo}
-            />
-          )}
-          {(tipo === 'imagen' || tipo === 'video' || tipo === 'enlace') && (
-            <input
-              type="text"
-              className="bg-[#18181b] text-white border border-[#e6a800] rounded-xl px-3 py-1 flex-1"
-              placeholder="Descripción (opcional)"
-              value={descripcion}
-              onChange={e => setDescripcion(e.target.value)}
-              disabled={subiendo}
-            />
-          )}
-        </div>
-        {error && <div className="text-red-500 text-sm">{error}</div>}
-        <div className="flex items-center gap-3">
           <button
-            className={`bg-[#e6a800] hover:bg-[#ffb300] text-black font-bold px-6 py-2 rounded-xl transition ${subiendo ? 'opacity-50 cursor-not-allowed' : ''}`}
+            className={`flex items-center gap-1 bg-[#e6a800] hover:bg-[#ffb300] text-black font-bold px-3 py-1 rounded-full shadow transition text-xs ${subiendo ? 'opacity-50 cursor-not-allowed' : ''}`}
             onClick={handlePublicar}
             disabled={subiendo}
+            style={{ minHeight: 32 }}
           >
-            {subiendo ? 'Publicando...' : 'Publicar'}
+            <span role="img" aria-label="publicar">🚀</span> {subiendo ? 'Publicando...' : 'Publicar'}
           </button>
         </div>
+        {tipo === 'imagen' && (
+          <div className="flex-1 flex flex-col gap-2">
+            <input
+              type="file"
+              ref={fileInputRef}
+              accept="image/*"
+              multiple
+              onChange={handleFileSelect}
+              className="hidden"
+              disabled={subiendo}
+            />
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              className="bg-[#18181b] text-[#e6a800] border border-[#e6a800] rounded-xl px-3 py-1 hover:bg-[#e6a800] hover:text-black transition"
+              disabled={subiendo}
+            >
+              Seleccionar imágenes
+            </button>
+            {imagenesPreview.length > 0 && (
+              <div className="flex gap-2 overflow-x-auto py-2">
+                {imagenesPreview.map((url, idx) => (
+                  <div key={idx} className="relative">
+                    <img src={url} alt={`preview-${idx}`} className="h-24 w-24 object-cover rounded-xl border-2 border-[#e6a800]" />
+                    <button
+                      onClick={() => {
+                        setImagenesPreview(prev => prev.filter((_, i) => i !== idx));
+                        setImagenesSeleccionadas(prev => prev.filter((_, i) => i !== idx));
+                      }}
+                      className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
+                    >×</button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+        {(tipo === 'video' || tipo === 'enlace') && (
+          <input
+            type="url"
+            className="bg-[#18181b] text-white border border-[#e6a800] rounded-xl px-3 py-1 flex-1"
+            placeholder="URL del enlace"
+            value={mediaUrl}
+            onChange={e => setMediaUrl(e.target.value)}
+            disabled={subiendo}
+          />
+        )}
+        {(tipo === 'imagen' || tipo === 'video' || tipo === 'enlace') && (
+          <input
+            type="text"
+            className="bg-[#18181b] text-white border border-[#e6a800] rounded-xl px-3 py-1 flex-1"
+            placeholder="Descripción (opcional)"
+            value={descripcion}
+            onChange={e => setDescripcion(e.target.value)}
+            disabled={subiendo}
+          />
+        )}
+        {error && <div className="text-red-500 text-sm">{error}</div>}
       </div>
       {/* Listado de publicaciones reales */}
       <div className="flex flex-col gap-6">
