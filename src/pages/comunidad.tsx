@@ -10,9 +10,10 @@ const ComunidadPage = () => {
   return (
     <div className="flex flex-row min-h-screen bg-neutral-950">
       <main className="flex-1 p-4">
-        {/* Canales de comunicación siempre fijos arriba del feed en móvil */}
-        {esMovil && (
-          <div className="w-full flex items-center gap-2 px-2 py-2 bg-neutral-900 rounded-xl mb-4 border border-cyan-900/30 shadow-md">
+        {/* Barra de canales siempre arriba del feed, en todas las resoluciones */}
+        <div className="w-full flex items-center gap-2 px-2 py-2 bg-neutral-900 rounded-xl mb-4 border border-cyan-900/30 shadow-md">
+          {/* Botón menú solo en móvil */}
+          {esMovil && (
             <button
               className="bg-[#e6a800] text-black rounded-full p-2 shadow focus:outline-none"
               aria-label="Abrir menú comunidad"
@@ -21,10 +22,10 @@ const ComunidadPage = () => {
             >
               <span style={{ fontSize: 22 }}>☰</span>
             </button>
-            <button className="flex-1 bg-[#23232b] text-white rounded-xl px-3 py-2 font-bold text-sm hover:bg-[#e6a800] hover:text-black transition">Chat General</button>
-            <button className="flex-1 bg-[#23232b] text-white rounded-xl px-3 py-2 font-bold text-sm hover:bg-[#e6a800] hover:text-black transition">Preséntate</button>
-          </div>
-        )}
+          )}
+          <button className="flex-1 bg-[#23232b] text-white rounded-xl px-3 py-2 font-bold text-sm hover:bg-[#e6a800] hover:text-black transition">Chat General</button>
+          <button className="flex-1 bg-[#23232b] text-white rounded-xl px-3 py-2 font-bold text-sm hover:bg-[#e6a800] hover:text-black transition">Preséntate</button>
+        </div>
         {/* Menú lateral solo muestra info de la comunidad, no los canales */}
         {esMovil && menuAbierto && (
           <div className="fixed inset-0 bg-black/60 z-40 flex justify-end" onClick={() => setMenuAbierto(false)}>
