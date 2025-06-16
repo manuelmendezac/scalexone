@@ -116,7 +116,10 @@ const FeedComunidad = () => {
   // Verifica y crea el usuario en la tabla si no existe
   const asegurarUsuarioEnTabla = async () => {
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return false;
+    if (!user || !user.email) {
+      alert('No se pudo obtener el email del usuario. No se puede registrar.');
+      return false;
+    }
     // Verifica si existe en la tabla usuarios
     const { data: existe, error: errorExiste } = await supabase
       .from('usuarios')
@@ -125,7 +128,7 @@ const FeedComunidad = () => {
       .single();
     if (existe) return true;
     // Si no existe, créalo
-    const name = user.user_metadata?.name || user.user_metadata?.full_name || user.email?.split('@')[0] || 'Usuario';
+    const name = user.user_metadata?.name || user.user_metadata?.full_name || user.email.split('@')[0] || 'Usuario';
     const avatar_url = user.user_metadata?.avatar_url || '';
     const { error: errorInsert } = await supabase
       .from('usuarios')
