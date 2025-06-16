@@ -487,6 +487,17 @@ const VideoWithOrientation: React.FC<{ src: string; orientacion?: string }> = ({
 
 const CarruselImagenes: React.FC<{ imagenes: string[] }> = ({ imagenes }) => {
   const [idx, setIdx] = useState(0);
+
+  // Forzar descarga automática
+  const handleDescargar = (url: string) => {
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = url.split('/').pop() || 'imagen.jpg';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
     <div className="relative w-full flex flex-col items-center">
       <div className="w-full flex justify-center items-center relative">
@@ -502,22 +513,23 @@ const CarruselImagenes: React.FC<{ imagenes: string[] }> = ({ imagenes }) => {
           </button>
         )}
         {/* Imagen principal */}
-        <img
-          src={imagenes[idx]}
-          alt={`img-${idx}`}
-          className="max-h-80 w-auto rounded-xl object-contain border-2 border-[#e6a800] mx-auto"
-          style={{ maxWidth: '100%' }}
-        />
-        {/* Botón de descarga */}
-        <a
-          href={imagenes[idx]}
-          download
-          className="absolute top-2 right-2 bg-[#e6a800] hover:bg-[#ffb300] text-black rounded-full p-1 shadow-md z-10 flex items-center justify-center"
-          style={{ width: 32, height: 32 }}
-          title="Descargar imagen"
-        >
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-        </a>
+        <div className="relative flex justify-center items-center w-full" style={{ maxWidth: 600 }}>
+          <img
+            src={imagenes[idx]}
+            alt={`img-${idx}`}
+            className="rounded-xl object-contain border-2 border-[#e6a800] mx-auto"
+            style={{ maxWidth: '100%', maxHeight: '70vh', width: 'auto', height: 'auto', display: 'block' }}
+          />
+          {/* Botón de descarga */}
+          <button
+            onClick={() => handleDescargar(imagenes[idx])}
+            className="absolute top-2 right-2 bg-[#e6a800] hover:bg-[#ffb300] text-black rounded-full p-1 shadow-md z-10 flex items-center justify-center opacity-80 hover:opacity-100"
+            style={{ width: 28, height: 28 }}
+            title="Descargar imagen"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          </button>
+        </div>
         {/* Flecha derecha */}
         {imagenes.length > 1 && (
           <button
