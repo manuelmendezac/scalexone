@@ -99,6 +99,7 @@ const FeedComunidad = () => {
   const manejarReaccion = async (postId: string, tipo: string) => {
     console.log('Intentando reaccionar:', postId, usuarioId, tipo);
     if (!postId || !usuarioId || !tipo) {
+      alert('Faltan datos para reaccionar. postId: ' + postId + ', usuarioId: ' + usuarioId + ', tipo: ' + tipo);
       console.error('Faltan datos para reaccionar:', { postId, usuarioId, tipo });
       return;
     }
