@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { User, Users, Share2, Brain, Zap, MessageCircle, Plus, X, Wifi, Moon, Sun, Loader2, File, Tag, Eye, EyeOff, Send, Smile, Link, Grid, List, Heart, Share, ExternalLink } from 'lucide-react';
 import { useNeuroHubStore } from '../../store/useNeuroHubStore';
+import useNeuroState from '../../store/useNeuroState';
 
 // Tipos
 interface Clon {
@@ -309,6 +310,7 @@ const RoomChat: React.FC<{ roomId: string }> = ({ roomId }) => {
   const [message, setMessage] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const room = rooms.find(r => r.id === roomId);
+  const { avatarUrl, userName } = useNeuroState();
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -344,48 +346,66 @@ const RoomChat: React.FC<{ roomId: string }> = ({ roomId }) => {
             animate={{ opacity: 1, y: 0 }}
             className={`flex ${msg.sender === 'current-user' ? 'justify-end' : 'justify-start'}`}
           >
-            <div
-              className={`max-w-[70%] rounded-lg p-3 ${
-                msg.sender === 'current-user'
-                  ? 'bg-cyan-600/30 text-cyan-100'
-                  : 'bg-violet-600/30 text-violet-100'
-              }`}
-            >
-              {msg.type === 'link' ? (
-                <a
-                  href={msg.content}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-2 text-cyan-300 hover:text-cyan-100"
-                >
-                  <ExternalLink className="w-4 h-4" />
-                  {msg.content}
-                </a>
-              ) : msg.type === 'file' ? (
-                <div className="flex items-center gap-2">
-                  <File className="w-4 h-4" />
-                  <span>{msg.content}</span>
-                </div>
-              ) : (
-                <p>{msg.content}</p>
+            <div className="flex items-end gap-2">
+              {/* Avatar del usuario autenticado */}
+              {msg.sender === 'current-user' && (
+                <img
+                  src={avatarUrl || '/avatar.png'}
+                  alt="avatar"
+                  className="w-8 h-8 rounded-full border-2 border-cyan-400 object-cover"
+                />
               )}
-              <div className="flex gap-2 mt-2">
-                {msg.reactions.map(reaction => (
+              <div
+                className={`max-w-[70%] rounded-lg p-3 ${
+                  msg.sender === 'current-user'
+                    ? 'bg-cyan-600/30 text-cyan-100'
+                    : 'bg-violet-600/30 text-violet-100'
+                }`}
+              >
+                {msg.type === 'link' ? (
+                  <a
+                    href={msg.content}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 text-cyan-300 hover:text-cyan-100"
+                  >
+                    <ExternalLink className="w-4 h-4" />
+                    {msg.content}
+                  </a>
+                ) : msg.type === 'file' ? (
+                  <div className="flex items-center gap-2">
+                    <File className="w-4 h-4" />
+                    <span>{msg.content}</span>
+                  </div>
+                ) : (
+                  <p>{msg.content}</p>
+                )}
+                <div className="flex gap-2 mt-2">
+                  {msg.reactions.map(reaction => (
+                    <button
+                      key={reaction.emoji}
+                      onClick={() => addReaction(roomId, msg.id, reaction.emoji)}
+                      className="text-sm hover:scale-110 transition-transform"
+                    >
+                      {reaction.emoji} {reaction.count}
+                    </button>
+                  ))}
                   <button
-                    key={reaction.emoji}
-                    onClick={() => addReaction(roomId, msg.id, reaction.emoji)}
+                    onClick={() => addReaction(roomId, msg.id, '👍')}
                     className="text-sm hover:scale-110 transition-transform"
                   >
-                    {reaction.emoji} {reaction.count}
+                    <Smile className="w-4 h-4" />
                   </button>
-                ))}
-                <button
-                  onClick={() => addReaction(roomId, msg.id, '👍')}
-                  className="text-sm hover:scale-110 transition-transform"
-                >
-                  <Smile className="w-4 h-4" />
-                </button>
+                </div>
               </div>
+              {/* Avatar de otros usuarios (si aplica) */}
+              {msg.sender !== 'current-user' && (
+                <img
+                  src={'/avatar.png'}
+                  alt="avatar"
+                  className="w-8 h-8 rounded-full border-2 border-violet-400 object-cover"
+                />
+              )}
             </div>
           </motion.div>
         ))}
