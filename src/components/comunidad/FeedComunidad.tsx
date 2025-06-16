@@ -125,12 +125,25 @@ const FeedComunidad = () => {
       .single();
     if (existe) return true;
     // Si no existe, créalo
-    const nombre = user.user_metadata?.name || user.email?.split('@')[0] || 'Usuario';
+    const nombre = user.user_metadata?.name || user.user_metadata?.full_name || user.email?.split('@')[0] || 'Usuario';
     const { error: errorInsert } = await supabase
       .from('users')
       .insert({ id: user.id, email: user.email, nombre });
     if (errorInsert) {
-      console.error('Error al crear usuario en tabla:', errorInsert.message);
+      // Si el error es por conflicto de email, busca el usuario por email y permite reaccionar
+      if (errorInsert.code === '23505' || (errorInsert.message && errorInsert.message.includes('duplicate key')) || (errorInsert.details && errorInsert.details.includes('already exists'))) {
+        const { data: usuarioPorEmail, error: errorEmail } = await supabase
+          .from('users')
+          .select('*')
+          .eq('email', user.email)
+          .single();
+        if (usuarioPorEmail) {
+          setUsuarioId(usuarioPorEmail.id);
+          return true;
+        }
+      }
+      alert('Error al crear usuario en tabla: ' + (errorInsert.message || JSON.stringify(errorInsert)));
+      console.error('Error al crear usuario en tabla:', errorInsert);
       return false;
     }
     return true;
