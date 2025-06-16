@@ -8,15 +8,22 @@ const BarraLateralComunidad = () => {
 
   return (
     <>
-      {/* Botón flotante solo en móvil */}
-      <button
-        className="fixed top-4 right-4 z-50 md:hidden bg-[#e6a800] text-black rounded-full p-2 shadow-lg focus:outline-none"
-        style={{ display: esMovil ? 'block' : 'none' }}
-        onClick={() => setAbierto(true)}
-        aria-label="Abrir menú comunidad"
-      >
-        <span style={{ fontSize: 24 }}>☰</span>
-      </button>
+      {/* Barra de canales y botón menú en móvil */}
+      {esMovil && (
+        <div className="flex items-center gap-2 px-2 py-2 bg-neutral-900 sticky top-[56px] z-30 border-b border-cyan-900/30">
+          <button
+            className="bg-[#e6a800] text-black rounded-full p-2 shadow focus:outline-none"
+            onClick={() => setAbierto(true)}
+            aria-label="Abrir menú comunidad"
+            style={{ minWidth: 40, minHeight: 40 }}
+          >
+            <span style={{ fontSize: 22 }}>☰</span>
+          </button>
+          {/* Botones de canales principales */}
+          <button className="flex-1 bg-[#23232b] text-white rounded-xl px-3 py-2 font-bold text-sm hover:bg-[#e6a800] hover:text-black transition">Chat General</button>
+          <button className="flex-1 bg-[#23232b] text-white rounded-xl px-3 py-2 font-bold text-sm hover:bg-[#e6a800] hover:text-black transition">Preséntate</button>
+        </div>
+      )}
 
       {/* Barra lateral como modal en móvil */}
       {esMovil && abierto && (
