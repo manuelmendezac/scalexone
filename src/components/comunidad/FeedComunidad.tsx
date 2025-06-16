@@ -386,85 +386,88 @@ const FeedComunidad = () => {
         ) : posts.length === 0 ? (
           <div className="text-center text-gray-400">No hay publicaciones aún.</div>
         ) : (
-          posts.map((post) => (
-            <div key={post.id} className="bg-[#23232b] rounded-2xl p-6 shadow flex flex-col gap-2">
-              <div className="flex items-center gap-3 mb-2">
-                <img src={usuarios[post.usuario_id]?.avatar_url || `https://ui-avatars.com/api/?name=Usuario&background=e6a800&color=fff&size=96`} alt="avatar" className="w-10 h-10 rounded-full border-2 border-[#e6a800] object-cover" />
-                <div>
-                  <span className="text-white font-bold">{usuarios[post.usuario_id]?.name || 'Usuario'}</span>
-                  <span className="ml-2 text-xs text-[#e6a800] font-semibold">{new Date(post.created_at).toLocaleString()}</span>
+          posts.map((post) => {
+            console.log('Reacciones para post', post.id, reaccionesPorPost[post.id]);
+            return (
+              <div key={post.id} className="bg-[#23232b] rounded-2xl p-6 shadow flex flex-col gap-2">
+                <div className="flex items-center gap-3 mb-2">
+                  <img src={usuarios[post.usuario_id]?.avatar_url || `https://ui-avatars.com/api/?name=Usuario&background=e6a800&color=fff&size=96`} alt="avatar" className="w-10 h-10 rounded-full border-2 border-[#e6a800] object-cover" />
+                  <div>
+                    <span className="text-white font-bold">{usuarios[post.usuario_id]?.name || 'Usuario'}</span>
+                    <span className="ml-2 text-xs text-[#e6a800] font-semibold">{new Date(post.created_at).toLocaleString()}</span>
+                  </div>
+                  {/* Botones de editar/eliminar solo para el autor */}
+                  {post.usuario_id === usuarioId && (
+                    <div className="flex gap-2 ml-4">
+                      {editandoPostId === post.id ? null : (
+                        <>
+                          <button onClick={() => handleEditar(post)} className="text-xs px-2 py-1 rounded bg-yellow-500 text-black font-bold hover:bg-yellow-400 transition">Editar</button>
+                          <button onClick={() => handleEliminar(post)} className="text-xs px-2 py-1 rounded bg-red-600 text-white font-bold hover:bg-red-500 transition">Eliminar</button>
+                        </>
+                      )}
+                    </div>
+                  )}
                 </div>
-                {/* Botones de editar/eliminar solo para el autor */}
-                {post.usuario_id === usuarioId && (
-                  <div className="flex gap-2 ml-4">
-                    {editandoPostId === post.id ? null : (
-                      <>
-                        <button onClick={() => handleEditar(post)} className="text-xs px-2 py-1 rounded bg-yellow-500 text-black font-bold hover:bg-yellow-400 transition">Editar</button>
-                        <button onClick={() => handleEliminar(post)} className="text-xs px-2 py-1 rounded bg-red-600 text-white font-bold hover:bg-red-500 transition">Eliminar</button>
-                      </>
+                {/* Edición en línea */}
+                {editandoPostId === post.id ? (
+                  <div className="flex flex-col gap-2 mb-2">
+                    <textarea
+                      className="w-full bg-[#18181b] text-white rounded-xl p-3 resize-none min-h-[60px] focus:outline-none focus:ring-2 focus:ring-[#e6a800]"
+                      value={editContenido}
+                      onChange={e => setEditContenido(e.target.value)}
+                    />
+                    <input
+                      type="text"
+                      className="bg-[#18181b] text-white border border-[#e6a800] rounded-xl px-3 py-1"
+                      placeholder="Descripción (opcional)"
+                      value={editDescripcion}
+                      onChange={e => setEditDescripcion(e.target.value)}
+                    />
+                    <div className="flex gap-2 mt-1">
+                      <button onClick={() => handleGuardarEdicion(post)} className="px-4 py-1 rounded bg-green-500 text-white font-bold hover:bg-green-400 transition">Guardar</button>
+                      <button onClick={handleCancelarEdicion} className="px-4 py-1 rounded bg-gray-600 text-white font-bold hover:bg-gray-500 transition">Cancelar</button>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <div className="text-white text-base mb-2">{post.contenido}</div>
+                    {post.tipo === 'imagen' && post.media_url && (
+                      <img src={post.media_url} alt="imagen" className="rounded-xl max-h-80 object-cover mb-2" />
                     )}
-                  </div>
+                    {post.tipo === 'video' && post.media_url && (
+                      <VideoWithOrientation src={post.media_url} orientacion={post.orientacion} />
+                    )}
+                    {post.tipo === 'enlace' && post.media_url && (
+                      <a href={post.media_url} target="_blank" rel="noopener noreferrer" className="text-cyan-400 underline break-all mb-2">{post.media_url}</a>
+                    )}
+                    {post.descripcion && (
+                      <div className="text-gray-400 text-sm mb-2">{post.descripcion}</div>
+                    )}
+                    {post.tipo === 'imagen' && post.imagenes_urls && post.imagenes_urls.length > 0 && (
+                      <CarruselImagenes imagenes={post.imagenes_urls} />
+                    )}
+                  </>
                 )}
-              </div>
-              {/* Edición en línea */}
-              {editandoPostId === post.id ? (
-                <div className="flex flex-col gap-2 mb-2">
-                  <textarea
-                    className="w-full bg-[#18181b] text-white rounded-xl p-3 resize-none min-h-[60px] focus:outline-none focus:ring-2 focus:ring-[#e6a800]"
-                    value={editContenido}
-                    onChange={e => setEditContenido(e.target.value)}
+                {/* Reacciones tipo Facebook y botones unificados */}
+                <div className="flex gap-4 mt-2 items-center">
+                  <ReaccionesFacebook
+                    postId={post.id}
+                    usuarioId={usuarioId}
+                    reacciones={reaccionesPorPost[post.id] || []}
+                    miReaccion={miReaccionPorPost[post.id] || null}
+                    onReact={tipo => manejarReaccion(post.id, tipo)}
                   />
-                  <input
-                    type="text"
-                    className="bg-[#18181b] text-white border border-[#e6a800] rounded-xl px-3 py-1"
-                    placeholder="Descripción (opcional)"
-                    value={editDescripcion}
-                    onChange={e => setEditDescripcion(e.target.value)}
-                  />
-                  <div className="flex gap-2 mt-1">
-                    <button onClick={() => handleGuardarEdicion(post)} className="px-4 py-1 rounded bg-green-500 text-white font-bold hover:bg-green-400 transition">Guardar</button>
-                    <button onClick={handleCancelarEdicion} className="px-4 py-1 rounded bg-gray-600 text-white font-bold hover:bg-gray-500 transition">Cancelar</button>
-                  </div>
+                  <button className="flex items-center gap-1 px-3 py-1 rounded-full font-bold border border-gray-700 bg-black/30 hover:bg-black/50 transition text-yellow-400">
+                    <span role="img" aria-label="comentar">💬</span> Comentar
+                  </button>
+                  <button className="flex items-center gap-1 px-3 py-1 rounded-full font-bold border border-gray-700 bg-black/30 hover:bg-black/50 transition text-cyan-400">
+                    <span role="img" aria-label="compartir">📤</span> Compartir
+                  </button>
                 </div>
-              ) : (
-                <>
-                  <div className="text-white text-base mb-2">{post.contenido}</div>
-                  {post.tipo === 'imagen' && post.media_url && (
-                    <img src={post.media_url} alt="imagen" className="rounded-xl max-h-80 object-cover mb-2" />
-                  )}
-                  {post.tipo === 'video' && post.media_url && (
-                    <VideoWithOrientation src={post.media_url} orientacion={post.orientacion} />
-                  )}
-                  {post.tipo === 'enlace' && post.media_url && (
-                    <a href={post.media_url} target="_blank" rel="noopener noreferrer" className="text-cyan-400 underline break-all mb-2">{post.media_url}</a>
-                  )}
-                  {post.descripcion && (
-                    <div className="text-gray-400 text-sm mb-2">{post.descripcion}</div>
-                  )}
-                  {post.tipo === 'imagen' && post.imagenes_urls && post.imagenes_urls.length > 0 && (
-                    <CarruselImagenes imagenes={post.imagenes_urls} />
-                  )}
-                </>
-              )}
-              {/* Reacciones tipo Facebook y botones unificados */}
-              <div className="flex gap-4 mt-2 items-center">
-                <ReaccionesFacebook
-                  postId={post.id}
-                  usuarioId={usuarioId}
-                  reacciones={reaccionesPorPost[post.id] || []}
-                  miReaccion={miReaccionPorPost[post.id] || null}
-                  onReact={tipo => manejarReaccion(post.id, tipo)}
-                />
-                <button className="flex items-center gap-1 px-3 py-1 rounded-full font-bold border border-gray-700 bg-black/30 hover:bg-black/50 transition text-yellow-400">
-                  <span role="img" aria-label="comentar">💬</span> Comentar
-                </button>
-                <button className="flex items-center gap-1 px-3 py-1 rounded-full font-bold border border-gray-700 bg-black/30 hover:bg-black/50 transition text-cyan-400">
-                  <span role="img" aria-label="compartir">📤</span> Compartir
-                </button>
+                <ComunidadComentarios postId={post.id} />
               </div>
-              <ComunidadComentarios postId={post.id} />
-            </div>
-          ))
+            );
+          })
         )}
       </div>
     </div>
