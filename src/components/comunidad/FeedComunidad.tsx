@@ -487,15 +487,27 @@ const VideoWithOrientation: React.FC<{ src: string; orientacion?: string }> = ({
 
 const CarruselImagenes: React.FC<{ imagenes: string[] }> = ({ imagenes }) => {
   const [idx, setIdx] = useState(0);
+  const [descargando, setDescargando] = useState(false);
 
-  // Forzar descarga automática
-  const handleDescargar = (url: string) => {
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = url.split('/').pop() || 'imagen.jpg';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+  // Forzar descarga automática usando fetch/blob
+  const handleDescargar = async (url: string) => {
+    setDescargando(true);
+    try {
+      const response = await fetch(url, { mode: 'cors' });
+      if (!response.ok) throw new Error('No se pudo descargar la imagen');
+      const blob = await response.blob();
+      const blobUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = blobUrl;
+      link.download = url.split('/').pop() || 'imagen.jpg';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(blobUrl);
+    } catch (e) {
+      alert('No se pudo descargar la imagen automáticamente. Si tu navegador lo permite, mantén presionada la imagen y selecciona "Descargar".');
+    }
+    setDescargando(false);
   };
 
   return (
@@ -526,8 +538,13 @@ const CarruselImagenes: React.FC<{ imagenes: string[] }> = ({ imagenes }) => {
             className="absolute top-2 right-2 bg-[#e6a800] hover:bg-[#ffb300] text-black rounded-full p-1 shadow-md z-10 flex items-center justify-center opacity-80 hover:opacity-100"
             style={{ width: 28, height: 28 }}
             title="Descargar imagen"
+            disabled={descargando}
           >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            {descargando ? (
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" strokeDasharray="40" strokeDashoffset="20"><animate attributeName="stroke-dashoffset" values="40;0" dur="1s" repeatCount="indefinite" /></circle></svg>
+            ) : (
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            )}
           </button>
         </div>
         {/* Flecha derecha */}
