@@ -1,25 +1,6 @@
 import React from 'react';
 
 const BarraLateralComunidad = () => {
-  // Detectar si es móvil
-  const esMovil = typeof window !== 'undefined' && window.innerWidth < 768;
-
-  return (
-    <>
-      {/* Barra lateral como modal en móvil */}
-      {esMovil && (
-        <></>
-      )}
-      {/* Barra lateral normal en desktop */}
-      <aside className="hidden md:block w-[350px] p-4 bg-neutral-900 border-l border-cyan-900/30">
-        <BarraLateralContenido />
-      </aside>
-    </>
-  );
-};
-
-const BarraLateralContenido = () => {
-  const esMovil = typeof window !== 'undefined' && window.innerWidth < 768;
   return (
     <div className="flex flex-col gap-6">
       {/* Portada de la comunidad */}
@@ -69,17 +50,15 @@ const BarraLateralContenido = () => {
         </ol>
       </div>
       {/* Lista de canales/temas solo en escritorio */}
-      {!esMovil && (
-        <div className="bg-[#23232b] rounded-2xl p-4">
-          <h4 className="text-[#e6a800] font-bold mb-2 text-sm">Canales</h4>
-          <ul className="flex flex-col gap-2">
-            <li className="text-white hover:text-[#e6a800] cursor-pointer">General</li>
-            <li className="text-white hover:text-[#e6a800] cursor-pointer">Presentaciones</li>
-            <li className="text-white hover:text-[#e6a800] cursor-pointer">Recursos</li>
-            <li className="text-white hover:text-[#e6a800] cursor-pointer">Networking</li>
-          </ul>
-        </div>
-      )}
+      <div className="hidden md:block bg-[#23232b] rounded-2xl p-4">
+        <h4 className="text-[#e6a800] font-bold mb-2 text-sm">Canales</h4>
+        <ul className="flex flex-col gap-2">
+          <li className="text-white hover:text-[#e6a800] cursor-pointer">General</li>
+          <li className="text-white hover:text-[#e6a800] cursor-pointer">Presentaciones</li>
+          <li className="text-white hover:text-[#e6a800] cursor-pointer">Recursos</li>
+          <li className="text-white hover:text-[#e6a800] cursor-pointer">Networking</li>
+        </ul>
+      </div>
     </div>
   );
 };

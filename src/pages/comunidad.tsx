@@ -30,18 +30,20 @@ const ComunidadPage = () => {
         {esMovil && menuAbierto && (
           <div className="fixed inset-0 bg-black/60 z-40 flex justify-end" onClick={() => setMenuAbierto(false)}>
             <aside
-              className="w-72 max-w-full h-full bg-neutral-900 p-4 border-l border-cyan-900/30 shadow-xl animate-slide-in-right"
+              className="w-72 max-w-full h-full bg-neutral-900 p-4 border-l border-cyan-900/30 shadow-xl animate-slide-in-right relative"
               onClick={e => e.stopPropagation()}
             >
               <button
-                className="absolute top-4 right-4 text-2xl text-[#e6a800] font-bold"
+                className="absolute top-4 right-4 text-2xl text-[#e6a800] font-bold z-50"
                 onClick={() => setMenuAbierto(false)}
                 aria-label="Cerrar menú"
               >
                 ×
               </button>
               {/* Info de la comunidad */}
-              <BarraLateralComunidad />
+              <div className="overflow-y-auto h-full pt-10">
+                <BarraLateralComunidad />
+              </div>
             </aside>
           </div>
         )}
