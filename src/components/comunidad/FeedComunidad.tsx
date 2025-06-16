@@ -97,35 +97,43 @@ const FeedComunidad = () => {
   };
 
   const manejarReaccion = async (postId: string, tipo: string) => {
-    if (!usuarioId) return;
+    if (!usuarioId) {
+      console.error('No hay usuarioId, no se puede reaccionar');
+      return;
+    }
+    console.log('Intentando reaccionar:', { postId, usuarioId, tipo });
     // Consultar si ya existe una reacción para este usuario y post
     const { data: existentes, error: errorExistente } = await supabase
       .from('comunidad_reacciones')
       .select('*')
       .eq('post_id', postId)
       .eq('usuario_id', usuarioId);
+    console.log('Reacción existente:', existentes, 'Error:', errorExistente);
     const reaccionActual = existentes && existentes.length > 0 ? existentes[0] : null;
     if (reaccionActual) {
       if (reaccionActual.tipo === tipo) {
         // Si es la misma, eliminar (quitar reacción)
-        await supabase
+        const { error: errorDelete, data: dataDelete } = await supabase
           .from('comunidad_reacciones')
           .delete()
           .eq('post_id', postId)
           .eq('usuario_id', usuarioId);
+        console.log('Intentando eliminar reacción:', { postId, usuarioId }, 'Respuesta:', dataDelete, 'Error:', errorDelete);
       } else {
         // Si es diferente, actualizar
-        await supabase
+        const { error: errorUpdate, data: dataUpdate } = await supabase
           .from('comunidad_reacciones')
           .update({ tipo })
           .eq('post_id', postId)
           .eq('usuario_id', usuarioId);
+        console.log('Intentando actualizar reacción:', { postId, usuarioId, tipo }, 'Respuesta:', dataUpdate, 'Error:', errorUpdate);
       }
     } else {
       // Si no existe, insertar
-      await supabase
+      const { error: errorInsert, data: dataInsert } = await supabase
         .from('comunidad_reacciones')
         .insert({ post_id: postId, usuario_id: usuarioId, tipo });
+      console.log('Intentando insertar reacción:', { postId, usuarioId, tipo }, 'Respuesta:', dataInsert, 'Error:', errorInsert);
     }
     // Solo recargar reacciones del post, no todo el feed
     cargarReacciones(postId);
