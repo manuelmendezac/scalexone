@@ -11,6 +11,7 @@ interface Post {
   media_url: string | null;
   descripcion: string | null;
   created_at: string;
+  orientacion?: 'vertical' | 'horizontal';
   usuario?: {
     avatar_url?: string;
     name?: string;
@@ -33,6 +34,10 @@ const FeedComunidad = () => {
   const [miReaccionPorPost, setMiReaccionPorPost] = useState<Record<string, string | null>>({});
   const [usuarioId, setUsuarioId] = useState<string>('');
   const [usuarios, setUsuarios] = useState<Record<string, { avatar_url?: string; name?: string }>>({});
+  const [editandoPostId, setEditandoPostId] = useState<string | null>(null);
+  const [editContenido, setEditContenido] = useState('');
+  const [editDescripcion, setEditDescripcion] = useState('');
+  const [orientacion, setOrientacion] = useState<'vertical' | 'horizontal' | null>(null);
 
   useEffect(() => {
     fetchPosts();
@@ -136,6 +141,22 @@ const FeedComunidad = () => {
     setArchivoSeleccionado(file);
     setPreviewUrl(URL.createObjectURL(file));
     setError(null);
+
+    // Detectar orientación si es video
+    if (tipo === 'video') {
+      const video = document.createElement('video');
+      video.preload = 'metadata';
+      video.onloadedmetadata = function () {
+        if (video.videoHeight > video.videoWidth) {
+          setOrientacion('vertical');
+        } else {
+          setOrientacion('horizontal');
+        }
+      };
+      video.src = URL.createObjectURL(file);
+    } else {
+      setOrientacion(null);
+    }
   };
 
   const handlePublicar = async () => {
@@ -176,13 +197,14 @@ const FeedComunidad = () => {
         mediaUrlFinal = publicUrlData.publicUrl;
       }
 
-      // Insertar post
+      // Insertar post con orientación
       const { error: insertError } = await supabase.from('comunidad_posts').insert({
         usuario_id: user.id,
         contenido,
         tipo,
         media_url: mediaUrlFinal || null,
-        descripcion: descripcion || null
+        descripcion: descripcion || null,
+        orientacion: orientacion || null
       });
 
       if (insertError) throw insertError;
@@ -194,6 +216,7 @@ const FeedComunidad = () => {
       setDescripcion('');
       setPreviewUrl(null);
       setArchivoSeleccionado(null);
+      setOrientacion(null);
       if (fileInputRef.current) fileInputRef.current.value = '';
       
       // Recargar posts
@@ -202,6 +225,35 @@ const FeedComunidad = () => {
       setError('Error al publicar: ' + err.message);
     } finally {
       setSubiendo(false);
+    }
+  };
+
+  const handleEditar = (post: Post) => {
+    setEditandoPostId(post.id);
+    setEditContenido(post.contenido);
+    setEditDescripcion(post.descripcion || '');
+  };
+
+  const handleGuardarEdicion = async (post: Post) => {
+    await supabase
+      .from('comunidad_posts')
+      .update({ contenido: editContenido, descripcion: editDescripcion })
+      .eq('id', post.id);
+    setEditandoPostId(null);
+    fetchPosts();
+  };
+
+  const handleCancelarEdicion = () => {
+    setEditandoPostId(null);
+  };
+
+  const handleEliminar = async (post: Post) => {
+    if (window.confirm('¿Seguro que quieres eliminar este post?')) {
+      await supabase
+        .from('comunidad_posts')
+        .delete()
+        .eq('id', post.id);
+      fetchPosts();
     }
   };
 
@@ -260,11 +312,17 @@ const FeedComunidad = () => {
                       className="max-h-40 rounded-xl object-cover"
                     />
                   ) : (
-                    <video
-                      src={previewUrl}
-                      controls
-                      className="max-h-40 rounded-xl"
-                    />
+                    <div className={
+                      orientacion === 'vertical'
+                        ? 'w-[320px] h-[570px] mx-auto rounded-xl overflow-hidden mb-2 flex justify-center items-center bg-black'
+                        : 'w-full aspect-video rounded-xl overflow-hidden mb-2 flex justify-center items-center bg-black'
+                    }>
+                      <video
+                        src={previewUrl}
+                        controls
+                        className="w-full h-full object-contain"
+                      />
+                    </div>
                   )}
                   <button
                     onClick={() => {
@@ -327,20 +385,60 @@ const FeedComunidad = () => {
                   <span className="text-white font-bold">{usuarios[post.usuario_id]?.name || 'Usuario'}</span>
                   <span className="ml-2 text-xs text-[#e6a800] font-semibold">{new Date(post.created_at).toLocaleString()}</span>
                 </div>
+                {/* Botones de editar/eliminar solo para el autor */}
+                {post.usuario_id === usuarioId && (
+                  <div className="flex gap-2 ml-4">
+                    {editandoPostId === post.id ? null : (
+                      <>
+                        <button onClick={() => handleEditar(post)} className="text-xs px-2 py-1 rounded bg-yellow-500 text-black font-bold hover:bg-yellow-400 transition">Editar</button>
+                        <button onClick={() => handleEliminar(post)} className="text-xs px-2 py-1 rounded bg-red-600 text-white font-bold hover:bg-red-500 transition">Eliminar</button>
+                      </>
+                    )}
+                  </div>
+                )}
               </div>
-              <div className="text-white text-base mb-2">{post.contenido}</div>
-              {/* Mostrar media si existe */}
-              {post.tipo === 'imagen' && post.media_url && (
-                <img src={post.media_url} alt="imagen" className="rounded-xl max-h-80 object-cover mb-2" />
-              )}
-              {post.tipo === 'video' && post.media_url && (
-                <video controls src={post.media_url} className="rounded-xl max-h-80 object-cover mb-2" />
-              )}
-              {post.tipo === 'enlace' && post.media_url && (
-                <a href={post.media_url} target="_blank" rel="noopener noreferrer" className="text-cyan-400 underline break-all mb-2">{post.media_url}</a>
-              )}
-              {post.descripcion && (
-                <div className="text-gray-400 text-sm mb-2">{post.descripcion}</div>
+              {/* Edición en línea */}
+              {editandoPostId === post.id ? (
+                <div className="flex flex-col gap-2 mb-2">
+                  <textarea
+                    className="w-full bg-[#18181b] text-white rounded-xl p-3 resize-none min-h-[60px] focus:outline-none focus:ring-2 focus:ring-[#e6a800]"
+                    value={editContenido}
+                    onChange={e => setEditContenido(e.target.value)}
+                  />
+                  <input
+                    type="text"
+                    className="bg-[#18181b] text-white border border-[#e6a800] rounded-xl px-3 py-1"
+                    placeholder="Descripción (opcional)"
+                    value={editDescripcion}
+                    onChange={e => setEditDescripcion(e.target.value)}
+                  />
+                  <div className="flex gap-2 mt-1">
+                    <button onClick={() => handleGuardarEdicion(post)} className="px-4 py-1 rounded bg-green-500 text-white font-bold hover:bg-green-400 transition">Guardar</button>
+                    <button onClick={handleCancelarEdicion} className="px-4 py-1 rounded bg-gray-600 text-white font-bold hover:bg-gray-500 transition">Cancelar</button>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <div className="text-white text-base mb-2">{post.contenido}</div>
+                  {post.tipo === 'imagen' && post.media_url && (
+                    <img src={post.media_url} alt="imagen" className="rounded-xl max-h-80 object-cover mb-2" />
+                  )}
+                  {post.tipo === 'video' && post.media_url && (
+                    <div className={
+                      post.orientacion === 'vertical'
+                        ? 'w-[320px] h-[570px] mx-auto rounded-xl overflow-hidden mb-2 flex justify-center items-center bg-black'
+                        : 'w-full aspect-video rounded-xl overflow-hidden mb-2 flex justify-center items-center bg-black'
+                    }>
+                      <video controls src={post.media_url} className="w-full h-full object-contain" />
+                    </div>
+                  )}
+                  {post.tipo === 'enlace' && post.media_url && (
+                    <a href={post.media_url} target="_blank" rel="noopener noreferrer" className="text-cyan-400 underline break-all mb-2">{post.media_url}</a>
+                  )}
+                  {post.descripcion && (
+                    <div className="text-gray-400 text-sm mb-2">{post.descripcion}</div>
+                  )}
+                </>
               )}
               {/* Reacciones tipo Facebook y botones unificados */}
               <div className="flex gap-4 mt-2 items-center">
