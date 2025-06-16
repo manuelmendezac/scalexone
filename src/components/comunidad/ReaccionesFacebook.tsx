@@ -43,7 +43,7 @@ const ReaccionesFacebook: React.FC<Props> = ({ postId, usuarioId, reacciones, mi
       {mostrar.map(r => (
         <button
           key={r.tipo}
-          className={`text-xl md:text-2xl px-0.5 transition-transform duration-150 ${esMia(r.tipo) ? 'scale-110' : 'opacity-80 hover:scale-105'} bg-transparent rounded-full`}
+          className={`text-xl md:text-2xl px-0.5 transition-transform duration-150 ${esMia(r.tipo) ? 'scale-125 ring-2 ring-yellow-400' : 'opacity-80 hover:scale-105'} bg-transparent rounded-full`}
           title={REACCIONES.find(x => x.tipo === r.tipo)?.emoji || '❤️'}
           style={{ background: 'none', border: 'none', outline: 'none', cursor: 'pointer', minWidth: 28 }}
           onClick={() => setHover(true)}
@@ -52,7 +52,7 @@ const ReaccionesFacebook: React.FC<Props> = ({ postId, usuarioId, reacciones, mi
           {r.count > 0 && <span className="ml-0.5 text-xs text-gray-400 font-bold align-middle">{r.count}</span>}
         </button>
       ))}
-      {/* Menú de reacciones al hacer hover */}
+      {/* Menú de reacciones al hacer hover o clic */}
       {hover && (
         <div className="absolute -top-12 left-0 flex gap-1 bg-black/90 rounded-full px-2 py-1 shadow-lg z-20 animate-fade-in border border-[#e6a800]" style={{ minWidth: 180 }}>
           {REACCIONES.map(r => (
