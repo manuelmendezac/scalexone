@@ -19,6 +19,7 @@ interface Props {
 }
 
 const ComunidadComentarios: React.FC<Props> = ({ postId }) => {
+  console.log('[ComunidadComentarios] Renderizando componente para postId:', postId);
   const [comentarios, setComentarios] = useState<Comentario[]>([]);
   const [nuevoComentario, setNuevoComentario] = useState('');
   const [respondiendoA, setRespondiendoA] = useState<string | null>(null);

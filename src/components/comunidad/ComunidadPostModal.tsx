@@ -247,7 +247,12 @@ const ComunidadPostModal: React.FC<ComunidadPostModalProps> = ({ post, onClose, 
               </button>
             </div>
             <div className="mt-4">
-              <ComunidadComentarios postId={postCompleto.id} key={forceRefresh} />
+              {postCompleto.id && (
+                <ComunidadComentarios 
+                  postId={postCompleto.id} 
+                  key={postCompleto.id + '-' + (forceRefresh || '')}
+                />
+              )}
             </div>
           </>
         )}
