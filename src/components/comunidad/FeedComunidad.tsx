@@ -591,7 +591,7 @@ const FeedComunidad = () => {
                     <span role="img" aria-label="compartir" className="text-xl">📤</span>
                     {showShareMenu === post.id && (
                       <ShareMenu
-                        url={`${window.location.origin}/comunidad?post=${post.id}`}
+                        url={`${window.location.origin}/api/share/${post.id}`}
                         title={post.contenido?.slice(0, 80) || 'Post de la comunidad'}
                         onClose={() => setShowShareMenu(null)}
                       />
