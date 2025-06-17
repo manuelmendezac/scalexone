@@ -512,22 +512,36 @@ const FeedComunidad = () => {
                   <>
                     {/* Mostrar siempre el texto/título del post con enlaces clickeables */}
                     {(() => {
-                      const { parts, firstVideoEmbed, isInstagramReel, isTikTok } = renderPostContentWithLinks(post.contenido || '');
+                      const { parts, firstVideoEmbed, isInstagramReel } = renderPostContentWithLinks(post.contenido || '');
                       return (
                         <>
                           <div className="text-white text-base mb-2">
                             {parts.map((part, i) => typeof part === 'string' ? <span key={i}>{part}</span> : part)}
                           </div>
                           {/* Si hay un video embed, mostrarlo debajo */}
-                          {firstVideoEmbed && (
-                            <div className={`w-full flex justify-center my-2 ${isInstagramReel ? '' : ''}`}>
+                          {firstVideoEmbed && !isInstagramReel && (
+                            <div className="w-full flex justify-center my-2">
                               <iframe
                                 src={firstVideoEmbed}
-                                className={`rounded-xl border-2 border-[#e6a800] ${isInstagramReel ? 'w-[320px] h-[570px] max-w-xs' : isTikTok ? 'w-[325px] h-[575px] max-w-xs' : 'w-full max-w-xl aspect-video'}`}
+                                className="rounded-xl border-2 border-[#e6a800] w-full max-w-xl aspect-video"
                                 allow="autoplay; encrypted-media; fullscreen"
                                 allowFullScreen
                                 loading="lazy"
                                 title="Video embed"
+                              />
+                            </div>
+                          )}
+                          {/* Instagram Reel: dejar el iframe libre, alto grande, scrollable */}
+                          {firstVideoEmbed && isInstagramReel && (
+                            <div className="w-full flex justify-center my-2">
+                              <iframe
+                                src={firstVideoEmbed}
+                                className="rounded-xl border-2 border-[#e6a800] w-full h-[900px]"
+                                allow="autoplay; encrypted-media; fullscreen"
+                                allowFullScreen
+                                loading="lazy"
+                                title="Instagram Reel embed"
+                                style={{ minHeight: 800 }}
                               />
                             </div>
                           )}
