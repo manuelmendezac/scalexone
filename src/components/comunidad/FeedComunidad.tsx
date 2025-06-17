@@ -564,7 +564,7 @@ const FeedComunidad = () => {
                     </div>
                     <button
                       className="text-xs text-[#e6a800] hover:underline"
-                      onClick={() => setMostrarTodosComentarios(prev => ({ ...prev, [post.id]: true }))}
+                      onClick={() => setModalPost(post)}
                     >
                       Ver los {totalComentarios} comentarios
                     </button>
@@ -587,7 +587,7 @@ const FeedComunidad = () => {
       {modalPost && (
         <ComunidadPostModal
           post={modalPost}
-          comentarios={comentariosPorPost[modalPost.id] || []}
+          forceRefresh={Date.now()}
           onClose={() => setModalPost(null)}
         />
       )}

@@ -95,10 +95,11 @@ const CarruselImagenes: React.FC<{ imagenes: string[] }> = ({ imagenes }) => {
 
 interface ComunidadPostModalProps {
   post: any;
+  forceRefresh?: number;
   onClose: () => void;
 }
 
-const ComunidadPostModal: React.FC<ComunidadPostModalProps> = ({ post, onClose }) => {
+const ComunidadPostModal: React.FC<ComunidadPostModalProps> = ({ post, onClose, forceRefresh }) => {
   const [postCompleto, setPostCompleto] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
   const [reacciones, setReacciones] = useState<any[]>([]);
@@ -246,7 +247,7 @@ const ComunidadPostModal: React.FC<ComunidadPostModalProps> = ({ post, onClose }
               </button>
             </div>
             <div className="mt-4">
-              <ComunidadComentarios postId={postCompleto.id} />
+              <ComunidadComentarios postId={postCompleto.id} key={forceRefresh} />
             </div>
           </>
         )}
