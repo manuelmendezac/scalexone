@@ -27,18 +27,34 @@ const ComunidadComentarios: React.FC<Props> = ({ postId }) => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetchComentarios();
+    if (postId) {
+      console.log('[ComunidadComentarios] Consultando comentarios para postId:', postId);
+      fetchComentarios();
+    } else {
+      console.warn('[ComunidadComentarios] postId no válido:', postId);
+    }
   }, [postId]);
 
   const fetchComentarios = async () => {
     setLoading(true);
     // Traer comentarios y datos de usuario
-    const { data, error } = await supabase
-      .from('comunidad_comentarios')
-      .select('*, usuario:usuario_id ( avatar_url, nombre )')
-      .eq('post_id', postId)
-      .order('created_at', { ascending: true });
-    if (!error && data) setComentarios(data);
+    try {
+      const { data, error } = await supabase
+        .from('comunidad_comentarios')
+        .select('*, usuario:usuario_id ( avatar_url, nombre )')
+        .eq('post_id', postId)
+        .order('created_at', { ascending: true });
+      if (error) {
+        setError('Error al cargar comentarios: ' + error.message);
+        console.error('[ComunidadComentarios] Error al consultar comentarios:', error);
+      } else {
+        setComentarios(data || []);
+        console.log('[ComunidadComentarios] Comentarios recibidos:', data);
+      }
+    } catch (e) {
+      setError('Error inesperado al cargar comentarios.');
+      console.error('[ComunidadComentarios] Error inesperado:', e);
+    }
     setLoading(false);
   };
 
