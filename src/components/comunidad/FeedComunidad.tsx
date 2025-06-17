@@ -511,14 +511,14 @@ const FeedComunidad = () => {
                 ) : (
                   <>
                     {/* Mostrar siempre el texto/título del post con enlaces clickeables o preview visual */}
-                    (() => {
+                    {(() => {
                       const { parts } = renderPostContentWithLinks(post.contenido || '');
                       return (
                         <div className="text-white text-base mb-2 flex flex-col gap-2">
                           {parts.map((part, i) => typeof part === 'string' ? <span key={i}>{part}</span> : part)}
                         </div>
                       );
-                    })()
+                    })()}
                   </>
                 )}
                 {post.tipo === 'imagen' && post.media_url && (
