@@ -98,21 +98,14 @@ const ComunidadComentarios: React.FC<Props> = ({ postId }) => {
   };
   const comentariosTree = buildTree(comentarios);
 
-  // Renderiza comentarios recursivamente
-  const renderComentarios = (items: any[], nivel = 0) => (
-    <div className={nivel > 0 ? 'border-l-2 border-[#e6a800]/20 ml-2 pl-3' : ''}>
+  // Renderiza solo comentarios de primer nivel y permite expandir respuestas
+  const renderComentarios = (items: any[]) => (
+    <div>
       {items.map(comentario => {
         const children = comentario.children || [];
         const isExpanded = expandedReplies[comentario.id] || false;
-        const mostrarRespuestas = isExpanded ? children : children.slice(0, 2);
         return (
-          <div
-            key={comentario.id}
-            className={
-              'mb-3 group transition-all flex flex-col gap-1' +
-              (nivel > 0 ? ' mt-2' : '')
-            }
-          >
+          <div key={comentario.id} className="mb-3 flex flex-col gap-1">
             <div className="flex items-start gap-2">
               <img
                 src={comentario.usuario?.avatar_url || `https://ui-avatars.com/api/?name=U&background=e6a800&color=fff&size=96`}
@@ -159,18 +152,67 @@ const ComunidadComentarios: React.FC<Props> = ({ postId }) => {
                     </button>
                   </div>
                 )}
-                {/* Renderiza hijos con ver más respuestas */}
-                {children.length > 0 && (
-                  <div className="flex flex-col gap-1 mt-2">
-                    {renderComentarios(mostrarRespuestas, nivel + 1)}
-                    {children.length > 2 && !isExpanded && (
-                      <button
-                        className="text-xs text-[#e6a800] hover:underline mt-1 px-2 py-1 rounded hover:bg-[#e6a800]/10 transition self-start"
-                        onClick={() => setExpandedReplies(prev => ({ ...prev, [comentario.id]: true }))}
-                      >
-                        Ver {children.length - 2} comentarios más
-                      </button>
-                    )}
+                {/* Botón para ver respuestas */}
+                {children.length > 0 && !isExpanded && (
+                  <button
+                    className="text-xs text-[#e6a800] hover:underline mt-2 px-2 py-1 rounded hover:bg-[#e6a800]/10 transition self-start"
+                    onClick={() => setExpandedReplies(prev => ({ ...prev, [comentario.id]: true }))}
+                  >
+                    Ver {children.length} respuestas
+                  </button>
+                )}
+                {/* Respuestas desplegadas */}
+                {children.length > 0 && isExpanded && (
+                  <div className="flex flex-col gap-1 mt-2 border-l-2 border-[#e6a800]/20 ml-4 pl-3">
+                    {children.map((respuesta: any) => (
+                      <div key={respuesta.id} className="flex items-start gap-2">
+                        <img
+                          src={respuesta.usuario?.avatar_url || `https://ui-avatars.com/api/?name=U&background=e6a800&color=fff&size=96`}
+                          alt="avatar"
+                          className="w-7 h-7 rounded-full border-2 border-[#e6a800] object-cover mt-1"
+                        />
+                        <div className="flex-1 bg-[#23232b] rounded-xl px-3 py-2 shadow-sm border border-[#e6a800]/10 hover:border-[#e6a800]/40 transition-all">
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="text-white font-semibold text-xs">{respuesta.usuario?.name || respuesta.usuario?.nombre || 'Usuario'}</span>
+                            <span className="text-xs text-gray-400 ml-2">{new Date(respuesta.created_at).toLocaleString()}</span>
+                          </div>
+                          <div className="text-white text-xs mb-1">{respuesta.texto}</div>
+                          <div className="flex gap-2 items-center">
+                            <button
+                              className="text-xs text-[#e6a800] hover:underline px-2 py-1 rounded hover:bg-[#e6a800]/10 transition"
+                              onClick={() => setRespondiendoA(respuesta.id)}
+                            >
+                              Responder
+                            </button>
+                          </div>
+                          {respondiendoA === respuesta.id && (
+                            <div className="flex items-center gap-2 mt-2">
+                              <input
+                                type="text"
+                                className="flex-1 bg-[#18181b] text-white border border-[#e6a800] rounded-xl px-3 py-1"
+                                placeholder="Escribe una respuesta..."
+                                value={nuevoComentario}
+                                onChange={e => setNuevoComentario(e.target.value)}
+                                disabled={subiendo}
+                              />
+                              <button
+                                className="bg-[#e6a800] text-black font-bold px-3 py-1 rounded-xl transition"
+                                onClick={() => handleComentar(respuesta.id)}
+                                disabled={subiendo}
+                              >
+                                {subiendo ? 'Enviando...' : 'Responder'}
+                              </button>
+                              <button
+                                className="text-xs text-gray-400 ml-2"
+                                onClick={() => setRespondiendoA(null)}
+                              >
+                                Cancelar
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 )}
               </div>
@@ -191,7 +233,7 @@ const ComunidadComentarios: React.FC<Props> = ({ postId }) => {
       ) : comentarios.length === 0 ? (
         <div className="text-gray-400 text-sm">Sé el primero en comentar.</div>
       ) : (
-        renderComentarios(comentariosTree)
+        renderComentarios(comentariosTree.filter(c => c.respuesta_a === null))
       )}
       {respondiendoA === null && (
         <div className="flex items-center gap-2 mt-4 sticky bottom-0 bg-[#23232b] py-3 z-20 border-t border-[#e6a800]/10">
