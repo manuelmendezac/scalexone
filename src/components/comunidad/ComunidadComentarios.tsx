@@ -100,7 +100,7 @@ const ComunidadComentarios: React.FC<Props> = ({ postId }) => {
 
   // Renderiza comentarios recursivamente
   const renderComentarios = (items: any[], nivel = 0) => (
-    <div className={nivel > 0 ? 'pl-6 border-l-2 border-[#e6a800]/20 ml-4' : ''}>
+    <div className={nivel > 0 ? 'border-l-2 border-[#e6a800]/20 ml-2 pl-3' : ''}>
       {items.map(comentario => {
         const children = comentario.children || [];
         const isExpanded = expandedReplies[comentario.id] || false;
@@ -109,21 +109,17 @@ const ComunidadComentarios: React.FC<Props> = ({ postId }) => {
           <div
             key={comentario.id}
             className={
-              'mb-3 group transition-all' +
+              'mb-3 group transition-all flex flex-col gap-1' +
               (nivel > 0 ? ' mt-2' : '')
             }
           >
-            <div
-              className="flex items-start gap-2"
-            >
+            <div className="flex items-start gap-2">
               <img
                 src={comentario.usuario?.avatar_url || `https://ui-avatars.com/api/?name=U&background=e6a800&color=fff&size=96`}
                 alt="avatar"
                 className="w-8 h-8 rounded-full border-2 border-[#e6a800] object-cover mt-1"
               />
-              <div
-                className="flex-1 bg-[#23232b] rounded-xl px-4 py-2 shadow-sm border border-[#e6a800]/10 hover:border-[#e6a800]/40 transition-all"
-              >
+              <div className="flex-1 bg-[#23232b] rounded-xl px-4 py-2 shadow-sm border border-[#e6a800]/10 hover:border-[#e6a800]/40 transition-all">
                 <div className="flex items-center gap-2 mb-1">
                   <span className="text-white font-semibold text-sm">{comentario.usuario?.name || comentario.usuario?.nombre || 'Usuario'}</span>
                   <span className="text-xs text-gray-400 ml-2">{new Date(comentario.created_at).toLocaleString()}</span>
@@ -165,14 +161,14 @@ const ComunidadComentarios: React.FC<Props> = ({ postId }) => {
                 )}
                 {/* Renderiza hijos con ver más respuestas */}
                 {children.length > 0 && (
-                  <div className="mt-2">
+                  <div className="flex flex-col gap-1 mt-2">
                     {renderComentarios(mostrarRespuestas, nivel + 1)}
                     {children.length > 2 && !isExpanded && (
                       <button
-                        className="text-xs text-[#e6a800] hover:underline mt-1 px-2 py-1 rounded hover:bg-[#e6a800]/10 transition"
+                        className="text-xs text-[#e6a800] hover:underline mt-1 px-2 py-1 rounded hover:bg-[#e6a800]/10 transition self-start"
                         onClick={() => setExpandedReplies(prev => ({ ...prev, [comentario.id]: true }))}
                       >
-                        Ver {children.length - 2} respuestas más
+                        Ver {children.length - 2} comentarios más
                       </button>
                     )}
                   </div>
@@ -185,8 +181,10 @@ const ComunidadComentarios: React.FC<Props> = ({ postId }) => {
     </div>
   );
 
+  // Input sticky para comentar al post (no respuesta)
+  // Si el componente está en un modal, el contenedor padre debe tener relative y aquí usamos sticky bottom-0
   return (
-    <div className="mt-4">
+    <div className="mt-4 relative">
       <div className="font-bold text-[#e6a800] mb-2 text-sm">Comentarios</div>
       {loading ? (
         <div className="text-gray-400 text-sm">Cargando comentarios...</div>
@@ -195,9 +193,8 @@ const ComunidadComentarios: React.FC<Props> = ({ postId }) => {
       ) : (
         renderComentarios(comentariosTree)
       )}
-      {/* Input para comentar al post (no respuesta) */}
       {respondiendoA === null && (
-        <div className="flex items-center gap-2 mt-4">
+        <div className="flex items-center gap-2 mt-4 sticky bottom-0 bg-[#23232b] py-3 z-20 border-t border-[#e6a800]/10">
           <input
             type="text"
             className="flex-1 bg-[#18181b] text-white border border-[#e6a800] rounded-xl px-3 py-1"
