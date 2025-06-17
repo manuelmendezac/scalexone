@@ -42,6 +42,8 @@ const FeedComunidad = () => {
   const [orientacion, setOrientacion] = useState<'vertical' | 'horizontal' | undefined>(undefined);
   const [imagenesSeleccionadas, setImagenesSeleccionadas] = useState<File[]>([]);
   const [imagenesPreview, setImagenesPreview] = useState<string[]>([]);
+  const [comentariosPorPost, setComentariosPorPost] = useState<Record<string, any[]>>({});
+  const [mostrarTodosComentarios, setMostrarTodosComentarios] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     fetchPosts();
@@ -323,6 +325,25 @@ const FeedComunidad = () => {
     }
   };
 
+  // Nueva función para obtener comentarios por post
+  const fetchComentariosPorPost = async (postId: string) => {
+    const { data, error } = await supabase
+      .from('comunidad_comentarios')
+      .select('*')
+      .eq('post_id', postId)
+      .order('created_at', { ascending: true });
+    if (!error && data) {
+      setComentariosPorPost(prev => ({ ...prev, [postId]: data }));
+    }
+  };
+
+  // Llama a fetchComentariosPorPost para cada post cuando se cargan los posts
+  useEffect(() => {
+    if (posts.length > 0) {
+      posts.forEach(post => fetchComentariosPorPost(post.id));
+    }
+  }, [posts]);
+
   return (
     <div className="max-w-2xl mx-auto flex flex-col gap-8">
       {/* Caja para crear nueva publicación */}
@@ -428,6 +449,10 @@ const FeedComunidad = () => {
           <div className="text-center text-gray-400">No hay publicaciones aún.</div>
         ) : (
           posts.map((post) => {
+            const comentarios = comentariosPorPost[post.id] || [];
+            const totalComentarios = comentarios.length;
+            const mostrarTodos = mostrarTodosComentarios[post.id];
+            const primerComentario = comentarios[0];
             console.log('Reacciones para post', post.id, reaccionesPorPost[post.id]);
             return (
               <div key={post.id} className="bg-[#23232b] rounded-2xl p-6 shadow flex flex-col gap-2">
@@ -489,6 +514,28 @@ const FeedComunidad = () => {
                     )}
                   </>
                 )}
+                {/* Mostrar solo el primer comentario y el contador */}
+                {totalComentarios > 0 && !mostrarTodos && (
+                  <div className="mt-2">
+                    <div className="text-white text-sm mb-1">
+                      <b>{primerComentario?.texto}</b>
+                    </div>
+                    <button
+                      className="text-xs text-[#e6a800] hover:underline"
+                      onClick={() => setMostrarTodosComentarios(prev => ({ ...prev, [post.id]: true }))}
+                    >
+                      Ver los {totalComentarios} comentarios
+                    </button>
+                  </div>
+                )}
+                {/* Mostrar todos los comentarios al hacer clic */}
+                {mostrarTodos && (
+                  <ComunidadComentarios postId={post.id} />
+                )}
+                {/* Si no hay comentarios, muestra el input para comentar */}
+                {totalComentarios === 0 && (
+                  <ComunidadComentarios postId={post.id} />
+                )}
                 {/* Reacciones tipo Facebook y botones unificados */}
                 <div className="flex gap-4 mt-2 items-center">
                   <ReaccionesFacebook
@@ -505,7 +552,6 @@ const FeedComunidad = () => {
                     <span role="img" aria-label="compartir">📤</span> Compartir
                   </button>
                 </div>
-                <ComunidadComentarios postId={post.id} />
               </div>
             );
           })
