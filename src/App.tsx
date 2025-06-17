@@ -40,6 +40,7 @@ import { MdFilterAlt, MdOutlineSchool } from 'react-icons/md';
 import { FaRobot, FaWhatsapp, FaHome, FaChalkboardTeacher, FaBrain, FaTrophy, FaUsers } from 'react-icons/fa';
 import { FiBarChart2, FiZap, FiSettings } from 'react-icons/fi';
 import CursosPage from './pages/cursos';
+import { syncUsuarioSupabase } from './utils/syncUsuarioSupabase';
 
 // Definición de tipos para las vistas
 type ViewType = 'inicio' | 'simulacion' | 'dashboard' | 'perfil' | 'configuracion' | 'panel' | 'uploader' | 'knowledge' | 'nicho' | 'modules' | 'train';
@@ -79,32 +80,33 @@ function App() {
   }, []);
 
   useEffect(() => {
-    const { data: listener } = supabase.auth.onAuthStateChange(async (event, session) => {
-      // Evitamos actualizar el estado global y redirigir si estamos en el flujo de recuperación de contraseña
-      const isRecoveryFlow =
-        window.location.pathname === '/reset-password' ||
-        window.location.hash.includes('access_token=') ||
-        window.location.hash.includes('type=recovery');
-
-      if (session && session.user && !isRecoveryFlow) {
-        setUserName(session.user.user_metadata?.nombre || session.user.email || 'Usuario');
-        updateUserInfo({
-          name: session.user.user_metadata?.nombre || '',
-          email: session.user.email || '',
-        });
-        // Solo redirige si estás en login o registro
-        if (
-          window.location.pathname === '/' ||
-          window.location.pathname === '/registro'
-        ) {
-          window.location.href = '/home';
-        }
-      }
+    async function checkAndInsertUser() {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      let email =
+        user.email ||
+        user.user_metadata?.email ||
+        user.user_metadata?.correo ||
+        user.user_metadata?.email_address ||
+        (Array.isArray(user.identities) && user.identities.length > 0 && (user.identities[0] as any)?.email);
+      if (!email) return;
+      // Validar email
+      const isValidEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+      if (!isValidEmail(email)) return;
+      // Sincronizar usuario en tabla usuarios (side effect, no bloqueante)
+      syncUsuarioSupabase(user);
+      // ... el resto del efecto puede quedarse igual o solo retornar aquí ...
+    }
+    // Suscríbete a los cambios de sesión
+    const { data: listener } = supabase.auth.onAuthStateChange(() => {
+      checkAndInsertUser();
     });
+    // Llama también al montar el componente
+    checkAndInsertUser();
     return () => {
       listener?.subscription.unsubscribe();
     };
-  }, [setUserName, updateUserInfo]);
+  }, []);
 
   const handleOnboardingClose = () => {
     setShowOnboarding(false);
