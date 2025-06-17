@@ -510,7 +510,33 @@ const FeedComunidad = () => {
                   </div>
                 ) : (
                   <>
-                    <div className="text-white text-base mb-2">{post.contenido}</div>
+                    {post.tipo === 'texto' && post.contenido && (() => {
+                      const urlRegex = /(https?:\/\/[\w./?=&%-]+)/g;
+                      const urls = post.contenido.match(urlRegex);
+                      if (urls && urls.length > 0) {
+                        const embedUrl = getEmbedUrl(urls[0]);
+                        return (
+                          <>
+                            <div className="text-white text-base mb-2">{post.contenido.replace(urlRegex, '')}</div>
+                            {embedUrl ? (
+                              <div className="w-full flex justify-center my-2">
+                                <iframe
+                                  src={embedUrl}
+                                  className="w-full max-w-xl aspect-video rounded-xl border-2 border-[#e6a800]"
+                                  allow="autoplay; encrypted-media; fullscreen"
+                                  allowFullScreen
+                                  loading="lazy"
+                                  title="Video embed"
+                                />
+                              </div>
+                            ) : (
+                              <a href={urls[0]} target="_blank" rel="noopener noreferrer" className="text-cyan-400 underline break-all mb-2 block">{urls[0]}</a>
+                            )}
+                          </>
+                        );
+                      }
+                      return <div className="text-white text-base mb-2">{post.contenido}</div>;
+                    })()}
                     {post.tipo === 'imagen' && post.media_url && (
                       <img src={post.media_url} alt="imagen" className="rounded-xl max-h-80 object-cover mb-2" />
                     )}
@@ -518,7 +544,20 @@ const FeedComunidad = () => {
                       <VideoWithOrientation src={post.media_url} orientacion={post.orientacion} />
                     )}
                     {post.tipo === 'enlace' && post.media_url && (
-                      <a href={post.media_url} target="_blank" rel="noopener noreferrer" className="text-cyan-400 underline break-all mb-2">{post.media_url}</a>
+                      getEmbedUrl(post.media_url) ? (
+                        <div className="w-full flex justify-center my-2">
+                          <iframe
+                            src={getEmbedUrl(post.media_url)!}
+                            className="w-full max-w-xl aspect-video rounded-xl border-2 border-[#e6a800]"
+                            allow="autoplay; encrypted-media; fullscreen"
+                            allowFullScreen
+                            loading="lazy"
+                            title="Video embed"
+                          />
+                        </div>
+                      ) : (
+                        <a href={post.media_url} target="_blank" rel="noopener noreferrer" className="text-cyan-400 underline break-all mb-2 block">{post.media_url}</a>
+                      )
                     )}
                     {post.descripcion && (
                       <div className="text-gray-400 text-sm mb-2">{post.descripcion}</div>
@@ -715,5 +754,29 @@ const CarruselImagenes: React.FC<{ imagenes: string[] }> = ({ imagenes }) => {
     </div>
   );
 };
+
+// Función utilitaria para obtener la URL de embed de varios servicios
+function getEmbedUrl(url: string): string | null {
+  if (!url) return null;
+  // YouTube
+  const ytMatch = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([\w-]{11})/);
+  if (ytMatch) return `https://www.youtube.com/embed/${ytMatch[1]}`;
+  // Vimeo
+  const vimeoMatch = url.match(/vimeo\.com\/(\d+)/);
+  if (vimeoMatch) return `https://player.vimeo.com/video/${vimeoMatch[1]}`;
+  // Loom
+  const loomMatch = url.match(/loom\.com\/share\/([\w-]+)/);
+  if (loomMatch) return `https://www.loom.com/embed/${loomMatch[1]}`;
+  // Facebook Video
+  const fbMatch = url.match(/facebook\.com\/.+\/videos\/(\d+)/);
+  if (fbMatch) return `https://www.facebook.com/video/embed?video_id=${fbMatch[1]}`;
+  // TikTok
+  const tiktokMatch = url.match(/tiktok\.com\/@[\w.-]+\/video\/(\d+)/);
+  if (tiktokMatch) return `https://www.tiktok.com/embed/v2/${tiktokMatch[1]}`;
+  // Instagram (solo reels y posts públicos)
+  const igMatch = url.match(/instagram\.com\/(?:reel|p)\/([\w-]+)/);
+  if (igMatch) return `https://www.instagram.com/p/${igMatch[1]}/embed`;
+  return null;
+}
 
 export default FeedComunidad; 
