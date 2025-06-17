@@ -99,56 +99,73 @@ const ComunidadComentarios: React.FC<Props> = ({ postId }) => {
   // Renderiza comentarios recursivamente
   const renderComentarios = (items: any[], nivel = 0) => (
     <div className={nivel > 0 ? 'pl-6 border-l border-[#e6a800]/30' : ''}>
-      {items.map(comentario => (
-        <div key={comentario.id} className="mb-3">
-          <div className="flex items-center gap-2 mb-1">
-            <img
-              src={comentario.usuario?.avatar_url || `https://ui-avatars.com/api/?name=U&background=e6a800&color=fff&size=96`}
-              alt="avatar"
-              className="w-8 h-8 rounded-full border-2 border-[#e6a800]"
-            />
-            <span className="text-white font-semibold text-sm">{comentario.usuario?.name || comentario.usuario?.nombre || 'Usuario'}</span>
-            <span className="text-xs text-gray-400 ml-2">{new Date(comentario.created_at).toLocaleString()}</span>
-          </div>
-          <div className="text-white text-sm mb-1 ml-10">{comentario.texto}</div>
-          <div className="flex gap-2 ml-10">
-            <button
-              className="text-xs text-[#e6a800] hover:underline"
-              onClick={() => setRespondiendoA(comentario.id)}
-            >
-              Responder
-            </button>
-          </div>
-          {/* Respuesta a este comentario */}
-          {respondiendoA === comentario.id && (
-            <div className="flex items-center gap-2 mt-2 ml-10">
-              <input
-                type="text"
-                className="flex-1 bg-[#18181b] text-white border border-[#e6a800] rounded-xl px-3 py-1"
-                placeholder="Escribe una respuesta..."
-                value={nuevoComentario}
-                onChange={e => setNuevoComentario(e.target.value)}
-                disabled={subiendo}
+      {items.map(comentario => {
+        const [mostrarTodasRespuestas, setMostrarTodasRespuestas] = useState(false);
+        const children = comentario.children || [];
+        const mostrarRespuestas = mostrarTodasRespuestas ? children : children.slice(0, 2);
+        return (
+          <div key={comentario.id} className="mb-3">
+            <div className="flex items-center gap-2 mb-1">
+              <img
+                src={comentario.usuario?.avatar_url || `https://ui-avatars.com/api/?name=U&background=e6a800&color=fff&size=96`}
+                alt="avatar"
+                className="w-8 h-8 rounded-full border-2 border-[#e6a800]"
               />
+              <span className="text-white font-semibold text-sm">{comentario.usuario?.name || comentario.usuario?.nombre || 'Usuario'}</span>
+              <span className="text-xs text-gray-400 ml-2">{new Date(comentario.created_at).toLocaleString()}</span>
+            </div>
+            <div className="text-white text-sm mb-1 ml-10">{comentario.texto}</div>
+            <div className="flex gap-2 ml-10">
               <button
-                className="bg-[#e6a800] text-black font-bold px-3 py-1 rounded-xl transition"
-                onClick={() => handleComentar(comentario.id)}
-                disabled={subiendo}
+                className="text-xs text-[#e6a800] hover:underline"
+                onClick={() => setRespondiendoA(comentario.id)}
               >
-                {subiendo ? 'Enviando...' : 'Responder'}
-              </button>
-              <button
-                className="text-xs text-gray-400 ml-2"
-                onClick={() => setRespondiendoA(null)}
-              >
-                Cancelar
+                Responder
               </button>
             </div>
-          )}
-          {/* Renderiza hijos */}
-          {comentario.children && comentario.children.length > 0 && renderComentarios(comentario.children, nivel + 1)}
-        </div>
-      ))}
+            {/* Respuesta a este comentario */}
+            {respondiendoA === comentario.id && (
+              <div className="flex items-center gap-2 mt-2 ml-10">
+                <input
+                  type="text"
+                  className="flex-1 bg-[#18181b] text-white border border-[#e6a800] rounded-xl px-3 py-1"
+                  placeholder="Escribe una respuesta..."
+                  value={nuevoComentario}
+                  onChange={e => setNuevoComentario(e.target.value)}
+                  disabled={subiendo}
+                />
+                <button
+                  className="bg-[#e6a800] text-black font-bold px-3 py-1 rounded-xl transition"
+                  onClick={() => handleComentar(comentario.id)}
+                  disabled={subiendo}
+                >
+                  {subiendo ? 'Enviando...' : 'Responder'}
+                </button>
+                <button
+                  className="text-xs text-gray-400 ml-2"
+                  onClick={() => setRespondiendoA(null)}
+                >
+                  Cancelar
+                </button>
+              </div>
+            )}
+            {/* Renderiza hijos con ver más respuestas */}
+            {children.length > 0 && (
+              <div className="ml-10 mt-2">
+                {renderComentarios(mostrarRespuestas, nivel + 1)}
+                {children.length > 2 && !mostrarTodasRespuestas && (
+                  <button
+                    className="text-xs text-[#e6a800] hover:underline mt-1"
+                    onClick={() => setMostrarTodasRespuestas(true)}
+                  >
+                    Ver {children.length - 2} respuestas más
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
+        );
+      })}
     </div>
   );
 
