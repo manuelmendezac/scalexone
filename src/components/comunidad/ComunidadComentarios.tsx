@@ -42,7 +42,7 @@ const ComunidadComentarios: React.FC<Props> = ({ postId }) => {
     try {
       const { data, error } = await supabase
         .from('comunidad_comentarios')
-        .select('*, usuario:usuario_id ( avatar_url, nombre )')
+        .select('*, usuario:usuario_id ( avatar_url, name )')
         .eq('post_id', postId)
         .order('created_at', { ascending: true });
       if (error) {
@@ -107,7 +107,7 @@ const ComunidadComentarios: React.FC<Props> = ({ postId }) => {
               alt="avatar"
               className="w-8 h-8 rounded-full border-2 border-[#e6a800]"
             />
-            <span className="text-white font-semibold text-sm">{comentario.usuario?.nombre || 'Usuario'}</span>
+            <span className="text-white font-semibold text-sm">{comentario.usuario?.name || comentario.usuario?.nombre || 'Usuario'}</span>
             <span className="text-xs text-gray-400 ml-2">{new Date(comentario.created_at).toLocaleString()}</span>
           </div>
           <div className="text-white text-sm mb-1 ml-10">{comentario.texto}</div>
