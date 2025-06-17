@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { supabase } from '../../supabase';
 import ComunidadComentarios from './ComunidadComentarios';
 import ReaccionesFacebook from './ReaccionesFacebook';
+import ComunidadPostModal from './ComunidadPostModal';
 
 interface Post {
   id: string;
@@ -44,6 +45,7 @@ const FeedComunidad = () => {
   const [imagenesPreview, setImagenesPreview] = useState<string[]>([]);
   const [comentariosPorPost, setComentariosPorPost] = useState<Record<string, any[]>>({});
   const [mostrarTodosComentarios, setMostrarTodosComentarios] = useState<Record<string, boolean>>({});
+  const [modalPost, setModalPost] = useState<any | null>(null);
 
   useEffect(() => {
     fetchPosts();
@@ -514,6 +516,34 @@ const FeedComunidad = () => {
                     )}
                   </>
                 )}
+                {/* Reacciones tipo Facebook y botones unificados */}
+                <div className="flex gap-4 mt-2 items-center">
+                  <ReaccionesFacebook
+                    postId={post.id}
+                    usuarioId={usuarioId}
+                    reacciones={reaccionesPorPost[post.id] || []}
+                    miReaccion={miReaccionPorPost[post.id] || null}
+                    onReact={tipo => manejarReaccion(post.id, tipo)}
+                  />
+                  {/* Ícono de comentar con contador */}
+                  <button
+                    className="relative flex items-center justify-center w-9 h-9 rounded-full border border-gray-700 bg-black/30 hover:bg-black/50 transition text-yellow-400"
+                    onClick={() => setModalPost(post)}
+                  >
+                    <span role="img" aria-label="comentar" className="text-xl">💬</span>
+                    {totalComentarios > 0 && (
+                      <span className="absolute -top-1 -right-1 bg-[#e6a800] text-black text-xs font-bold rounded-full px-1.5 py-0.5 min-w-[20px] text-center border border-black">
+                        {totalComentarios}
+                      </span>
+                    )}
+                  </button>
+                  {/* Ícono de compartir */}
+                  <button
+                    className="flex items-center justify-center w-9 h-9 rounded-full border border-gray-700 bg-black/30 hover:bg-black/50 transition text-cyan-400"
+                  >
+                    <span role="img" aria-label="compartir" className="text-xl">📤</span>
+                  </button>
+                </div>
                 {/* Mostrar solo el primer comentario y el contador */}
                 {totalComentarios > 0 && !mostrarTodos && (
                   <div className="mt-2">
@@ -536,27 +566,19 @@ const FeedComunidad = () => {
                 {totalComentarios === 0 && (
                   <ComunidadComentarios postId={post.id} />
                 )}
-                {/* Reacciones tipo Facebook y botones unificados */}
-                <div className="flex gap-4 mt-2 items-center">
-                  <ReaccionesFacebook
-                    postId={post.id}
-                    usuarioId={usuarioId}
-                    reacciones={reaccionesPorPost[post.id] || []}
-                    miReaccion={miReaccionPorPost[post.id] || null}
-                    onReact={tipo => manejarReaccion(post.id, tipo)}
-                  />
-                  <button className="flex items-center gap-1 px-3 py-1 rounded-full font-bold border border-gray-700 bg-black/30 hover:bg-black/50 transition text-yellow-400">
-                    <span role="img" aria-label="comentar">💬</span> Comentar
-                  </button>
-                  <button className="flex items-center gap-1 px-3 py-1 rounded-full font-bold border border-gray-700 bg-black/30 hover:bg-black/50 transition text-cyan-400">
-                    <span role="img" aria-label="compartir">📤</span> Compartir
-                  </button>
-                </div>
               </div>
             );
           })
         )}
       </div>
+      {/* Modal de post y comentarios */}
+      {modalPost && (
+        <ComunidadPostModal
+          post={modalPost}
+          comentarios={comentariosPorPost[modalPost.id] || []}
+          onClose={() => setModalPost(null)}
+        />
+      )}
     </div>
   );
 };
