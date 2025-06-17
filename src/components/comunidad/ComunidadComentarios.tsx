@@ -26,6 +26,8 @@ const ComunidadComentarios: React.FC<Props> = ({ postId }) => {
   const [loading, setLoading] = useState(true);
   const [subiendo, setSubiendo] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Estado para controlar qué comentarios tienen sus respuestas expandidas
+  const [expandedReplies, setExpandedReplies] = useState<{ [key: string]: boolean }>({});
 
   useEffect(() => {
     if (postId) {
@@ -100,9 +102,9 @@ const ComunidadComentarios: React.FC<Props> = ({ postId }) => {
   const renderComentarios = (items: any[], nivel = 0) => (
     <div className={nivel > 0 ? 'pl-6 border-l border-[#e6a800]/30' : ''}>
       {items.map(comentario => {
-        const [mostrarTodasRespuestas, setMostrarTodasRespuestas] = useState(false);
         const children = comentario.children || [];
-        const mostrarRespuestas = mostrarTodasRespuestas ? children : children.slice(0, 2);
+        const isExpanded = expandedReplies[comentario.id] || false;
+        const mostrarRespuestas = isExpanded ? children : children.slice(0, 2);
         return (
           <div key={comentario.id} className="mb-3">
             <div className="flex items-center gap-2 mb-1">
@@ -153,10 +155,10 @@ const ComunidadComentarios: React.FC<Props> = ({ postId }) => {
             {children.length > 0 && (
               <div className="ml-10 mt-2">
                 {renderComentarios(mostrarRespuestas, nivel + 1)}
-                {children.length > 2 && !mostrarTodasRespuestas && (
+                {children.length > 2 && !isExpanded && (
                   <button
                     className="text-xs text-[#e6a800] hover:underline mt-1"
-                    onClick={() => setMostrarTodasRespuestas(true)}
+                    onClick={() => setExpandedReplies(prev => ({ ...prev, [comentario.id]: true }))}
                   >
                     Ver {children.length - 2} respuestas más
                   </button>
