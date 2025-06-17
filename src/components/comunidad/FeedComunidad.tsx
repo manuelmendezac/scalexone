@@ -512,62 +512,22 @@ const FeedComunidad = () => {
                   <>
                     {/* Mostrar siempre el texto/título del post con enlaces clickeables */}
                     {(() => {
-                      const [tiktokEmbedUrl, setTikTokEmbedUrl] = React.useState<string | null>(null);
-                      const { parts, firstVideoEmbed, isInstagramReel, isTikTok, tiktokShortToExpand } = renderPostContentWithLinks(post.contenido || '');
-                      React.useEffect(() => {
-                        if (tiktokShortToExpand) {
-                          expandTikTokShortUrl(tiktokShortToExpand).then(longUrl => {
-                            if (longUrl) {
-                              const embedObj = getEmbedUrl(longUrl);
-                              if (embedObj && embedObj.isTikTok) {
-                                setTikTokEmbedUrl(embedObj.embedUrl);
-                              }
-                            }
-                          });
-                        }
-                      }, [tiktokShortToExpand]);
+                      const { parts, firstVideoEmbed, isInstagramReel, isTikTok } = renderPostContentWithLinks(post.contenido || '');
                       return (
                         <>
                           <div className="text-white text-base mb-2">
                             {parts.map((part, i) => typeof part === 'string' ? <span key={i}>{part}</span> : part)}
                           </div>
                           {/* Si hay un video embed, mostrarlo debajo */}
-                          {firstVideoEmbed && !isInstagramReel && !isTikTok && (
-                            <div className="w-full flex justify-center my-2">
+                          {firstVideoEmbed && (
+                            <div className={`w-full flex justify-center my-2 ${isInstagramReel ? '' : ''}`}>
                               <iframe
                                 src={firstVideoEmbed}
-                                className="rounded-xl border-2 border-[#e6a800] w-full max-w-xl aspect-video"
+                                className={`rounded-xl border-2 border-[#e6a800] ${isInstagramReel ? 'w-[320px] h-[570px] max-w-xs' : isTikTok ? 'w-[325px] h-[575px] max-w-xs' : 'w-full max-w-xl aspect-video'}`}
                                 allow="autoplay; encrypted-media; fullscreen"
                                 allowFullScreen
                                 loading="lazy"
                                 title="Video embed"
-                              />
-                            </div>
-                          )}
-                          {/* Instagram Reel: dejar el iframe libre, alto grande, scrollable */}
-                          {firstVideoEmbed && isInstagramReel && (
-                            <div className="w-full flex justify-center my-2">
-                              <iframe
-                                src={firstVideoEmbed}
-                                className="rounded-xl border-2 border-[#e6a800] w-full h-[700px]"
-                                allow="autoplay; encrypted-media; fullscreen"
-                                allowFullScreen
-                                loading="lazy"
-                                title="Instagram Reel embed"
-                                style={{ minHeight: 600 }}
-                              />
-                            </div>
-                          )}
-                          {/* TikTok expandido: mostrar embed si se logró expandir el link corto */}
-                          {tiktokEmbedUrl && (
-                            <div className="w-full flex justify-center my-2">
-                              <iframe
-                                src={tiktokEmbedUrl}
-                                className="rounded-xl border-2 border-[#e6a800] w-[325px] h-[575px]"
-                                allow="autoplay; encrypted-media; fullscreen"
-                                allowFullScreen
-                                loading="lazy"
-                                title="TikTok embed"
                               />
                             </div>
                           )}
@@ -819,20 +779,6 @@ function getEmbedUrl(url: string): { embedUrl: string, isInstagramReel?: boolean
   return null;
 }
 
-// Utilidad para expandir links cortos de TikTok (solo en cliente)
-async function expandTikTokShortUrl(url: string): Promise<string | null> {
-  try {
-    const response = await fetch(url, { method: 'HEAD', redirect: 'follow' });
-    // La URL final estará en response.url
-    if (/tiktok\.com\/@[\w.-]+\/video\/(\d+)/.test(response.url)) {
-      return response.url;
-    }
-  } catch (e) {
-    // Ignorar errores
-  }
-  return null;
-}
-
 // Utilidad para renderizar texto con enlaces clickeables y embed de video
 function renderPostContentWithLinks(text: string) {
   const urlRegex = /(https?:\/\/[\w./?=&%-]+)/g;
@@ -841,7 +787,6 @@ function renderPostContentWithLinks(text: string) {
   let firstVideoEmbed: string | null = null;
   let isInstagramReel = false;
   let isTikTok = false;
-  let tiktokShortToExpand: string | null = null;
   let match;
   while ((match = urlRegex.exec(text)) !== null) {
     const url = match[0];
@@ -855,24 +800,26 @@ function renderPostContentWithLinks(text: string) {
     if (match.index > lastIndex) {
       parts.push(text.slice(lastIndex, match.index));
     }
-    // Si es TikTok pero no formato largo, intentar expandir
-    if (/vm\.tiktok\.com\//.test(url)) {
-      tiktokShortToExpand = url;
-      // Mostramos un placeholder temporal
-      parts.push(<span key={url + match.index + '-tiktok'} className="text-cyan-400">Cargando video TikTok...</span>);
-    } else if (!embedObj) {
-      // Si no es video, mostrar como link
+    // Si no es video, mostrar como link
+    if (!embedObj) {
       parts.push(
         <a key={url + match.index} href={url} target="_blank" rel="noopener noreferrer" className="text-cyan-400 underline break-all inline-block">{url}</a>
       );
     }
+    // Si es TikTok pero no formato largo, mostrar como link
+    if (/tiktok\.com\//.test(url) && !/tiktok\.com\/@[\w.-]+\/video\/(\d+)/.test(url)) {
+      parts.push(
+        <a key={url + match.index + '-tiktok'} href={url} target="_blank" rel="noopener noreferrer" className="text-cyan-400 underline break-all inline-block">{url}</a>
+      );
+    }
+    // Si es video, no mostrar el enlace en el texto (solo el embed después)
     lastIndex = match.index + url.length;
   }
   // Texto restante
   if (lastIndex < text.length) {
     parts.push(text.slice(lastIndex));
   }
-  return { parts, firstVideoEmbed, isInstagramReel, isTikTok, tiktokShortToExpand };
+  return { parts, firstVideoEmbed, isInstagramReel, isTikTok };
 }
 
 export default FeedComunidad; 
