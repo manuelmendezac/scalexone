@@ -3,6 +3,18 @@ import { supabase } from '../../supabase';
 import ComunidadComentarios from './ComunidadComentarios';
 import ReaccionesFacebook from './ReaccionesFacebook';
 import ComunidadPostModal from './ComunidadPostModal';
+import {
+  WhatsappShareButton,
+  FacebookShareButton,
+  TwitterShareButton,
+  LinkedinShareButton,
+  TelegramShareButton,
+  WhatsappIcon,
+  FacebookIcon,
+  TwitterIcon,
+  LinkedinIcon,
+  TelegramIcon
+} from 'react-share';
 
 interface Post {
   id: string;
@@ -46,6 +58,7 @@ const FeedComunidad = () => {
   const [comentariosPorPost, setComentariosPorPost] = useState<Record<string, any[]>>({});
   const [mostrarTodosComentarios, setMostrarTodosComentarios] = useState<Record<string, boolean>>({});
   const [modalPost, setModalPost] = useState<any | null>(null);
+  const [showShareMenu, setShowShareMenu] = useState<string | null>(null);
 
   useEffect(() => {
     fetchPosts();
@@ -572,9 +585,17 @@ const FeedComunidad = () => {
                   </button>
                   {/* Ícono de compartir */}
                   <button
-                    className="flex items-center justify-center w-9 h-9 rounded-full border border-gray-700 bg-black/30 hover:bg-black/50 transition text-cyan-400"
+                    className="flex items-center justify-center w-9 h-9 rounded-full border border-gray-700 bg-black/30 hover:bg-black/50 transition text-cyan-400 relative"
+                    onClick={() => setShowShareMenu(post.id)}
                   >
                     <span role="img" aria-label="compartir" className="text-xl">📤</span>
+                    {showShareMenu === post.id && (
+                      <ShareMenu
+                        url={`${window.location.origin}/comunidad?post=${post.id}`}
+                        title={post.contenido?.slice(0, 80) || 'Post de la comunidad'}
+                        onClose={() => setShowShareMenu(null)}
+                      />
+                    )}
                   </button>
                 </div>
                 {/* Mostrar solo el primer comentario y el contador */}
@@ -847,5 +868,48 @@ function renderPostContentWithLinks(text: string) {
   }
   return { parts };
 }
+
+// Componente de menú flotante para compartir
+const ShareMenu: React.FC<{ url: string; title?: string; onClose: () => void }> = ({ url, title, onClose }) => {
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (ref.current && !ref.current.contains(event.target as Node)) {
+        onClose();
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [onClose]);
+
+  function handleCopy() {
+    navigator.clipboard.writeText(url);
+    onClose();
+  }
+
+  return (
+    <div ref={ref} className="absolute z-50 top-10 right-0 bg-[#23232b] border border-[#e6a800] rounded-xl shadow-lg p-3 flex flex-col gap-2 min-w-[180px]">
+      <WhatsappShareButton url={url} title={title} className="flex items-center gap-2 rounded hover:bg-[#e6a800]/20 p-1">
+        <WhatsappIcon size={32} round /> <span className="text-white text-sm">WhatsApp</span>
+      </WhatsappShareButton>
+      <FacebookShareButton url={url} quote={title} className="flex items-center gap-2 rounded hover:bg-[#e6a800]/20 p-1">
+        <FacebookIcon size={32} round /> <span className="text-white text-sm">Facebook</span>
+      </FacebookShareButton>
+      <TwitterShareButton url={url} title={title} className="flex items-center gap-2 rounded hover:bg-[#e6a800]/20 p-1">
+        <TwitterIcon size={32} round /> <span className="text-white text-sm">Twitter/X</span>
+      </TwitterShareButton>
+      <LinkedinShareButton url={url} title={title} className="flex items-center gap-2 rounded hover:bg-[#e6a800]/20 p-1">
+        <LinkedinIcon size={32} round /> <span className="text-white text-sm">LinkedIn</span>
+      </LinkedinShareButton>
+      <TelegramShareButton url={url} title={title} className="flex items-center gap-2 rounded hover:bg-[#e6a800]/20 p-1">
+        <TelegramIcon size={32} round /> <span className="text-white text-sm">Telegram</span>
+      </TelegramShareButton>
+      <button onClick={handleCopy} className="flex items-center gap-2 rounded hover:bg-[#e6a800]/20 p-1">
+        <svg width="28" height="28" fill="none" viewBox="0 0 24 24"><path fill="#e6a800" d="M16 1a1 1 0 0 1 1 1v2a1 1 0 0 1-2 0V3H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h2a1 1 0 1 1 0 2H7a4 4 0 0 1-4-4V5a4 4 0 0 1 4-4h9Zm3 6a1 1 0 0 1 1 1v11a4 4 0 0 1-4 4H9a4 4 0 0 1-4-4V8a1 1 0 0 1 1-1h13Zm-1 2H6v10a2 2 0 0 0 2 2h7a2 2 0 0 0 2-2V8Z"/></svg>
+        <span className="text-white text-sm">Copiar enlace</span>
+      </button>
+    </div>
+  );
+};
 
 export default FeedComunidad; 
