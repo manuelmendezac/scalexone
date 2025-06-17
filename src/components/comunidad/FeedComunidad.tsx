@@ -512,7 +512,7 @@ const FeedComunidad = () => {
                   <>
                     {/* Mostrar siempre el texto/título del post con enlaces clickeables */}
                     {(() => {
-                      const { parts, firstVideoEmbed, isInstagramReel } = renderPostContentWithLinks(post.contenido || '');
+                      const { parts, firstVideoEmbed, isInstagramReel, isTikTok } = renderPostContentWithLinks(post.contenido || '');
                       return (
                         <>
                           <div className="text-white text-base mb-2">
@@ -520,10 +520,10 @@ const FeedComunidad = () => {
                           </div>
                           {/* Si hay un video embed, mostrarlo debajo */}
                           {firstVideoEmbed && (
-                            <div className={`w-full flex justify-center my-2 ${isInstagramReel ? 'aspect-[9/16] max-w-xs' : ''}`}>
+                            <div className={`w-full flex justify-center my-2 ${isInstagramReel ? '' : ''}`}>
                               <iframe
                                 src={firstVideoEmbed}
-                                className={`w-full ${isInstagramReel ? 'aspect-[9/16] max-w-xs' : 'max-w-xl aspect-video'} rounded-xl border-2 border-[#e6a800]`}
+                                className={`rounded-xl border-2 border-[#e6a800] ${isInstagramReel ? 'w-[320px] h-[570px] max-w-xs' : isTikTok ? 'w-[325px] h-[575px] max-w-xs' : 'w-full max-w-xl aspect-video'}`}
                                 allow="autoplay; encrypted-media; fullscreen"
                                 allowFullScreen
                                 loading="lazy"
@@ -753,7 +753,7 @@ const CarruselImagenes: React.FC<{ imagenes: string[] }> = ({ imagenes }) => {
 };
 
 // Función utilitaria para obtener la URL de embed de varios servicios
-function getEmbedUrl(url: string): { embedUrl: string, isInstagramReel?: boolean } | null {
+function getEmbedUrl(url: string): { embedUrl: string, isInstagramReel?: boolean, isTikTok?: boolean } | null {
   if (!url) return null;
   // YouTube
   const ytMatch = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([\w-]{11})/);
@@ -767,9 +767,9 @@ function getEmbedUrl(url: string): { embedUrl: string, isInstagramReel?: boolean
   // Facebook Video
   const fbMatch = url.match(/facebook\.com\/.+\/videos\/(\d+)/);
   if (fbMatch) return { embedUrl: `https://www.facebook.com/video/embed?video_id=${fbMatch[1]}` };
-  // TikTok
+  // TikTok (solo formato largo)
   const tiktokMatch = url.match(/tiktok\.com\/@[\w.-]+\/video\/(\d+)/);
-  if (tiktokMatch) return { embedUrl: `https://www.tiktok.com/embed/v2/${tiktokMatch[1]}` };
+  if (tiktokMatch) return { embedUrl: `https://www.tiktok.com/embed/v2/${tiktokMatch[1]}`, isTikTok: true };
   // Instagram Reel
   const igReelMatch = url.match(/instagram\.com\/reel\/([\w-]+)/);
   if (igReelMatch) return { embedUrl: `https://www.instagram.com/reel/${igReelMatch[1]}/embed`, isInstagramReel: true };
@@ -786,6 +786,7 @@ function renderPostContentWithLinks(text: string) {
   let lastIndex = 0;
   let firstVideoEmbed: string | null = null;
   let isInstagramReel = false;
+  let isTikTok = false;
   let match;
   while ((match = urlRegex.exec(text)) !== null) {
     const url = match[0];
@@ -793,6 +794,7 @@ function renderPostContentWithLinks(text: string) {
     if (!firstVideoEmbed && embedObj) {
       firstVideoEmbed = embedObj.embedUrl;
       isInstagramReel = !!embedObj.isInstagramReel;
+      isTikTok = !!embedObj.isTikTok;
     }
     // Texto antes del enlace
     if (match.index > lastIndex) {
@@ -804,6 +806,12 @@ function renderPostContentWithLinks(text: string) {
         <a key={url + match.index} href={url} target="_blank" rel="noopener noreferrer" className="text-cyan-400 underline break-all inline-block">{url}</a>
       );
     }
+    // Si es TikTok pero no formato largo, mostrar como link
+    if (/tiktok\.com\//.test(url) && !/tiktok\.com\/@[\w.-]+\/video\/(\d+)/.test(url)) {
+      parts.push(
+        <a key={url + match.index + '-tiktok'} href={url} target="_blank" rel="noopener noreferrer" className="text-cyan-400 underline break-all inline-block">{url}</a>
+      );
+    }
     // Si es video, no mostrar el enlace en el texto (solo el embed después)
     lastIndex = match.index + url.length;
   }
@@ -811,7 +819,7 @@ function renderPostContentWithLinks(text: string) {
   if (lastIndex < text.length) {
     parts.push(text.slice(lastIndex));
   }
-  return { parts, firstVideoEmbed, isInstagramReel };
+  return { parts, firstVideoEmbed, isInstagramReel, isTikTok };
 }
 
 export default FeedComunidad; 
