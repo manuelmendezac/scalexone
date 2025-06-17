@@ -6,7 +6,7 @@ interface Comentario {
   post_id: string;
   usuario_id: string;
   texto: string;
-  parent_id: string | null;
+  respuesta_a: string | null;
   created_at: string;
   usuario?: {
     avatar_url?: string;
@@ -42,7 +42,7 @@ const ComunidadComentarios: React.FC<Props> = ({ postId }) => {
     setLoading(false);
   };
 
-  const handleComentar = async (parentId: string | null = null) => {
+  const handleComentar = async (respuestaA: string | null = null) => {
     setError(null);
     if (!nuevoComentario.trim()) {
       setError('El comentario no puede estar vacío.');
@@ -59,7 +59,7 @@ const ComunidadComentarios: React.FC<Props> = ({ postId }) => {
       post_id: postId,
       usuario_id: user.id,
       texto: nuevoComentario,
-      parent_id: parentId
+      respuesta_a: respuestaA
     });
     if (insertError) {
       setError('Error al comentar: ' + insertError.message);
@@ -72,9 +72,9 @@ const ComunidadComentarios: React.FC<Props> = ({ postId }) => {
   };
 
   // Organiza los comentarios en árbol
-  const buildTree = (items: Comentario[], parentId: string | null = null): Comentario[] => {
+  const buildTree = (items: Comentario[], respuestaA: string | null = null): Comentario[] => {
     return items
-      .filter(c => c.parent_id === parentId)
+      .filter(c => c.respuesta_a === respuestaA)
       .map(c => ({ ...c, children: buildTree(items, c.id) }));
   };
   const comentariosTree = buildTree(comentarios);
