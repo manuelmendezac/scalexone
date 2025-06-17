@@ -512,7 +512,7 @@ const FeedComunidad = () => {
                   <>
                     {/* Mostrar siempre el texto/título del post con enlaces clickeables */}
                     {(() => {
-                      const { parts, firstVideoEmbed } = renderPostContentWithLinks(post.contenido || '');
+                      const { parts, firstVideoEmbed, isInstagramReel } = renderPostContentWithLinks(post.contenido || '');
                       return (
                         <>
                           <div className="text-white text-base mb-2">
@@ -520,10 +520,10 @@ const FeedComunidad = () => {
                           </div>
                           {/* Si hay un video embed, mostrarlo debajo */}
                           {firstVideoEmbed && (
-                            <div className="w-full flex justify-center my-2">
+                            <div className={`w-full flex justify-center my-2 ${isInstagramReel ? 'aspect-[9/16] max-w-xs' : ''}`}>
                               <iframe
                                 src={firstVideoEmbed}
-                                className="w-full max-w-xl aspect-video rounded-xl border-2 border-[#e6a800]"
+                                className={`w-full ${isInstagramReel ? 'aspect-[9/16] max-w-xs' : 'max-w-xl aspect-video'} rounded-xl border-2 border-[#e6a800]`}
                                 allow="autoplay; encrypted-media; fullscreen"
                                 allowFullScreen
                                 loading="lazy"
@@ -544,8 +544,8 @@ const FeedComunidad = () => {
                       getEmbedUrl(post.media_url) ? (
                         <div className="w-full flex justify-center my-2">
                           <iframe
-                            src={getEmbedUrl(post.media_url)!}
-                            className="w-full max-w-xl aspect-video rounded-xl border-2 border-[#e6a800]"
+                            src={getEmbedUrl(post.media_url)!.embedUrl}
+                            className={`w-full ${getEmbedUrl(post.media_url)!.isInstagramReel ? 'aspect-[9/16] max-w-xs' : 'max-w-xl aspect-video'} rounded-xl border-2 border-[#e6a800]`}
                             allow="autoplay; encrypted-media; fullscreen"
                             allowFullScreen
                             loading="lazy"
@@ -753,26 +753,29 @@ const CarruselImagenes: React.FC<{ imagenes: string[] }> = ({ imagenes }) => {
 };
 
 // Función utilitaria para obtener la URL de embed de varios servicios
-function getEmbedUrl(url: string): string | null {
+function getEmbedUrl(url: string): { embedUrl: string, isInstagramReel?: boolean } | null {
   if (!url) return null;
   // YouTube
   const ytMatch = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([\w-]{11})/);
-  if (ytMatch) return `https://www.youtube.com/embed/${ytMatch[1]}`;
+  if (ytMatch) return { embedUrl: `https://www.youtube.com/embed/${ytMatch[1]}` };
   // Vimeo
   const vimeoMatch = url.match(/vimeo\.com\/(\d+)/);
-  if (vimeoMatch) return `https://player.vimeo.com/video/${vimeoMatch[1]}`;
+  if (vimeoMatch) return { embedUrl: `https://player.vimeo.com/video/${vimeoMatch[1]}` };
   // Loom
   const loomMatch = url.match(/loom\.com\/share\/([\w-]+)/);
-  if (loomMatch) return `https://www.loom.com/embed/${loomMatch[1]}`;
+  if (loomMatch) return { embedUrl: `https://www.loom.com/embed/${loomMatch[1]}` };
   // Facebook Video
   const fbMatch = url.match(/facebook\.com\/.+\/videos\/(\d+)/);
-  if (fbMatch) return `https://www.facebook.com/video/embed?video_id=${fbMatch[1]}`;
+  if (fbMatch) return { embedUrl: `https://www.facebook.com/video/embed?video_id=${fbMatch[1]}` };
   // TikTok
   const tiktokMatch = url.match(/tiktok\.com\/@[\w.-]+\/video\/(\d+)/);
-  if (tiktokMatch) return `https://www.tiktok.com/embed/v2/${tiktokMatch[1]}`;
-  // Instagram (solo reels y posts públicos)
-  const igMatch = url.match(/instagram\.com\/(?:reel|p)\/([\w-]+)/);
-  if (igMatch) return `https://www.instagram.com/p/${igMatch[1]}/embed`;
+  if (tiktokMatch) return { embedUrl: `https://www.tiktok.com/embed/v2/${tiktokMatch[1]}` };
+  // Instagram Reel
+  const igReelMatch = url.match(/instagram\.com\/reel\/([\w-]+)/);
+  if (igReelMatch) return { embedUrl: `https://www.instagram.com/reel/${igReelMatch[1]}/embed`, isInstagramReel: true };
+  // Instagram Post
+  const igPostMatch = url.match(/instagram\.com\/p\/([\w-]+)/);
+  if (igPostMatch) return { embedUrl: `https://www.instagram.com/p/${igPostMatch[1]}/embed` };
   return null;
 }
 
@@ -782,17 +785,21 @@ function renderPostContentWithLinks(text: string) {
   const parts = [];
   let lastIndex = 0;
   let firstVideoEmbed: string | null = null;
+  let isInstagramReel = false;
   let match;
   while ((match = urlRegex.exec(text)) !== null) {
     const url = match[0];
-    const embedUrl = getEmbedUrl(url);
-    if (!firstVideoEmbed && embedUrl) firstVideoEmbed = embedUrl;
+    const embedObj = getEmbedUrl(url);
+    if (!firstVideoEmbed && embedObj) {
+      firstVideoEmbed = embedObj.embedUrl;
+      isInstagramReel = !!embedObj.isInstagramReel;
+    }
     // Texto antes del enlace
     if (match.index > lastIndex) {
       parts.push(text.slice(lastIndex, match.index));
     }
     // Si no es video, mostrar como link
-    if (!embedUrl) {
+    if (!embedObj) {
       parts.push(
         <a key={url + match.index} href={url} target="_blank" rel="noopener noreferrer" className="text-cyan-400 underline break-all inline-block">{url}</a>
       );
@@ -804,7 +811,7 @@ function renderPostContentWithLinks(text: string) {
   if (lastIndex < text.length) {
     parts.push(text.slice(lastIndex));
   }
-  return { parts, firstVideoEmbed };
+  return { parts, firstVideoEmbed, isInstagramReel };
 }
 
 export default FeedComunidad; 
