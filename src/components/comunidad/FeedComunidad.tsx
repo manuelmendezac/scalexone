@@ -510,73 +510,44 @@ const FeedComunidad = () => {
                   </div>
                 ) : (
                   <>
-                    {/* Mostrar siempre el texto/título del post con enlaces clickeables */}
-                    {(() => {
-                      const { parts, firstVideoEmbed, isInstagramReel } = renderPostContentWithLinks(post.contenido || '');
+                    {/* Mostrar siempre el texto/título del post con enlaces clickeables o preview visual */}
+                    (() => {
+                      const { parts } = renderPostContentWithLinks(post.contenido || '');
                       return (
-                        <>
-                          <div className="text-white text-base mb-2">
-                            {parts.map((part, i) => typeof part === 'string' ? <span key={i}>{part}</span> : part)}
-                          </div>
-                          {/* Si hay un video embed, mostrarlo debajo */}
-                          {firstVideoEmbed && !isInstagramReel && (
-                            <div className="w-full flex justify-center my-2">
-                              <iframe
-                                src={firstVideoEmbed}
-                                className="rounded-xl border-2 border-[#e6a800] w-full max-w-xl aspect-video"
-                                allow="autoplay; encrypted-media; fullscreen"
-                                allowFullScreen
-                                loading="lazy"
-                                title="Video embed"
-                              />
-                            </div>
-                          )}
-                          {/* Instagram Reel: dejar el iframe libre, alto grande, scrollable */}
-                          {firstVideoEmbed && isInstagramReel && (
-                            <div className="w-full flex justify-center my-2">
-                              <iframe
-                                src={firstVideoEmbed}
-                                className="rounded-xl border-2 border-[#e6a800] w-full h-[900px]"
-                                allow="autoplay; encrypted-media; fullscreen"
-                                allowFullScreen
-                                loading="lazy"
-                                title="Instagram Reel embed"
-                                style={{ minHeight: 800 }}
-                              />
-                            </div>
-                          )}
-                        </>
-                      );
-                    })()}
-                    {post.tipo === 'imagen' && post.media_url && (
-                      <img src={post.media_url} alt="imagen" className="rounded-xl max-h-80 object-cover mb-2" />
-                    )}
-                    {post.tipo === 'video' && post.media_url && (
-                      <VideoWithOrientation src={post.media_url} orientacion={post.orientacion} />
-                    )}
-                    {post.tipo === 'enlace' && post.media_url && (
-                      getEmbedUrl(post.media_url) ? (
-                        <div className="w-full flex justify-center my-2">
-                          <iframe
-                            src={getEmbedUrl(post.media_url)!.embedUrl}
-                            className={`w-full ${getEmbedUrl(post.media_url)!.isInstagramReel ? 'aspect-[9/16] max-w-xs' : 'max-w-xl aspect-video'} rounded-xl border-2 border-[#e6a800]`}
-                            allow="autoplay; encrypted-media; fullscreen"
-                            allowFullScreen
-                            loading="lazy"
-                            title="Video embed"
-                          />
+                        <div className="text-white text-base mb-2 flex flex-col gap-2">
+                          {parts.map((part, i) => typeof part === 'string' ? <span key={i}>{part}</span> : part)}
                         </div>
-                      ) : (
-                        <a href={post.media_url} target="_blank" rel="noopener noreferrer" className="text-cyan-400 underline break-all mb-2 block">{post.media_url}</a>
-                      )
-                    )}
-                    {post.descripcion && (
-                      <div className="text-gray-400 text-sm mb-2">{post.descripcion}</div>
-                    )}
-                    {post.tipo === 'imagen' && post.imagenes_urls && post.imagenes_urls.length > 0 && (
-                      <CarruselImagenes imagenes={post.imagenes_urls} />
-                    )}
+                      );
+                    })()
                   </>
+                )}
+                {post.tipo === 'imagen' && post.media_url && (
+                  <img src={post.media_url} alt="imagen" className="rounded-xl max-h-80 object-cover mb-2" />
+                )}
+                {post.tipo === 'video' && post.media_url && (
+                  <VideoWithOrientation src={post.media_url} orientacion={post.orientacion} />
+                )}
+                {post.tipo === 'enlace' && post.media_url && (
+                  getEmbedUrl(post.media_url) ? (
+                    <div className="w-full flex justify-center my-2">
+                      <iframe
+                        src={getEmbedUrl(post.media_url)!.embedUrl}
+                        className={`w-full ${getEmbedUrl(post.media_url)!.isInstagramReel ? 'aspect-[9/16] max-w-xs' : 'max-w-xl aspect-video'} rounded-xl border-2 border-[#e6a800]`}
+                        allow="autoplay; encrypted-media; fullscreen"
+                        allowFullScreen
+                        loading="lazy"
+                        title="Video embed"
+                      />
+                    </div>
+                  ) : (
+                    <a href={post.media_url} target="_blank" rel="noopener noreferrer" className="text-cyan-400 underline break-all mb-2 block">{post.media_url}</a>
+                  )
+                )}
+                {post.descripcion && (
+                  <div className="text-gray-400 text-sm mb-2">{post.descripcion}</div>
+                )}
+                {post.tipo === 'imagen' && post.imagenes_urls && post.imagenes_urls.length > 0 && (
+                  <CarruselImagenes imagenes={post.imagenes_urls} />
                 )}
                 {/* Reacciones tipo Facebook y botones unificados */}
                 <div className="flex gap-4 mt-2 items-center">
@@ -793,47 +764,88 @@ function getEmbedUrl(url: string): { embedUrl: string, isInstagramReel?: boolean
   return null;
 }
 
-// Utilidad para renderizar texto con enlaces clickeables y embed de video
+// Componente para previsualización de enlaces usando Microlink
+const LinkPreview: React.FC<{ url: string }> = ({ url }) => {
+  const [data, setData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
+
+  useEffect(() => {
+    setLoading(true);
+    setError(false);
+    fetch(`https://api.microlink.io/?url=${encodeURIComponent(url)}`)
+      .then(res => res.json())
+      .then(res => {
+        if (res.status === 'success') {
+          setData(res.data);
+        } else {
+          setError(true);
+        }
+        setLoading(false);
+      })
+      .catch(() => {
+        setError(true);
+        setLoading(false);
+      });
+  }, [url]);
+
+  if (loading) return <div className="bg-[#23232b] rounded-xl p-4 text-gray-400">Cargando previsualización...</div>;
+  if (error || !data) return <a href={url} target="_blank" rel="noopener noreferrer" className="text-cyan-400 underline break-all inline-block">{url}</a>;
+
+  return (
+    <a href={url} target="_blank" rel="noopener noreferrer" className="block bg-[#23232b] rounded-xl border-2 border-[#e6a800] overflow-hidden shadow-md hover:scale-[1.02] transition-all max-w-md">
+      <div className="relative">
+        {data.image && (
+          <img src={data.image.url || data.image} alt={data.title || 'preview'} className="w-full h-48 object-cover" />
+        )}
+        {data.video && (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <span className="bg-black/60 rounded-full p-3">
+              <svg width="40" height="40" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>
+            </span>
+          </div>
+        )}
+      </div>
+      <div className="p-4">
+        <div className="font-bold text-white text-base mb-1 line-clamp-1">{data.title}</div>
+        <div className="text-gray-400 text-sm mb-2 line-clamp-2">{data.description}</div>
+        <div className="flex items-center gap-2">
+          {data.logo && <img src={data.logo.url || data.logo} alt="logo" className="w-5 h-5 rounded" />}
+          <span className="text-xs text-[#e6a800]">{data.publisher || data.url?.split('/')[2]}</span>
+        </div>
+      </div>
+    </a>
+  );
+};
+
+// Utilidad para renderizar texto con enlaces clickeables y/o preview visual
 function renderPostContentWithLinks(text: string) {
   const urlRegex = /(https?:\/\/[\w./?=&%-]+)/g;
   const parts = [];
   let lastIndex = 0;
-  let firstVideoEmbed: string | null = null;
-  let isInstagramReel = false;
-  let isTikTok = false;
   let match;
   while ((match = urlRegex.exec(text)) !== null) {
     const url = match[0];
-    const embedObj = getEmbedUrl(url);
-    if (!firstVideoEmbed && embedObj) {
-      firstVideoEmbed = embedObj.embedUrl;
-      isInstagramReel = !!embedObj.isInstagramReel;
-      isTikTok = !!embedObj.isTikTok;
-    }
     // Texto antes del enlace
     if (match.index > lastIndex) {
       parts.push(text.slice(lastIndex, match.index));
     }
-    // Si no es video, mostrar como link
-    if (!embedObj) {
+    // Mostrar preview visual para Instagram, TikTok, YouTube, Facebook, etc.
+    if (/instagram\.com|tiktok\.com|youtube\.com|youtu\.be|facebook\.com/.test(url)) {
+      parts.push(<LinkPreview key={url + match.index} url={url} />);
+    } else {
+      // Si no, mostrar como link normal
       parts.push(
         <a key={url + match.index} href={url} target="_blank" rel="noopener noreferrer" className="text-cyan-400 underline break-all inline-block">{url}</a>
       );
     }
-    // Si es TikTok pero no formato largo, mostrar como link
-    if (/tiktok\.com\//.test(url) && !/tiktok\.com\/@[\w.-]+\/video\/(\d+)/.test(url)) {
-      parts.push(
-        <a key={url + match.index + '-tiktok'} href={url} target="_blank" rel="noopener noreferrer" className="text-cyan-400 underline break-all inline-block">{url}</a>
-      );
-    }
-    // Si es video, no mostrar el enlace en el texto (solo el embed después)
     lastIndex = match.index + url.length;
   }
   // Texto restante
   if (lastIndex < text.length) {
     parts.push(text.slice(lastIndex));
   }
-  return { parts, firstVideoEmbed, isInstagramReel, isTikTok };
+  return { parts };
 }
 
 export default FeedComunidad; 
