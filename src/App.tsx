@@ -1,3 +1,4 @@
+// Cambio mínimo de prueba para commit y push
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
