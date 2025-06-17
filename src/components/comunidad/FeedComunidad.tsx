@@ -510,47 +510,29 @@ const FeedComunidad = () => {
                   </div>
                 ) : (
                   <>
-                    {/* Mostrar siempre el texto/título del post */}
-                    <div className="text-white text-base mb-2">{post.contenido}</div>
-                    {/* Si el post es tipo 'enlace' y tiene media_url, mostrar embed o link */}
-                    {post.tipo === 'enlace' && post.media_url && (
-                      getEmbedUrl(post.media_url) ? (
-                        <div className="w-full flex justify-center my-2">
-                          <iframe
-                            src={getEmbedUrl(post.media_url)!}
-                            className="w-full max-w-xl aspect-video rounded-xl border-2 border-[#e6a800]"
-                            allow="autoplay; encrypted-media; fullscreen"
-                            allowFullScreen
-                            loading="lazy"
-                            title="Video embed"
-                          />
-                        </div>
-                      ) : (
-                        <a href={post.media_url} target="_blank" rel="noopener noreferrer" className="text-cyan-400 underline break-all mb-2 block">{post.media_url}</a>
-                      )
-                    )}
-                    {/* Si el contenido tiene un enlace, mostrar embed o link debajo del texto */}
-                    {post.tipo === 'texto' && post.contenido && (() => {
-                      const urlRegex = /(https?:\/\/[\w./?=&%-]+)/g;
-                      const urls = post.contenido.match(urlRegex);
-                      if (urls && urls.length > 0) {
-                        const embedUrl = getEmbedUrl(urls[0]);
-                        return embedUrl ? (
-                          <div className="w-full flex justify-center my-2">
-                            <iframe
-                              src={embedUrl}
-                              className="w-full max-w-xl aspect-video rounded-xl border-2 border-[#e6a800]"
-                              allow="autoplay; encrypted-media; fullscreen"
-                              allowFullScreen
-                              loading="lazy"
-                              title="Video embed"
-                            />
+                    {/* Mostrar siempre el texto/título del post con enlaces clickeables */}
+                    {(() => {
+                      const { parts, firstVideoEmbed } = renderPostContentWithLinks(post.contenido || '');
+                      return (
+                        <>
+                          <div className="text-white text-base mb-2">
+                            {parts.map((part, i) => typeof part === 'string' ? <span key={i}>{part}</span> : part)}
                           </div>
-                        ) : (
-                          <a href={urls[0]} target="_blank" rel="noopener noreferrer" className="text-cyan-400 underline break-all mb-2 block">{urls[0]}</a>
-                        );
-                      }
-                      return null;
+                          {/* Si hay un video embed, mostrarlo debajo */}
+                          {firstVideoEmbed && (
+                            <div className="w-full flex justify-center my-2">
+                              <iframe
+                                src={firstVideoEmbed}
+                                className="w-full max-w-xl aspect-video rounded-xl border-2 border-[#e6a800]"
+                                allow="autoplay; encrypted-media; fullscreen"
+                                allowFullScreen
+                                loading="lazy"
+                                title="Video embed"
+                              />
+                            </div>
+                          )}
+                        </>
+                      );
                     })()}
                     {post.tipo === 'imagen' && post.media_url && (
                       <img src={post.media_url} alt="imagen" className="rounded-xl max-h-80 object-cover mb-2" />
@@ -792,6 +774,37 @@ function getEmbedUrl(url: string): string | null {
   const igMatch = url.match(/instagram\.com\/(?:reel|p)\/([\w-]+)/);
   if (igMatch) return `https://www.instagram.com/p/${igMatch[1]}/embed`;
   return null;
+}
+
+// Utilidad para renderizar texto con enlaces clickeables y embed de video
+function renderPostContentWithLinks(text: string) {
+  const urlRegex = /(https?:\/\/[\w./?=&%-]+)/g;
+  const parts = [];
+  let lastIndex = 0;
+  let firstVideoEmbed: string | null = null;
+  let match;
+  while ((match = urlRegex.exec(text)) !== null) {
+    const url = match[0];
+    const embedUrl = getEmbedUrl(url);
+    if (!firstVideoEmbed && embedUrl) firstVideoEmbed = embedUrl;
+    // Texto antes del enlace
+    if (match.index > lastIndex) {
+      parts.push(text.slice(lastIndex, match.index));
+    }
+    // Si no es video, mostrar como link
+    if (!embedUrl) {
+      parts.push(
+        <a key={url + match.index} href={url} target="_blank" rel="noopener noreferrer" className="text-cyan-400 underline break-all inline-block">{url}</a>
+      );
+    }
+    // Si es video, no mostrar el enlace en el texto (solo el embed después)
+    lastIndex = match.index + url.length;
+  }
+  // Texto restante
+  if (lastIndex < text.length) {
+    parts.push(text.slice(lastIndex));
+  }
+  return { parts, firstVideoEmbed };
 }
 
 export default FeedComunidad; 
