@@ -105,6 +105,22 @@ const ComunidadPostModal: React.FC<ComunidadPostModalProps> = ({ post, onClose, 
   const [reacciones, setReacciones] = useState<any[]>([]);
   const [miReaccion, setMiReaccion] = useState<string | null>(null);
   const [usuarioId, setUsuarioId] = useState<string>('');
+  const modalContentRef = useRef<HTMLDivElement>(null);
+
+  // Bloquear scroll del body cuando el modal está abierto
+  useEffect(() => {
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, []);
+
+  // Cerrar modal al hacer clic fuera del área del modal
+  const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (modalContentRef.current && !modalContentRef.current.contains(e.target as Node)) {
+      onClose();
+    }
+  };
 
   useEffect(() => {
     const fetchPost = async () => {
@@ -185,77 +201,87 @@ const ComunidadPostModal: React.FC<ComunidadPostModalProps> = ({ post, onClose, 
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70">
-      <div className="bg-[#23232b] rounded-2xl shadow-lg max-w-lg w-full p-6 relative">
-        <button
-          className="absolute top-3 right-3 text-2xl text-[#e6a800] font-bold z-50 bg-transparent border-none shadow-none p-0 m-0 hover:scale-110 transition-transform cursor-pointer"
-          onClick={onClose}
-          aria-label="Cerrar modal"
-        >
-          ×
-        </button>
-        {loading || !postCompleto ? (
-          <div className="text-center text-white py-10">Cargando publicación...</div>
-        ) : (
-          <>
-            <div className="flex items-center gap-3 mb-2">
-              <img src={postCompleto.usuario?.avatar_url || `https://ui-avatars.com/api/?name=Usuario&background=e6a800&color=fff&size=96`} alt="avatar" className="w-10 h-10 rounded-full border-2 border-[#e6a800] object-cover" />
-              <div>
-                <span className="text-white font-bold">{postCompleto.usuario?.name || 'Usuario'}</span>
-                <span className="ml-2 text-xs text-[#e6a800] font-semibold">{new Date(postCompleto.created_at).toLocaleString()}</span>
-              </div>
-            </div>
-            <div className="text-white text-base mb-2">{postCompleto.contenido}</div>
-            {postCompleto.tipo === 'imagen' && postCompleto.media_url && (
-              <img src={postCompleto.media_url} alt="imagen" className="rounded-xl max-h-80 object-cover mb-2" />
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70" onClick={handleBackdropClick}>
+      <div ref={modalContentRef} className="bg-[#23232b] rounded-2xl shadow-lg max-w-lg w-full p-0 relative max-h-[80vh] flex flex-col">
+        {/* Header sticky */}
+        <div className="sticky top-0 z-10 bg-[#23232b] px-6 pt-6 pb-2 flex items-start justify-between rounded-t-2xl">
+          <div className="flex items-center gap-3">
+            {postCompleto && (
+              <>
+                <img src={postCompleto.usuario?.avatar_url || `https://ui-avatars.com/api/?name=Usuario&background=e6a800&color=fff&size=96`} alt="avatar" className="w-10 h-10 rounded-full border-2 border-[#e6a800] object-cover" />
+                <div>
+                  <span className="text-white font-bold">{postCompleto.usuario?.name || 'Usuario'}</span>
+                  <span className="ml-2 text-xs text-[#e6a800] font-semibold">{new Date(postCompleto.created_at).toLocaleString()}</span>
+                </div>
+              </>
             )}
-            {postCompleto.tipo === 'video' && postCompleto.media_url && (
-              <VideoWithOrientation src={postCompleto.media_url} orientacion={postCompleto.orientacion} />
-            )}
-            {postCompleto.tipo === 'enlace' && postCompleto.media_url && (
-              <a href={postCompleto.media_url} target="_blank" rel="noopener noreferrer" className="text-cyan-400 underline break-all mb-2">{postCompleto.media_url}</a>
-            )}
-            {postCompleto.descripcion && (
-              <div className="text-gray-400 text-sm mb-2">{postCompleto.descripcion}</div>
-            )}
-            {postCompleto.tipo === 'imagen' && postCompleto.imagenes_urls && postCompleto.imagenes_urls.length > 0 && (
-              <CarruselImagenes imagenes={postCompleto.imagenes_urls} />
-            )}
-            <div className="flex gap-4 mt-2 items-center">
-              <ReaccionesFacebook
-                postId={postCompleto.id}
-                usuarioId={usuarioId}
-                reacciones={reacciones}
-                miReaccion={miReaccion}
-                onReact={manejarReaccion}
-              />
-              <button
-                className="relative flex items-center justify-center w-9 h-9 rounded-full border border-gray-700 bg-black/30 hover:bg-black/50 transition text-yellow-400"
-                onClick={() => {
-                  const input = document.querySelector<HTMLInputElement>(
-                    '.modal-comentario-input'
-                  );
-                  if (input) input.focus();
-                }}
-              >
-                <span role="img" aria-label="comentar" className="text-xl">💬</span>
-              </button>
-              <button
-                className="flex items-center justify-center w-9 h-9 rounded-full border border-gray-700 bg-black/30 hover:bg-black/50 transition text-cyan-400"
-              >
-                <span role="img" aria-label="compartir" className="text-xl">📤</span>
-              </button>
-            </div>
-            <div className="mt-4">
-              {postCompleto.id && (
-                <ComunidadComentarios 
-                  postId={postCompleto.id} 
-                  key={postCompleto.id + '-' + (forceRefresh || '')}
-                />
+          </div>
+          <button
+            className="text-2xl text-[#e6a800] font-bold bg-transparent border-none shadow-none p-0 m-0 hover:scale-110 transition-transform cursor-pointer"
+            onClick={onClose}
+            aria-label="Cerrar modal"
+          >
+            ×
+          </button>
+        </div>
+        {/* Contenido scrollable */}
+        <div className="flex-1 px-6 pb-6 pt-2 overflow-y-auto max-h-[65vh]">
+          {loading || !postCompleto ? (
+            <div className="text-center text-white py-10">Cargando publicación...</div>
+          ) : (
+            <>
+              <div className="text-white text-base mb-2">{postCompleto.contenido}</div>
+              {postCompleto.tipo === 'imagen' && postCompleto.media_url && (
+                <img src={postCompleto.media_url} alt="imagen" className="rounded-xl max-h-80 object-cover mb-2" />
               )}
-            </div>
-          </>
-        )}
+              {postCompleto.tipo === 'video' && postCompleto.media_url && (
+                <VideoWithOrientation src={postCompleto.media_url} orientacion={postCompleto.orientacion} />
+              )}
+              {postCompleto.tipo === 'enlace' && postCompleto.media_url && (
+                <a href={postCompleto.media_url} target="_blank" rel="noopener noreferrer" className="text-cyan-400 underline break-all mb-2">{postCompleto.media_url}</a>
+              )}
+              {postCompleto.descripcion && (
+                <div className="text-gray-400 text-sm mb-2">{postCompleto.descripcion}</div>
+              )}
+              {postCompleto.tipo === 'imagen' && postCompleto.imagenes_urls && postCompleto.imagenes_urls.length > 0 && (
+                <CarruselImagenes imagenes={postCompleto.imagenes_urls} />
+              )}
+              <div className="flex gap-4 mt-2 items-center">
+                <ReaccionesFacebook
+                  postId={postCompleto.id}
+                  usuarioId={usuarioId}
+                  reacciones={reacciones}
+                  miReaccion={miReaccion}
+                  onReact={manejarReaccion}
+                />
+                <button
+                  className="relative flex items-center justify-center w-9 h-9 rounded-full border border-gray-700 bg-black/30 hover:bg-black/50 transition text-yellow-400"
+                  onClick={() => {
+                    const input = document.querySelector<HTMLInputElement>(
+                      '.modal-comentario-input'
+                    );
+                    if (input) input.focus();
+                  }}
+                >
+                  <span role="img" aria-label="comentar" className="text-xl">💬</span>
+                </button>
+                <button
+                  className="flex items-center justify-center w-9 h-9 rounded-full border border-gray-700 bg-black/30 hover:bg-black/50 transition text-cyan-400"
+                >
+                  <span role="img" aria-label="compartir" className="text-xl">📤</span>
+                </button>
+              </div>
+              <div className="mt-4">
+                {postCompleto.id && (
+                  <ComunidadComentarios 
+                    postId={postCompleto.id} 
+                    key={postCompleto.id + '-' + (forceRefresh || '')}
+                  />
+                )}
+              </div>
+            </>
+          )}
+        </div>
       </div>
     </div>
   );
