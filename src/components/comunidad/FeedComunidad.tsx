@@ -421,15 +421,27 @@ const FeedComunidad = () => {
             )}
           </div>
         )}
-        {(tipo === 'video' || tipo === 'enlace') && (
-          <input
-            type="url"
-            className="bg-[#18181b] text-white border border-[#e6a800] rounded-xl px-3 py-1 flex-1"
-            placeholder="URL del enlace"
-            value={mediaUrl}
-            onChange={e => setMediaUrl(e.target.value)}
-            disabled={subiendo}
-          />
+        {tipo === 'video' && (
+          <div className="flex-1 flex flex-col gap-2">
+            <input
+              type="file"
+              ref={fileInputRef}
+              accept="video/*"
+              onChange={handleFileSelect}
+              className="hidden"
+              disabled={subiendo}
+            />
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              className="bg-[#18181b] text-[#e6a800] border border-[#e6a800] rounded-xl px-3 py-1 hover:bg-[#e6a800] hover:text-black transition"
+              disabled={subiendo}
+            >
+              Seleccionar video
+            </button>
+            {previewUrl && (
+              <video src={previewUrl} controls className="h-40 rounded-xl border-2 border-[#e6a800] mt-2" />
+            )}
+          </div>
         )}
         {(tipo === 'imagen' || tipo === 'video' || tipo === 'enlace') && (
           <input
