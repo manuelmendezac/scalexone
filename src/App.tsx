@@ -80,33 +80,31 @@ function App() {
   }, []);
 
   useEffect(() => {
-    async function checkAndInsertUser() {
+    async function checkAndSyncUser() {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-      let email =
-        user.email ||
-        user.user_metadata?.email ||
-        user.user_metadata?.correo ||
-        user.user_metadata?.email_address ||
-        (Array.isArray(user.identities) && user.identities.length > 0 && (user.identities[0] as any)?.email);
-      if (!email) return;
-      // Validar email
-      const isValidEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-      if (!isValidEmail(email)) return;
-      // Sincronizar usuario en tabla usuarios (side effect, no bloqueante)
-      syncUsuarioSupabase(user);
-      // ... el resto del efecto puede quedarse igual o solo retornar aquí ...
+      if (user && user.email) {
+        const nombre = user.user_metadata?.name || user.user_metadata?.full_name || user.email;
+        setUserName(nombre);
+        updateUserInfo({
+          name: nombre,
+          email: user.email,
+          rol: user.user_metadata?.rol || 'user'
+        });
+        syncUsuarioSupabase(user);
+        // Redirige solo si está en login, registro o raíz
+        if (["/login", "/registro", "/"].includes(location.pathname)) {
+          navigate("/home", { replace: true });
+        }
+      }
     }
-    // Suscríbete a los cambios de sesión
+    checkAndSyncUser();
     const { data: listener } = supabase.auth.onAuthStateChange(() => {
-      checkAndInsertUser();
+      checkAndSyncUser();
     });
-    // Llama también al montar el componente
-    checkAndInsertUser();
     return () => {
       listener?.subscription.unsubscribe();
     };
-  }, []);
+  }, [location.pathname, setUserName, updateUserInfo, navigate]);
 
   const handleOnboardingClose = () => {
     setShowOnboarding(false);
