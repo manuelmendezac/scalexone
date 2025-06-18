@@ -135,5 +135,9 @@ export const router = createBrowserRouter([
   {
     path: 'configuracion',
     element: <ConfiguracionProyecto />
+  },
+  {
+    path: 'registro',
+    element: <Register />
   }
 ]); 
