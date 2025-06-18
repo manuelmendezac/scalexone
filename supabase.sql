@@ -3,8 +3,39 @@ create table if not exists users (
   id uuid primary key default gen_random_uuid(),
   email text unique not null,
   nombre text not null,
-  rol text default 'afiliado'
+  rol text default 'afiliado',
+  community_id text default 'default'
 );
+
+-- Tabla de configuración del menú secundario por comunidad
+create table if not exists menu_secundario_config (
+  id uuid primary key default gen_random_uuid(),
+  community_id text not null unique,
+  config jsonb not null default '[]',
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null,
+  updated_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
+-- Crear índices para mejorar el rendimiento
+create index if not exists idx_users_community_id on users(community_id);
+create index if not exists idx_menu_secundario_config_community_id on menu_secundario_config(community_id);
+
+-- Insertar configuración por defecto para la comunidad 'default'
+insert into menu_secundario_config (community_id, config) 
+values ('default', '[
+  {"id": "home", "label": "Inicio", "icon": "🏠", "path": "/home", "visible": true, "orden": 1},
+  {"id": "clasificacion", "label": "Clasificación", "icon": "📊", "path": "/clasificacion", "visible": true, "orden": 2},
+  {"id": "classroom", "label": "Classroom", "icon": "🎓", "path": "/classroom", "visible": true, "orden": 3},
+  {"id": "cursos", "label": "Cursos", "icon": "📚", "path": "/cursos", "visible": true, "orden": 4},
+  {"id": "launchpad", "label": "Launchpad", "icon": "🚀", "path": "/launchpad", "visible": true, "orden": 5},
+  {"id": "comunidad", "label": "Comunidad", "icon": "👥", "path": "/comunidad", "visible": true, "orden": 6},
+  {"id": "funnels", "label": "Embudos", "icon": "🫧", "path": "/funnels", "visible": true, "orden": 7},
+  {"id": "ia", "label": "IA", "icon": "🤖", "path": "/ia", "visible": true, "orden": 8},
+  {"id": "automatizaciones", "label": "Automatizaciones", "icon": "⚙️", "path": "/automatizaciones", "visible": true, "orden": 9},
+  {"id": "whatsapp-crm", "label": "WhatsApp CRM", "icon": "💬", "path": "/whatsapp-crm", "visible": true, "orden": 10},
+  {"id": "configuracion", "label": "Configuración", "icon": "🔧", "path": "/configuracion", "visible": true, "orden": 11}
+]'::jsonb)
+on conflict (community_id) do nothing;
 
 -- Tabla de membresías
 create table if not exists memberships (
@@ -19,7 +50,7 @@ insert into memberships (nombre, precio, descripcion) values
   ('Pro', null, 'Membresía Pro'),
   ('Business', null, 'Membresía Business'),
   ('White Label', null, 'Membresía White Label')
-  on conflict (nombre) do nothing;
+on conflict do nothing;
 
 -- Tabla de ventas
 create table if not exists sales (
