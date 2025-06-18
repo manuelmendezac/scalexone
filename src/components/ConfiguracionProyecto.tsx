@@ -34,7 +34,7 @@ const ConfiguracionProyecto: React.FC = () => {
   const [selected, setSelected] = useState('welcome');
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh' }}>
+    <div style={{ display: 'flex', minHeight: '100vh', background: '#000' }}>
       <AdminSidebar selected={selected} onSelect={setSelected} />
       <AdminConfigPanel selected={selected} />
     </div>
