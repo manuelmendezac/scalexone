@@ -43,7 +43,7 @@ const ModuloDetalle = () => {
   const [materialLoading, setMaterialLoading] = useState(false);
   const [materialMsg, setMaterialMsg] = useState<string|null>(null);
   const [descMsg, setDescMsg] = useState<string|null>(null);
-  const setLoading = useGlobalLoading(state => state.setLoading);
+  const setGlobalLoading = useGlobalLoading(state => state.setLoading);
 
   useEffect(() => {
     async function fetchData() {
@@ -419,9 +419,9 @@ const ModuloDetalle = () => {
   }
 
   useEffect(() => {
-    setLoading(loading);
-    return () => setLoading(false);
-  }, [loading, setLoading]);
+    setGlobalLoading(loading);
+    return () => setGlobalLoading(false);
+  }, [loading, setGlobalLoading]);
 
   return (
     <GlobalLoadingSpinner loading={loading}>
