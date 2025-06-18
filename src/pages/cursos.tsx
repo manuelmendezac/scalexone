@@ -20,14 +20,18 @@ const CursosPage: React.FC = () => {
 
   // Leer cursos desde Supabase
   useEffect(() => {
-    setGlobalLoading(true);
-    supabase.from('cursos').select('*').order('orden', { ascending: true })
-      .then(({ data, error }) => {
+    const fetchCursos = async () => {
+      setGlobalLoading(true);
+      try {
+        const { data, error } = await supabase.from('cursos').select('*').order('orden', { ascending: true });
         if (error) setError('Error al cargar cursos');
         setCursos(data || []);
         setCursoActivo((data && data[0]) || null);
+      } finally {
         setGlobalLoading(false);
-      });
+      }
+    };
+    fetchCursos();
   }, []);
 
   useEffect(() => {
