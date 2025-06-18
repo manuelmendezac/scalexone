@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import AdminSidebar from './admin/AdminSidebar';
 import AdminConfigPanel from './admin/AdminConfigPanel';
 import './ConfiguracionProyecto.css';
+import NeonSpinner from './NeonSpinner';
 
 const USUARIO_DEFAULT = {
   nombre: 'Manuel Méndez',
@@ -32,6 +33,15 @@ const PROYECTO_DEFAULT = {
 
 const ConfiguracionProyecto: React.FC = () => {
   const [selected, setSelected] = useState('welcome');
+  const [loading, setLoading] = useState(false);
+
+  if (loading) {
+    return (
+      <div style={{ minHeight: '100vh', background: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <NeonSpinner size={64} />
+      </div>
+    );
+  }
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh', background: '#000' }}>
