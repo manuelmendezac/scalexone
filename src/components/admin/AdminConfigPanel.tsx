@@ -5,6 +5,7 @@ import { supabase } from '../../supabase';
 import { useMenuSecundarioConfig } from '../../hooks/useMenuSecundarioConfig';
 import useNeuroState from '../../store/useNeuroState';
 import SecondNavbar from '../SecondNavbar';
+import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 
 const perfilDefault = {
   avatar: '',
@@ -286,9 +287,9 @@ export default function AdminConfigPanel({ selected }: { selected: string }) {
         <div style={{ width: '100%', margin: 0, background: '#18181b', borderRadius: 18, boxShadow: '0 2px 12px #0006', padding: 40 }}>
           <h2 style={{ color: '#FFD700', fontWeight: 700, fontSize: 28, marginBottom: 18 }}>Menú Secundario (Barras Superior e Inferior)</h2>
           <div style={{ color: '#fff', marginBottom: 18 }}>
-            Configura los botones que aparecerán en la barra superior (scroll horizontal) y en la barra inferior (app móvil). Puedes elegir la zona, el nombre, el orden y la visibilidad de cada botón.
+            Configura los botones que aparecerán en la barra superior (scroll horizontal, visible en desktop y móvil arriba) y en la barra inferior (solo móvil, abajo). Puedes arrastrar, agregar, quitar y reordenar los botones de cada barra de forma independiente. No se permiten duplicados.
           </div>
-          <MenuSecundarioConfigurable />
+          <MenuSecundarioSeparado />
         </div>
       )}
       {selected === 'members' && <div style={{ color: '#fff' }}>Miembros (aquí irá la gestión de miembros)</div>}
@@ -342,78 +343,129 @@ const botonGuardarEstilo = {
   fontSize: 18,
 };
 
-// --- COMPONENTE DEMO DE MENÚ SECUNDARIO ---
-function MenuSecundarioConfigurable() {
+// --- NUEVO COMPONENTE DE MENÚ SECUNDARIO SEPARADO ---
+function MenuSecundarioSeparado() {
   const { userInfo } = useNeuroState();
   const community_id = userInfo?.community_id || null;
   const isSuperAdmin = userInfo?.rol === 'superadmin';
   const isAdmin = userInfo?.rol === 'admin' || isSuperAdmin;
   const { menuConfig, loading, error, saveMenuConfig } = useMenuSecundarioConfig(community_id);
 
-  // Menú por defecto con zona
-  const defaultMenu = [
-    { key: 'inicio', nombre: 'Inicio', visible: true, predeterminado: true, ruta: '/home', icon: '🏠', zona: 'ambas' },
-    { key: 'clasificacion', nombre: 'Clasificación', visible: true, predeterminado: false, ruta: '/clasificacion', icon: '📊', zona: 'ambas' },
-    { key: 'classroom', nombre: 'Classroom', visible: true, predeterminado: false, ruta: '/classroom', icon: '🎓', zona: 'ambas' },
-    { key: 'cursos', nombre: 'Cursos', visible: true, predeterminado: false, ruta: '/cursos', icon: '📚', zona: 'ambas' },
-    { key: 'launchpad', nombre: 'Launchpad', visible: true, predeterminado: false, ruta: '/launchpad', icon: '🚀', zona: 'ambas' },
-    { key: 'comunidad', nombre: 'Comunidad', visible: true, predeterminado: false, ruta: '/comunidad', icon: '👥', zona: 'ambas' },
-    { key: 'embudos', nombre: 'Embudos', visible: true, predeterminado: false, ruta: '/funnels', icon: '🫧', zona: 'ambas' },
-    { key: 'ia', nombre: 'IA', visible: true, predeterminado: false, ruta: '/ia', icon: '🤖', zona: 'ambas' },
-    { key: 'automatizaciones', nombre: 'Automatizaciones', visible: true, predeterminado: false, ruta: '/automatizaciones', icon: '⚙️', zona: 'ambas' },
-    { key: 'whatsappcrm', nombre: 'WhatsApp CRM', visible: true, predeterminado: false, ruta: '/whatsapp-crm', icon: '💬', zona: 'ambas' },
-    { key: 'configuracion', nombre: 'Configuración', visible: true, predeterminado: false, ruta: '/configuracion', icon: '🔧', zona: 'ambas' },
+  // Menú por defecto
+  const defaultButtons = [
+    { key: 'inicio', nombre: 'Inicio', visible: true, predeterminado: true, ruta: '/home', icon: '🏠' },
+    { key: 'comunidad', nombre: 'Comunidad', visible: true, predeterminado: false, ruta: '/comunidad', icon: '👥' },
+    { key: 'classroom', nombre: 'Classroom', visible: true, predeterminado: false, ruta: '/classroom', icon: '🎓' },
+    { key: 'cursos', nombre: 'Cursos', visible: true, predeterminado: false, ruta: '/cursos', icon: '📚' },
+    { key: 'launchpad', nombre: 'Launchpad', visible: true, predeterminado: false, ruta: '/launchpad', icon: '🚀' },
+    { key: 'clasificacion', nombre: 'Clasificación', visible: true, predeterminado: false, ruta: '/clasificacion', icon: '📊' },
+    { key: 'embudos', nombre: 'Embudos', visible: false, predeterminado: false, ruta: '/funnels', icon: '🫧' },
+    { key: 'ia', nombre: 'IA', visible: false, predeterminado: false, ruta: '/ia', icon: '🤖' },
+    { key: 'automatizaciones', nombre: 'Automatizaciones', visible: false, predeterminado: false, ruta: '/automatizaciones', icon: '⚙️' },
+    { key: 'whatsappcrm', nombre: 'WhatsApp CRM', visible: false, predeterminado: false, ruta: '/whatsapp-crm', icon: '💬' },
+    { key: 'configuracion', nombre: 'Configuración', visible: false, predeterminado: false, ruta: '/configuracion', icon: '🔧' },
   ];
 
-  // Si la config está vacía o corrupta, usar el defaultMenu
-  const getInitialTabs = () => {
-    if (Array.isArray(menuConfig) && menuConfig.length > 0 && menuConfig.every(tab => tab && typeof tab.key === 'string')) {
-      // Si no tiene zona, asignar 'ambas' por compatibilidad
-      return menuConfig.map(tab => ({ ...tab, zona: tab.zona || 'ambas' }));
+  // Estructura inicial: dos arrays separados
+  const getInitialConfig = () => {
+    if (menuConfig && typeof menuConfig === 'object' && (menuConfig.barra_superior || menuConfig.barra_inferior)) {
+      return {
+        barra_superior: Array.isArray(menuConfig.barra_superior) ? menuConfig.barra_superior : [],
+        barra_inferior: Array.isArray(menuConfig.barra_inferior) ? menuConfig.barra_inferior : [],
+      };
     }
-    return defaultMenu;
+    // Si es el formato viejo (array plano), migrar todo a barra_superior
+    if (Array.isArray(menuConfig)) {
+      return { barra_superior: menuConfig, barra_inferior: [] };
+    }
+    // Si no hay nada, usar default
+    return { barra_superior: defaultButtons, barra_inferior: [] };
   };
 
-  const [tabs, setTabs] = useState<any[]>(getInitialTabs());
+  const [config, setConfig] = useState<{ barra_superior: any[]; barra_inferior: any[] }>(getInitialConfig());
   const [hasChanges, setHasChanges] = useState(false);
 
   useEffect(() => {
-    setTabs(getInitialTabs());
+    setConfig(getInitialConfig());
   }, [menuConfig]);
 
   useEffect(() => {
-    setHasChanges(JSON.stringify(tabs) !== JSON.stringify(menuConfig));
-  }, [tabs, menuConfig]);
+    // Si menuConfig es array plano, conviértelo a objeto para comparar
+    let menuObj = menuConfig;
+    if (Array.isArray(menuConfig)) {
+      menuObj = { barra_superior: menuConfig, barra_inferior: [] };
+    }
+    setHasChanges(JSON.stringify(config) !== JSON.stringify(menuObj));
+  }, [config, menuConfig]);
 
-  const handleToggle = (idx: number) => {
-    setTabs(tabs => tabs.map((t, i) => i === idx ? { ...t, visible: !t.visible } : t));
+  // Drag & drop entre barras
+  const onDragEnd = (result: any) => {
+    if (!result.destination) return;
+    const sourceBar = result.source.droppableId as 'barra_superior' | 'barra_inferior';
+    const destBar = result.destination.droppableId as 'barra_superior' | 'barra_inferior';
+    if (sourceBar === destBar) {
+      // Reordenar dentro de la misma barra
+      const items = Array.from(config[sourceBar]);
+      const [removed] = items.splice(result.source.index, 1);
+      items.splice(result.destination.index, 0, removed);
+      setConfig({ ...config, [sourceBar]: items });
+    } else {
+      // Mover entre barras
+      const sourceItems = Array.from(config[sourceBar]);
+      const destItems = Array.from(config[destBar]);
+      const [removed] = sourceItems.splice(result.source.index, 1);
+      // Evitar duplicados
+      if (destItems.find(b => b.key === removed.key)) return;
+      destItems.splice(result.destination.index, 0, removed);
+      setConfig({ ...config, [sourceBar]: sourceItems, [destBar]: destItems });
+    }
   };
-  const handleName = (idx: number, nombre: string) => {
-    setTabs(tabs => tabs.map((t, i) => i === idx ? { ...t, nombre } : t));
-  };
-  const handlePredeterminado = (idx: number) => {
-    setTabs(tabs => tabs.map((t, i) => ({ ...t, predeterminado: i === idx })));
-  };
-  const handleZona = (idx: number, zona: string) => {
-    setTabs(tabs => tabs.map((t, i) => i === idx ? { ...t, zona } : t));
-  };
-  const moveTab = (from: number, to: number) => {
-    if (to < 0 || to >= tabs.length) return;
-    const newTabs = [...tabs];
-    const [moved] = newTabs.splice(from, 1);
-    newTabs.splice(to, 0, moved);
-    setTabs(newTabs);
-  };
-  const handleAgregarTab = () => {
-    if (!isSuperAdmin) return;
-    setTabs([...tabs, { key: '', nombre: '', visible: true, predeterminado: false, ruta: '', icon: '', zona: 'ambas' }]);
-  };
-  const cleanTabs = (arr: any[]) => arr.filter(tab => tab && typeof tab.key === 'string' && tab.key.trim() && typeof tab.nombre === 'string' && tab.nombre.trim());
 
+  // Quitar botón de una barra
+  const removeButton = (bar: 'barra_superior' | 'barra_inferior', idx: number) => {
+    const items = Array.from(config[bar]);
+    items.splice(idx, 1);
+    setConfig({ ...config, [bar]: items });
+  };
+
+  // Editar nombre, visibilidad, etc.
+  const handleEdit = (bar: 'barra_superior' | 'barra_inferior', idx: number, field: string, value: any) => {
+    const items = Array.from(config[bar]);
+    items[idx] = { ...items[idx], [field]: value };
+    setConfig({ ...config, [bar]: items });
+  };
+
+  // Agregar botón disponible a una barra
+  const addButtonToBar = (bar: 'barra_superior' | 'barra_inferior', button: any) => {
+    if (config[bar].find(b => b.key === button.key)) return;
+    setConfig({ ...config, [bar]: [...config[bar], button] });
+  };
+
+  // Botones disponibles para agregar (los que no están en ninguna barra)
+  const usedKeys = [...config.barra_superior, ...config.barra_inferior].map(b => b.key);
+  const availableButtons = defaultButtons.filter(b => !usedKeys.includes(b.key));
+
+  // Type guard para asegurar el tipo correcto de config
+  function isConfigObject(obj: any): obj is { barra_superior: any[]; barra_inferior: any[] } {
+    return obj && typeof obj === 'object' && Array.isArray(obj.barra_superior) && Array.isArray(obj.barra_inferior);
+  }
+
+  // En el render y en el guardado, usa config seguro
+  const barraSuperior = isConfigObject(config) ? config.barra_superior : [];
+  const barraInferior = isConfigObject(config) ? config.barra_inferior : [];
+
+  // Guardar
   const handleGuardar = async () => {
     if (!isAdmin) return;
-    const cleaned = cleanTabs(tabs);
-    const result = await saveMenuConfig(cleaned);
+    // Validar que no haya duplicados
+    const keysSup = barraSuperior.map(b => b.key);
+    const keysInf = barraInferior.map(b => b.key);
+    const duplicados = keysSup.filter(k => keysInf.includes(k));
+    if (duplicados.length > 0) {
+      alert('No puede haber botones duplicados en ambas barras: ' + duplicados.join(', '));
+      return;
+    }
+    const result = await saveMenuConfig({ barra_superior: barraSuperior, barra_inferior: barraInferior });
     if (result && result.error) {
       alert('Error al guardar: ' + result.error.message);
     } else {
@@ -422,12 +474,6 @@ function MenuSecundarioConfigurable() {
     }
   };
 
-  if (loading) return <div style={{ color: '#FFD700' }}>Cargando menú...</div>;
-
-  // Separar por zona
-  const tabsSuperior = tabs.filter(tab => tab.zona === 'superior' || tab.zona === 'ambas');
-  const tabsInferior = tabs.filter(tab => tab.zona === 'inferior' || tab.zona === 'ambas');
-
   return (
     <div style={{ background: '#23232b', borderRadius: 14, padding: 24, boxShadow: '0 2px 8px #0004' }}>
       <div style={{ marginBottom: 18, color: '#FFD700', fontWeight: 600 }}>
@@ -435,57 +481,72 @@ function MenuSecundarioConfigurable() {
         <span style={{ color: '#fff', fontSize: 13 }}>community_id actual: <b>{community_id || '[null]'}</b></span>
       </div>
       {error && <div style={{ color: 'red', marginBottom: 12, fontWeight: 700 }}>Error al guardar o cargar menú: {error}</div>}
-      <h3 style={{ color: '#FFD700', fontWeight: 700, fontSize: 20, margin: '18px 0 8px' }}>Barra Superior (scroll horizontal)</h3>
-      {tabsSuperior.length === 0 && <div style={{ color: '#fff' }}>No hay botones configurados para la barra superior.</div>}
-      {tabsSuperior.map((tab, idx) => (
-        <div key={tab.key || idx} style={{ display: 'flex', alignItems: 'center', gap: 16, borderBottom: '1px solid #333', padding: '12px 0' }}>
-          <span style={{ color: '#FFD700', fontWeight: tab.predeterminado ? 700 : 500, minWidth: 90 }}>
-            {tab.icon || ''} {(tab.key && typeof tab.key === 'string') ? tab.key.charAt(0).toUpperCase() + tab.key.slice(1) : '[Sin clave]'}
-          </span>
-          <input value={typeof tab.nombre === 'string' ? tab.nombre : ''} onChange={e => handleName(tabs.indexOf(tab), e.target.value)} style={{ ...inputEstilo, width: 180, background: '#23232b', color: '#FFD700', fontWeight: 600 }} />
-          <button onClick={() => handlePredeterminado(tabs.indexOf(tab))} title="Marcar como predeterminado" style={{ background: tab.predeterminado ? '#FFD700' : 'transparent', color: tab.predeterminado ? '#18181b' : '#FFD700', border: '1.5px solid #FFD700', borderRadius: 8, padding: '4px 12px', fontWeight: 700, cursor: 'pointer' }}>Predeterminado</button>
-          <label style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}>
-            <input type="checkbox" checked={!!tab.visible} onChange={() => handleToggle(tabs.indexOf(tab))} style={{ accentColor: '#FFD700', width: 18, height: 18 }} />
-            <span style={{ color: tab.visible ? '#FFD700' : '#888', fontWeight: 600 }}>{tab.visible ? 'Visible' : 'Oculto'}</span>
-          </label>
-          <select value={tab.zona} onChange={e => handleZona(tabs.indexOf(tab), e.target.value)} style={{ ...inputEstilo, width: 120, color: '#FFD700', fontWeight: 600 }}>
-            <option value="superior">Superior</option>
-            <option value="inferior">Inferior</option>
-            <option value="ambas">Ambas</option>
-          </select>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-            <button onClick={() => moveTab(tabs.indexOf(tab), tabs.indexOf(tab) - 1)} style={{ background: 'transparent', border: 'none', color: '#FFD700', fontSize: 18, cursor: 'pointer' }} title="Subir">▲</button>
-            <button onClick={() => moveTab(tabs.indexOf(tab), tabs.indexOf(tab) + 1)} style={{ background: 'transparent', border: 'none', color: '#FFD700', fontSize: 18, cursor: 'pointer' }} title="Bajar">▼</button>
-          </div>
+      <div style={{ display: 'flex', gap: 40, alignItems: 'flex-start', marginBottom: 32 }}>
+        <DragDropContext onDragEnd={onDragEnd}>
+          <Droppable droppableId="barra_superior">
+            {(provided) => (
+              <div ref={provided.innerRef} {...provided.droppableProps} style={{ flex: 1, minWidth: 320 }}>
+                <h3 style={{ color: '#FFD700', fontWeight: 700, fontSize: 20, marginBottom: 12 }}>Barra Superior (scroll horizontal)</h3>
+                {barraSuperior.length === 0 && <div style={{ color: '#fff' }}>No hay botones configurados para la barra superior.</div>}
+                {barraSuperior.map((tab, idx) => (
+                  <Draggable key={tab.key} draggableId={tab.key} index={idx}>
+                    {(prov) => (
+                      <div ref={prov.innerRef} {...prov.draggableProps} {...prov.dragHandleProps} style={{ display: 'flex', alignItems: 'center', gap: 16, borderBottom: '1px solid #333', padding: '12px 0', ...prov.draggableProps.style }}>
+                        <span style={{ color: '#FFD700', fontWeight: tab.predeterminado ? 700 : 500, minWidth: 90 }}>{tab.icon || ''} {tab.nombre}</span>
+                        <input value={tab.nombre} onChange={e => handleEdit('barra_superior', idx, 'nombre', e.target.value)} style={{ ...inputEstilo, width: 180, background: '#23232b', color: '#FFD700', fontWeight: 600 }} />
+                        <button onClick={() => handleEdit('barra_superior', idx, 'predeterminado', !tab.predeterminado)} style={{ background: tab.predeterminado ? '#FFD700' : 'transparent', color: tab.predeterminado ? '#18181b' : '#FFD700', border: '1.5px solid #FFD700', borderRadius: 8, padding: '4px 12px', fontWeight: 700, cursor: 'pointer' }}>Predeterminado</button>
+                        <label style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}>
+                          <input type="checkbox" checked={!!tab.visible} onChange={() => handleEdit('barra_superior', idx, 'visible', !tab.visible)} style={{ accentColor: '#FFD700', width: 18, height: 18 }} />
+                          <span style={{ color: tab.visible ? '#FFD700' : '#888', fontWeight: 600 }}>{tab.visible ? 'Visible' : 'Oculto'}</span>
+                        </label>
+                        <button onClick={() => removeButton('barra_superior', idx)} style={{ background: 'transparent', border: 'none', color: '#FFD700', fontSize: 18, cursor: 'pointer' }} title="Quitar">✕</button>
+                      </div>
+                    )}
+                  </Draggable>
+                ))}
+                {provided.placeholder}
+              </div>
+            )}
+          </Droppable>
+          <Droppable droppableId="barra_inferior">
+            {(provided) => (
+              <div ref={provided.innerRef} {...provided.droppableProps} style={{ flex: 1, minWidth: 320 }}>
+                <h3 style={{ color: '#FFD700', fontWeight: 700, fontSize: 20, marginBottom: 12 }}>Barra Inferior (app móvil)</h3>
+                {barraInferior.length === 0 && <div style={{ color: '#fff' }}>No hay botones configurados para la barra inferior.</div>}
+                {barraInferior.map((tab, idx) => (
+                  <Draggable key={tab.key} draggableId={tab.key} index={idx}>
+                    {(prov) => (
+                      <div ref={prov.innerRef} {...prov.draggableProps} {...prov.dragHandleProps} style={{ display: 'flex', alignItems: 'center', gap: 16, borderBottom: '1px solid #333', padding: '12px 0', ...prov.draggableProps.style }}>
+                        <span style={{ color: '#FFD700', fontWeight: tab.predeterminado ? 700 : 500, minWidth: 90 }}>{tab.icon || ''} {tab.nombre}</span>
+                        <input value={tab.nombre} onChange={e => handleEdit('barra_inferior', idx, 'nombre', e.target.value)} style={{ ...inputEstilo, width: 180, background: '#23232b', color: '#FFD700', fontWeight: 600 }} />
+                        <button onClick={() => handleEdit('barra_inferior', idx, 'predeterminado', !tab.predeterminado)} style={{ background: tab.predeterminado ? '#FFD700' : 'transparent', color: tab.predeterminado ? '#18181b' : '#FFD700', border: '1.5px solid #FFD700', borderRadius: 8, padding: '4px 12px', fontWeight: 700, cursor: 'pointer' }}>Predeterminado</button>
+                        <label style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}>
+                          <input type="checkbox" checked={!!tab.visible} onChange={() => handleEdit('barra_inferior', idx, 'visible', !tab.visible)} style={{ accentColor: '#FFD700', width: 18, height: 18 }} />
+                          <span style={{ color: tab.visible ? '#FFD700' : '#888', fontWeight: 600 }}>{tab.visible ? 'Visible' : 'Oculto'}</span>
+                        </label>
+                        <button onClick={() => removeButton('barra_inferior', idx)} style={{ background: 'transparent', border: 'none', color: '#FFD700', fontSize: 18, cursor: 'pointer' }} title="Quitar">✕</button>
+                      </div>
+                    )}
+                  </Draggable>
+                ))}
+                {provided.placeholder}
+              </div>
+            )}
+          </Droppable>
+        </DragDropContext>
+      </div>
+      <div style={{ marginBottom: 18 }}>
+        <h4 style={{ color: '#FFD700', fontWeight: 600, fontSize: 16 }}>Botones disponibles para agregar</h4>
+        <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+          {availableButtons.length === 0 && <span style={{ color: '#fff' }}>No hay más botones disponibles.</span>}
+          {availableButtons.map(btn => (
+            <button key={btn.key} style={{ background: '#23232b', color: '#FFD700', border: '1.5px solid #FFD700', borderRadius: 8, padding: '8px 16px', fontWeight: 600, cursor: 'pointer' }} onClick={() => addButtonToBar('barra_superior', btn)}>Agregar a superior: {btn.icon} {btn.nombre}</button>
+          ))}
+          {availableButtons.map(btn => (
+            <button key={btn.key + '-inf'} style={{ background: '#23232b', color: '#FFD700', border: '1.5px solid #FFD700', borderRadius: 8, padding: '8px 16px', fontWeight: 600, cursor: 'pointer' }} onClick={() => addButtonToBar('barra_inferior', btn)}>Agregar a inferior: {btn.icon} {btn.nombre}</button>
+          ))}
         </div>
-      ))}
-      <h3 style={{ color: '#FFD700', fontWeight: 700, fontSize: 20, margin: '28px 0 8px' }}>Barra Inferior (app móvil)</h3>
-      {tabsInferior.length === 0 && <div style={{ color: '#fff' }}>No hay botones configurados para la barra inferior.</div>}
-      {tabsInferior.map((tab, idx) => (
-        <div key={tab.key || idx} style={{ display: 'flex', alignItems: 'center', gap: 16, borderBottom: '1px solid #333', padding: '12px 0' }}>
-          <span style={{ color: '#FFD700', fontWeight: tab.predeterminado ? 700 : 500, minWidth: 90 }}>
-            {tab.icon || ''} {(tab.key && typeof tab.key === 'string') ? tab.key.charAt(0).toUpperCase() + tab.key.slice(1) : '[Sin clave]'}
-          </span>
-          <input value={typeof tab.nombre === 'string' ? tab.nombre : ''} onChange={e => handleName(tabs.indexOf(tab), e.target.value)} style={{ ...inputEstilo, width: 180, background: '#23232b', color: '#FFD700', fontWeight: 600 }} />
-          <button onClick={() => handlePredeterminado(tabs.indexOf(tab))} title="Marcar como predeterminado" style={{ background: tab.predeterminado ? '#FFD700' : 'transparent', color: tab.predeterminado ? '#18181b' : '#FFD700', border: '1.5px solid #FFD700', borderRadius: 8, padding: '4px 12px', fontWeight: 700, cursor: 'pointer' }}>Predeterminado</button>
-          <label style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}>
-            <input type="checkbox" checked={!!tab.visible} onChange={() => handleToggle(tabs.indexOf(tab))} style={{ accentColor: '#FFD700', width: 18, height: 18 }} />
-            <span style={{ color: tab.visible ? '#FFD700' : '#888', fontWeight: 600 }}>{tab.visible ? 'Visible' : 'Oculto'}</span>
-          </label>
-          <select value={tab.zona} onChange={e => handleZona(tabs.indexOf(tab), e.target.value)} style={{ ...inputEstilo, width: 120, color: '#FFD700', fontWeight: 600 }}>
-            <option value="superior">Superior</option>
-            <option value="inferior">Inferior</option>
-            <option value="ambas">Ambas</option>
-          </select>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-            <button onClick={() => moveTab(tabs.indexOf(tab), tabs.indexOf(tab) - 1)} style={{ background: 'transparent', border: 'none', color: '#FFD700', fontSize: 18, cursor: 'pointer' }} title="Subir">▲</button>
-            <button onClick={() => moveTab(tabs.indexOf(tab), tabs.indexOf(tab) + 1)} style={{ background: 'transparent', border: 'none', color: '#FFD700', fontSize: 18, cursor: 'pointer' }} title="Bajar">▼</button>
-          </div>
-        </div>
-      ))}
-      {isSuperAdmin && (
-        <button style={{ ...botonGuardarEstilo, marginTop: 16, background: '#23232b', color: '#FFD700', border: '1.5px solid #FFD700' }} onClick={handleAgregarTab}>+ Agregar botón</button>
-      )}
+      </div>
       <button style={{ ...botonGuardarEstilo, marginTop: 24, opacity: hasChanges ? 1 : 0.5, cursor: hasChanges ? 'pointer' : 'not-allowed' }} onClick={handleGuardar} disabled={!hasChanges || !isAdmin}>Guardar menú</button>
     </div>
   );
