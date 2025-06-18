@@ -108,7 +108,7 @@ function App() {
 
   const handleOnboardingClose = () => {
     setShowOnboarding(false);
-    navigate('/dashboard/console');
+    navigate('/clasificacion/console');
   };
 
   if (!isHydrated) {

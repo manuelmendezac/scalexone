@@ -58,7 +58,7 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({ open = true, onClose 
       localStorage.setItem(ONBOARDING_KEY, 'true');
       setVisible(false);
       if (onClose) onClose();
-      navigate('/dashboard/console');
+      navigate('/clasificacion/console');
     }
   };
 

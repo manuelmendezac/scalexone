@@ -125,7 +125,7 @@ const Dashboard: React.FC = () => {
   ];
   const accesos = [
     { icon: <FiPlusCircle />, texto: 'Crear agente', link: '/implementar-ia' },
-    { icon: <FiZap />, texto: 'Alimentar fuentes', link: '/dashboard/uploader' },
+    { icon: <FiZap />, texto: 'Alimentar fuentes', link: '/clasificacion/uploader' },
     { icon: <FiUser />, texto: 'Ver perfil', link: '/perfil' },
   ];
 

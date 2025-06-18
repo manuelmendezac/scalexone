@@ -80,7 +80,7 @@ const SmartOnboarding: React.FC = () => {
   // Redirección al finalizar
   React.useEffect(() => {
     if (step === steps.length - 1) {
-      setTimeout(() => navigate('/dashboard'), 1500);
+      setTimeout(() => navigate('/clasificacion'), 1500);
     }
   }, [step, navigate]);
 
