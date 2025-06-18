@@ -276,7 +276,7 @@ export default function AdminConfigPanel({ selected }: { selected: string }) {
       {selected === 'levels' && <LevelsSection />}
       {selected === 'channels' && <div style={{ color: '#fff' }}>Canales (aquí irá la gestión de canales)</div>}
       {selected === 'mainMenu' && (
-        <div style={{ width: '100%', maxWidth: 900, margin: '0 auto', background: '#18181b', borderRadius: 18, boxShadow: '0 2px 12px #0006', padding: 40 }}>
+        <div style={{ width: '100%', margin: 0, background: '#18181b', borderRadius: 18, boxShadow: '0 2px 12px #0006', padding: 40 }}>
           <h2 style={{ color: '#FFD700', fontWeight: 700, fontSize: 28, marginBottom: 18 }}>Menú Principal</h2>
           <div style={{ color: '#fff', marginBottom: 18 }}>
             Configura tu menú principal, activando u ocultando las pestañas que deseas mostrar, cambiando el nombre y el orden, y eligiendo cuál es la pestaña predeterminada.
@@ -339,14 +339,17 @@ const botonGuardarEstilo = {
 function MenuPrincipalDemo() {
   const demoTabs = [
     { key: 'inicio', nombre: 'Inicio', visible: true, predeterminado: true },
-    { key: 'comunidad', nombre: 'Comunidad', visible: true, predeterminado: false },
-    { key: 'ofertas', nombre: 'Ofertas', visible: true, predeterminado: false },
+    { key: 'dashboard', nombre: 'Dashboard', visible: true, predeterminado: false },
+    { key: 'classroom', nombre: 'Classroom', visible: true, predeterminado: false },
     { key: 'cursos', nombre: 'Cursos', visible: true, predeterminado: false },
-    { key: 'info', nombre: 'Info', visible: false, predeterminado: false },
-    { key: 'miembros', nombre: 'Miembros', visible: true, predeterminado: false },
-    { key: 'eventos', nombre: 'Eventos', visible: true, predeterminado: false },
-    { key: 'premios', nombre: 'Premios', visible: true, predeterminado: false },
-    { key: 'perfil', nombre: 'Perfil', visible: true, predeterminado: false },
+    { key: 'launchpad', nombre: 'Launchpad', visible: true, predeterminado: false },
+    { key: 'comunidad', nombre: 'Comunidad', visible: true, predeterminado: false },
+    { key: 'gamificacion', nombre: 'Gamificación', visible: true, predeterminado: false },
+    { key: 'embudos', nombre: 'Embudos', visible: true, predeterminado: false },
+    { key: 'ia', nombre: 'IA', visible: true, predeterminado: false },
+    { key: 'automatizaciones', nombre: 'Automatizaciones', visible: true, predeterminado: false },
+    { key: 'whatsappcrm', nombre: 'WhatsApp CRM', visible: true, predeterminado: false },
+    { key: 'configuracion', nombre: 'Configuración', visible: true, predeterminado: false },
   ];
   const [tabs, setTabs] = useState(demoTabs);
 
