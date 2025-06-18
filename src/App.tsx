@@ -41,6 +41,7 @@ import { FaRobot, FaWhatsapp, FaHome, FaChalkboardTeacher, FaBrain, FaTrophy, Fa
 import { FiBarChart2, FiZap, FiSettings } from 'react-icons/fi';
 import CursosPage from './pages/cursos';
 import { syncUsuarioSupabase } from './utils/syncUsuarioSupabase';
+import ScrollNavbar from './components/ScrollNavbar';
 
 // Definición de tipos para las vistas
 type ViewType = 'inicio' | 'simulacion' | 'dashboard' | 'perfil' | 'configuracion' | 'panel' | 'uploader' | 'knowledge' | 'nicho' | 'modules' | 'train';
@@ -145,37 +146,7 @@ function App() {
               isLoggedIn={isLoggedIn}
             />
             {/* Menú tipo tabs minimalista, solo texto subrayado */}
-            <nav className="flex gap-2 px-2 py-2 bg-transparent border-b border-[#23283a] overflow-x-auto w-full whitespace-nowrap">
-              {[
-                { path: '/home', label: 'Inicio' },
-                { path: '/clasificacion', label: 'Clasificación' },
-                { path: '/classroom', label: 'Classroom' },
-                { path: '/cursos', label: 'Cursos' },
-                { path: '/launchpad', label: 'Launchpad' },
-                { path: '/comunidad', label: 'Comunidad' },
-                { path: '/funnels', label: 'Embudos' },
-                { path: '/ia', label: 'IA' },
-                { path: '/automatizaciones', label: 'Automatizaciones' },
-                { path: '/whatsapp-crm', label: 'WhatsApp CRM' },
-                { path: '/configuracion', label: 'Configuración' },
-              ].map(tab => (
-                <button
-                  key={tab.path}
-                  onClick={() => navigate(tab.path)}
-                  className={`relative px-2 md:px-3 py-1 text-xs md:text-sm font-medium transition-colors
-                    ${location.pathname.startsWith(tab.path)
-                      ? 'text-cyan-300'
-                      : 'text-[#b0c4d8] hover:text-cyan-200'}
-                  `}
-                  style={{ background: 'none', border: 'none', outline: 'none' }}
-                >
-                  <span>{tab.label}</span>
-                  {location.pathname.startsWith(tab.path) && (
-                    <span className="absolute left-0 right-0 -bottom-0.5 h-[2px] bg-cyan-400 rounded-full animate-fadein-sci-fi" style={{transition:'all 0.2s'}} />
-                  )}
-                </button>
-              ))}
-            </nav>
+            <ScrollNavbar />
             <SecondNavbar />
           </>
         )}

@@ -25,8 +25,15 @@ const SecondNavbar: React.FC = () => {
     { key: 'configuracion', label: 'Configuración', to: '/configuracion', visible: true },
   ];
 
-  // Si hay config personalizada, usarla, si no, usar default
-  const menu = Array.isArray(menuConfig) ? menuConfig : defaultMenu;
+  // Usar la barra inferior móvil de la config, o default si no existe
+  let menu = defaultMenu;
+  if (menuConfig && typeof menuConfig === 'object') {
+    if (Array.isArray((menuConfig as any).barra_inferior_movil)) {
+      menu = (menuConfig as any).barra_inferior_movil;
+    } else if (Array.isArray(menuConfig)) {
+      menu = menuConfig;
+    }
+  }
 
   // Log para depuración
   console.log('SecondNavbar menu:', menu);
@@ -36,7 +43,7 @@ const SecondNavbar: React.FC = () => {
   return (
     <nav className="fixed bottom-0 left-0 w-full z-50 border-t border-cyan-900 flex md:hidden" style={{ background: '#000' }}>
       <ul className="flex justify-between items-center w-full px-1 py-1">
-        {menu.filter(item => item && item.visible === true).map((item) => (
+        {menu.filter(item => item && item.visible !== false).map((item: any) => (
           <li key={item.key} className="flex-1 flex flex-col items-center">
             <NavLink
               to={item.to || item.ruta}
@@ -44,7 +51,7 @@ const SecondNavbar: React.FC = () => {
                 `flex flex-col items-center justify-center w-full py-1 transition font-semibold text-xs ${isActive ? 'text-cyan-300' : 'text-white'}`
               }
             >
-              <span>{item.icon || null}</span>
+              <span>{item.icon || item.icono || null}</span>
               <span className="text-[11px] mt-0.5">{item.nombre || item.label}</span>
             </NavLink>
           </li>
