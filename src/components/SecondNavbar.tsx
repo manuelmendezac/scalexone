@@ -11,7 +11,7 @@ const menu = [
     to: '/home',
   },
   {
-    label: 'Dashboard',
+    label: 'Clasificación',
     icon: <FiBarChart2 size={24} />,
     to: '/dashboard',
   },
