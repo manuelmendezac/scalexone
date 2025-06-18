@@ -216,7 +216,7 @@ const Classroom = () => {
   };
 
   return (
-    <div className="min-h-screen w-full py-12 px-2" style={{ background: '#10192b' }}>
+    <div className="min-h-screen w-full py-12 px-2" style={{ background: '#000' }}>
       <h1 className="text-4xl font-bold text-white text-center mb-12">Classroom de Inducción</h1>
       {/* Mostrar solo a admin */}
       {isAdmin && (
