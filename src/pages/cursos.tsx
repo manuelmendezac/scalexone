@@ -4,6 +4,7 @@ import CursosAdminPanel from '../components/CursosAdminPanel';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../supabase';
 import GlobalLoadingSpinner from '../components/GlobalLoadingSpinner';
+import { useGlobalLoading } from '../store/useGlobalLoading';
 
 const CursosPage: React.FC = () => {
   const [cursos, setCursos] = useState<any[]>([]);
@@ -15,16 +16,17 @@ const CursosPage: React.FC = () => {
   const primerNombre = nombre.split(' ')[0];
   const navigate = useNavigate();
   const [isAdmin, setIsAdmin] = useState(false);
+  const setGlobalLoading = useGlobalLoading(state => state.setLoading);
 
   // Leer cursos desde Supabase
   useEffect(() => {
-    setLoading(true);
+    setGlobalLoading(true);
     supabase.from('cursos').select('*').order('orden', { ascending: true })
       .then(({ data, error }) => {
         if (error) setError('Error al cargar cursos');
         setCursos(data || []);
         setCursoActivo((data && data[0]) || null);
-        setLoading(false);
+        setGlobalLoading(false);
       });
   }, []);
 
@@ -54,7 +56,6 @@ const CursosPage: React.FC = () => {
     }
   }, [userInfo, updateUserInfo]);
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center text-white">Cargando cursos...</div>;
   if (error) return <div className="min-h-screen flex items-center justify-center text-red-400">{error}</div>;
 
   return (

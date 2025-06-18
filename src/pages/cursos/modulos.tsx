@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../../supabase';
 import ModalFuturista from '../../components/ModalFuturista';
 import GlobalLoadingSpinner from '../../components/GlobalLoadingSpinner';
+import { useGlobalLoading } from '../../store/useGlobalLoading';
 
 // Barra de progreso circular (copiada de id.tsx)
 const CircularProgress = ({ percent = 0, size = 64, stroke = 8 }) => {
@@ -81,6 +82,7 @@ const ModulosCurso = () => {
   const [modalInfoModulo, setModalInfoModulo] = useState<any>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const carouselRef = useRef<HTMLDivElement>(null);
+  const setLoadingGlobal = useGlobalLoading(state => state.setLoading);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -131,6 +133,11 @@ const ModulosCurso = () => {
     }
     if (modulos.length > 0) fetchVideosTodosModulos();
   }, [modulos, id]);
+
+  useEffect(() => {
+    setLoadingGlobal(loading);
+    return () => setLoadingGlobal(false);
+  }, [loading, setLoadingGlobal]);
 
   // Función para abrir el popup de un módulo específico
   const handleVerClases = async (mod: any, idx: number) => {

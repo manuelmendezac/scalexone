@@ -9,6 +9,7 @@ import { ChevronLeft, ChevronRight, CheckCircle, ArrowLeft, ArrowRight } from 'l
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 import GlobalLoadingSpinner from '../../components/GlobalLoadingSpinner';
+import { useGlobalLoading } from '../../store/useGlobalLoading';
 
 const supabaseUrl = process.env.REACT_APP_SUPABASE_URL || import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = process.env.REACT_APP_SUPABASE_ANON_KEY || import.meta.env.VITE_SUPABASE_ANON_KEY;
@@ -42,6 +43,7 @@ const ModuloDetalle = () => {
   const [materialLoading, setMaterialLoading] = useState(false);
   const [materialMsg, setMaterialMsg] = useState<string|null>(null);
   const [descMsg, setDescMsg] = useState<string|null>(null);
+  const setLoading = useGlobalLoading(state => state.setLoading);
 
   useEffect(() => {
     async function fetchData() {
@@ -416,7 +418,10 @@ const ModuloDetalle = () => {
     setMateriales(materiales.filter(m => m.id !== id));
   }
 
-  if (loading) return <div className="text-cyan-400 text-center py-10">Cargando módulo...</div>;
+  useEffect(() => {
+    setLoading(loading);
+    return () => setLoading(false);
+  }, [loading, setLoading]);
 
   return (
     <GlobalLoadingSpinner loading={loading}>
