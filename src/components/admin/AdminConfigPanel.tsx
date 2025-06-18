@@ -385,7 +385,12 @@ function MenuSecundarioTresBarras() {
     return { barra_scroll_desktop: defaultButtons, barra_scroll_movil: [], barra_inferior_movil: [] };
   };
 
-  const [config, setConfig] = useState<{ barra_scroll_desktop: any[]; barra_scroll_movil: any[]; barra_inferior_movil: any[] }>(getInitialConfig());
+  const [config, setConfig] = useState<{ 
+    barra_scroll_desktop: any[]; 
+    barra_scroll_movil: any[]; 
+    barra_inferior_movil: any[];
+    [key: string]: any[];
+  }>(getInitialConfig());
   const [hasChanges, setHasChanges] = useState(false);
 
   useEffect(() => {
@@ -439,11 +444,20 @@ function MenuSecundarioTresBarras() {
 
   // Botones disponibles para agregar, con opciones solo para barras donde no está
   const allBars = ['barra_scroll_desktop', 'barra_scroll_movil', 'barra_inferior_movil'] as const;
-  const availableButtonsPerBar = defaultButtons.map(btn => {
-    const inBars = allBars.filter(bar => config[bar].some(b => b.key === btn.key));
-    const notInBars = allBars.filter(bar => !inBars.includes(bar));
-    return { ...btn, notInBars };
-  }).filter(btn => btn.notInBars.length > 0);
+  
+  // Para cada barra, mostrar todos los botones que NO están en esa barra específica
+  const getAvailableButtonsForBar = (bar: keyof typeof config) => {
+    const buttonsInThisBar = config[bar].map(b => b.key);
+    return defaultButtons.filter(btn => !buttonsInThisBar.includes(btn.key));
+  };
+
+  // Agregar botón a una barra específica
+  const addButtonToBar = (bar: keyof typeof config, button: any) => {
+    setConfig({ 
+      ...config, 
+      [bar]: [...config[bar], { ...button, visible: true }] 
+    });
+  };
 
   // Guardar
   const handleGuardar = async () => {
@@ -486,8 +500,8 @@ function MenuSecundarioTresBarras() {
                     {bar === 'barra_inferior_movil' && 'Barra Inferior App Móvil'}
                   </h3>
                   {config[bar].length === 0 && <div style={{ color: '#fff' }}>No hay botones configurados para esta barra.</div>}
-                  {config[bar].map((tab, idx) => (
-                    <Draggable key={tab.key + '-' + bar} index={idx}>
+                  {config[bar].map((tab: any, idx: number) => (
+                    <Draggable key={tab.key + '-' + bar} draggableId={tab.key + '-' + bar} index={idx}>
                       {(prov) => (
                         <div ref={prov.innerRef} {...prov.draggableProps} {...prov.dragHandleProps} style={{ display: 'flex', alignItems: 'center', gap: 12, borderBottom: '1px solid #333', padding: '10px 0', ...prov.draggableProps.style }}>
                           <span style={{ color: '#FFD700', fontWeight: 700, minWidth: 90 }}>{tab.icon || ''} {tab.nombre}</span>
@@ -509,16 +523,37 @@ function MenuSecundarioTresBarras() {
       </div>
       <div style={{ marginBottom: 18 }}>
         <h4 style={{ color: '#FFD700', fontWeight: 600, fontSize: 16 }}>Botones disponibles para agregar</h4>
-        <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-          {availableButtonsPerBar.length === 0 && <span style={{ color: '#fff' }}>No hay más botones disponibles.</span>}
-          {availableButtonsPerBar.map(btn => (
-            btn.notInBars.map(bar => (
-              <button key={btn.key + '-' + bar} style={{ background: '#23232b', color: '#FFD700', border: '1.5px solid #FFD700', borderRadius: 8, padding: '8px 16px', fontWeight: 600, cursor: 'pointer' }} onClick={() => setConfig({ ...config, [bar]: [...config[bar], { ...btn, visible: true }] })}>
-                Agregar a {bar === 'barra_scroll_desktop' ? 'Desktop' : bar === 'barra_scroll_movil' ? 'Móvil Scroll' : 'App Móvil'}: {btn.icon} {btn.nombre}
-              </button>
-            ))
-          ))}
-        </div>
+        {['barra_scroll_desktop', 'barra_scroll_movil', 'barra_inferior_movil'].map((bar) => {
+          const availableButtons = getAvailableButtonsForBar(bar as keyof typeof config);
+          return (
+            <div key={bar} style={{ marginBottom: 16 }}>
+              <h5 style={{ color: '#FFD700', fontWeight: 600, fontSize: 14, marginBottom: 8 }}>
+                Para {bar === 'barra_scroll_desktop' ? 'Barra Scroll Desktop' : bar === 'barra_scroll_movil' ? 'Barra Scroll Móvil' : 'Barra Inferior App Móvil'}:
+              </h5>
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                {availableButtons.length === 0 && <span style={{ color: '#fff', fontSize: 13 }}>No hay más botones disponibles para esta barra.</span>}
+                {availableButtons.map(btn => (
+                  <button 
+                    key={btn.key} 
+                    style={{ 
+                      background: '#23232b', 
+                      color: '#FFD700', 
+                      border: '1.5px solid #FFD700', 
+                      borderRadius: 6, 
+                      padding: '6px 12px', 
+                      fontWeight: 600, 
+                      cursor: 'pointer',
+                      fontSize: 12
+                    }} 
+                    onClick={() => addButtonToBar(bar as keyof typeof config, btn)}
+                  >
+                    {btn.icon} {btn.nombre}
+                  </button>
+                ))}
+              </div>
+            </div>
+          );
+        })}
       </div>
       <button style={{ ...botonGuardarEstilo, marginTop: 24, opacity: hasChanges ? 1 : 0.5, cursor: hasChanges ? 'pointer' : 'not-allowed' }} onClick={handleGuardar} disabled={!hasChanges || !isAdmin}>Guardar menú</button>
     </div>
