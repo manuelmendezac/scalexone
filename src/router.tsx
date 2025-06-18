@@ -23,6 +23,12 @@ import FocusMode from './components/dashboard/FocusMode';
 import HabitIntelligence from './components/pages/HabitIntelligence';
 import ProgressTracker from './components/pages/ProgressTracker';
 import SettingsPanel from './components/pages/SettingsPanel';
+import Inicio from './pages/Inicio';
+import Classroom from './pages/classroom';
+import CursosPage from './pages/cursos';
+import Launchpad from './pages/Launchpad';
+import ComunidadPage from './pages/comunidad';
+import AfiliadosPage from './pages/afiliados/index';
 
 export const router = createBrowserRouter([
   {
@@ -32,6 +38,12 @@ export const router = createBrowserRouter([
     children: [
       { index: true, element: <Hero /> },
       { path: 'clasificacion', element: <Dashboard /> },
+      { path: 'home', element: <Inicio /> },
+      { path: 'classroom', element: <Classroom /> },
+      { path: 'cursos', element: <CursosPage /> },
+      { path: 'launchpad', element: <Launchpad /> },
+      { path: 'comunidad', element: <ComunidadPage /> },
+      { path: 'afiliados', element: <AfiliadosPage /> },
       { path: 'configuracion-admin', element: <AdminSettingsPage /> },
       { path: 'console', element: <div style={{color: 'white', fontSize: 32, textAlign: 'center', marginTop: 40}}>Test Console</div> },
       { path: 'focus', element: <FocusMode /> },
