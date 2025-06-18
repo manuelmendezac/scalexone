@@ -39,7 +39,7 @@ const menu = [
 
 const SecondNavbar: React.FC = () => {
   return (
-    <nav className="fixed bottom-0 left-0 w-full z-50 bg-gray-900 border-t border-cyan-900 flex md:hidden">
+    <nav className="fixed bottom-0 left-0 w-full z-50 border-t border-cyan-900 flex md:hidden" style={{ background: '#000' }}>
       <ul className="flex justify-between items-center w-full px-1 py-1">
         {menu.map((item) => (
           <li key={item.label} className="flex-1 flex flex-col items-center">
