@@ -23,6 +23,7 @@ import NeuroCloneStore from '../components/pages/NeuroCloneStore';
 import App from '../App';
 import Hero from '../components/Hero';
 import Error404 from '../components/Error404';
+import AdminSettingsPage from '../pages/admin/settings';
 
 export const router = createBrowserRouter([
   {
@@ -119,6 +120,10 @@ export const router = createBrowserRouter([
       {
         path: 'store',
         element: <NeuroCloneStore />
+      },
+      {
+        path: 'admin/settings',
+        element: <AdminSettingsPage />
       },
       {
         path: '*',
