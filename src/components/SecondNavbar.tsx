@@ -33,7 +33,7 @@ const SecondNavbar: React.FC = () => {
   return (
     <nav className="fixed bottom-0 left-0 w-full z-50 border-t border-cyan-900 flex md:hidden" style={{ background: '#000' }}>
       <ul className="flex justify-between items-center w-full px-1 py-1">
-        {menu.filter(item => item.visible).map((item) => (
+        {menu.filter(item => item && item.visible === true).map((item) => (
           <li key={item.key} className="flex-1 flex flex-col items-center">
             <NavLink
               to={item.to || item.ruta}
