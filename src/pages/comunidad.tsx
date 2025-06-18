@@ -1,11 +1,21 @@
 import React, { useState } from 'react';
 import FeedComunidad from '../components/comunidad/FeedComunidad';
 import BarraLateralComunidad from '../components/comunidad/BarraLateralComunidad';
+import NeonSpinner from '../components/NeonSpinner';
 
 const ComunidadPage = () => {
   const [menuAbierto, setMenuAbierto] = useState(false);
   // Detectar si es móvil
   const esMovil = typeof window !== 'undefined' && window.innerWidth < 768;
+  const [loading, setLoading] = useState(false);
+
+  if (loading) {
+    return (
+      <div style={{ minHeight: '100vh', background: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <NeonSpinner size={64} />
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-row min-h-screen bg-neutral-950 justify-center">
