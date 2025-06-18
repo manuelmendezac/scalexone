@@ -4,6 +4,7 @@ import UserLevelProgress from './UserLevelProgress';
 import SeguimientoGlobal from './SeguimientoGlobal';
 import { FiZap, FiPlusCircle, FiUser, FiMessageCircle } from 'react-icons/fi';
 import useNeuroState from '../store/useNeuroState';
+import NivelesClasificacionDashboard from './NivelesClasificacionDashboard';
 
 // Componente de ranking top 10
 const RankingTop10 = ({ usuarioActual = 'manuel@email.com' }) => {
@@ -167,6 +168,9 @@ const Dashboard: React.FC = () => {
         <section>
           <SeguimientoGlobal porcentaje={porcentaje} xp={userXP} coins={userCoins} />
         </section>
+
+        {/* Niveles de Clasificación */}
+        <NivelesClasificacionDashboard />
 
         {/* Accesos rápidos y actividad reciente */}
         <section className="grid grid-cols-1 md:grid-cols-2 gap-8">
