@@ -88,11 +88,11 @@ const CursosPage: React.FC = () => {
       </div>
       {/* Área principal de curso seleccionado */}
       {cursoActivo && (
-        <div className="flex flex-col md:flex-row items-center justify-center gap-8 w-full max-w-4xl mb-10">
-          <img src={cursoActivo.imagen} alt={cursoActivo.nombre} className="w-64 h-64 object-cover rounded-xl border-4 border-green-400 shadow-lg bg-black" />
-          <div className="flex-1 flex flex-col items-center md:items-start">
+        <div className="flex flex-col md:flex-row items-center justify-center gap-8 w-full max-w-4xl mb-10 mx-auto text-center">
+          <img src={cursoActivo.imagen} alt={cursoActivo.nombre} className="w-64 h-64 object-cover rounded-xl border-4 border-green-400 shadow-lg bg-black mx-auto" />
+          <div className="flex-1 flex flex-col items-center md:items-center">
             <div className="font-black text-2xl mb-2 text-green-400">{cursoActivo.nombre}</div>
-            <div className="text-base text-neutral-200 mb-6 text-center md:text-left">{cursoActivo.descripcion}</div>
+            <div className="text-base text-neutral-200 mb-6 text-center">{cursoActivo.descripcion}</div>
             <button
               className="px-8 py-3 rounded-full bg-white text-black font-bold hover:bg-yellow-400 transition text-lg"
               onClick={() => navigate(`/cursos/${cursoActivo.id}`)}
