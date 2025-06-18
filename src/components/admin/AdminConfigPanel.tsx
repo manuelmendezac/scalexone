@@ -361,10 +361,11 @@ function MenuPrincipalDemo() {
     { key: 'whatsappcrm', nombre: 'WhatsApp CRM', visible: true, predeterminado: false, ruta: '/whatsapp-crm' },
     { key: 'configuracion', nombre: 'Configuración', visible: true, predeterminado: false, ruta: '/configuracion' },
   ];
-  const [tabs, setTabs] = useState<any[]>(menuConfig || defaultTabs);
+  const [tabs, setTabs] = useState<any[]>(Array.isArray(menuConfig) && menuConfig.length > 0 ? menuConfig : defaultTabs);
 
   useEffect(() => {
-    if (menuConfig) setTabs(menuConfig);
+    if (Array.isArray(menuConfig) && menuConfig.length > 0) setTabs(menuConfig);
+    else setTabs(defaultTabs);
   }, [menuConfig]);
 
   const handleToggle = (idx: number) => {
@@ -393,13 +394,17 @@ function MenuPrincipalDemo() {
 
   return (
     <div style={{ background: '#23232b', borderRadius: 14, padding: 24, boxShadow: '0 2px 8px #0004' }}>
-      {tabs.map((tab, idx) => (
-        <div key={tab.key} style={{ display: 'flex', alignItems: 'center', gap: 16, borderBottom: '1px solid #333', padding: '12px 0' }}>
-          <span style={{ color: '#FFD700', fontWeight: tab.predeterminado ? 700 : 500, minWidth: 90 }}>{tab.key.charAt(0).toUpperCase() + tab.key.slice(1)}</span>
-          <input value={tab.nombre} onChange={e => handleName(idx, e.target.value)} style={{ ...inputEstilo, width: 180, background: '#23232b', color: '#FFD700', fontWeight: 600 }} />
+      {tabs.filter(tab => tab && typeof tab === 'object').map((tab, idx) => (
+        <div key={tab.key || idx} style={{ display: 'flex', alignItems: 'center', gap: 16, borderBottom: '1px solid #333', padding: '12px 0' }}>
+          <span style={{ color: '#FFD700', fontWeight: tab.predeterminado ? 700 : 500, minWidth: 90 }}>
+            {(tab.key && typeof tab.key === 'string')
+              ? tab.key.charAt(0).toUpperCase() + tab.key.slice(1)
+              : '[Sin clave]'}
+          </span>
+          <input value={typeof tab.nombre === 'string' ? tab.nombre : ''} onChange={e => handleName(idx, e.target.value)} style={{ ...inputEstilo, width: 180, background: '#23232b', color: '#FFD700', fontWeight: 600 }} />
           <button onClick={() => handlePredeterminado(idx)} title="Marcar como predeterminado" style={{ background: tab.predeterminado ? '#FFD700' : 'transparent', color: tab.predeterminado ? '#18181b' : '#FFD700', border: '1.5px solid #FFD700', borderRadius: 8, padding: '4px 12px', fontWeight: 700, cursor: 'pointer' }}>Predeterminado</button>
           <label style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}>
-            <input type="checkbox" checked={tab.visible} onChange={() => handleToggle(idx)} style={{ accentColor: '#FFD700', width: 18, height: 18 }} />
+            <input type="checkbox" checked={!!tab.visible} onChange={() => handleToggle(idx)} style={{ accentColor: '#FFD700', width: 18, height: 18 }} />
             <span style={{ color: tab.visible ? '#FFD700' : '#888', fontWeight: 600 }}>{tab.visible ? 'Visible' : 'Oculto'}</span>
           </label>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
