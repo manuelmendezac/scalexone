@@ -122,7 +122,7 @@ export const router = createBrowserRouter([
         element: <NeuroCloneStore />
       },
       {
-        path: 'admin/settings',
+        path: 'configuracion-admin',
         element: <AdminSettingsPage />
       },
       {
