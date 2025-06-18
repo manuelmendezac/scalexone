@@ -40,7 +40,8 @@ export const router = createBrowserRouter([
     element: <App />,
     errorElement: <Error404 />,
     children: [
-      { index: true, element: <Hero /> },
+      { index: true, element: <Login /> },
+      { path: 'landing', element: <Hero /> },
       { path: 'clasificacion', element: <Dashboard /> },
       { path: 'home', element: <Inicio /> },
       { path: 'classroom', element: <Classroom /> },
