@@ -35,6 +35,7 @@ import ResetPassword from './pages/ResetPassword';
 import ConfiguracionProyecto from './components/ConfiguracionProyecto';
 import CursoDetalle from './pages/cursos/id';
 import ModuloDetalle from './pages/cursos/modulo';
+import ModulosCurso from './pages/cursos/modulos';
 
 export const router = createBrowserRouter([
   {
@@ -52,6 +53,7 @@ export const router = createBrowserRouter([
         children: [
           { index: true, element: <CursosPage /> },
           { path: ':id', element: <CursoDetalle /> },
+          { path: ':id/modulos', element: <ModulosCurso /> },
           { path: ':id/modulo/:moduloIdx', element: <ModuloDetalle /> },
           { path: 'modulo/:moduloIdx', element: <ModuloDetalle /> },
         ]
