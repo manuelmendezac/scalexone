@@ -549,7 +549,7 @@ const Launchpad: React.FC = () => {
   }, [selectedEvent]);
 
   return (
-    <div className="w-full min-h-screen" style={{ background: '#10192b' }}>
+    <div className="w-full min-h-screen" style={{ background: '#000' }}>
       {/* Botón flotante para abrir el panel de edición solo para admin */}
       {isAdmin && (
         <button
