@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../../supabase';
 import ModalFuturista from '../../components/ModalFuturista';
+import GlobalLoadingSpinner from '../../components/GlobalLoadingSpinner';
 
 // Barra de progreso circular (copiada de id.tsx)
 const CircularProgress = ({ percent = 0, size = 64, stroke = 8 }) => {
@@ -156,143 +157,147 @@ const ModulosCurso = () => {
   if (loading) return <div className="text-cyan-400 text-center py-10">Cargando módulos...</div>;
 
   return (
-    <div className="max-w-6xl mx-auto py-10 px-4">
-      <h1 className="text-3xl font-bold text-cyan-400 mb-8">Módulos del Curso</h1>
-      {modulos.map((mod, idx) => (
-        <div key={idx} id={`modulo-${idx}`} className="bg-black/80 border-2 border-cyan-400 rounded-2xl p-8 shadow-xl flex flex-col min-h-[340px] max-w-3xl w-full mx-auto mb-10">
-          <div className="flex flex-col items-center mb-4">
-            <div className="flex flex-row items-center justify-center gap-6 w-full md:flex-row flex-col">
-              {/* Barra de progreso circular */}
-              <div className="flex flex-col items-center">
-                <CircularProgress percent={Math.floor(Math.random()*60+40)} size={54} stroke={7} />
-              </div>
-              {/* Icono grande, ajustado automáticamente */}
-              <div className="flex flex-col items-center">
-                {mod.icono ? (
-                  <img src={mod.icono} alt="icono" className="w-16 h-16 md:w-20 md:h-20 object-cover rounded-full bg-black/80" style={{minWidth: '64px', minHeight: '64px', maxWidth: '80px', maxHeight: '80px', border: 'none', boxShadow: 'none'}} />
-                ) : (
-                  <svg width="64" height="64" fill="none" stroke="#22d3ee" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="text-cyan-400"><circle cx="32" cy="32" r="26" /><path d="M48 48L40 40" /><circle cx="32" cy="32" r="10" /></svg>
-                )}
-              </div>
-            </div>
-          </div>
-          <div className="text-xl font-bold text-white mb-2 text-center uppercase">{mod.titulo}</div>
-          <div className="text-white/90 text-base mb-6 text-center">{mod.descripcion}</div>
-          <div className="flex gap-2 mb-8 justify-center">
-            <button
-              className="bg-white text-black font-bold py-2 px-6 rounded-full transition-all text-base shadow hover:bg-cyan-200"
-              onClick={() => navigate(`/cursos/${id}/modulo/${idx}?video=0`)}
-            >
-              Iniciar
-            </button>
-            <button
-              className="bg-cyan-700 text-white font-bold py-2 px-6 rounded-full transition-all text-base shadow hover:bg-cyan-500"
-              onClick={() => handleVerClases(mod, idx)}
-            >
-              Ver clases
-            </button>
-          </div>
-          {/* Tarjetas de videos del módulo */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
-            {videosPorModulo[idx] && videosPorModulo[idx].map((v: any, vidx: number) => {
-              let thumb = v.miniatura_url;
-              if (!thumb && v.url) {
-                thumb = getVideoThumbnail(v.url);
-              }
-              // Determinar si es columna izquierda (par) o derecha (impar)
-              const isLeft = vidx % 2 === 0;
-              // Tooltip: si es izquierda, sale a la izquierda; si es derecha, sale a la derecha
-              const tooltipPosition = isLeft ? 'right-full mr-6' : 'left-full ml-6';
-              const flechaPosition = isLeft ? '-right-3' : '-left-3';
-              const flechaBorder = isLeft ? { borderLeft: '12px solid #fff' } : { borderRight: '12px solid #fff' };
-              return (
-                <div key={v.id} className="relative group flex flex-row items-center gap-4 bg-neutral-900 rounded-2xl border-4 border-cyan-400 p-3 shadow-2xl w-full">
-                  {/* Tooltip informativo */}
-                  <div
-                    className={`pointer-events-none absolute z-30 opacity-0 group-hover:opacity-100 group-hover:pointer-events-auto transition-opacity duration-200 delay-150 flex-col min-w-[220px] max-w-xs px-4 py-3 bg-white border-2 border-cyan-400 text-black text-sm rounded-2xl shadow-lg
-                      ${tooltipPosition} top-1/2 -translate-y-1/2 hidden sm:flex
-                    `}
-                    style={{ boxShadow: '0 4px 24px 0 rgba(0,0,0,0.12)' }}
-                  >
-                    <div className="mb-1 font-bold text-cyan-600">{v.titulo}</div>
-                    <div className="text-black/90">{v.descripcion || 'Sin descripción'}</div>
-                    {/* Flecha */}
-                    <div className={`absolute top-1/2 -translate-y-1/2 ${flechaPosition}`}
-                      style={{ width: 0, height: 0, borderTop: '8px solid transparent', borderBottom: '8px solid transparent', ...flechaBorder }}
-                    />
+    <GlobalLoadingSpinner loading={loading}>
+      <div className="min-h-screen bg-gradient-to-br from-[#0a0a0a] via-[#1a1a2e] to-[#16213e] text-white">
+        <div className="max-w-6xl mx-auto py-10 px-4">
+          <h1 className="text-3xl font-bold text-cyan-400 mb-8">Módulos del Curso</h1>
+          {modulos.map((mod, idx) => (
+            <div key={idx} id={`modulo-${idx}`} className="bg-black/80 border-2 border-cyan-400 rounded-2xl p-8 shadow-xl flex flex-col min-h-[340px] max-w-3xl w-full mx-auto mb-10">
+              <div className="flex flex-col items-center mb-4">
+                <div className="flex flex-row items-center justify-center gap-6 w-full md:flex-row flex-col">
+                  {/* Barra de progreso circular */}
+                  <div className="flex flex-col items-center">
+                    <CircularProgress percent={Math.floor(Math.random()*60+40)} size={54} stroke={7} />
                   </div>
-                  {/* Tooltip móvil */}
-                  <div
-                    className="pointer-events-none absolute z-30 left-1/2 -translate-x-1/2 bottom-[-50px] w-[85vw] max-w-[320px] px-2 py-2 bg-white border-2 border-cyan-400 text-black text-xs rounded-2xl shadow-lg opacity-0 group-hover:opacity-100 group-hover:pointer-events-auto transition-opacity duration-200 delay-150 flex-col items-center sm:hidden"
-                    style={{ boxShadow: '0 4px 24px 0 rgba(0,0,0,0.12)', wordBreak: 'break-word' }}
-                  >
-                    <div className="mb-1 font-bold text-cyan-600 text-sm">{v.titulo}</div>
-                    <div className="text-black/90 text-xs leading-tight">{v.descripcion || 'Sin descripción'}</div>
-                  </div>
-                  {/* Tarjeta de video */}
-                  <div className="w-[120px] h-[80px] sm:w-[120px] sm:h-[80px] w-[90vw] h-[56vw] max-w-[120px] max-h-[80px] sm:max-w-[120px] sm:max-h-[80px] bg-black rounded-2xl overflow-hidden flex items-center justify-center border-4 border-cyan-400 shadow-lg">
-                    {thumb ? (
-                      <img src={thumb} alt={v.titulo} className="w-full h-full object-cover" />
+                  {/* Icono grande, ajustado automáticamente */}
+                  <div className="flex flex-col items-center">
+                    {mod.icono ? (
+                      <img src={mod.icono} alt="icono" className="w-16 h-16 md:w-20 md:h-20 object-cover rounded-full bg-black/80" style={{minWidth: '64px', minHeight: '64px', maxWidth: '80px', maxHeight: '80px', border: 'none', boxShadow: 'none'}} />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center text-cyan-400">Sin imagen</div>
+                      <svg width="64" height="64" fill="none" stroke="#22d3ee" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="text-cyan-400"><circle cx="32" cy="32" r="26" /><path d="M48 48L40 40" /><circle cx="32" cy="32" r="10" /></svg>
                     )}
                   </div>
-                  <div className="flex-1 flex flex-col justify-center min-w-0">
-                    <div className="font-bold text-cyan-200 text-base truncate mb-1">{v.titulo}</div>
-                    <div className="text-xs text-cyan-400 opacity-70">Video</div>
-                  </div>
-                  <button
-                    className="bg-cyan-600 hover:bg-cyan-400 text-white font-bold p-2 rounded-full w-10 h-10 flex items-center justify-center"
-                    onClick={() => navigate(`/cursos/${id}/modulo/${idx}?video=${vidx}`)}
-                    title="Ir a video"
-                  >
-                    <svg width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><polygon points="6,4 20,12 6,20" fill="currentColor" /></svg>
-                  </button>
                 </div>
-              );
-            })}
-          </div>
-        </div>
-      ))}
-      {/* Modal de información de módulo */}
-      <ModalFuturista open={modalInfoOpen} onClose={() => setModalInfoOpen(false)}>
-        {modalInfoModulo && (
-          <div className="flex flex-col gap-4 w-full">
-            <h2 className="text-2xl font-bold text-cyan-300 mb-2 text-center">{modalInfoModulo.modulo.titulo}</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
-              {modalInfoModulo.videos.map((v: any, idx: number) => {
-                let thumb = v.miniatura_url;
-                if (!thumb && v.url) {
-                  thumb = getVideoThumbnail(v.url);
-                }
-                return (
-                  <div key={v.id} className="flex flex-row items-center gap-4 bg-neutral-900 rounded-2xl border-4 border-cyan-400 p-3 shadow-2xl w-full">
-                    <div className="w-[120px] h-[80px] sm:w-[120px] sm:h-[80px] w-[90vw] h-[56vw] max-w-[120px] max-h-[80px] sm:max-w-[120px] sm:max-h-[80px] bg-black rounded-2xl overflow-hidden flex items-center justify-center border-4 border-cyan-400 shadow-lg">
-                      {thumb ? (
-                        <img src={thumb} alt={v.titulo} className="w-full h-full object-cover" />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center text-cyan-400">Sin imagen</div>
-                      )}
+              </div>
+              <div className="text-xl font-bold text-white mb-2 text-center uppercase">{mod.titulo}</div>
+              <div className="text-white/90 text-base mb-6 text-center">{mod.descripcion}</div>
+              <div className="flex gap-2 mb-8 justify-center">
+                <button
+                  className="bg-white text-black font-bold py-2 px-6 rounded-full transition-all text-base shadow hover:bg-cyan-200"
+                  onClick={() => navigate(`/cursos/${id}/modulo/${idx}?video=0`)}
+                >
+                  Iniciar
+                </button>
+                <button
+                  className="bg-cyan-700 text-white font-bold py-2 px-6 rounded-full transition-all text-base shadow hover:bg-cyan-500"
+                  onClick={() => handleVerClases(mod, idx)}
+                >
+                  Ver clases
+                </button>
+              </div>
+              {/* Tarjetas de videos del módulo */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
+                {videosPorModulo[idx] && videosPorModulo[idx].map((v: any, vidx: number) => {
+                  let thumb = v.miniatura_url;
+                  if (!thumb && v.url) {
+                    thumb = getVideoThumbnail(v.url);
+                  }
+                  // Determinar si es columna izquierda (par) o derecha (impar)
+                  const isLeft = vidx % 2 === 0;
+                  // Tooltip: si es izquierda, sale a la izquierda; si es derecha, sale a la derecha
+                  const tooltipPosition = isLeft ? 'right-full mr-6' : 'left-full ml-6';
+                  const flechaPosition = isLeft ? '-right-3' : '-left-3';
+                  const flechaBorder = isLeft ? { borderLeft: '12px solid #fff' } : { borderRight: '12px solid #fff' };
+                  return (
+                    <div key={v.id} className="relative group flex flex-row items-center gap-4 bg-neutral-900 rounded-2xl border-4 border-cyan-400 p-3 shadow-2xl w-full">
+                      {/* Tooltip informativo */}
+                      <div
+                        className={`pointer-events-none absolute z-30 opacity-0 group-hover:opacity-100 group-hover:pointer-events-auto transition-opacity duration-200 delay-150 flex-col min-w-[220px] max-w-xs px-4 py-3 bg-white border-2 border-cyan-400 text-black text-sm rounded-2xl shadow-lg
+                          ${tooltipPosition} top-1/2 -translate-y-1/2 hidden sm:flex
+                        `}
+                        style={{ boxShadow: '0 4px 24px 0 rgba(0,0,0,0.12)' }}
+                      >
+                        <div className="mb-1 font-bold text-cyan-600">{v.titulo}</div>
+                        <div className="text-black/90">{v.descripcion || 'Sin descripción'}</div>
+                        {/* Flecha */}
+                        <div className={`absolute top-1/2 -translate-y-1/2 ${flechaPosition}`}
+                          style={{ width: 0, height: 0, borderTop: '8px solid transparent', borderBottom: '8px solid transparent', ...flechaBorder }}
+                        />
+                      </div>
+                      {/* Tooltip móvil */}
+                      <div
+                        className="pointer-events-none absolute z-30 left-1/2 -translate-x-1/2 bottom-[-50px] w-[85vw] max-w-[320px] px-2 py-2 bg-white border-2 border-cyan-400 text-black text-xs rounded-2xl shadow-lg opacity-0 group-hover:opacity-100 group-hover:pointer-events-auto transition-opacity duration-200 delay-150 flex-col items-center sm:hidden"
+                        style={{ boxShadow: '0 4px 24px 0 rgba(0,0,0,0.12)', wordBreak: 'break-word' }}
+                      >
+                        <div className="mb-1 font-bold text-cyan-600 text-sm">{v.titulo}</div>
+                        <div className="text-black/90 text-xs leading-tight">{v.descripcion || 'Sin descripción'}</div>
+                      </div>
+                      {/* Tarjeta de video */}
+                      <div className="w-[120px] h-[80px] sm:w-[120px] sm:h-[80px] w-[90vw] h-[56vw] max-w-[120px] max-h-[80px] sm:max-w-[120px] sm:max-h-[80px] bg-black rounded-2xl overflow-hidden flex items-center justify-center border-4 border-cyan-400 shadow-lg">
+                        {thumb ? (
+                          <img src={thumb} alt={v.titulo} className="w-full h-full object-cover" />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-cyan-400">Sin imagen</div>
+                        )}
+                      </div>
+                      <div className="flex-1 flex flex-col justify-center min-w-0">
+                        <div className="font-bold text-cyan-200 text-base truncate mb-1">{v.titulo}</div>
+                        <div className="text-xs text-cyan-400 opacity-70">Video</div>
+                      </div>
+                      <button
+                        className="bg-cyan-600 hover:bg-cyan-400 text-white font-bold p-2 rounded-full w-10 h-10 flex items-center justify-center"
+                        onClick={() => navigate(`/cursos/${id}/modulo/${idx}?video=${vidx}`)}
+                        title="Ir a video"
+                      >
+                        <svg width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><polygon points="6,4 20,12 6,20" fill="currentColor" /></svg>
+                      </button>
                     </div>
-                    <div className="flex-1 flex flex-col justify-center min-w-0">
-                      <div className="font-bold text-cyan-200 text-base truncate mb-1">{v.titulo}</div>
-                      <div className="text-xs text-cyan-400 opacity-70">Video</div>
-                    </div>
-                    <button
-                      className="bg-cyan-600 hover:bg-cyan-400 text-white font-bold p-2 rounded-full w-10 h-10 flex items-center justify-center"
-                      onClick={() => { setModalInfoOpen(false); navigate(`/cursos/${id}/modulo/${modulos.findIndex(m => m.titulo === modalInfoModulo.modulo.titulo)}?video=${idx}`); }}
-                      title="Ir a video"
-                    >
-                      <svg width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><polygon points="6,4 20,12 6,20" fill="currentColor" /></svg>
-                    </button>
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
             </div>
-          </div>
-        )}
-      </ModalFuturista>
-    </div>
+          ))}
+          {/* Modal de información de módulo */}
+          <ModalFuturista open={modalInfoOpen} onClose={() => setModalInfoOpen(false)}>
+            {modalInfoModulo && (
+              <div className="flex flex-col gap-4 w-full">
+                <h2 className="text-2xl font-bold text-cyan-300 mb-2 text-center">{modalInfoModulo.modulo.titulo}</h2>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
+                  {modalInfoModulo.videos.map((v: any, idx: number) => {
+                    let thumb = v.miniatura_url;
+                    if (!thumb && v.url) {
+                      thumb = getVideoThumbnail(v.url);
+                    }
+                    return (
+                      <div key={v.id} className="flex flex-row items-center gap-4 bg-neutral-900 rounded-2xl border-4 border-cyan-400 p-3 shadow-2xl w-full">
+                        <div className="w-[120px] h-[80px] sm:w-[120px] sm:h-[80px] w-[90vw] h-[56vw] max-w-[120px] max-h-[80px] sm:max-w-[120px] sm:max-h-[80px] bg-black rounded-2xl overflow-hidden flex items-center justify-center border-4 border-cyan-400 shadow-lg">
+                          {thumb ? (
+                            <img src={thumb} alt={v.titulo} className="w-full h-full object-cover" />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-cyan-400">Sin imagen</div>
+                          )}
+                        </div>
+                        <div className="flex-1 flex flex-col justify-center min-w-0">
+                          <div className="font-bold text-cyan-200 text-base truncate mb-1">{v.titulo}</div>
+                          <div className="text-xs text-cyan-400 opacity-70">Video</div>
+                        </div>
+                        <button
+                          className="bg-cyan-600 hover:bg-cyan-400 text-white font-bold p-2 rounded-full w-10 h-10 flex items-center justify-center"
+                          onClick={() => { setModalInfoOpen(false); navigate(`/cursos/${id}/modulo/${modulos.findIndex(m => m.titulo === modalInfoModulo.modulo.titulo)}?video=${idx}`); }}
+                          title="Ir a video"
+                        >
+                          <svg width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><polygon points="6,4 20,12 6,20" fill="currentColor" /></svg>
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </ModalFuturista>
+        </div>
+      </div>
+    </GlobalLoadingSpinner>
   );
 };
 

@@ -8,6 +8,7 @@ import useNeuroState from '../../store/useNeuroState';
 import { ChevronLeft, ChevronRight, CheckCircle, ArrowLeft, ArrowRight } from 'lucide-react';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
+import GlobalLoadingSpinner from '../../components/GlobalLoadingSpinner';
 
 const supabaseUrl = process.env.REACT_APP_SUPABASE_URL || import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = process.env.REACT_APP_SUPABASE_ANON_KEY || import.meta.env.VITE_SUPABASE_ANON_KEY;
@@ -418,351 +419,353 @@ const ModuloDetalle = () => {
   if (loading) return <div className="text-cyan-400 text-center py-10">Cargando módulo...</div>;
 
   return (
-    <div className={`min-h-screen bg-black text-white flex flex-col ${fullscreen ? '' : 'md:flex-row'} px-1 sm:px-2`}>
-      {/* Panel principal mejorado */}
-      <div className={`flex-1 flex flex-col items-center justify-center ${fullscreen ? 'fixed inset-0 z-50 bg-black overflow-auto' : 'p-1 sm:p-2 md:p-8'} transition-all duration-300`} style={fullscreen ? {maxWidth: '100vw', maxHeight: '100vh', overflow: 'auto'} : {}}>
-        <div className={`w-full ${fullscreen ? '' : 'max-w-6xl'} bg-gradient-to-br from-neutral-950 to-black rounded-3xl shadow-2xl p-0 md:p-0 flex flex-col items-center border border-cyan-900/40`} style={fullscreen ? {minHeight: '100vh', justifyContent: 'center', alignItems: 'center', display: 'flex', padding: 0} : {}}>
-          {/* Video grande y protagonista, sin bordes extras */}
-          <div className={`relative w-full aspect-video bg-black overflow-visible flex flex-col items-center justify-center border-b-4 border-cyan-900/30 shadow-lg`} style={fullscreen ? {position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', zIndex: 100, background: '#000', margin: 0, borderRadius: 0, padding: 0, minHeight: '100vh', maxHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center'} : {width: '100%', minHeight: 200, maxHeight: 700, margin: 0, borderRadius: 0, background: '#000', padding: 0}}>
-            {/* Flecha para volver atrás */}
-            <button
-              className="absolute top-2 left-2 sm:top-4 sm:left-4 z-40 bg-black/60 hover:bg-cyan-900 text-cyan-200 p-1 sm:p-2 rounded-full shadow border border-cyan-800 transition"
-              style={{fontSize: 18, opacity: 0.7, minWidth: 28, minHeight: 28, display: 'flex', alignItems: 'center', justifyContent: 'center'}}
-              onClick={() => window.history.back()}
-              title="Volver atrás"
-            >
-              <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
-            </button>
-            {/* Botón pantalla completa y ESC */}
-            <button
-              className="absolute top-2 right-2 sm:top-4 sm:right-4 z-30 bg-cyan-700 hover:bg-cyan-500 text-white p-2 rounded-full shadow-lg border border-cyan-400 transition"
-              onClick={() => setFullscreen(f => !f)}
-              title={fullscreen ? 'Salir de pantalla completa' : 'Ver en pantalla completa'}
-              style={{boxShadow: '0 2px 12px #0008'}}
-            >
-              {fullscreen ? (
-                <svg width="28" height="28" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 19L5 23M5 23h6M5 23v-6M19 9l4-4m0 0v6m0-6h-6"/></svg>
-              ) : (
-                <svg width="28" height="28" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 9V5h4M19 5h4v4M5 19v4h4M19 23h4v-4"/></svg>
+    <GlobalLoadingSpinner loading={loading}>
+      <div className={`min-h-screen bg-black text-white flex flex-col ${fullscreen ? '' : 'md:flex-row'} px-1 sm:px-2`}>
+        {/* Panel principal mejorado */}
+        <div className={`flex-1 flex flex-col items-center justify-center ${fullscreen ? 'fixed inset-0 z-50 bg-black overflow-auto' : 'p-1 sm:p-2 md:p-8'} transition-all duration-300`} style={fullscreen ? {maxWidth: '100vw', maxHeight: '100vh', overflow: 'auto'} : {}}>
+          <div className={`w-full ${fullscreen ? '' : 'max-w-6xl'} bg-gradient-to-br from-neutral-950 to-black rounded-3xl shadow-2xl p-0 md:p-0 flex flex-col items-center border border-cyan-900/40`} style={fullscreen ? {minHeight: '100vh', justifyContent: 'center', alignItems: 'center', display: 'flex', padding: 0} : {}}>
+            {/* Video grande y protagonista, sin bordes extras */}
+            <div className={`relative w-full aspect-video bg-black overflow-visible flex flex-col items-center justify-center border-b-4 border-cyan-900/30 shadow-lg`} style={fullscreen ? {position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', zIndex: 100, background: '#000', margin: 0, borderRadius: 0, padding: 0, minHeight: '100vh', maxHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center'} : {width: '100%', minHeight: 200, maxHeight: 700, margin: 0, borderRadius: 0, background: '#000', padding: 0}}>
+              {/* Flecha para volver atrás */}
+              <button
+                className="absolute top-2 left-2 sm:top-4 sm:left-4 z-40 bg-black/60 hover:bg-cyan-900 text-cyan-200 p-1 sm:p-2 rounded-full shadow border border-cyan-800 transition"
+                style={{fontSize: 18, opacity: 0.7, minWidth: 28, minHeight: 28, display: 'flex', alignItems: 'center', justifyContent: 'center'}}
+                onClick={() => window.history.back()}
+                title="Volver atrás"
+              >
+                <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
+              </button>
+              {/* Botón pantalla completa y ESC */}
+              <button
+                className="absolute top-2 right-2 sm:top-4 sm:right-4 z-30 bg-cyan-700 hover:bg-cyan-500 text-white p-2 rounded-full shadow-lg border border-cyan-400 transition"
+                onClick={() => setFullscreen(f => !f)}
+                title={fullscreen ? 'Salir de pantalla completa' : 'Ver en pantalla completa'}
+                style={{boxShadow: '0 2px 12px #0008'}}
+              >
+                {fullscreen ? (
+                  <svg width="28" height="28" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 19L5 23M5 23h6M5 23v-6M19 9l4-4m0 0v6m0-6h-6"/></svg>
+                ) : (
+                  <svg width="28" height="28" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 9V5h4M19 5h4v4M5 19v4h4M19 23h4v-4"/></svg>
+                )}
+              </button>
+              {fullscreen && (
+                <div className="absolute top-2 left-2 sm:top-4 sm:left-4 z-30 flex items-center gap-2 bg-black/70 px-2 sm:px-3 py-1 rounded-full text-cyan-200 text-xs sm:text-base font-bold shadow-lg">
+                  <span className="hidden md:inline">Presiona</span> <kbd className="bg-cyan-800 px-2 py-1 rounded text-white font-mono">ESC</kbd> <span className="hidden md:inline">para salir</span>
+                </div>
               )}
-            </button>
-            {fullscreen && (
-              <div className="absolute top-2 left-2 sm:top-4 sm:left-4 z-30 flex items-center gap-2 bg-black/70 px-2 sm:px-3 py-1 rounded-full text-cyan-200 text-xs sm:text-base font-bold shadow-lg">
-                <span className="hidden md:inline">Presiona</span> <kbd className="bg-cyan-800 px-2 py-1 rounded text-white font-mono">ESC</kbd> <span className="hidden md:inline">para salir</span>
-              </div>
-            )}
-            {embedUrl ? (
-              <iframe
-                src={embedUrl + '?autoplay=0&title=0&byline=0&portrait=0'}
-                title={videoActual.titulo}
-                className="w-full h-full min-h-[180px] sm:min-h-[200px] md:min-h-[400px] max-w-[100vw]"
-                allow="autoplay; fullscreen"
-                allowFullScreen
-                style={fullscreen ? { border: 'none', width: '100vw', height: '100vh', aspectRatio: '16/9', maxHeight: '100vh', borderRadius: 0, background: '#000' } : { border: 'none', width: '100%', height: '100%', aspectRatio: '16/9', maxHeight: 700, borderRadius: 0, background: '#000' }}
-              />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center text-cyan-400 text-lg">No hay video para mostrar</div>
-            )}
-          </div>
-          {/* Solo mostrar el resto del layout si no está en fullscreen */}
-          {!fullscreen && (
-            <>
-              {/* Título grande debajo del video */}
-              <div className="w-full flex flex-col items-center mb-2 mt-4 sm:mb-4 sm:mt-6 px-1 sm:px-2 md:px-0">
-                <div className="flex items-center gap-3">
-                  <span className="text-cyan-200 text-lg sm:text-xl md:text-3xl font-bold uppercase tracking-tight text-center bg-cyan-900/20 px-2 sm:px-4 md:px-6 py-2 md:py-3 rounded-xl shadow">
-                    {videoActual.titulo || 'Sin título'}
-                  </span>
+              {embedUrl ? (
+                <iframe
+                  src={embedUrl + '?autoplay=0&title=0&byline=0&portrait=0'}
+                  title={videoActual.titulo}
+                  className="w-full h-full min-h-[180px] sm:min-h-[200px] md:min-h-[400px] max-w-[100vw]"
+                  allow="autoplay; fullscreen"
+                  allowFullScreen
+                  style={fullscreen ? { border: 'none', width: '100vw', height: '100vh', aspectRatio: '16/9', maxHeight: '100vh', borderRadius: 0, background: '#000' } : { border: 'none', width: '100%', height: '100%', aspectRatio: '16/9', maxHeight: 700, borderRadius: 0, background: '#000' }}
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-cyan-400 text-lg">No hay video para mostrar</div>
+              )}
+            </div>
+            {/* Solo mostrar el resto del layout si no está en fullscreen */}
+            {!fullscreen && (
+              <>
+                {/* Título grande debajo del video */}
+                <div className="w-full flex flex-col items-center mb-2 mt-4 sm:mb-4 sm:mt-6 px-1 sm:px-2 md:px-0">
+                  <div className="flex items-center gap-3">
+                    <span className="text-cyan-200 text-lg sm:text-xl md:text-3xl font-bold uppercase tracking-tight text-center bg-cyan-900/20 px-2 sm:px-4 md:px-6 py-2 md:py-3 rounded-xl shadow">
+                      {videoActual.titulo || 'Sin título'}
+                    </span>
+                    <button
+                      className={`ml-2 px-3 py-1 rounded-full text-xs font-bold transition-all border ${completados[claseActual] ? 'bg-green-500 text-black border-green-600' : 'bg-neutral-800 text-cyan-300 border-cyan-700 hover:bg-cyan-900'}`}
+                      onClick={() => {
+                        setCompletados(prev => ({...prev, [claseActual]: true}));
+                        // Si no es el último video, pasar al siguiente automáticamente
+                        if (claseActual < clasesOrdenadas.length - 1) {
+                          setTimeout(() => setClaseActual(prev => prev + 1), 400);
+                        }
+                        // Si es el último, no hacer nada (se mostrará la pantalla de finalización)
+                      }}
+                      disabled={completados[claseActual]}
+                    >
+                      {completados[claseActual] ? 'Completado ✓' : 'Marcar como completado'}
+                    </button>
+                  </div>
+                </div>
+                {/* Botones de navegación */}
+                <div className="flex gap-4 mt-2 justify-center">
                   <button
-                    className={`ml-2 px-3 py-1 rounded-full text-xs font-bold transition-all border ${completados[claseActual] ? 'bg-green-500 text-black border-green-600' : 'bg-neutral-800 text-cyan-300 border-cyan-700 hover:bg-cyan-900'}`}
-                    onClick={() => {
-                      setCompletados(prev => ({...prev, [claseActual]: true}));
-                      // Si no es el último video, pasar al siguiente automáticamente
-                      if (claseActual < clasesOrdenadas.length - 1) {
-                        setTimeout(() => setClaseActual(prev => prev + 1), 400);
-                      }
-                      // Si es el último, no hacer nada (se mostrará la pantalla de finalización)
-                    }}
-                    disabled={completados[claseActual]}
+                    className="bg-cyan-700 hover:bg-cyan-500 text-white p-2 rounded-full shadow-md transition-all disabled:opacity-40"
+                    onClick={() => setClaseActual((prev) => Math.max(prev - 1, 0))}
+                    disabled={claseActual === 0}
+                    aria-label="Anterior"
                   >
-                    {completados[claseActual] ? 'Completado ✓' : 'Marcar como completado'}
+                    <ChevronLeft className="w-6 h-6" />
+                  </button>
+                  <button
+                    className="bg-cyan-700 hover:bg-cyan-500 text-white p-2 rounded-full shadow-md transition-all disabled:opacity-40"
+                    onClick={() => setClaseActual((prev) => Math.min(prev + 1, clasesOrdenadas.length - 1))}
+                    disabled={esUltimoVideo}
+                    aria-label="Siguiente"
+                  >
+                    <ChevronRight className="w-6 h-6" />
                   </button>
                 </div>
+              </>
+            )}
+            <div className="w-full max-w-5xl mx-auto mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Bloque de información del módulo */}
+              <div className="bg-neutral-900 rounded-2xl border-2 border-cyan-700 p-6 shadow-lg flex flex-col gap-3 relative">
+                <h3 className="text-cyan-300 text-xl font-bold mb-2 flex items-center gap-2">
+                  <span>Sobre este módulo</span>
+                  {isAdmin && (
+                    <button
+                      className="ml-auto px-3 py-1 rounded bg-cyan-700 text-white text-xs font-bold hover:bg-cyan-500 transition"
+                      onClick={() => setShowEditDescripcion(true)}
+                    >
+                      Editar
+                    </button>
+                  )}
+                </h3>
+                <div className="text-cyan-100 text-base leading-relaxed">
+                  {descripcionHtml ? (
+                    <span dangerouslySetInnerHTML={{ __html: descripcionHtml }} />
+                  ) : (
+                    <span className="opacity-60">Sin descripción</span>
+                  )}
+                </div>
               </div>
-              {/* Botones de navegación */}
-              <div className="flex gap-4 mt-2 justify-center">
-                <button
-                  className="bg-cyan-700 hover:bg-cyan-500 text-white p-2 rounded-full shadow-md transition-all disabled:opacity-40"
-                  onClick={() => setClaseActual((prev) => Math.max(prev - 1, 0))}
-                  disabled={claseActual === 0}
-                  aria-label="Anterior"
-                >
-                  <ChevronLeft className="w-6 h-6" />
-                </button>
-                <button
-                  className="bg-cyan-700 hover:bg-cyan-500 text-white p-2 rounded-full shadow-md transition-all disabled:opacity-40"
-                  onClick={() => setClaseActual((prev) => Math.min(prev + 1, clasesOrdenadas.length - 1))}
-                  disabled={esUltimoVideo}
-                  aria-label="Siguiente"
-                >
-                  <ChevronRight className="w-6 h-6" />
-                </button>
-              </div>
-            </>
-          )}
-          <div className="w-full max-w-5xl mx-auto mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Bloque de información del módulo */}
-            <div className="bg-neutral-900 rounded-2xl border-2 border-cyan-700 p-6 shadow-lg flex flex-col gap-3 relative">
-              <h3 className="text-cyan-300 text-xl font-bold mb-2 flex items-center gap-2">
-                <span>Sobre este módulo</span>
-                {isAdmin && (
-                  <button
-                    className="ml-auto px-3 py-1 rounded bg-cyan-700 text-white text-xs font-bold hover:bg-cyan-500 transition"
-                    onClick={() => setShowEditDescripcion(true)}
-                  >
-                    Editar
-                  </button>
-                )}
-              </h3>
-              <div className="text-cyan-100 text-base leading-relaxed">
-                {descripcionHtml ? (
-                  <span dangerouslySetInnerHTML={{ __html: descripcionHtml }} />
-                ) : (
-                  <span className="opacity-60">Sin descripción</span>
-                )}
-              </div>
-            </div>
-            {/* Bloque de materiales y herramientas */}
-            <div className="bg-neutral-900 rounded-2xl border-2 border-green-700 p-6 shadow-lg flex flex-col gap-3 relative">
-              <h3 className="text-green-400 text-xl font-bold mb-2 flex items-center gap-2">
-                <span>Material y herramientas</span>
-                {isAdmin && (
-                  <button
-                    className="ml-auto px-3 py-1 rounded bg-green-700 text-white text-xs font-bold hover:bg-green-500 transition"
-                    onClick={() => setShowEditMateriales(true)}
-                  >
-                    Editar
-                  </button>
-                )}
-              </h3>
-              <div className="text-green-100 text-base leading-relaxed">
-                {materiales.length > 0 ? (
-                  <ul className="flex flex-col gap-2 mt-2">
-                    {materiales.map((mat, idx) => (
-                      <li key={mat.id || idx} className="flex items-center gap-2">
-                        <a href={mat.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 hover:underline text-green-200">
-                          <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14m0 0l-4-4m4 4l4-4"/></svg>
-                          {mat.titulo}
-                        </a>
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <span className="opacity-60">No hay materiales cargados.</span>
-                )}
+              {/* Bloque de materiales y herramientas */}
+              <div className="bg-neutral-900 rounded-2xl border-2 border-green-700 p-6 shadow-lg flex flex-col gap-3 relative">
+                <h3 className="text-green-400 text-xl font-bold mb-2 flex items-center gap-2">
+                  <span>Material y herramientas</span>
+                  {isAdmin && (
+                    <button
+                      className="ml-auto px-3 py-1 rounded bg-green-700 text-white text-xs font-bold hover:bg-green-500 transition"
+                      onClick={() => setShowEditMateriales(true)}
+                    >
+                      Editar
+                    </button>
+                  )}
+                </h3>
+                <div className="text-green-100 text-base leading-relaxed">
+                  {materiales.length > 0 ? (
+                    <ul className="flex flex-col gap-2 mt-2">
+                      {materiales.map((mat, idx) => (
+                        <li key={mat.id || idx} className="flex items-center gap-2">
+                          <a href={mat.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 hover:underline text-green-200">
+                            <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14m0 0l-4-4m4 4l4-4"/></svg>
+                            {mat.titulo}
+                          </a>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <span className="opacity-60">No hay materiales cargados.</span>
+                  )}
+                </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
-      {/* Sidebar elegante y angosta, debajo en móvil */}
-      <div className={`w-full md:w-[320px] bg-gradient-to-br from-neutral-950 to-black p-2 sm:p-4 md:p-6 flex flex-col gap-4 sm:gap-6 rounded-3xl border-l-4 border-cyan-900/30 shadow-2xl min-h-[220px] sm:min-h-[320px] md:min-h-screen transition-all duration-300 ${fullscreen ? 'hidden' : ''}`}
-        style={{marginTop: fullscreen ? 0 : 12}}>
-        {/* Solo mostrar el botón de editar si es admin */}
-        {isAdmin && (
-          <button
-            className="mb-4 sm:mb-6 px-4 sm:px-6 py-2 sm:py-3 rounded-full bg-cyan-700 hover:bg-cyan-500 text-white font-bold shadow transition-all text-base sm:text-lg w-full"
-            onClick={() => setShowEditor(true)}
-          >
-            Editar videos del módulo
-          </button>
-        )}
-        <h3 className="text-xl sm:text-2xl md:text-3xl font-bold mb-4 sm:mb-6 text-cyan-300 tracking-tight uppercase text-center drop-shadow-glow">Clases del módulo</h3>
-        {videosSiguientes.length === 0 && (
-          <div className="flex flex-col items-center gap-6 mt-8 transition-opacity duration-700 opacity-100">
-            <div className="flex flex-col items-center">
-              <CheckCircle className="w-20 h-20 text-green-400" />
-            </div>
-            <div className="text-xl font-bold text-cyan-300 text-center">¡Has completado el módulo!</div>
-            <audio id="felicitacion-audio" src="/audio/felicitacion-modulo.mp3" autoPlay onEnded={e => { e.currentTarget.currentTime = 0; }} />
-            <div className="flex flex-row gap-2 mt-4 w-full justify-center">
-              <button
-                className="flex items-center gap-2 px-4 py-2 rounded-full bg-neutral-800 hover:bg-cyan-900 text-cyan-200 font-bold text-base shadow transition-all border border-cyan-700"
-                onClick={() => navigate(`/cursos/${id}`)}
-              >
-                <ArrowLeft className="w-4 h-4" /> Regresar al Inicio
-              </button>
-              <button
-                className="flex items-center gap-2 px-4 py-2 rounded-full bg-green-500 hover:bg-green-400 text-black font-bold text-base shadow transition-all border border-green-700"
-                onClick={() => navigate(`/cursos/${id}/modulo/${parseInt(moduloIdx || '0', 10) + 1}`)}
-              >
-                Siguiente Módulo <ArrowRight className="w-4 h-4" />
-              </button>
-            </div>
-          </div>
-        )}
-        {videosSiguientes.map((c, idx) => {
-          let thumb = c.miniatura_url;
-          if (!thumb && c.url) {
-            thumb = getVideoThumbnail(c.url);
-          }
-          return (
-            <div
-              key={c.id || idx}
-              className={`flex items-center gap-4 p-3 rounded-2xl cursor-pointer transition border-2 bg-neutral-900 border-neutral-800 hover:bg-cyan-900/10 group`}
-              onClick={() => setClaseActual(claseActual + idx + 1)}
-              style={{ minHeight: 110 }}
+        {/* Sidebar elegante y angosta, debajo en móvil */}
+        <div className={`w-full md:w-[320px] bg-gradient-to-br from-neutral-950 to-black p-2 sm:p-4 md:p-6 flex flex-col gap-4 sm:gap-6 rounded-3xl border-l-4 border-cyan-900/30 shadow-2xl min-h-[220px] sm:min-h-[320px] md:min-h-screen transition-all duration-300 ${fullscreen ? 'hidden' : ''}`}
+          style={{marginTop: fullscreen ? 0 : 12}}>
+          {/* Solo mostrar el botón de editar si es admin */}
+          {isAdmin && (
+            <button
+              className="mb-4 sm:mb-6 px-4 sm:px-6 py-2 sm:py-3 rounded-full bg-cyan-700 hover:bg-cyan-500 text-white font-bold shadow transition-all text-base sm:text-lg w-full"
+              onClick={() => setShowEditor(true)}
             >
-              <div className="flex-shrink-0 w-32 h-20 bg-black rounded-xl overflow-hidden flex items-center justify-center border-2 border-cyan-800 group-hover:border-cyan-400 transition">
-                {thumb ? (
-                  <img src={thumb} alt={c.titulo} className="w-full h-full object-cover" />
-                ) : c.url && (c.url.endsWith('.mp4') || c.url.endsWith('.webm')) ? (
-                  <video src={c.url} className="w-full h-full object-cover" muted playsInline preload="metadata" style={{pointerEvents:'none'}} />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center text-cyan-400">Sin video</div>
-                )}
+              Editar videos del módulo
+            </button>
+          )}
+          <h3 className="text-xl sm:text-2xl md:text-3xl font-bold mb-4 sm:mb-6 text-cyan-300 tracking-tight uppercase text-center drop-shadow-glow">Clases del módulo</h3>
+          {videosSiguientes.length === 0 && (
+            <div className="flex flex-col items-center gap-6 mt-8 transition-opacity duration-700 opacity-100">
+              <div className="flex flex-col items-center">
+                <CheckCircle className="w-20 h-20 text-green-400" />
               </div>
-              <div className="flex-1 flex flex-col justify-center min-w-0">
-                <div className="font-bold text-cyan-200 text-base truncate mb-1" style={{fontSize:'1rem'}}>{c.titulo}</div>
-                <div className="text-xs text-cyan-400 opacity-70">Video</div>
+              <div className="text-xl font-bold text-cyan-300 text-center">¡Has completado el módulo!</div>
+              <audio id="felicitacion-audio" src="/audio/felicitacion-modulo.mp3" autoPlay onEnded={e => { e.currentTarget.currentTime = 0; }} />
+              <div className="flex flex-row gap-2 mt-4 w-full justify-center">
+                <button
+                  className="flex items-center gap-2 px-4 py-2 rounded-full bg-neutral-800 hover:bg-cyan-900 text-cyan-200 font-bold text-base shadow transition-all border border-cyan-700"
+                  onClick={() => navigate(`/cursos/${id}`)}
+                >
+                  <ArrowLeft className="w-4 h-4" /> Regresar al Inicio
+                </button>
+                <button
+                  className="flex items-center gap-2 px-4 py-2 rounded-full bg-green-500 hover:bg-green-400 text-black font-bold text-base shadow transition-all border border-green-700"
+                  onClick={() => navigate(`/cursos/${id}/modulo/${parseInt(moduloIdx || '0', 10) + 1}`)}
+                >
+                  Siguiente Módulo <ArrowRight className="w-4 h-4" />
+                </button>
               </div>
             </div>
-          );
-        })}
-      </div>
-      {/* Modal de edición admin (sin cambios, ya implementado) */}
-      <ModalFuturista open={showEditor} onClose={() => setShowEditor(false)}>
-        <div className="p-2 w-full">
-          <h3 className="text-xl font-bold text-cyan-400 mb-4 text-center">Editor de videos del módulo</h3>
-          {editorLoading && <div className="text-cyan-300 mb-2">Cargando...</div>}
-          {editorError && <div className="text-red-400 mb-2">{editorError}</div>}
-          {successMsg && <div className="text-green-400 mb-2">{successMsg}</div>}
-          {/* Listado y edición de videos existentes */}
-          {videos.map((video, idx) => (
-            <div key={video.id} className="mb-6 p-4 rounded-xl bg-[#101c2c] border border-cyan-900/40 flex flex-col gap-2">
+          )}
+          {videosSiguientes.map((c, idx) => {
+            let thumb = c.miniatura_url;
+            if (!thumb && c.url) {
+              thumb = getVideoThumbnail(c.url);
+            }
+            return (
+              <div
+                key={c.id || idx}
+                className={`flex items-center gap-4 p-3 rounded-2xl cursor-pointer transition border-2 bg-neutral-900 border-neutral-800 hover:bg-cyan-900/10 group`}
+                onClick={() => setClaseActual(claseActual + idx + 1)}
+                style={{ minHeight: 110 }}
+              >
+                <div className="flex-shrink-0 w-32 h-20 bg-black rounded-xl overflow-hidden flex items-center justify-center border-2 border-cyan-800 group-hover:border-cyan-400 transition">
+                  {thumb ? (
+                    <img src={thumb} alt={c.titulo} className="w-full h-full object-cover" />
+                  ) : c.url && (c.url.endsWith('.mp4') || c.url.endsWith('.webm')) ? (
+                    <video src={c.url} className="w-full h-full object-cover" muted playsInline preload="metadata" style={{pointerEvents:'none'}} />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-cyan-400">Sin video</div>
+                  )}
+                </div>
+                <div className="flex-1 flex flex-col justify-center min-w-0">
+                  <div className="font-bold text-cyan-200 text-base truncate mb-1" style={{fontSize:'1rem'}}>{c.titulo}</div>
+                  <div className="text-xs text-cyan-400 opacity-70">Video</div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+        {/* Modal de edición admin (sin cambios, ya implementado) */}
+        <ModalFuturista open={showEditor} onClose={() => setShowEditor(false)}>
+          <div className="p-2 w-full">
+            <h3 className="text-xl font-bold text-cyan-400 mb-4 text-center">Editor de videos del módulo</h3>
+            {editorLoading && <div className="text-cyan-300 mb-2">Cargando...</div>}
+            {editorError && <div className="text-red-400 mb-2">{editorError}</div>}
+            {successMsg && <div className="text-green-400 mb-2">{successMsg}</div>}
+            {/* Listado y edición de videos existentes */}
+            {videos.map((video, idx) => (
+              <div key={video.id} className="mb-6 p-4 rounded-xl bg-[#101c2c] border border-cyan-900/40 flex flex-col gap-2">
+                <label className="text-cyan-300 text-sm font-semibold mb-1">Título</label>
+                <input
+                  className="px-3 py-2 rounded bg-black text-cyan-200 border border-cyan-700 mb-1"
+                  value={video.titulo}
+                  onChange={e => setVideos(videos.map((v, i) => i === idx ? { ...v, titulo: e.target.value } : v))}
+                  placeholder="Ej: Introducción al módulo"
+                />
+                <label className="text-cyan-300 text-sm font-semibold mb-1">Descripción <span className="text-cyan-500">(opcional)</span></label>
+                <textarea
+                  className="px-3 py-2 rounded bg-black text-cyan-200 border border-cyan-700 mb-1"
+                  value={video.descripcion || ''}
+                  onChange={e => setVideos(videos.map((v, i) => i === idx ? { ...v, descripcion: e.target.value } : v))}
+                  placeholder="Breve descripción de la clase"
+                />
+                <label className="text-cyan-300 text-sm font-semibold mb-1">URL del video <span className="text-cyan-500">(Vimeo, YouTube, etc.)</span></label>
+                <input
+                  className="px-3 py-2 rounded bg-black text-cyan-200 border border-cyan-700 mb-1"
+                  value={video.url}
+                  onChange={e => setVideos(videos.map((v, i) => i === idx ? { ...v, url: e.target.value } : v))}
+                  placeholder="https://vimeo.com/123456789"
+                />
+                <label className="text-cyan-300 text-sm font-semibold mb-1">Orden en la lista <span className="text-cyan-500" title="Determina la posición del video en la lista de clases">(1 = primero, 2 = segundo...)</span></label>
+                <input
+                  className="px-3 py-2 rounded bg-black text-cyan-200 border border-cyan-700 mb-1"
+                  value={video.orden || ''}
+                  type="number"
+                  min={1}
+                  onChange={e => setVideos(videos.map((v, i) => i === idx ? { ...v, orden: parseInt(e.target.value) || '' } : v))}
+                  placeholder="Ej: 1"
+                />
+                <label className="text-cyan-300 text-sm font-semibold mb-1">Miniatura <span className="text-cyan-500">(opcional)</span></label>
+                <div className="flex items-center gap-3 mb-2">
+                  {video.miniatura_url && <img src={video.miniatura_url} alt="Miniatura" className="w-20 h-14 object-cover rounded border border-cyan-700" />}
+                  <input type="file" accept="image/*" onChange={e => e.target.files && handleMiniaturaUpload(e.target.files[0], idx)} />
+                </div>
+                <div className="flex gap-3 mt-2">
+                  <button className="px-4 py-2 rounded bg-cyan-700 text-white font-bold" onClick={() => handleGuardarVideo(video, idx)} disabled={editorLoading}>Guardar</button>
+                  <button className="px-4 py-2 rounded bg-red-700 text-white font-bold" onClick={() => { if(window.confirm('¿Seguro que quieres eliminar este video?')) handleEliminarVideo(video.id); }} disabled={editorLoading}>Eliminar</button>
+                </div>
+              </div>
+            ))}
+            {/* Formulario para agregar nuevo video */}
+            <div className="mt-8 p-4 rounded-xl bg-[#1a2a3f] border border-cyan-900/40 flex flex-col gap-2">
               <label className="text-cyan-300 text-sm font-semibold mb-1">Título</label>
               <input
                 className="px-3 py-2 rounded bg-black text-cyan-200 border border-cyan-700 mb-1"
-                value={video.titulo}
-                onChange={e => setVideos(videos.map((v, i) => i === idx ? { ...v, titulo: e.target.value } : v))}
+                value={nuevoVideo.titulo}
+                onChange={e => setNuevoVideo({ ...nuevoVideo, titulo: e.target.value })}
                 placeholder="Ej: Introducción al módulo"
               />
               <label className="text-cyan-300 text-sm font-semibold mb-1">Descripción <span className="text-cyan-500">(opcional)</span></label>
               <textarea
                 className="px-3 py-2 rounded bg-black text-cyan-200 border border-cyan-700 mb-1"
-                value={video.descripcion || ''}
-                onChange={e => setVideos(videos.map((v, i) => i === idx ? { ...v, descripcion: e.target.value } : v))}
+                value={nuevoVideo.descripcion}
+                onChange={e => setNuevoVideo({ ...nuevoVideo, descripcion: e.target.value })}
                 placeholder="Breve descripción de la clase"
               />
               <label className="text-cyan-300 text-sm font-semibold mb-1">URL del video <span className="text-cyan-500">(Vimeo, YouTube, etc.)</span></label>
               <input
                 className="px-3 py-2 rounded bg-black text-cyan-200 border border-cyan-700 mb-1"
-                value={video.url}
-                onChange={e => setVideos(videos.map((v, i) => i === idx ? { ...v, url: e.target.value } : v))}
+                value={nuevoVideo.url}
+                onChange={e => setNuevoVideo({ ...nuevoVideo, url: e.target.value })}
                 placeholder="https://vimeo.com/123456789"
               />
               <label className="text-cyan-300 text-sm font-semibold mb-1">Orden en la lista <span className="text-cyan-500" title="Determina la posición del video en la lista de clases">(1 = primero, 2 = segundo...)</span></label>
               <input
                 className="px-3 py-2 rounded bg-black text-cyan-200 border border-cyan-700 mb-1"
-                value={video.orden || ''}
+                value={nuevoVideo.orden || ''}
                 type="number"
                 min={1}
-                onChange={e => setVideos(videos.map((v, i) => i === idx ? { ...v, orden: parseInt(e.target.value) || '' } : v))}
+                onChange={e => setNuevoVideo((prev: any) => ({ ...prev, orden: parseInt(e.target.value) || '' }))}
                 placeholder="Ej: 1"
               />
               <label className="text-cyan-300 text-sm font-semibold mb-1">Miniatura <span className="text-cyan-500">(opcional)</span></label>
               <div className="flex items-center gap-3 mb-2">
-                {video.miniatura_url && <img src={video.miniatura_url} alt="Miniatura" className="w-20 h-14 object-cover rounded border border-cyan-700" />}
-                <input type="file" accept="image/*" onChange={e => e.target.files && handleMiniaturaUpload(e.target.files[0], idx)} />
+                {nuevoVideo.miniatura_url && <img src={nuevoVideo.miniatura_url} alt="Miniatura" className="w-20 h-14 object-cover rounded border border-cyan-700" />}
+                <input type="file" accept="image/*" onChange={e => e.target.files && handleMiniaturaUpload(e.target.files[0], null)} />
               </div>
-              <div className="flex gap-3 mt-2">
-                <button className="px-4 py-2 rounded bg-cyan-700 text-white font-bold" onClick={() => handleGuardarVideo(video, idx)} disabled={editorLoading}>Guardar</button>
-                <button className="px-4 py-2 rounded bg-red-700 text-white font-bold" onClick={() => { if(window.confirm('¿Seguro que quieres eliminar este video?')) handleEliminarVideo(video.id); }} disabled={editorLoading}>Eliminar</button>
-              </div>
+              <button className="px-4 py-2 rounded bg-green-700 text-white font-bold mt-2" onClick={async () => {
+                // Si no se especifica orden, asignar el siguiente disponible
+                let orden = nuevoVideo.orden;
+                if (!orden || orden < 1) {
+                  orden = (videos.reduce((max, v) => v.orden > max ? v.orden : max, 0) || 0) + 1;
+                }
+                setNuevoVideo((prev: any) => ({ ...prev, orden }));
+                await handleAgregarVideo();
+              }} disabled={editorLoading}>Agregar video</button>
             </div>
-          ))}
-          {/* Formulario para agregar nuevo video */}
-          <div className="mt-8 p-4 rounded-xl bg-[#1a2a3f] border border-cyan-900/40 flex flex-col gap-2">
-            <label className="text-cyan-300 text-sm font-semibold mb-1">Título</label>
-            <input
-              className="px-3 py-2 rounded bg-black text-cyan-200 border border-cyan-700 mb-1"
-              value={nuevoVideo.titulo}
-              onChange={e => setNuevoVideo({ ...nuevoVideo, titulo: e.target.value })}
-              placeholder="Ej: Introducción al módulo"
-            />
-            <label className="text-cyan-300 text-sm font-semibold mb-1">Descripción <span className="text-cyan-500">(opcional)</span></label>
-            <textarea
-              className="px-3 py-2 rounded bg-black text-cyan-200 border border-cyan-700 mb-1"
-              value={nuevoVideo.descripcion}
-              onChange={e => setNuevoVideo({ ...nuevoVideo, descripcion: e.target.value })}
-              placeholder="Breve descripción de la clase"
-            />
-            <label className="text-cyan-300 text-sm font-semibold mb-1">URL del video <span className="text-cyan-500">(Vimeo, YouTube, etc.)</span></label>
-            <input
-              className="px-3 py-2 rounded bg-black text-cyan-200 border border-cyan-700 mb-1"
-              value={nuevoVideo.url}
-              onChange={e => setNuevoVideo({ ...nuevoVideo, url: e.target.value })}
-              placeholder="https://vimeo.com/123456789"
-            />
-            <label className="text-cyan-300 text-sm font-semibold mb-1">Orden en la lista <span className="text-cyan-500" title="Determina la posición del video en la lista de clases">(1 = primero, 2 = segundo...)</span></label>
-            <input
-              className="px-3 py-2 rounded bg-black text-cyan-200 border border-cyan-700 mb-1"
-              value={nuevoVideo.orden || ''}
-              type="number"
-              min={1}
-              onChange={e => setNuevoVideo((prev: any) => ({ ...prev, orden: parseInt(e.target.value) || '' }))}
-              placeholder="Ej: 1"
-            />
-            <label className="text-cyan-300 text-sm font-semibold mb-1">Miniatura <span className="text-cyan-500">(opcional)</span></label>
-            <div className="flex items-center gap-3 mb-2">
-              {nuevoVideo.miniatura_url && <img src={nuevoVideo.miniatura_url} alt="Miniatura" className="w-20 h-14 object-cover rounded border border-cyan-700" />}
-              <input type="file" accept="image/*" onChange={e => e.target.files && handleMiniaturaUpload(e.target.files[0], null)} />
-            </div>
-            <button className="px-4 py-2 rounded bg-green-700 text-white font-bold mt-2" onClick={async () => {
-              // Si no se especifica orden, asignar el siguiente disponible
-              let orden = nuevoVideo.orden;
-              if (!orden || orden < 1) {
-                orden = (videos.reduce((max, v) => v.orden > max ? v.orden : max, 0) || 0) + 1;
-              }
-              setNuevoVideo((prev: any) => ({ ...prev, orden }));
-              await handleAgregarVideo();
-            }} disabled={editorLoading}>Agregar video</button>
+            <button className="mt-8 px-4 py-2 rounded-full bg-cyan-700 hover:bg-cyan-500 text-white font-bold shadow w-full" onClick={() => setShowEditor(false)}>Cerrar</button>
           </div>
-          <button className="mt-8 px-4 py-2 rounded-full bg-cyan-700 hover:bg-cyan-500 text-white font-bold shadow w-full" onClick={() => setShowEditor(false)}>Cerrar</button>
-        </div>
-      </ModalFuturista>
-      {/* Modales de edición */}
-      <ModalFuturista open={showEditDescripcion} onClose={() => setShowEditDescripcion(false)}>
-        <div className="flex flex-col gap-4 w-full">
-          <h3 className="text-xl font-bold text-cyan-400 mb-2 text-center">Editar descripción del módulo</h3>
-          {descMsg && <div className={descMsg.startsWith('¡Guardado') ? 'text-green-400' : 'text-red-400'}>{descMsg}</div>}
-          <ReactQuill value={descripcionHtml || ''} onChange={setDescripcionHtml} className="bg-white text-black rounded" />
-          <button className="mt-4 px-4 py-2 rounded-full bg-cyan-700 hover:bg-cyan-500 text-white font-bold shadow w-full" onClick={handleSaveDescripcion}>Guardar</button>
-          <div className="text-xs text-cyan-300 mt-2">modulo_id: {modulo?.id || 'N/A'}</div>
-        </div>
-      </ModalFuturista>
-      <ModalFuturista open={showEditMateriales} onClose={() => setShowEditMateriales(false)}>
-        <div className="flex flex-col gap-4 w-full">
-          <h3 className="text-xl font-bold text-green-400 mb-2 text-center">Editar materiales y herramientas</h3>
-          {materialMsg && <div className={materialMsg.startsWith('¡Guardado') ? 'text-green-400' : 'text-red-400'}>{materialMsg}</div>}
-          <form onSubmit={handleAddMaterialV2} className="flex flex-col gap-2">
-            <input name="titulo" value={materialTitulo} onChange={e => setMaterialTitulo(e.target.value)} placeholder="Título del material" className="px-3 py-2 rounded bg-black text-green-200 border border-green-700" required />
-            <input name="url" value={materialUrl} onChange={e => setMaterialUrl(e.target.value)} placeholder="Enlace o URL de archivo (opcional si subes archivo)" className="px-3 py-2 rounded bg-black text-green-200 border border-green-700" />
-            <input type="file" accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg,.zip,.rar,.ppt,.pptx,.txt" onChange={e => e.target.files && setMaterialFile(e.target.files[0])} />
-            <button type="submit" className="px-4 py-2 rounded-full bg-green-700 hover:bg-green-500 text-white font-bold shadow w-full" disabled={materialLoading}>{materialLoading ? 'Guardando...' : 'Agregar material'}</button>
-          </form>
-          <div className="text-xs text-green-300 mt-2">modulo_id: {modulo?.id || 'N/A'}</div>
-          <ul className="flex flex-col gap-2 mt-2">
-            {materiales.map((mat, idx) => (
-              <li key={mat.id || idx} className="flex items-center gap-2">
-                <a href={mat.url} target="_blank" rel="noopener noreferrer" className="flex-1 hover:underline text-green-200">{mat.titulo}</a>
-                <button className="text-xs text-red-400 hover:text-red-600 font-bold" onClick={() => handleDeleteMaterial(mat.id)}>Eliminar</button>
-              </li>
-            ))}
-          </ul>
-        </div>
-      </ModalFuturista>
-    </div>
+        </ModalFuturista>
+        {/* Modales de edición */}
+        <ModalFuturista open={showEditDescripcion} onClose={() => setShowEditDescripcion(false)}>
+          <div className="flex flex-col gap-4 w-full">
+            <h3 className="text-xl font-bold text-cyan-400 mb-2 text-center">Editar descripción del módulo</h3>
+            {descMsg && <div className={descMsg.startsWith('¡Guardado') ? 'text-green-400' : 'text-red-400'}>{descMsg}</div>}
+            <ReactQuill value={descripcionHtml || ''} onChange={setDescripcionHtml} className="bg-white text-black rounded" />
+            <button className="mt-4 px-4 py-2 rounded-full bg-cyan-700 hover:bg-cyan-500 text-white font-bold shadow w-full" onClick={handleSaveDescripcion}>Guardar</button>
+            <div className="text-xs text-cyan-300 mt-2">modulo_id: {modulo?.id || 'N/A'}</div>
+          </div>
+        </ModalFuturista>
+        <ModalFuturista open={showEditMateriales} onClose={() => setShowEditMateriales(false)}>
+          <div className="flex flex-col gap-4 w-full">
+            <h3 className="text-xl font-bold text-green-400 mb-2 text-center">Editar materiales y herramientas</h3>
+            {materialMsg && <div className={materialMsg.startsWith('¡Guardado') ? 'text-green-400' : 'text-red-400'}>{materialMsg}</div>}
+            <form onSubmit={handleAddMaterialV2} className="flex flex-col gap-2">
+              <input name="titulo" value={materialTitulo} onChange={e => setMaterialTitulo(e.target.value)} placeholder="Título del material" className="px-3 py-2 rounded bg-black text-green-200 border border-green-700" required />
+              <input name="url" value={materialUrl} onChange={e => setMaterialUrl(e.target.value)} placeholder="Enlace o URL de archivo (opcional si subes archivo)" className="px-3 py-2 rounded bg-black text-green-200 border border-green-700" />
+              <input type="file" accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg,.zip,.rar,.ppt,.pptx,.txt" onChange={e => e.target.files && setMaterialFile(e.target.files[0])} />
+              <button type="submit" className="px-4 py-2 rounded-full bg-green-700 hover:bg-green-500 text-white font-bold shadow w-full" disabled={materialLoading}>{materialLoading ? 'Guardando...' : 'Agregar material'}</button>
+            </form>
+            <div className="text-xs text-green-300 mt-2">modulo_id: {modulo?.id || 'N/A'}</div>
+            <ul className="flex flex-col gap-2 mt-2">
+              {materiales.map((mat, idx) => (
+                <li key={mat.id || idx} className="flex items-center gap-2">
+                  <a href={mat.url} target="_blank" rel="noopener noreferrer" className="flex-1 hover:underline text-green-200">{mat.titulo}</a>
+                  <button className="text-xs text-red-400 hover:text-red-600 font-bold" onClick={() => handleDeleteMaterial(mat.id)}>Eliminar</button>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </ModalFuturista>
+      </div>
+    </GlobalLoadingSpinner>
   );
 };
 
