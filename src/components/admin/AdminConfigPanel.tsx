@@ -437,9 +437,13 @@ function MenuSecundarioTresBarras() {
     setConfig({ ...config, [bar]: items });
   };
 
-  // Botones disponibles para agregar (los que no están en ninguna barra)
-  const usedKeys = [...config.barra_scroll_desktop, ...config.barra_scroll_movil, ...config.barra_inferior_movil].map(b => b.key);
-  const availableButtons = defaultButtons.filter(b => !usedKeys.includes(b.key));
+  // Botones disponibles para agregar, con opciones solo para barras donde no está
+  const allBars = ['barra_scroll_desktop', 'barra_scroll_movil', 'barra_inferior_movil'] as const;
+  const availableButtonsPerBar = defaultButtons.map(btn => {
+    const inBars = allBars.filter(bar => config[bar].some(b => b.key === btn.key));
+    const notInBars = allBars.filter(bar => !inBars.includes(bar));
+    return { ...btn, notInBars };
+  }).filter(btn => btn.notInBars.length > 0);
 
   // Guardar
   const handleGuardar = async () => {
@@ -506,9 +510,9 @@ function MenuSecundarioTresBarras() {
       <div style={{ marginBottom: 18 }}>
         <h4 style={{ color: '#FFD700', fontWeight: 600, fontSize: 16 }}>Botones disponibles para agregar</h4>
         <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-          {availableButtons.length === 0 && <span style={{ color: '#fff' }}>No hay más botones disponibles.</span>}
-          {['barra_scroll_desktop', 'barra_scroll_movil', 'barra_inferior_movil'].map(bar => (
-            availableButtons.map(btn => (
+          {availableButtonsPerBar.length === 0 && <span style={{ color: '#fff' }}>No hay más botones disponibles.</span>}
+          {availableButtonsPerBar.map(btn => (
+            btn.notInBars.map(bar => (
               <button key={btn.key + '-' + bar} style={{ background: '#23232b', color: '#FFD700', border: '1.5px solid #FFD700', borderRadius: 8, padding: '8px 16px', fontWeight: 600, cursor: 'pointer' }} onClick={() => setConfig({ ...config, [bar]: [...config[bar], { ...btn, visible: true }] })}>
                 Agregar a {bar === 'barra_scroll_desktop' ? 'Desktop' : bar === 'barra_scroll_movil' ? 'Móvil Scroll' : 'App Móvil'}: {btn.icon} {btn.nombre}
               </button>
