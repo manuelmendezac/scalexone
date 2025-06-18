@@ -285,11 +285,11 @@ export default function AdminConfigPanel({ selected }: { selected: string }) {
       {selected === 'channels' && <div style={{ color: '#fff' }}>Canales (aquí irá la gestión de canales)</div>}
       {selected === 'mainMenu' && (
         <div style={{ width: '100%', margin: 0, background: '#18181b', borderRadius: 18, boxShadow: '0 2px 12px #0006', padding: 40 }}>
-          <h2 style={{ color: '#FFD700', fontWeight: 700, fontSize: 28, marginBottom: 18 }}>Menú Secundario (Barras Superior e Inferior)</h2>
+          <h2 style={{ color: '#FFD700', fontWeight: 700, fontSize: 28, marginBottom: 18 }}>Menú Secundario (Barras Desktop, Móvil Scroll, App Móvil)</h2>
           <div style={{ color: '#fff', marginBottom: 18 }}>
-            Configura los botones que aparecerán en la barra superior (scroll horizontal, visible en desktop y móvil arriba) y en la barra inferior (solo móvil, abajo). Puedes arrastrar, agregar, quitar y reordenar los botones de cada barra de forma independiente. No se permiten duplicados.
+            Configura los botones que aparecerán en la barra scroll horizontal de desktop, la barra scroll horizontal de móvil y la barra inferior tipo app móvil. Puedes arrastrar, agregar, quitar y ocultar los botones de cada barra de forma independiente. No se permiten duplicados en la misma barra.
           </div>
-          <MenuSecundarioSeparado />
+          <MenuSecundarioTresBarras />
         </div>
       )}
       {selected === 'members' && <div style={{ color: '#fff' }}>Miembros (aquí irá la gestión de miembros)</div>}
@@ -343,46 +343,49 @@ const botonGuardarEstilo = {
   fontSize: 18,
 };
 
-// --- NUEVO COMPONENTE DE MENÚ SECUNDARIO SEPARADO ---
-function MenuSecundarioSeparado() {
+const defaultButtons = [
+  { key: 'inicio', nombre: 'Inicio', ruta: '/home', icon: '🏠' },
+  { key: 'comunidad', nombre: 'Comunidad', ruta: '/comunidad', icon: '👥' },
+  { key: 'classroom', nombre: 'Classroom', ruta: '/classroom', icon: '🎓' },
+  { key: 'cursos', nombre: 'Cursos', ruta: '/cursos', icon: '📚' },
+  { key: 'launchpad', nombre: 'Launchpad', ruta: '/launchpad', icon: '🚀' },
+  { key: 'clasificacion', nombre: 'Clasificación', ruta: '/clasificacion', icon: '📊' },
+  { key: 'embudos', nombre: 'Embudos', ruta: '/funnels', icon: '🫧' },
+  { key: 'ia', nombre: 'IA', ruta: '/ia', icon: '🤖' },
+  { key: 'automatizaciones', nombre: 'Automatizaciones', ruta: '/automatizaciones', icon: '⚙️' },
+  { key: 'whatsappcrm', nombre: 'WhatsApp CRM', ruta: '/whatsapp-crm', icon: '💬' },
+  { key: 'configuracion', nombre: 'Configuración', ruta: '/configuracion', icon: '🔧' },
+];
+
+function isConfigObject(obj: any): obj is { barra_scroll_desktop: any[]; barra_scroll_movil: any[]; barra_inferior_movil: any[] } {
+  return obj && typeof obj === 'object' && Array.isArray(obj.barra_scroll_desktop) && Array.isArray(obj.barra_scroll_movil) && Array.isArray(obj.barra_inferior_movil);
+}
+
+function MenuSecundarioTresBarras() {
   const { userInfo } = useNeuroState();
   const community_id = userInfo?.community_id || null;
   const isSuperAdmin = userInfo?.rol === 'superadmin';
   const isAdmin = userInfo?.rol === 'admin' || isSuperAdmin;
   const { menuConfig, loading, error, saveMenuConfig } = useMenuSecundarioConfig(community_id);
 
-  // Menú por defecto
-  const defaultButtons = [
-    { key: 'inicio', nombre: 'Inicio', visible: true, predeterminado: true, ruta: '/home', icon: '🏠' },
-    { key: 'comunidad', nombre: 'Comunidad', visible: true, predeterminado: false, ruta: '/comunidad', icon: '👥' },
-    { key: 'classroom', nombre: 'Classroom', visible: true, predeterminado: false, ruta: '/classroom', icon: '🎓' },
-    { key: 'cursos', nombre: 'Cursos', visible: true, predeterminado: false, ruta: '/cursos', icon: '📚' },
-    { key: 'launchpad', nombre: 'Launchpad', visible: true, predeterminado: false, ruta: '/launchpad', icon: '🚀' },
-    { key: 'clasificacion', nombre: 'Clasificación', visible: true, predeterminado: false, ruta: '/clasificacion', icon: '📊' },
-    { key: 'embudos', nombre: 'Embudos', visible: false, predeterminado: false, ruta: '/funnels', icon: '🫧' },
-    { key: 'ia', nombre: 'IA', visible: false, predeterminado: false, ruta: '/ia', icon: '🤖' },
-    { key: 'automatizaciones', nombre: 'Automatizaciones', visible: false, predeterminado: false, ruta: '/automatizaciones', icon: '⚙️' },
-    { key: 'whatsappcrm', nombre: 'WhatsApp CRM', visible: false, predeterminado: false, ruta: '/whatsapp-crm', icon: '💬' },
-    { key: 'configuracion', nombre: 'Configuración', visible: false, predeterminado: false, ruta: '/configuracion', icon: '🔧' },
-  ];
-
-  // Estructura inicial: dos arrays separados
+  // Estructura inicial: tres arrays separados
   const getInitialConfig = () => {
-    if (menuConfig && typeof menuConfig === 'object' && (menuConfig.barra_superior || menuConfig.barra_inferior)) {
+    if (isConfigObject(menuConfig)) {
       return {
-        barra_superior: Array.isArray(menuConfig.barra_superior) ? menuConfig.barra_superior : [],
-        barra_inferior: Array.isArray(menuConfig.barra_inferior) ? menuConfig.barra_inferior : [],
+        barra_scroll_desktop: menuConfig.barra_scroll_desktop,
+        barra_scroll_movil: menuConfig.barra_scroll_movil,
+        barra_inferior_movil: menuConfig.barra_inferior_movil,
       };
     }
-    // Si es el formato viejo (array plano), migrar todo a barra_superior
+    // Si es el formato viejo, migrar todo a desktop
     if (Array.isArray(menuConfig)) {
-      return { barra_superior: menuConfig, barra_inferior: [] };
+      return { barra_scroll_desktop: menuConfig, barra_scroll_movil: [], barra_inferior_movil: [] };
     }
     // Si no hay nada, usar default
-    return { barra_superior: defaultButtons, barra_inferior: [] };
+    return { barra_scroll_desktop: defaultButtons, barra_scroll_movil: [], barra_inferior_movil: [] };
   };
 
-  const [config, setConfig] = useState<{ barra_superior: any[]; barra_inferior: any[] }>(getInitialConfig());
+  const [config, setConfig] = useState<{ barra_scroll_desktop: any[]; barra_scroll_movil: any[]; barra_inferior_movil: any[] }>(getInitialConfig());
   const [hasChanges, setHasChanges] = useState(false);
 
   useEffect(() => {
@@ -390,10 +393,9 @@ function MenuSecundarioSeparado() {
   }, [menuConfig]);
 
   useEffect(() => {
-    // Si menuConfig es array plano, conviértelo a objeto para comparar
     let menuObj = menuConfig;
     if (Array.isArray(menuConfig)) {
-      menuObj = { barra_superior: menuConfig, barra_inferior: [] };
+      menuObj = { barra_scroll_desktop: menuConfig, barra_scroll_movil: [], barra_inferior_movil: [] };
     }
     setHasChanges(JSON.stringify(config) !== JSON.stringify(menuObj));
   }, [config, menuConfig]);
@@ -401,8 +403,8 @@ function MenuSecundarioSeparado() {
   // Drag & drop entre barras
   const onDragEnd = (result: any) => {
     if (!result.destination) return;
-    const sourceBar = result.source.droppableId as 'barra_superior' | 'barra_inferior';
-    const destBar = result.destination.droppableId as 'barra_superior' | 'barra_inferior';
+    const sourceBar = result.source.droppableId as keyof typeof config;
+    const destBar = result.destination.droppableId as keyof typeof config;
     if (sourceBar === destBar) {
       // Reordenar dentro de la misma barra
       const items = Array.from(config[sourceBar]);
@@ -422,50 +424,37 @@ function MenuSecundarioSeparado() {
   };
 
   // Quitar botón de una barra
-  const removeButton = (bar: 'barra_superior' | 'barra_inferior', idx: number) => {
+  const removeButton = (bar: keyof typeof config, idx: number) => {
     const items = Array.from(config[bar]);
     items.splice(idx, 1);
     setConfig({ ...config, [bar]: items });
   };
 
-  // Editar nombre, visibilidad, etc.
-  const handleEdit = (bar: 'barra_superior' | 'barra_inferior', idx: number, field: string, value: any) => {
+  // Ocultar/mostrar botón
+  const toggleVisible = (bar: keyof typeof config, idx: number) => {
     const items = Array.from(config[bar]);
-    items[idx] = { ...items[idx], [field]: value };
+    items[idx] = { ...items[idx], visible: !items[idx].visible };
     setConfig({ ...config, [bar]: items });
   };
 
-  // Agregar botón disponible a una barra
-  const addButtonToBar = (bar: 'barra_superior' | 'barra_inferior', button: any) => {
-    if (config[bar].find(b => b.key === button.key)) return;
-    setConfig({ ...config, [bar]: [...config[bar], button] });
-  };
-
   // Botones disponibles para agregar (los que no están en ninguna barra)
-  const usedKeys = [...config.barra_superior, ...config.barra_inferior].map(b => b.key);
+  const usedKeys = [...config.barra_scroll_desktop, ...config.barra_scroll_movil, ...config.barra_inferior_movil].map(b => b.key);
   const availableButtons = defaultButtons.filter(b => !usedKeys.includes(b.key));
-
-  // Type guard para asegurar el tipo correcto de config
-  function isConfigObject(obj: any): obj is { barra_superior: any[]; barra_inferior: any[] } {
-    return obj && typeof obj === 'object' && Array.isArray(obj.barra_superior) && Array.isArray(obj.barra_inferior);
-  }
-
-  // En el render y en el guardado, usa config seguro
-  const barraSuperior = isConfigObject(config) ? config.barra_superior : [];
-  const barraInferior = isConfigObject(config) ? config.barra_inferior : [];
 
   // Guardar
   const handleGuardar = async () => {
     if (!isAdmin) return;
-    // Validar que no haya duplicados
-    const keysSup = barraSuperior.map(b => b.key);
-    const keysInf = barraInferior.map(b => b.key);
-    const duplicados = keysSup.filter(k => keysInf.includes(k));
-    if (duplicados.length > 0) {
-      alert('No puede haber botones duplicados en ambas barras: ' + duplicados.join(', '));
-      return;
+    // Validar que no haya duplicados en la misma barra
+    const allBars = ['barra_scroll_desktop', 'barra_scroll_movil', 'barra_inferior_movil'] as const;
+    for (const bar of allBars) {
+      const keys = config[bar].map(b => b.key);
+      const setKeys = new Set(keys);
+      if (setKeys.size !== keys.length) {
+        alert('No puede haber botones duplicados en la misma barra: ' + bar);
+        return;
+      }
     }
-    const result = await saveMenuConfig({ barra_superior: barraSuperior, barra_inferior: barraInferior });
+    const result = await saveMenuConfig(config);
     if (result && result.error) {
       alert('Error al guardar: ' + result.error.message);
     } else {
@@ -481,69 +470,49 @@ function MenuSecundarioSeparado() {
         <span style={{ color: '#fff', fontSize: 13 }}>community_id actual: <b>{community_id || '[null]'}</b></span>
       </div>
       {error && <div style={{ color: 'red', marginBottom: 12, fontWeight: 700 }}>Error al guardar o cargar menú: {error}</div>}
-      <div style={{ display: 'flex', gap: 40, alignItems: 'flex-start', marginBottom: 32 }}>
+      <div style={{ display: 'flex', gap: 32, alignItems: 'flex-start', marginBottom: 32 }}>
         <DragDropContext onDragEnd={onDragEnd}>
-          <Droppable droppableId="barra_superior">
-            {(provided) => (
-              <div ref={provided.innerRef} {...provided.droppableProps} style={{ flex: 1, minWidth: 320 }}>
-                <h3 style={{ color: '#FFD700', fontWeight: 700, fontSize: 20, marginBottom: 12 }}>Barra Superior (scroll horizontal)</h3>
-                {barraSuperior.length === 0 && <div style={{ color: '#fff' }}>No hay botones configurados para la barra superior.</div>}
-                {barraSuperior.map((tab, idx) => (
-                  <Draggable key={tab.key} draggableId={tab.key} index={idx}>
-                    {(prov) => (
-                      <div ref={prov.innerRef} {...prov.draggableProps} {...prov.dragHandleProps} style={{ display: 'flex', alignItems: 'center', gap: 16, borderBottom: '1px solid #333', padding: '12px 0', ...prov.draggableProps.style }}>
-                        <span style={{ color: '#FFD700', fontWeight: tab.predeterminado ? 700 : 500, minWidth: 90 }}>{tab.icon || ''} {tab.nombre}</span>
-                        <input value={tab.nombre} onChange={e => handleEdit('barra_superior', idx, 'nombre', e.target.value)} style={{ ...inputEstilo, width: 180, background: '#23232b', color: '#FFD700', fontWeight: 600 }} />
-                        <button onClick={() => handleEdit('barra_superior', idx, 'predeterminado', !tab.predeterminado)} style={{ background: tab.predeterminado ? '#FFD700' : 'transparent', color: tab.predeterminado ? '#18181b' : '#FFD700', border: '1.5px solid #FFD700', borderRadius: 8, padding: '4px 12px', fontWeight: 700, cursor: 'pointer' }}>Predeterminado</button>
-                        <label style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}>
-                          <input type="checkbox" checked={!!tab.visible} onChange={() => handleEdit('barra_superior', idx, 'visible', !tab.visible)} style={{ accentColor: '#FFD700', width: 18, height: 18 }} />
-                          <span style={{ color: tab.visible ? '#FFD700' : '#888', fontWeight: 600 }}>{tab.visible ? 'Visible' : 'Oculto'}</span>
-                        </label>
-                        <button onClick={() => removeButton('barra_superior', idx)} style={{ background: 'transparent', border: 'none', color: '#FFD700', fontSize: 18, cursor: 'pointer' }} title="Quitar">✕</button>
-                      </div>
-                    )}
-                  </Draggable>
-                ))}
-                {provided.placeholder}
-              </div>
-            )}
-          </Droppable>
-          <Droppable droppableId="barra_inferior">
-            {(provided) => (
-              <div ref={provided.innerRef} {...provided.droppableProps} style={{ flex: 1, minWidth: 320 }}>
-                <h3 style={{ color: '#FFD700', fontWeight: 700, fontSize: 20, marginBottom: 12 }}>Barra Inferior (app móvil)</h3>
-                {barraInferior.length === 0 && <div style={{ color: '#fff' }}>No hay botones configurados para la barra inferior.</div>}
-                {barraInferior.map((tab, idx) => (
-                  <Draggable key={tab.key} draggableId={tab.key} index={idx}>
-                    {(prov) => (
-                      <div ref={prov.innerRef} {...prov.draggableProps} {...prov.dragHandleProps} style={{ display: 'flex', alignItems: 'center', gap: 16, borderBottom: '1px solid #333', padding: '12px 0', ...prov.draggableProps.style }}>
-                        <span style={{ color: '#FFD700', fontWeight: tab.predeterminado ? 700 : 500, minWidth: 90 }}>{tab.icon || ''} {tab.nombre}</span>
-                        <input value={tab.nombre} onChange={e => handleEdit('barra_inferior', idx, 'nombre', e.target.value)} style={{ ...inputEstilo, width: 180, background: '#23232b', color: '#FFD700', fontWeight: 600 }} />
-                        <button onClick={() => handleEdit('barra_inferior', idx, 'predeterminado', !tab.predeterminado)} style={{ background: tab.predeterminado ? '#FFD700' : 'transparent', color: tab.predeterminado ? '#18181b' : '#FFD700', border: '1.5px solid #FFD700', borderRadius: 8, padding: '4px 12px', fontWeight: 700, cursor: 'pointer' }}>Predeterminado</button>
-                        <label style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}>
-                          <input type="checkbox" checked={!!tab.visible} onChange={() => handleEdit('barra_inferior', idx, 'visible', !tab.visible)} style={{ accentColor: '#FFD700', width: 18, height: 18 }} />
-                          <span style={{ color: tab.visible ? '#FFD700' : '#888', fontWeight: 600 }}>{tab.visible ? 'Visible' : 'Oculto'}</span>
-                        </label>
-                        <button onClick={() => removeButton('barra_inferior', idx)} style={{ background: 'transparent', border: 'none', color: '#FFD700', fontSize: 18, cursor: 'pointer' }} title="Quitar">✕</button>
-                      </div>
-                    )}
-                  </Draggable>
-                ))}
-                {provided.placeholder}
-              </div>
-            )}
-          </Droppable>
+          {['barra_scroll_desktop', 'barra_scroll_movil', 'barra_inferior_movil'].map((bar, i) => (
+            <Droppable droppableId={bar} key={bar}>
+              {(provided) => (
+                <div ref={provided.innerRef} {...provided.droppableProps} style={{ flex: 1, minWidth: 260 }}>
+                  <h3 style={{ color: '#FFD700', fontWeight: 700, fontSize: 18, marginBottom: 12 }}>
+                    {bar === 'barra_scroll_desktop' && 'Barra Scroll Desktop'}
+                    {bar === 'barra_scroll_movil' && 'Barra Scroll Móvil'}
+                    {bar === 'barra_inferior_movil' && 'Barra Inferior App Móvil'}
+                  </h3>
+                  {config[bar].length === 0 && <div style={{ color: '#fff' }}>No hay botones configurados para esta barra.</div>}
+                  {config[bar].map((tab, idx) => (
+                    <Draggable key={tab.key + '-' + bar} index={idx}>
+                      {(prov) => (
+                        <div ref={prov.innerRef} {...prov.draggableProps} {...prov.dragHandleProps} style={{ display: 'flex', alignItems: 'center', gap: 12, borderBottom: '1px solid #333', padding: '10px 0', ...prov.draggableProps.style }}>
+                          <span style={{ color: '#FFD700', fontWeight: 700, minWidth: 90 }}>{tab.icon || ''} {tab.nombre}</span>
+                          <label style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}>
+                            <input type="checkbox" checked={tab.visible !== false} onChange={() => toggleVisible(bar as keyof typeof config, idx)} style={{ accentColor: '#FFD700', width: 18, height: 18 }} />
+                            <span style={{ color: tab.visible !== false ? '#FFD700' : '#888', fontWeight: 600 }}>{tab.visible !== false ? 'Visible' : 'Oculto'}</span>
+                          </label>
+                          <button onClick={() => removeButton(bar as keyof typeof config, idx)} style={{ background: 'transparent', border: 'none', color: '#FFD700', fontSize: 18, cursor: 'pointer' }} title="Quitar">✕</button>
+                        </div>
+                      )}
+                    </Draggable>
+                  ))}
+                  {provided.placeholder}
+                </div>
+              )}
+            </Droppable>
+          ))}
         </DragDropContext>
       </div>
       <div style={{ marginBottom: 18 }}>
         <h4 style={{ color: '#FFD700', fontWeight: 600, fontSize: 16 }}>Botones disponibles para agregar</h4>
         <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
           {availableButtons.length === 0 && <span style={{ color: '#fff' }}>No hay más botones disponibles.</span>}
-          {availableButtons.map(btn => (
-            <button key={btn.key} style={{ background: '#23232b', color: '#FFD700', border: '1.5px solid #FFD700', borderRadius: 8, padding: '8px 16px', fontWeight: 600, cursor: 'pointer' }} onClick={() => addButtonToBar('barra_superior', btn)}>Agregar a superior: {btn.icon} {btn.nombre}</button>
-          ))}
-          {availableButtons.map(btn => (
-            <button key={btn.key + '-inf'} style={{ background: '#23232b', color: '#FFD700', border: '1.5px solid #FFD700', borderRadius: 8, padding: '8px 16px', fontWeight: 600, cursor: 'pointer' }} onClick={() => addButtonToBar('barra_inferior', btn)}>Agregar a inferior: {btn.icon} {btn.nombre}</button>
+          {['barra_scroll_desktop', 'barra_scroll_movil', 'barra_inferior_movil'].map(bar => (
+            availableButtons.map(btn => (
+              <button key={btn.key + '-' + bar} style={{ background: '#23232b', color: '#FFD700', border: '1.5px solid #FFD700', borderRadius: 8, padding: '8px 16px', fontWeight: 600, cursor: 'pointer' }} onClick={() => setConfig({ ...config, [bar]: [...config[bar], { ...btn, visible: true }] })}>
+                Agregar a {bar === 'barra_scroll_desktop' ? 'Desktop' : bar === 'barra_scroll_movil' ? 'Móvil Scroll' : 'App Móvil'}: {btn.icon} {btn.nombre}
+              </button>
+            ))
           ))}
         </div>
       </div>
