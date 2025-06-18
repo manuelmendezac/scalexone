@@ -5,6 +5,7 @@ import SeguimientoGlobal from './SeguimientoGlobal';
 import { FiZap, FiPlusCircle, FiUser, FiMessageCircle } from 'react-icons/fi';
 import useNeuroState from '../store/useNeuroState';
 import NivelesClasificacionDashboard from './NivelesClasificacionDashboard';
+import { supabase } from '../supabase';
 
 // Componente de ranking top 10
 const RankingTop10 = ({ usuarioActual = 'manuel@email.com' }) => {
@@ -76,6 +77,27 @@ const RankingTop10 = ({ usuarioActual = 'manuel@email.com' }) => {
 const Dashboard: React.FC = () => {
   // Racha de uso diario (localStorage)
   const [streak, setStreak] = useState(1);
+  const setAvatarUrl = useNeuroState(state => state.setAvatarUrl);
+  const userInfo = useNeuroState(state => state.userInfo);
+  const avatarUrl = useNeuroState(state => state.avatarUrl);
+
+  // Sincronizar avatar real desde Supabase si no está en el store
+  useEffect(() => {
+    async function syncAvatar() {
+      if (!avatarUrl && userInfo.email) {
+        const { data, error } = await supabase
+          .from('usuarios')
+          .select('avatar_url')
+          .eq('email', userInfo.email)
+          .single();
+        if (data?.avatar_url) {
+          setAvatarUrl(data.avatar_url);
+        }
+      }
+    }
+    syncAvatar();
+  }, [avatarUrl, userInfo.email, setAvatarUrl]);
+
   useEffect(() => {
     const hoy = new Date().toISOString().slice(0, 10);
     const ultimaFecha = localStorage.getItem('dashboard_ultimo_dia');
@@ -111,7 +133,7 @@ const Dashboard: React.FC = () => {
   const porcentaje = 40; // Simulado
 
   return (
-    <div className="min-h-screen bg-neurolink-background p-6">
+    <div className="min-h-screen bg-black w-full p-6">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
