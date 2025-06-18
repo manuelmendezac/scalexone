@@ -3,9 +3,9 @@ import { FaHome, FaLayerGroup, FaUsers, FaComments, FaCogs, FaWallet, FaChartBar
 
 const menuItems = [
   { label: 'Bienvenida', key: 'welcome', icon: <FaHome /> },
+  { label: 'Menú Principal', key: 'mainMenu', icon: <FaCogs /> },
   { label: 'Niveles', key: 'levels', icon: <FaLayerGroup /> },
   { label: 'Canales', key: 'channels', icon: <FaSitemap /> },
-  { label: 'Menú Principal', key: 'mainMenu', icon: <FaCogs /> },
   { label: 'Miembros', key: 'members', icon: <FaUsers /> },
   { label: 'Eventos', key: 'events', icon: <FaRegAddressBook /> },
   { label: 'Chats', key: 'chats', icon: <FaComments /> },
