@@ -43,6 +43,7 @@ import CursosPage from './pages/cursos';
 import { syncUsuarioSupabase } from './utils/syncUsuarioSupabase';
 import ScrollNavbar from './components/ScrollNavbar';
 import GlobalLoadingSpinner from './components/GlobalLoadingSpinner';
+import { useGlobalLoading } from './store/useGlobalLoading';
 
 // Definición de tipos para las vistas
 type ViewType = 'inicio' | 'simulacion' | 'dashboard' | 'perfil' | 'configuracion' | 'panel' | 'uploader' | 'knowledge' | 'nicho' | 'modules' | 'train';
@@ -68,6 +69,7 @@ function App() {
   const hideMenu = location.pathname === '/' || location.pathname === '/registro';
   const isLaunchpad = location.pathname === '/launchpad';
   const navigation = useNavigation();
+  const isLoadingGlobal = useGlobalLoading(state => state.isLoadingGlobal);
 
   // LOGS TEMPORALES PARA DEPURACIÓN
   console.log('isHydrated:', isHydrated);
@@ -136,7 +138,7 @@ function App() {
 
   return (
     <BibliotecaProvider>
-      <GlobalLoadingSpinner loading={navigation.state === 'loading'}>
+      <GlobalLoadingSpinner loading={navigation.state === 'loading' || isLoadingGlobal}>
         <div className="min-h-screen w-full" style={{background: '#000'}}>
           {/* Mostrar menú solo si está logueado, no en launchpad ni en rutas públicas */}
           {!hideMenu && isLoggedIn && (
