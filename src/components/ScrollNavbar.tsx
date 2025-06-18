@@ -49,24 +49,26 @@ const ScrollNavbar: React.FC = () => {
   if (loading) return null;
 
   return (
-    <nav className="flex gap-2 px-2 py-2 bg-transparent border-b border-[#23283a] overflow-x-auto w-full whitespace-nowrap" style={{ zIndex: 49 }}>
-      {menu.filter(item => item && item.visible !== false).map((item: any) => (
-        <button
-          key={item.key}
-          onClick={() => navigate(item.ruta || item.to)}
-          className={`relative px-2 md:px-3 py-1 text-xs md:text-sm font-medium transition-colors
-            ${location.pathname.startsWith(item.ruta || item.to)
-              ? 'text-cyan-300'
-              : 'text-[#b0c4d8] hover:text-cyan-200'}
-          `}
-          style={{ background: 'none', border: 'none', outline: 'none' }}
-        >
-          <span>{item.icon || item.icono || ''}</span> <span>{item.nombre || item.label}</span>
-          {(location.pathname.startsWith(item.ruta || item.to)) && (
-            <span className="absolute left-0 right-0 -bottom-0.5 h-[2px] bg-cyan-400 rounded-full animate-fadein-sci-fi" style={{transition:'all 0.2s'}} />
-          )}
-        </button>
-      ))}
+    <nav className="w-full px-2 py-2 bg-transparent border-b border-[#23283a] overflow-x-auto whitespace-nowrap" style={{ zIndex: 49 }}>
+      <div className="flex justify-center min-w-full w-fit mx-auto gap-2">
+        {menu.filter(item => item && item.visible !== false).map((item: any) => (
+          <button
+            key={item.key}
+            onClick={() => navigate(item.ruta || item.to)}
+            className={`relative px-2 md:px-3 py-1 text-xs md:text-sm font-medium transition-colors
+              ${location.pathname.startsWith(item.ruta || item.to)
+                ? 'text-cyan-300'
+                : 'text-[#b0c4d8] hover:text-cyan-200'}
+            `}
+            style={{ background: 'none', border: 'none', outline: 'none' }}
+          >
+            <span>{item.icon || item.icono || ''}</span> <span>{item.nombre || item.label}</span>
+            {(location.pathname.startsWith(item.ruta || item.to)) && (
+              <span className="absolute left-0 right-0 -bottom-0.5 h-[2px] bg-cyan-400 rounded-full animate-fadein-sci-fi" style={{transition:'all 0.2s'}} />
+            )}
+          </button>
+        ))}
+      </div>
     </nav>
   );
 };
