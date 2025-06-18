@@ -17,7 +17,6 @@ const CursosPage: React.FC = () => {
   const [isAdmin, setIsAdmin] = useState(false);
   const setGlobalLoading = useGlobalLoading(state => state.setLoading);
 
-  // Leer cursos desde Supabase
   useEffect(() => {
     const fetchCursos = async () => {
       setGlobalLoading(true);
