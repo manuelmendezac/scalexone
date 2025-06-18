@@ -42,102 +42,96 @@ export const router = createBrowserRouter([
       },
       {
         path: 'clasificacion',
-        element: <DashboardLayout />,
-        children: [
-          {
-            index: true,
-            element: <Dashboard />
-          },
-          {
-            path: 'console',
-            element: <div style={{color: 'white', fontSize: 32, textAlign: 'center', marginTop: 40}}>Test Console</div>
-          },
-          {
-            path: 'focus',
-            element: <FocusMode />
-          },
-          {
-            path: 'habits',
-            element: <HabitIntelligence />
-          },
-          {
-            path: 'progress',
-            element: <ProgressTracker />
-          },
-          {
-            path: 'settings',
-            element: <SettingsPanel />
-          },
-          {
-            path: '*',
-            element: <Error404 />
-          }
-        ]
+        element: <Dashboard />
       },
       {
-        path: 'train',
-        element: <AutonomousTrainingHub />
+        path: 'console',
+        element: <div style={{color: 'white', fontSize: 32, textAlign: 'center', marginTop: 40}}>Test Console</div>
       },
       {
-        path: 'feedback',
-        element: <NeuroFeedbackEngine />
+        path: 'focus',
+        element: <FocusMode />
       },
       {
-        path: 'autoagent',
-        element: <NeuroAutoAgentLab />
+        path: 'habits',
+        element: <HabitIntelligence />
       },
       {
-        path: 'monetization',
-        element: <MonetizationHub />
+        path: 'progress',
+        element: <ProgressTracker />
       },
       {
-        path: 'pricing',
-        element: <PricingPage />
-      },
-      {
-        path: 'account/subscription',
-        element: <SubscriptionPanel />
-      },
-      {
-        path: 'reseller/dashboard',
-        element: <ResellerDashboard />
-      },
-      {
-        path: 'referrals',
-        element: <ReferralDashboard />
-      },
-      {
-        path: 'funnels',
-        element: <FunnelHub />
-      },
-      {
-        path: 'affiliates',
-        element: <AffiliateDashboard />
-      },
-      {
-        path: 'automation',
-        element: <EmailAutomationCenter />
-      },
-      {
-        path: 'export',
-        element: <ExportCenter />
-      },
-      {
-        path: 'monetization',
-        element: <LeadMonetizationCenter />
-      },
-      {
-        path: 'store',
-        element: <NeuroCloneStore />
-      },
-      {
-        path: 'dashboard',
-        element: <Navigate to="/clasificacion" replace />
+        path: 'settings',
+        element: <SettingsPanel />
       },
       {
         path: '*',
         element: <Error404 />
       }
     ]
+  },
+  {
+    path: 'train',
+    element: <AutonomousTrainingHub />
+  },
+  {
+    path: 'feedback',
+    element: <NeuroFeedbackEngine />
+  },
+  {
+    path: 'autoagent',
+    element: <NeuroAutoAgentLab />
+  },
+  {
+    path: 'monetization',
+    element: <MonetizationHub />
+  },
+  {
+    path: 'pricing',
+    element: <PricingPage />
+  },
+  {
+    path: 'account/subscription',
+    element: <SubscriptionPanel />
+  },
+  {
+    path: 'reseller/dashboard',
+    element: <ResellerDashboard />
+  },
+  {
+    path: 'referrals',
+    element: <ReferralDashboard />
+  },
+  {
+    path: 'funnels',
+    element: <FunnelHub />
+  },
+  {
+    path: 'affiliates',
+    element: <AffiliateDashboard />
+  },
+  {
+    path: 'automation',
+    element: <EmailAutomationCenter />
+  },
+  {
+    path: 'export',
+    element: <ExportCenter />
+  },
+  {
+    path: 'monetization',
+    element: <LeadMonetizationCenter />
+  },
+  {
+    path: 'store',
+    element: <NeuroCloneStore />
+  },
+  {
+    path: 'dashboard',
+    element: <Navigate to="/clasificacion" replace />
+  },
+  {
+    path: '*',
+    element: <Error404 />
   }
 ]); 
