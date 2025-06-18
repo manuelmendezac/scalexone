@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import LevelsSection from './LevelsSection';
 import AvatarUploader from '../AvatarUploader';
 import { supabase } from '../../supabase';
+import { useMenuSecundarioConfig } from '../../hooks/useMenuSecundarioConfig';
+import useNeuroState from '../../store/useNeuroState';
 
 const perfilDefault = {
   avatar: '',
@@ -59,6 +61,10 @@ export default function AdminConfigPanel({ selected }: { selected: string }) {
   const [passwordMsg, setPasswordMsg] = useState('');
   const [cursosActivos, setCursosActivos] = useState<any[]>([]);
   const [serviciosActivos, setServiciosActivos] = useState<any[]>([]); // Dummy por ahora
+  const { userInfo } = useNeuroState();
+  const community_id = userInfo?.community_id || null;
+  const isAdmin = userInfo?.rol === 'admin' || userInfo?.rol === 'superadmin';
+  const { menuConfig, loading: menuLoading, saveMenuConfig } = useMenuSecundarioConfig(community_id);
 
   // Leer datos reales del usuario
   useEffect(() => {
@@ -337,20 +343,29 @@ const botonGuardarEstilo = {
 
 // --- COMPONENTE DEMO DE MENÚ PRINCIPAL ---
 function MenuPrincipalDemo() {
-  const demoTabs = [
-    { key: 'inicio', nombre: 'Inicio', visible: true, predeterminado: true },
-    { key: 'clasificacion', nombre: 'Clasificación', visible: true, predeterminado: false },
-    { key: 'classroom', nombre: 'Classroom', visible: true, predeterminado: false },
-    { key: 'cursos', nombre: 'Cursos', visible: true, predeterminado: false },
-    { key: 'launchpad', nombre: 'Launchpad', visible: true, predeterminado: false },
-    { key: 'comunidad', nombre: 'Comunidad', visible: true, predeterminado: false },
-    { key: 'embudos', nombre: 'Embudos', visible: true, predeterminado: false },
-    { key: 'ia', nombre: 'IA', visible: true, predeterminado: false },
-    { key: 'automatizaciones', nombre: 'Automatizaciones', visible: true, predeterminado: false },
-    { key: 'whatsappcrm', nombre: 'WhatsApp CRM', visible: true, predeterminado: false },
-    { key: 'configuracion', nombre: 'Configuración', visible: true, predeterminado: false },
+  const { userInfo } = useNeuroState();
+  const community_id = userInfo?.community_id || null;
+  const isAdmin = userInfo?.rol === 'admin' || userInfo?.rol === 'superadmin';
+  const { menuConfig, loading, saveMenuConfig } = useMenuSecundarioConfig(community_id);
+
+  const defaultTabs = [
+    { key: 'inicio', nombre: 'Inicio', visible: true, predeterminado: true, ruta: '/home' },
+    { key: 'clasificacion', nombre: 'Clasificación', visible: true, predeterminado: false, ruta: '/clasificacion' },
+    { key: 'classroom', nombre: 'Classroom', visible: true, predeterminado: false, ruta: '/classroom' },
+    { key: 'cursos', nombre: 'Cursos', visible: true, predeterminado: false, ruta: '/cursos' },
+    { key: 'launchpad', nombre: 'Launchpad', visible: true, predeterminado: false, ruta: '/launchpad' },
+    { key: 'comunidad', nombre: 'Comunidad', visible: true, predeterminado: false, ruta: '/comunidad' },
+    { key: 'embudos', nombre: 'Embudos', visible: true, predeterminado: false, ruta: '/funnels' },
+    { key: 'ia', nombre: 'IA', visible: true, predeterminado: false, ruta: '/ia' },
+    { key: 'automatizaciones', nombre: 'Automatizaciones', visible: true, predeterminado: false, ruta: '/automatizaciones' },
+    { key: 'whatsappcrm', nombre: 'WhatsApp CRM', visible: true, predeterminado: false, ruta: '/whatsapp-crm' },
+    { key: 'configuracion', nombre: 'Configuración', visible: true, predeterminado: false, ruta: '/configuracion' },
   ];
-  const [tabs, setTabs] = useState(demoTabs);
+  const [tabs, setTabs] = useState<any[]>(menuConfig || defaultTabs);
+
+  useEffect(() => {
+    if (menuConfig) setTabs(menuConfig);
+  }, [menuConfig]);
 
   const handleToggle = (idx: number) => {
     setTabs(tabs => tabs.map((t, i) => i === idx ? { ...t, visible: !t.visible } : t));
@@ -368,6 +383,13 @@ function MenuPrincipalDemo() {
     newTabs.splice(to, 0, moved);
     setTabs(newTabs);
   };
+  const handleGuardar = async () => {
+    if (!isAdmin) return;
+    await saveMenuConfig(tabs);
+    alert('Menú actualizado correctamente para la comunidad.');
+  };
+
+  if (loading) return <div style={{ color: '#FFD700' }}>Cargando menú...</div>;
 
   return (
     <div style={{ background: '#23232b', borderRadius: 14, padding: 24, boxShadow: '0 2px 8px #0004' }}>
@@ -386,6 +408,9 @@ function MenuPrincipalDemo() {
           </div>
         </div>
       ))}
+      {isAdmin && (
+        <button style={{ ...botonGuardarEstilo, marginTop: 24 }} onClick={handleGuardar}>Guardar menú</button>
+      )}
     </div>
   );
 } 
