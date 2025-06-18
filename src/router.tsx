@@ -48,6 +48,7 @@ export const router = createBrowserRouter([
       { path: 'cursos', element: <CursosPage /> },
       { path: 'launchpad', element: <Launchpad /> },
       { path: 'comunidad', element: <ComunidadPage /> },
+      { path: 'configuracion', element: <ConfiguracionProyecto /> },
       { path: 'configuracion-admin', element: <AdminSettingsPage /> },
       { path: 'console', element: <div style={{color: 'white', fontSize: 32, textAlign: 'center', marginTop: 40}}>Test Console</div> },
       { path: 'focus', element: <FocusMode /> },
@@ -132,10 +133,6 @@ export const router = createBrowserRouter([
   {
     path: 'reset-password',
     element: <ResetPassword />
-  },
-  {
-    path: 'configuracion',
-    element: <ConfiguracionProyecto />
   },
   {
     path: 'registro',
