@@ -284,11 +284,11 @@ export default function AdminConfigPanel({ selected }: { selected: string }) {
       {selected === 'channels' && <div style={{ color: '#fff' }}>Canales (aquí irá la gestión de canales)</div>}
       {selected === 'mainMenu' && (
         <div style={{ width: '100%', margin: 0, background: '#18181b', borderRadius: 18, boxShadow: '0 2px 12px #0006', padding: 40 }}>
-          <h2 style={{ color: '#FFD700', fontWeight: 700, fontSize: 28, marginBottom: 18 }}>Menú Principal</h2>
+          <h2 style={{ color: '#FFD700', fontWeight: 700, fontSize: 28, marginBottom: 18 }}>Menú Secundario (Barras Superior e Inferior)</h2>
           <div style={{ color: '#fff', marginBottom: 18 }}>
-            Configura tu menú principal, activando u ocultando las pestañas que deseas mostrar, cambiando el nombre y el orden, y eligiendo cuál es la pestaña predeterminada.
+            Configura los botones que aparecerán en la barra superior (scroll horizontal) y en la barra inferior (app móvil). Puedes elegir la zona, el nombre, el orden y la visibilidad de cada botón.
           </div>
-          <MenuPrincipalDemo />
+          <MenuSecundarioConfigurable />
         </div>
       )}
       {selected === 'members' && <div style={{ color: '#fff' }}>Miembros (aquí irá la gestión de miembros)</div>}
@@ -342,33 +342,34 @@ const botonGuardarEstilo = {
   fontSize: 18,
 };
 
-// --- COMPONENTE DEMO DE MENÚ PRINCIPAL ---
-function MenuPrincipalDemo() {
+// --- COMPONENTE DEMO DE MENÚ SECUNDARIO ---
+function MenuSecundarioConfigurable() {
   const { userInfo } = useNeuroState();
   const community_id = userInfo?.community_id || null;
   const isSuperAdmin = userInfo?.rol === 'superadmin';
   const isAdmin = userInfo?.rol === 'admin' || isSuperAdmin;
   const { menuConfig, loading, error, saveMenuConfig } = useMenuSecundarioConfig(community_id);
 
-  // Obtener el menú real de la barra secundaria (defaultMenu)
+  // Menú por defecto con zona
   const defaultMenu = [
-    { key: 'inicio', nombre: 'Inicio', visible: true, predeterminado: true, ruta: '/home', icon: '🏠' },
-    { key: 'clasificacion', nombre: 'Clasificación', visible: true, predeterminado: false, ruta: '/clasificacion', icon: '📊' },
-    { key: 'classroom', nombre: 'Classroom', visible: true, predeterminado: false, ruta: '/classroom', icon: '🎓' },
-    { key: 'cursos', nombre: 'Cursos', visible: true, predeterminado: false, ruta: '/cursos', icon: '📚' },
-    { key: 'launchpad', nombre: 'Launchpad', visible: true, predeterminado: false, ruta: '/launchpad', icon: '🚀' },
-    { key: 'comunidad', nombre: 'Comunidad', visible: true, predeterminado: false, ruta: '/comunidad', icon: '👥' },
-    { key: 'embudos', nombre: 'Embudos', visible: true, predeterminado: false, ruta: '/funnels', icon: '🫧' },
-    { key: 'ia', nombre: 'IA', visible: true, predeterminado: false, ruta: '/ia', icon: '🤖' },
-    { key: 'automatizaciones', nombre: 'Automatizaciones', visible: true, predeterminado: false, ruta: '/automatizaciones', icon: '⚙️' },
-    { key: 'whatsappcrm', nombre: 'WhatsApp CRM', visible: true, predeterminado: false, ruta: '/whatsapp-crm', icon: '💬' },
-    { key: 'configuracion', nombre: 'Configuración', visible: true, predeterminado: false, ruta: '/configuracion', icon: '🔧' },
+    { key: 'inicio', nombre: 'Inicio', visible: true, predeterminado: true, ruta: '/home', icon: '🏠', zona: 'ambas' },
+    { key: 'clasificacion', nombre: 'Clasificación', visible: true, predeterminado: false, ruta: '/clasificacion', icon: '📊', zona: 'ambas' },
+    { key: 'classroom', nombre: 'Classroom', visible: true, predeterminado: false, ruta: '/classroom', icon: '🎓', zona: 'ambas' },
+    { key: 'cursos', nombre: 'Cursos', visible: true, predeterminado: false, ruta: '/cursos', icon: '📚', zona: 'ambas' },
+    { key: 'launchpad', nombre: 'Launchpad', visible: true, predeterminado: false, ruta: '/launchpad', icon: '🚀', zona: 'ambas' },
+    { key: 'comunidad', nombre: 'Comunidad', visible: true, predeterminado: false, ruta: '/comunidad', icon: '👥', zona: 'ambas' },
+    { key: 'embudos', nombre: 'Embudos', visible: true, predeterminado: false, ruta: '/funnels', icon: '🫧', zona: 'ambas' },
+    { key: 'ia', nombre: 'IA', visible: true, predeterminado: false, ruta: '/ia', icon: '🤖', zona: 'ambas' },
+    { key: 'automatizaciones', nombre: 'Automatizaciones', visible: true, predeterminado: false, ruta: '/automatizaciones', icon: '⚙️', zona: 'ambas' },
+    { key: 'whatsappcrm', nombre: 'WhatsApp CRM', visible: true, predeterminado: false, ruta: '/whatsapp-crm', icon: '💬', zona: 'ambas' },
+    { key: 'configuracion', nombre: 'Configuración', visible: true, predeterminado: false, ruta: '/configuracion', icon: '🔧', zona: 'ambas' },
   ];
 
   // Si la config está vacía o corrupta, usar el defaultMenu
   const getInitialTabs = () => {
     if (Array.isArray(menuConfig) && menuConfig.length > 0 && menuConfig.every(tab => tab && typeof tab.key === 'string')) {
-      return menuConfig;
+      // Si no tiene zona, asignar 'ambas' por compatibilidad
+      return menuConfig.map(tab => ({ ...tab, zona: tab.zona || 'ambas' }));
     }
     return defaultMenu;
   };
@@ -380,7 +381,6 @@ function MenuPrincipalDemo() {
     setTabs(getInitialTabs());
   }, [menuConfig]);
 
-  // Detectar cambios
   useEffect(() => {
     setHasChanges(JSON.stringify(tabs) !== JSON.stringify(menuConfig));
   }, [tabs, menuConfig]);
@@ -394,6 +394,9 @@ function MenuPrincipalDemo() {
   const handlePredeterminado = (idx: number) => {
     setTabs(tabs => tabs.map((t, i) => ({ ...t, predeterminado: i === idx })));
   };
+  const handleZona = (idx: number, zona: string) => {
+    setTabs(tabs => tabs.map((t, i) => i === idx ? { ...t, zona } : t));
+  };
   const moveTab = (from: number, to: number) => {
     if (to < 0 || to >= tabs.length) return;
     const newTabs = [...tabs];
@@ -401,18 +404,15 @@ function MenuPrincipalDemo() {
     newTabs.splice(to, 0, moved);
     setTabs(newTabs);
   };
-  // Solo el superadmin puede agregar tabs
   const handleAgregarTab = () => {
     if (!isSuperAdmin) return;
-    setTabs([...tabs, { key: '', nombre: '', visible: true, predeterminado: false, ruta: '', icon: '' }]);
+    setTabs([...tabs, { key: '', nombre: '', visible: true, predeterminado: false, ruta: '', icon: '', zona: 'ambas' }]);
   };
-  // Limpiar tabs vacíos antes de guardar
   const cleanTabs = (arr: any[]) => arr.filter(tab => tab && typeof tab.key === 'string' && tab.key.trim() && typeof tab.nombre === 'string' && tab.nombre.trim());
 
   const handleGuardar = async () => {
     if (!isAdmin) return;
     const cleaned = cleanTabs(tabs);
-    console.log('Tabs a guardar:', cleaned);
     const result = await saveMenuConfig(cleaned);
     if (result && result.error) {
       alert('Error al guardar: ' + result.error.message);
@@ -424,34 +424,69 @@ function MenuPrincipalDemo() {
 
   if (loading) return <div style={{ color: '#FFD700' }}>Cargando menú...</div>;
 
+  // Separar por zona
+  const tabsSuperior = tabs.filter(tab => tab.zona === 'superior' || tab.zona === 'ambas');
+  const tabsInferior = tabs.filter(tab => tab.zona === 'inferior' || tab.zona === 'ambas');
+
   return (
     <div style={{ background: '#23232b', borderRadius: 14, padding: 24, boxShadow: '0 2px 8px #0004' }}>
       <div style={{ marginBottom: 18, color: '#FFD700', fontWeight: 600 }}>
-        Este es el menú real que verán los usuarios de tu comunidad.<br/>
+        Configura los botones de las barras secundarias de tu comunidad.<br/>
         <span style={{ color: '#fff', fontSize: 13 }}>community_id actual: <b>{community_id || '[null]'}</b></span>
       </div>
       {error && <div style={{ color: 'red', marginBottom: 12, fontWeight: 700 }}>Error al guardar o cargar menú: {error}</div>}
-      {tabs.filter(tab => tab && typeof tab === 'object').map((tab, idx) => (
+      <h3 style={{ color: '#FFD700', fontWeight: 700, fontSize: 20, margin: '18px 0 8px' }}>Barra Superior (scroll horizontal)</h3>
+      {tabsSuperior.length === 0 && <div style={{ color: '#fff' }}>No hay botones configurados para la barra superior.</div>}
+      {tabsSuperior.map((tab, idx) => (
         <div key={tab.key || idx} style={{ display: 'flex', alignItems: 'center', gap: 16, borderBottom: '1px solid #333', padding: '12px 0' }}>
           <span style={{ color: '#FFD700', fontWeight: tab.predeterminado ? 700 : 500, minWidth: 90 }}>
             {tab.icon || ''} {(tab.key && typeof tab.key === 'string') ? tab.key.charAt(0).toUpperCase() + tab.key.slice(1) : '[Sin clave]'}
           </span>
-          <input value={typeof tab.nombre === 'string' ? tab.nombre : ''} onChange={e => handleName(idx, e.target.value)} style={{ ...inputEstilo, width: 180, background: '#23232b', color: '#FFD700', fontWeight: 600 }} />
-          <button onClick={() => handlePredeterminado(idx)} title="Marcar como predeterminado" style={{ background: tab.predeterminado ? '#FFD700' : 'transparent', color: tab.predeterminado ? '#18181b' : '#FFD700', border: '1.5px solid #FFD700', borderRadius: 8, padding: '4px 12px', fontWeight: 700, cursor: 'pointer' }}>Predeterminado</button>
+          <input value={typeof tab.nombre === 'string' ? tab.nombre : ''} onChange={e => handleName(tabs.indexOf(tab), e.target.value)} style={{ ...inputEstilo, width: 180, background: '#23232b', color: '#FFD700', fontWeight: 600 }} />
+          <button onClick={() => handlePredeterminado(tabs.indexOf(tab))} title="Marcar como predeterminado" style={{ background: tab.predeterminado ? '#FFD700' : 'transparent', color: tab.predeterminado ? '#18181b' : '#FFD700', border: '1.5px solid #FFD700', borderRadius: 8, padding: '4px 12px', fontWeight: 700, cursor: 'pointer' }}>Predeterminado</button>
           <label style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}>
-            <input type="checkbox" checked={!!tab.visible} onChange={() => handleToggle(idx)} style={{ accentColor: '#FFD700', width: 18, height: 18 }} />
+            <input type="checkbox" checked={!!tab.visible} onChange={() => handleToggle(tabs.indexOf(tab))} style={{ accentColor: '#FFD700', width: 18, height: 18 }} />
             <span style={{ color: tab.visible ? '#FFD700' : '#888', fontWeight: 600 }}>{tab.visible ? 'Visible' : 'Oculto'}</span>
           </label>
+          <select value={tab.zona} onChange={e => handleZona(tabs.indexOf(tab), e.target.value)} style={{ ...inputEstilo, width: 120, color: '#FFD700', fontWeight: 600 }}>
+            <option value="superior">Superior</option>
+            <option value="inferior">Inferior</option>
+            <option value="ambas">Ambas</option>
+          </select>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-            <button onClick={() => moveTab(idx, idx - 1)} style={{ background: 'transparent', border: 'none', color: '#FFD700', fontSize: 18, cursor: 'pointer' }} title="Subir">▲</button>
-            <button onClick={() => moveTab(idx, idx + 1)} style={{ background: 'transparent', border: 'none', color: '#FFD700', fontSize: 18, cursor: 'pointer' }} title="Bajar">▼</button>
+            <button onClick={() => moveTab(tabs.indexOf(tab), tabs.indexOf(tab) - 1)} style={{ background: 'transparent', border: 'none', color: '#FFD700', fontSize: 18, cursor: 'pointer' }} title="Subir">▲</button>
+            <button onClick={() => moveTab(tabs.indexOf(tab), tabs.indexOf(tab) + 1)} style={{ background: 'transparent', border: 'none', color: '#FFD700', fontSize: 18, cursor: 'pointer' }} title="Bajar">▼</button>
+          </div>
+        </div>
+      ))}
+      <h3 style={{ color: '#FFD700', fontWeight: 700, fontSize: 20, margin: '28px 0 8px' }}>Barra Inferior (app móvil)</h3>
+      {tabsInferior.length === 0 && <div style={{ color: '#fff' }}>No hay botones configurados para la barra inferior.</div>}
+      {tabsInferior.map((tab, idx) => (
+        <div key={tab.key || idx} style={{ display: 'flex', alignItems: 'center', gap: 16, borderBottom: '1px solid #333', padding: '12px 0' }}>
+          <span style={{ color: '#FFD700', fontWeight: tab.predeterminado ? 700 : 500, minWidth: 90 }}>
+            {tab.icon || ''} {(tab.key && typeof tab.key === 'string') ? tab.key.charAt(0).toUpperCase() + tab.key.slice(1) : '[Sin clave]'}
+          </span>
+          <input value={typeof tab.nombre === 'string' ? tab.nombre : ''} onChange={e => handleName(tabs.indexOf(tab), e.target.value)} style={{ ...inputEstilo, width: 180, background: '#23232b', color: '#FFD700', fontWeight: 600 }} />
+          <button onClick={() => handlePredeterminado(tabs.indexOf(tab))} title="Marcar como predeterminado" style={{ background: tab.predeterminado ? '#FFD700' : 'transparent', color: tab.predeterminado ? '#18181b' : '#FFD700', border: '1.5px solid #FFD700', borderRadius: 8, padding: '4px 12px', fontWeight: 700, cursor: 'pointer' }}>Predeterminado</button>
+          <label style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}>
+            <input type="checkbox" checked={!!tab.visible} onChange={() => handleToggle(tabs.indexOf(tab))} style={{ accentColor: '#FFD700', width: 18, height: 18 }} />
+            <span style={{ color: tab.visible ? '#FFD700' : '#888', fontWeight: 600 }}>{tab.visible ? 'Visible' : 'Oculto'}</span>
+          </label>
+          <select value={tab.zona} onChange={e => handleZona(tabs.indexOf(tab), e.target.value)} style={{ ...inputEstilo, width: 120, color: '#FFD700', fontWeight: 600 }}>
+            <option value="superior">Superior</option>
+            <option value="inferior">Inferior</option>
+            <option value="ambas">Ambas</option>
+          </select>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            <button onClick={() => moveTab(tabs.indexOf(tab), tabs.indexOf(tab) - 1)} style={{ background: 'transparent', border: 'none', color: '#FFD700', fontSize: 18, cursor: 'pointer' }} title="Subir">▲</button>
+            <button onClick={() => moveTab(tabs.indexOf(tab), tabs.indexOf(tab) + 1)} style={{ background: 'transparent', border: 'none', color: '#FFD700', fontSize: 18, cursor: 'pointer' }} title="Bajar">▼</button>
           </div>
         </div>
       ))}
       {isSuperAdmin && (
-        <button style={{ ...botonGuardarEstilo, marginTop: 16, background: '#23232b', color: '#FFD700', border: '1.5px solid #FFD700' }} onClick={handleAgregarTab}>+ Agregar menú</button>
+        <button style={{ ...botonGuardarEstilo, marginTop: 16, background: '#23232b', color: '#FFD700', border: '1.5px solid #FFD700' }} onClick={handleAgregarTab}>+ Agregar botón</button>
       )}
       <button style={{ ...botonGuardarEstilo, marginTop: 24, opacity: hasChanges ? 1 : 0.5, cursor: hasChanges ? 'pointer' : 'not-allowed' }} onClick={handleGuardar} disabled={!hasChanges || !isAdmin}>Guardar menú</button>
     </div>
   );
-} 
+}
