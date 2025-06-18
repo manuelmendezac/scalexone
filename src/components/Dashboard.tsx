@@ -117,6 +117,9 @@ const Dashboard: React.FC = () => {
         animate={{ opacity: 1, y: 0 }}
         className="max-w-5xl mx-auto space-y-10"
       >
+        {/* Niveles de Clasificación (Encabezado visual) */}
+        <NivelesClasificacionDashboard />
+
         {/* Panel de tarjetas de nivel, experiencia y monedas (estilo horizontal) */}
         <section className="mb-8">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full">
@@ -168,9 +171,6 @@ const Dashboard: React.FC = () => {
         <section>
           <SeguimientoGlobal porcentaje={porcentaje} xp={userXP} coins={userCoins} />
         </section>
-
-        {/* Niveles de Clasificación */}
-        <NivelesClasificacionDashboard />
 
         {/* Accesos rápidos y actividad reciente */}
         <section className="grid grid-cols-1 md:grid-cols-2 gap-8">
