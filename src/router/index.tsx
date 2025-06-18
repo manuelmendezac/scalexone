@@ -40,7 +40,7 @@ export const router = createBrowserRouter([
         element: <AdminSettingsPage />
       },
       {
-        path: 'dashboard',
+        path: 'clasificacion',
         element: <DashboardLayout />,
         children: [
           {

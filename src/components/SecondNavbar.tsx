@@ -13,7 +13,7 @@ const menu = [
   {
     label: 'Clasificación',
     icon: <FiBarChart2 size={24} />,
-    to: '/dashboard',
+    to: '/clasificacion',
   },
   {
     label: 'Classroom',

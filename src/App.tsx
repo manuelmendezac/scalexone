@@ -138,7 +138,7 @@ function App() {
             <nav className="flex gap-2 px-2 py-2 bg-transparent border-b border-[#23283a] overflow-x-auto w-full whitespace-nowrap">
               {[
                 { path: '/home', label: 'Inicio' },
-                { path: '/dashboard', label: 'Dashboard' },
+                { path: '/clasificacion', label: 'Dashboard' },
                 { path: '/classroom', label: 'Classroom' },
                 { path: '/cursos', label: 'Cursos' },
                 { path: '/launchpad', label: 'Launchpad' },
