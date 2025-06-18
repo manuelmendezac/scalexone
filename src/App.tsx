@@ -85,11 +85,21 @@ function App() {
       if (user && user.email) {
         const nombre = user.user_metadata?.name || user.user_metadata?.full_name || user.email;
         setUserName(nombre);
+        
+        // Obtener datos completos del usuario desde la tabla usuarios
+        const { data: usuarioData } = await supabase
+          .from('usuarios')
+          .select('rol, community_id')
+          .eq('email', user.email)
+          .single();
+        
         updateUserInfo({
           name: nombre,
           email: user.email,
-          rol: user.user_metadata?.rol || 'user'
+          rol: usuarioData?.rol || user.user_metadata?.rol || 'user',
+          community_id: usuarioData?.community_id || 'default'
         });
+        
         syncUsuarioSupabase(user);
         // Redirige solo si está en login, registro o raíz
         if (["/login", "/registro", "/"].includes(location.pathname)) {

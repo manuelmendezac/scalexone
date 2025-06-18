@@ -126,15 +126,16 @@ export default function SegundoCerebroHeader() {
         if (user.email) {
           const { data: usuarioData } = await supabase
             .from('usuarios')
-            .select('rol')
+            .select('rol, community_id')
             .eq('email', user.email)
             .single();
-          if (usuarioData && usuarioData.rol) {
-            // Guardar el rol en el estado global
+          if (usuarioData) {
+            // Guardar el rol y community_id en el estado global
             useNeuroState.getState().updateUserInfo({
               name: user.user_metadata?.nombre || user.user_metadata?.full_name || 'Invitado',
               email: user.email,
-              rol: usuarioData.rol
+              rol: usuarioData.rol || 'user',
+              community_id: usuarioData.community_id || 'default'
             });
           }
         }

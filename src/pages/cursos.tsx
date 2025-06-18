@@ -38,12 +38,16 @@ const CursosPage: React.FC = () => {
       // Buscar el nombre en la tabla usuarios de Supabase
       supabase
         .from('usuarios')
-        .select('name')
+        .select('name, community_id')
         .eq('email', userInfo.email)
         .single()
         .then(({ data }) => {
           if (data && data.name) {
-            updateUserInfo({ name: data.name, email: userInfo.email });
+            updateUserInfo({ 
+              name: data.name, 
+              email: userInfo.email,
+              community_id: data.community_id || 'default'
+            });
           }
         });
     }
