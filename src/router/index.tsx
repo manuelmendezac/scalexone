@@ -1,4 +1,4 @@
-import { createBrowserRouter, Navigate } from 'react-router-dom';
+import { createBrowserRouter } from 'react-router-dom';
 import App from '../App';
 import Hero from '../components/Hero';
 import Error404 from '../components/Error404';
