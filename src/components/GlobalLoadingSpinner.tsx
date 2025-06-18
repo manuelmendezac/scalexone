@@ -2,13 +2,13 @@ import React from 'react';
 import NeonSpinner from './NeonSpinner';
 
 interface GlobalLoadingSpinnerProps {
-  loading: boolean;
+  loading?: boolean;
   children: React.ReactNode;
   size?: number;
 }
 
 const GlobalLoadingSpinner: React.FC<GlobalLoadingSpinnerProps> = ({ 
-  loading, 
+  loading = false, 
   children, 
   size = 64 
 }) => {
