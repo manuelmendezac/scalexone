@@ -205,6 +205,11 @@ export default function AdminConfigPanel({ selected }: { selected: string }) {
                     <input name="tiktok" value={perfil.tiktok} onChange={handleInput} placeholder="TikTok" style={inputEstilo} />
                   </div>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 18, marginBottom: 18 }}>
+                    {/*
+                      NOTA: En el futuro, aquí solo se debe mostrar la suscripción activa del usuario (no editable),
+                      y los cursos/servicios deben venir de la relación real con la plataforma, no como campos editables.
+                      El usuario solo podrá ver su suscripción y los cursos/servicios activos, no editarlos manualmente.
+                    */}
                     <select name="membresia" value={perfil.membresia} onChange={handleInput} style={inputEstilo}>
                       <option value="Afiliado">Afiliado</option>
                       <option value="Premium">Premium</option>
@@ -270,7 +275,15 @@ export default function AdminConfigPanel({ selected }: { selected: string }) {
       )}
       {selected === 'levels' && <LevelsSection />}
       {selected === 'channels' && <div style={{ color: '#fff' }}>Canales (aquí irá la gestión de canales)</div>}
-      {selected === 'mainMenu' && <div style={{ color: '#fff' }}>Menú Principal (aquí irá la configuración del menú principal)</div>}
+      {selected === 'mainMenu' && (
+        <div style={{ width: '100%', maxWidth: 900, margin: '0 auto', background: '#18181b', borderRadius: 18, boxShadow: '0 2px 12px #0006', padding: 40 }}>
+          <h2 style={{ color: '#FFD700', fontWeight: 700, fontSize: 28, marginBottom: 18 }}>Menú Principal</h2>
+          <div style={{ color: '#fff', marginBottom: 18 }}>
+            Configura tu menú principal, activando u ocultando las pestañas que deseas mostrar, cambiando el nombre y el orden, y eligiendo cuál es la pestaña predeterminada.
+          </div>
+          <MenuPrincipalDemo />
+        </div>
+      )}
       {selected === 'members' && <div style={{ color: '#fff' }}>Miembros (aquí irá la gestión de miembros)</div>}
       {selected === 'events' && <div style={{ color: '#fff' }}>Eventos (aquí irá la gestión de eventos)</div>}
       {selected === 'chats' && <div style={{ color: '#fff' }}>Chats (aquí irá la gestión de chats)</div>}
@@ -320,4 +333,57 @@ const botonGuardarEstilo = {
   width: '100%',
   marginTop: 8,
   fontSize: 18,
-}; 
+};
+
+// --- COMPONENTE DEMO DE MENÚ PRINCIPAL ---
+function MenuPrincipalDemo() {
+  const demoTabs = [
+    { key: 'inicio', nombre: 'Inicio', visible: true, predeterminado: true },
+    { key: 'comunidad', nombre: 'Comunidad', visible: true, predeterminado: false },
+    { key: 'ofertas', nombre: 'Ofertas', visible: true, predeterminado: false },
+    { key: 'cursos', nombre: 'Cursos', visible: true, predeterminado: false },
+    { key: 'info', nombre: 'Info', visible: false, predeterminado: false },
+    { key: 'miembros', nombre: 'Miembros', visible: true, predeterminado: false },
+    { key: 'eventos', nombre: 'Eventos', visible: true, predeterminado: false },
+    { key: 'premios', nombre: 'Premios', visible: true, predeterminado: false },
+    { key: 'perfil', nombre: 'Perfil', visible: true, predeterminado: false },
+  ];
+  const [tabs, setTabs] = useState(demoTabs);
+
+  const handleToggle = (idx: number) => {
+    setTabs(tabs => tabs.map((t, i) => i === idx ? { ...t, visible: !t.visible } : t));
+  };
+  const handleName = (idx: number, nombre: string) => {
+    setTabs(tabs => tabs.map((t, i) => i === idx ? { ...t, nombre } : t));
+  };
+  const handlePredeterminado = (idx: number) => {
+    setTabs(tabs => tabs.map((t, i) => ({ ...t, predeterminado: i === idx })));
+  };
+  const moveTab = (from: number, to: number) => {
+    if (to < 0 || to >= tabs.length) return;
+    const newTabs = [...tabs];
+    const [moved] = newTabs.splice(from, 1);
+    newTabs.splice(to, 0, moved);
+    setTabs(newTabs);
+  };
+
+  return (
+    <div style={{ background: '#23232b', borderRadius: 14, padding: 24, boxShadow: '0 2px 8px #0004' }}>
+      {tabs.map((tab, idx) => (
+        <div key={tab.key} style={{ display: 'flex', alignItems: 'center', gap: 16, borderBottom: '1px solid #333', padding: '12px 0' }}>
+          <span style={{ color: '#FFD700', fontWeight: tab.predeterminado ? 700 : 500, minWidth: 90 }}>{tab.key.charAt(0).toUpperCase() + tab.key.slice(1)}</span>
+          <input value={tab.nombre} onChange={e => handleName(idx, e.target.value)} style={{ ...inputEstilo, width: 180, background: '#23232b', color: '#FFD700', fontWeight: 600 }} />
+          <button onClick={() => handlePredeterminado(idx)} title="Marcar como predeterminado" style={{ background: tab.predeterminado ? '#FFD700' : 'transparent', color: tab.predeterminado ? '#18181b' : '#FFD700', border: '1.5px solid #FFD700', borderRadius: 8, padding: '4px 12px', fontWeight: 700, cursor: 'pointer' }}>Predeterminado</button>
+          <label style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}>
+            <input type="checkbox" checked={tab.visible} onChange={() => handleToggle(idx)} style={{ accentColor: '#FFD700', width: 18, height: 18 }} />
+            <span style={{ color: tab.visible ? '#FFD700' : '#888', fontWeight: 600 }}>{tab.visible ? 'Visible' : 'Oculto'}</span>
+          </label>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            <button onClick={() => moveTab(idx, idx - 1)} style={{ background: 'transparent', border: 'none', color: '#FFD700', fontSize: 18, cursor: 'pointer' }} title="Subir">▲</button>
+            <button onClick={() => moveTab(idx, idx + 1)} style={{ background: 'transparent', border: 'none', color: '#FFD700', fontSize: 18, cursor: 'pointer' }} title="Bajar">▼</button>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+} 
