@@ -138,28 +138,26 @@ function App() {
 
   return (
     <BibliotecaProvider>
-      <GlobalLoadingSpinner loading={navigation.state === 'loading' || isLoadingGlobal}>
-        <div className="min-h-screen w-full" style={{background: '#000'}}>
-          {/* Mostrar menú solo si está logueado, no en launchpad ni en rutas públicas */}
-          {!hideMenu && isLoggedIn && (
-            <>
-              <Topbar
-                userAvatar={avatarUrl}
-                notificationsCount={notifications.length}
-                onThemeToggle={handleThemeToggle}
-                darkMode={darkMode}
-                isLoggedIn={isLoggedIn}
-              />
-              {/* Menú tipo tabs minimalista, solo texto subrayado */}
-              <ScrollNavbar />
-              <SecondNavbar />
-            </>
-          )}
-          <main className={!hideMenu ? "pt-20 w-full flex flex-col items-center gap-12" : "w-full min-h-screen flex items-center justify-center"} style={{background: 'transparent'}}>
-            <Outlet />
-          </main>
-        </div>
-      </GlobalLoadingSpinner>
+      <div className="min-h-screen w-full" style={{background: '#000'}}>
+        {/* Mostrar menú solo si está logueado, no en launchpad ni en rutas públicas */}
+        {!hideMenu && isLoggedIn && (
+          <>
+            <Topbar
+              userAvatar={avatarUrl}
+              notificationsCount={notifications.length}
+              onThemeToggle={handleThemeToggle}
+              darkMode={darkMode}
+              isLoggedIn={isLoggedIn}
+            />
+            {/* Menú tipo tabs minimalista, solo texto subrayado */}
+            <ScrollNavbar />
+            <SecondNavbar />
+          </>
+        )}
+        <main className={!hideMenu ? "pt-20 w-full flex flex-col items-center gap-12" : "w-full min-h-screen flex items-center justify-center"} style={{background: 'transparent'}}>
+          <Outlet />
+        </main>
+      </div>
     </BibliotecaProvider>
   );
 }
