@@ -126,6 +126,10 @@ export const router = createBrowserRouter([
         element: <NeuroCloneStore />
       },
       {
+        path: 'dashboard',
+        element: <Navigate to="/clasificacion" replace />
+      },
+      {
         path: '*',
         element: <Error404 />
       }
