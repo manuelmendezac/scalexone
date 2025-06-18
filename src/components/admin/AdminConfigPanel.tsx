@@ -412,9 +412,14 @@ function MenuPrincipalDemo() {
   const handleGuardar = async () => {
     if (!isAdmin) return;
     const cleaned = cleanTabs(tabs);
-    await saveMenuConfig(cleaned);
-    alert('Menú actualizado correctamente para la comunidad.');
-    setHasChanges(false);
+    console.log('Tabs a guardar:', cleaned);
+    const result = await saveMenuConfig(cleaned);
+    if (result && result.error) {
+      alert('Error al guardar: ' + result.error.message);
+    } else {
+      alert('Menú actualizado correctamente para la comunidad.');
+      setHasChanges(false);
+    }
   };
 
   if (loading) return <div style={{ color: '#FFD700' }}>Cargando menú...</div>;

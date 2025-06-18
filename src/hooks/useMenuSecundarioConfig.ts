@@ -24,9 +24,9 @@ export function useMenuSecundarioConfig(community_id: string | null) {
 
   // Guardar cambios
   const saveMenuConfig = async (newConfig: any[]) => {
-    if (!community_id) return;
+    if (!community_id) return { error: { message: 'community_id es nulo o vacío' } };
     setLoading(true);
-    const { error } = await supabase
+    const { error, data } = await supabase
       .from('menu_secundario_config')
       .upsert([
         {
@@ -38,6 +38,7 @@ export function useMenuSecundarioConfig(community_id: string | null) {
     if (error) setError(error.message);
     setMenuConfig(newConfig);
     setLoading(false);
+    return { error, data };
   };
 
   return { menuConfig, loading, error, setMenuConfig, saveMenuConfig };
