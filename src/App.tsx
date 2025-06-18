@@ -29,7 +29,7 @@ import OnboardingModal from './components/OnboardingModal'
 import WelcomeHero from './components/WelcomeHero'
 import SmartOnboardingTour from './components/SmartOnboardingTour'
 import OnboardingAssistant from './components/OnboardingAssistant'
-import { Outlet, useNavigate, useLocation } from 'react-router-dom';
+import { Outlet, useNavigate, useLocation, useNavigation } from 'react-router-dom';
 import Topbar from './components/Topbar';
 import SecondNavbar from './components/SecondNavbar';
 import { BibliotecaProvider } from './context/BibliotecaContext';
@@ -42,6 +42,7 @@ import { FiBarChart2, FiZap, FiSettings } from 'react-icons/fi';
 import CursosPage from './pages/cursos';
 import { syncUsuarioSupabase } from './utils/syncUsuarioSupabase';
 import ScrollNavbar from './components/ScrollNavbar';
+import GlobalLoadingSpinner from './components/GlobalLoadingSpinner';
 
 // Definición de tipos para las vistas
 type ViewType = 'inicio' | 'simulacion' | 'dashboard' | 'perfil' | 'configuracion' | 'panel' | 'uploader' | 'knowledge' | 'nicho' | 'modules' | 'train';
@@ -66,6 +67,7 @@ function App() {
   const location = useLocation();
   const hideMenu = location.pathname === '/' || location.pathname === '/registro';
   const isLaunchpad = location.pathname === '/launchpad';
+  const navigation = useNavigation();
 
   // LOGS TEMPORALES PARA DEPURACIÓN
   console.log('isHydrated:', isHydrated);
@@ -134,26 +136,28 @@ function App() {
 
   return (
     <BibliotecaProvider>
-      <div className="min-h-screen w-full" style={{background: '#000'}}>
-        {/* Mostrar menú solo si está logueado, no en launchpad ni en rutas públicas */}
-        {!hideMenu && isLoggedIn && (
-          <>
-            <Topbar
-              userAvatar={avatarUrl}
-              notificationsCount={notifications.length}
-              onThemeToggle={handleThemeToggle}
-              darkMode={darkMode}
-              isLoggedIn={isLoggedIn}
-            />
-            {/* Menú tipo tabs minimalista, solo texto subrayado */}
-            <ScrollNavbar />
-            <SecondNavbar />
-          </>
-        )}
-        <main className={!hideMenu ? "pt-20 w-full flex flex-col items-center gap-12" : "w-full min-h-screen flex items-center justify-center"} style={{background: 'transparent'}}>
-          <Outlet />
-        </main>
-      </div>
+      <GlobalLoadingSpinner loading={navigation.state === 'loading'}>
+        <div className="min-h-screen w-full" style={{background: '#000'}}>
+          {/* Mostrar menú solo si está logueado, no en launchpad ni en rutas públicas */}
+          {!hideMenu && isLoggedIn && (
+            <>
+              <Topbar
+                userAvatar={avatarUrl}
+                notificationsCount={notifications.length}
+                onThemeToggle={handleThemeToggle}
+                darkMode={darkMode}
+                isLoggedIn={isLoggedIn}
+              />
+              {/* Menú tipo tabs minimalista, solo texto subrayado */}
+              <ScrollNavbar />
+              <SecondNavbar />
+            </>
+          )}
+          <main className={!hideMenu ? "pt-20 w-full flex flex-col items-center gap-12" : "w-full min-h-screen flex items-center justify-center"} style={{background: 'transparent'}}>
+            <Outlet />
+          </main>
+        </div>
+      </GlobalLoadingSpinner>
     </BibliotecaProvider>
   );
 }
