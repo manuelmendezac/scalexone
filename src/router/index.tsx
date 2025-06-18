@@ -36,6 +36,10 @@ export const router = createBrowserRouter([
         element: <Hero />
       },
       {
+        path: 'configuracion-admin',
+        element: <AdminSettingsPage />
+      },
+      {
         path: 'dashboard',
         element: <DashboardLayout />,
         children: [
@@ -120,10 +124,6 @@ export const router = createBrowserRouter([
       {
         path: 'store',
         element: <NeuroCloneStore />
-      },
-      {
-        path: 'configuracion-admin',
-        element: <AdminSettingsPage />
       },
       {
         path: '*',
