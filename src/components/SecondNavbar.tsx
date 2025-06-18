@@ -26,7 +26,7 @@ const SecondNavbar: React.FC = () => {
   ];
 
   // Si hay config personalizada, usarla, si no, usar default
-  const menu = menuConfig || defaultMenu;
+  const menu = Array.isArray(menuConfig) ? menuConfig : defaultMenu;
 
   if (loading) return null;
 
