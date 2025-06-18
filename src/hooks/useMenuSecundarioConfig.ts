@@ -1,8 +1,14 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../supabase';
 
+type MenuConfig = {
+  barra_scroll_desktop: any[];
+  barra_scroll_movil: any[];
+  barra_inferior_movil: any[];
+} | any[] | { barra_superior: any[]; barra_inferior: any[] } | null;
+
 export function useMenuSecundarioConfig(community_id: string | null) {
-  const [menuConfig, setMenuConfig] = useState<any[] | { barra_superior: any[]; barra_inferior: any[] } | null>(null);
+  const [menuConfig, setMenuConfig] = useState<MenuConfig>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -23,7 +29,7 @@ export function useMenuSecundarioConfig(community_id: string | null) {
   }, [community_id]);
 
   // Guardar cambios
-  const saveMenuConfig = async (newConfig: any[] | { barra_superior: any[]; barra_inferior: any[] }) => {
+  const saveMenuConfig = async (newConfig: MenuConfig) => {
     if (!community_id) return { error: { message: 'community_id es nulo o vacío' } };
     setLoading(true);
     const { error, data } = await supabase
