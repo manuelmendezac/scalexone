@@ -9,13 +9,16 @@ const perfilDefault = {
   correo: 'manuel@email.com',
   celular: '',
   pais: 'Perú',
-  redes: { facebook: '', twitter: '', instagram: '' },
+  facebook: '',
+  twitter: '',
+  instagram: '',
+  tiktok: '',
   membresia: 'Afiliado',
   rol: 'Afiliado',
   creditos: 250,
   wallet: '',
   idioma: 'Español',
-  zonaHoraria: 'GMT-5',
+  zona_horaria: 'GMT-5',
   nivel: 3,
   cursos: ['Curso de Ventas', 'Curso de Marketing'],
   servicios: ['Soporte', 'Mentoría'],
@@ -46,7 +49,6 @@ function TarjetaResumen({ titulo, valor, subvalor, icono, color }: any) {
 }
 
 export default function AdminConfigPanel({ selected }: { selected: string }) {
-  // Simulación de datos de usuario afiliado
   const [perfil, setPerfil] = useState(perfilDefault);
   const [guardando, setGuardando] = useState(false);
   const [mensaje, setMensaje] = useState('');
@@ -54,8 +56,8 @@ export default function AdminConfigPanel({ selected }: { selected: string }) {
   const handleInput = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setPerfil({ ...perfil, [e.target.name]: e.target.value });
   };
-  const handleRedSocial = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setPerfil({ ...perfil, redes: { ...perfil.redes, [e.target.name]: e.target.value } });
+  const handleArrayInput = (e: React.ChangeEvent<HTMLInputElement>, key: 'cursos' | 'servicios') => {
+    setPerfil({ ...perfil, [key]: e.target.value.split(',').map(s => s.trim()) });
   };
   const handleAvatar = (url: string) => {
     setPerfil({ ...perfil, avatar: url });
@@ -70,79 +72,87 @@ export default function AdminConfigPanel({ selected }: { selected: string }) {
   };
 
   return (
-    <main style={{ flex: 1, padding: 40, background: '#23232b', minHeight: '100vh' }}>
+    <main style={{ flex: 1, padding: 0, background: '#23232b', minHeight: '100vh' }}>
       {selected === 'welcome' && (
-        <>
+        <div style={{
+          width: '100%',
+          padding: '40px 0',
+          background: '#23232b',
+        }}>
           <div style={{
+            width: '100%',
+            maxWidth: 1400,
+            margin: '0 auto',
             background: '#18181b',
             borderRadius: 18,
-            padding: 32,
-            color: '#fff',
-            maxWidth: 700,
-            margin: '0 auto',
             boxShadow: '0 2px 12px #0006',
-            marginBottom: 32
+            padding: 40,
           }}>
-            <h2 style={{ color: '#FFD700', fontWeight: 700, fontSize: 26, marginBottom: 18 }}>Mi Perfil</h2>
-            <div style={{ display: 'flex', gap: 32, alignItems: 'center', marginBottom: 24 }}>
-              <AvatarUploader onUpload={handleAvatar} initialUrl={perfil.avatar} label="Foto de perfil" />
-              <div style={{ flex: 1 }}>
-                <div style={{ display: 'flex', gap: 12 }}>
+            <h2 style={{ color: '#FFD700', fontWeight: 700, fontSize: 28, marginBottom: 28 }}>Mi Perfil</h2>
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: '320px 1fr',
+              gap: 40,
+              alignItems: 'flex-start',
+              marginBottom: 32
+            }}>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 18 }}>
+                <AvatarUploader onUpload={handleAvatar} initialUrl={perfil.avatar} label="Foto de perfil" />
+                <button style={botonEstilo} onClick={() => alert('Funcionalidad de cambio de contraseña próximamente')}>Cambiar contraseña</button>
+              </div>
+              <div style={{ width: '100%' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 18, marginBottom: 18 }}>
                   <input name="nombres" value={perfil.nombres} onChange={handleInput} placeholder="Nombres" style={inputEstilo} />
                   <input name="apellidos" value={perfil.apellidos} onChange={handleInput} placeholder="Apellidos" style={inputEstilo} />
+                  <input name="correo" value={perfil.correo} onChange={handleInput} placeholder="Correo" style={inputEstilo} />
+                  <input name="celular" value={perfil.celular} onChange={handleInput} placeholder="Celular" style={inputEstilo} />
+                  <select name="pais" value={perfil.pais} onChange={handleInput} style={inputEstilo}>
+                    <option value="Perú">Perú</option>
+                    <option value="México">México</option>
+                    <option value="Colombia">Colombia</option>
+                    <option value="Argentina">Argentina</option>
+                    <option value="Chile">Chile</option>
+                    <option value="España">España</option>
+                    <option value="Otro">Otro</option>
+                  </select>
+                  <select name="idioma" value={perfil.idioma} onChange={handleInput} style={inputEstilo}>
+                    <option value="Español">Español</option>
+                    <option value="Inglés">Inglés</option>
+                  </select>
+                  <select name="zona_horaria" value={perfil.zona_horaria} onChange={handleInput} style={inputEstilo}>
+                    <option value="GMT-5">GMT-5</option>
+                    <option value="GMT-6">GMT-6</option>
+                    <option value="GMT-3">GMT-3</option>
+                    <option value="GMT-8">GMT-8</option>
+                  </select>
+                  <input name="wallet" value={perfil.wallet} onChange={handleInput} placeholder="Wallet (opcional)" style={inputEstilo} />
                 </div>
-                <input name="correo" value={perfil.correo} onChange={handleInput} placeholder="Correo" style={{ ...inputEstilo, marginTop: 10 }} />
-                <input name="celular" value={perfil.celular} onChange={handleInput} placeholder="Celular" style={{ ...inputEstilo, marginTop: 10 }} />
-                <select name="pais" value={perfil.pais} onChange={handleInput} style={{ ...inputEstilo, marginTop: 10 }}>
-                  <option value="Perú">Perú</option>
-                  <option value="México">México</option>
-                  <option value="Colombia">Colombia</option>
-                  <option value="Argentina">Argentina</option>
-                  <option value="Chile">Chile</option>
-                  <option value="España">España</option>
-                  <option value="Otro">Otro</option>
-                </select>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: 18, marginBottom: 18 }}>
+                  <input name="facebook" value={perfil.facebook} onChange={handleInput} placeholder="Facebook" style={inputEstilo} />
+                  <input name="twitter" value={perfil.twitter} onChange={handleInput} placeholder="Twitter" style={inputEstilo} />
+                  <input name="instagram" value={perfil.instagram} onChange={handleInput} placeholder="Instagram" style={inputEstilo} />
+                  <input name="tiktok" value={perfil.tiktok} onChange={handleInput} placeholder="TikTok" style={inputEstilo} />
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 18, marginBottom: 18 }}>
+                  <select name="membresia" value={perfil.membresia} onChange={handleInput} style={inputEstilo}>
+                    <option value="Afiliado">Afiliado</option>
+                    <option value="Premium">Premium</option>
+                    <option value="Free">Free</option>
+                  </select>
+                  <input name="rol" value={perfil.rol} readOnly style={{ ...inputEstilo, background: '#23232b', color: '#FFD700', fontWeight: 700 }} />
+                  <input name="creditos" value={perfil.creditos} readOnly style={{ ...inputEstilo, background: '#23232b', color: '#FFD700', fontWeight: 700 }} />
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 18, marginBottom: 18 }}>
+                  <input name="nivel" value={perfil.nivel} readOnly style={{ ...inputEstilo, background: '#23232b', color: '#FFD700', fontWeight: 700 }} />
+                  <input name="cursos" value={perfil.cursos.join(', ')} onChange={e => handleArrayInput(e, 'cursos')} placeholder="Cursos activos (separados por coma)" style={inputEstilo} />
+                  <input name="servicios" value={perfil.servicios.join(', ')} onChange={e => handleArrayInput(e, 'servicios')} placeholder="Servicios activos (separados por coma)" style={inputEstilo} />
+                </div>
+                <button style={botonGuardarEstilo} onClick={handleGuardar} disabled={guardando}>{guardando ? 'Guardando...' : 'Guardar cambios'}</button>
+                {mensaje && <div style={{ color: '#FFD700', marginTop: 12, fontWeight: 600 }}>{mensaje}</div>}
               </div>
             </div>
-            <div style={{ display: 'flex', gap: 12, marginBottom: 12 }}>
-              <input name="facebook" value={perfil.redes.facebook} onChange={handleRedSocial} placeholder="Facebook" style={inputEstilo} />
-              <input name="twitter" value={perfil.redes.twitter} onChange={handleRedSocial} placeholder="Twitter" style={inputEstilo} />
-              <input name="instagram" value={perfil.redes.instagram} onChange={handleRedSocial} placeholder="Instagram" style={inputEstilo} />
-            </div>
-            <div style={{ display: 'flex', gap: 12, marginBottom: 12 }}>
-              <select name="membresia" value={perfil.membresia} onChange={handleInput} style={inputEstilo}>
-                <option value="Afiliado">Afiliado</option>
-                <option value="Premium">Premium</option>
-                <option value="Free">Free</option>
-              </select>
-              <input name="rol" value={perfil.rol} readOnly style={{ ...inputEstilo, background: '#23232b', color: '#FFD700', fontWeight: 700 }} />
-              <input name="creditos" value={perfil.creditos} readOnly style={{ ...inputEstilo, background: '#23232b', color: '#FFD700', fontWeight: 700 }} />
-            </div>
-            <div style={{ display: 'flex', gap: 12, marginBottom: 12 }}>
-              <input name="wallet" value={perfil.wallet} onChange={handleInput} placeholder="Wallet (opcional)" style={inputEstilo} />
-              <select name="idioma" value={perfil.idioma} onChange={handleInput} style={inputEstilo}>
-                <option value="Español">Español</option>
-                <option value="Inglés">Inglés</option>
-              </select>
-              <select name="zonaHoraria" value={perfil.zonaHoraria} onChange={handleInput} style={inputEstilo}>
-                <option value="GMT-5">GMT-5</option>
-                <option value="GMT-6">GMT-6</option>
-                <option value="GMT-3">GMT-3</option>
-                <option value="GMT-8">GMT-8</option>
-              </select>
-            </div>
-            <div style={{ display: 'flex', gap: 12, marginBottom: 12 }}>
-              <input name="nivel" value={perfil.nivel} readOnly style={{ ...inputEstilo, background: '#23232b', color: '#FFD700', fontWeight: 700 }} />
-              <input name="cursos" value={perfil.cursos.join(', ')} readOnly style={{ ...inputEstilo, background: '#23232b', color: '#FFD700', fontWeight: 700 }} />
-              <input name="servicios" value={perfil.servicios.join(', ')} readOnly style={{ ...inputEstilo, background: '#23232b', color: '#FFD700', fontWeight: 700 }} />
-            </div>
-            <div style={{ display: 'flex', gap: 12, marginBottom: 18 }}>
-              <button style={botonEstilo} onClick={() => alert('Funcionalidad de cambio de contraseña próximamente')}>Cambiar contraseña</button>
-            </div>
-            <button style={botonGuardarEstilo} onClick={handleGuardar} disabled={guardando}>{guardando ? 'Guardando...' : 'Guardar cambios'}</button>
-            {mensaje && <div style={{ color: '#FFD700', marginTop: 12, fontWeight: 600 }}>{mensaje}</div>}
           </div>
-        </>
+        </div>
       )}
       {selected === 'levels' && <LevelsSection />}
       {selected === 'channels' && <div style={{ color: '#fff' }}>Canales (aquí irá la gestión de canales)</div>}
