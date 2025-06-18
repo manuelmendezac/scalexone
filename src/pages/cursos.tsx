@@ -9,7 +9,6 @@ import { useGlobalLoading } from '../store/useGlobalLoading';
 const CursosPage: React.FC = () => {
   const [cursos, setCursos] = useState<any[]>([]);
   const [cursoActivo, setCursoActivo] = useState<any | null>(null);
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const { userName, userInfo, updateUserInfo } = useNeuroState();
   const nombre = userInfo?.name || userName || 'Master';
@@ -63,7 +62,7 @@ const CursosPage: React.FC = () => {
   if (error) return <div className="min-h-screen flex items-center justify-center text-red-400">{error}</div>;
 
   return (
-    <GlobalLoadingSpinner loading={loading}>
+    <GlobalLoadingSpinner>
       <div className="min-h-screen bg-gradient-to-br from-[#0a0a0a] via-[#1a1a2e] to-[#16213e] text-white">
         {isAdmin && <CursosAdminPanel />}
         {/* Header */}
