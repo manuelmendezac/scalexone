@@ -8,8 +8,8 @@ const ComunidadPage = () => {
   const esMovil = typeof window !== 'undefined' && window.innerWidth < 768;
 
   return (
-    <div className="flex flex-row min-h-screen bg-neutral-950">
-      <main className="flex-1 p-4">
+    <div className="flex flex-row min-h-screen bg-neutral-950 justify-center">
+      <main className="flex-1 p-2 max-w-7xl xl:max-w-[1600px] mx-auto">
         {/* Barra de canales siempre arriba del feed, en todas las resoluciones */}
         <div className="w-full flex items-center gap-2 px-2 py-2 bg-neutral-900 rounded-xl mb-4 border border-cyan-900/30 shadow-md">
           {/* Botón menú solo en móvil */}
@@ -50,7 +50,7 @@ const ComunidadPage = () => {
         <FeedComunidad />
       </main>
       {/* Barra lateral solo en desktop */}
-      <aside className="w-[350px] p-4 bg-neutral-900 border-l border-cyan-900/30 hidden md:block">
+      <aside className="w-[300px] p-2 bg-neutral-900 border-l border-cyan-900/30 hidden md:block">
         <BarraLateralComunidad />
       </aside>
     </div>
