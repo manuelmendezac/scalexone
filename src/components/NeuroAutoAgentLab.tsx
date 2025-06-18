@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  Robot, 
+  Bot, 
   Calendar, 
   FlaskConical, 
   Plus, 
@@ -185,7 +185,7 @@ export const NeuroAutoAgentLab: React.FC = () => {
         className="max-w-6xl mx-auto"
       >
         <h1 className="text-3xl font-orbitron text-neurolink-coldWhite mb-6 flex items-center gap-3">
-          <Robot className="w-8 h-8 text-neurolink-matrixGreen" />
+          <Bot className="w-8 h-8 text-neurolink-matrixGreen" />
           NeuroAuto<span className="text-neurolink-matrixGreen">Agent</span>Lab
         </h1>
         
@@ -199,7 +199,7 @@ export const NeuroAutoAgentLab: React.FC = () => {
                 : 'text-neurolink-coldWhite hover:bg-neurolink-matrixGreen/20'
             }`}
           >
-            <Robot className="w-5 h-5" /> Creador de Agentes
+            <Bot className="w-5 h-5" /> Creador de Agentes
           </button>
           <button
             onClick={() => setActiveTab('automation')}
@@ -234,7 +234,7 @@ export const NeuroAutoAgentLab: React.FC = () => {
               className="bg-black/40 backdrop-blur-xl rounded-xl p-6 border border-neurolink-cyberBlue/30"
             >
               <h2 className="text-xl font-orbitron text-neurolink-coldWhite mb-4 flex items-center gap-2">
-                <Robot className="w-5 h-5 text-neurolink-matrixGreen" />
+                <Bot className="w-5 h-5 text-neurolink-matrixGreen" />
                 Describe tu agente automatizado
               </h2>
               
