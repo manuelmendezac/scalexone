@@ -5,8 +5,7 @@
     }
   },
   "rewrites": [
-    { "source": "/(.*)", "destination": "/" },
-    { "source": "/comunidad/:id", "destination": "/" }
+    { "source": "/(.*)", "destination": "/" }
   ],
   "headers": [
     {
