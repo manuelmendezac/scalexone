@@ -294,9 +294,9 @@ const Topbar: React.FC<TopbarProps> = ({
                 </button>
                 <button
                   className="w-full flex items-center gap-2 px-4 py-2 hover:bg-cyan-900 text-left text-white font-orbitron text-base transition bg-black"
-                  onClick={handleAdminModeToggle}
+                  onClick={() => navigate('/admin/settings')}
                 >
-                  <FiSettings className="w-5 h-5" /> {isAdminMode ? 'Modo Afiliado' : 'Modo Admin'}
+                  <FiSettings className="w-5 h-5" /> Configuración
                 </button>
                 <button
                   className="w-full flex items-center gap-2 px-4 py-2 hover:bg-red-700 text-left text-white font-orbitron text-base transition rounded-b-xl bg-black"
