@@ -53,7 +53,7 @@ const CursosPage: React.FC = () => {
   if (error) return <div className="min-h-screen flex items-center justify-center text-red-400">{error}</div>;
 
   return (
-    <div className="w-full min-h-screen" style={{ background: '#10192b' }}>
+    <div className="w-full min-h-screen" style={{ background: '#000' }}>
       {isAdmin && <CursosAdminPanel />}
       {/* Header */}
       <div className="w-full flex justify-end items-center mb-8 px-2 max-w-7xl mx-auto">
@@ -78,7 +78,7 @@ const CursosPage: React.FC = () => {
           >
             <button
               onClick={() => navigate(`/cursos/${curso.id}`)}
-              className={`px-4 py-3 rounded-lg border border-white font-black uppercase tracking-wide text-base md:text-lg bg-black transition-all duration-200 ${cursoActivo && cursoActivo.id === curso.id ? 'bg-white' : 'text-white hover:bg-white'}`}
+              className={`px-4 py-3 rounded-lg border border-white font-black uppercase tracking-wide text-base md:text-lg bg-neutral-800 transition-all duration-200 ${cursoActivo && cursoActivo.id === curso.id ? 'bg-white' : 'text-white hover:bg-white'}`}
               style={{ minWidth: 180 }}
             >
               <span className={`transition-colors duration-200 ${cursoActivo && cursoActivo.id === curso.id ? 'text-green-400' : 'group-hover:text-green-400'}`}>{curso.nombre}</span>
