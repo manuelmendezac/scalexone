@@ -29,6 +29,10 @@ import CursosPage from './pages/cursos';
 import Launchpad from './pages/Launchpad';
 import ComunidadPage from './pages/comunidad';
 import AfiliadosPage from './pages/afiliados/index';
+import Login from './pages/login';
+import Register from './pages/register';
+import ResetPassword from './pages/ResetPassword';
+import ConfiguracionProyecto from './components/ConfiguracionProyecto';
 
 export const router = createBrowserRouter([
   {
@@ -115,5 +119,21 @@ export const router = createBrowserRouter([
   {
     path: '*',
     element: <Error404 />
+  },
+  {
+    path: 'login',
+    element: <Login />
+  },
+  {
+    path: 'register',
+    element: <Register />
+  },
+  {
+    path: 'reset-password',
+    element: <ResetPassword />
+  },
+  {
+    path: 'configuracion',
+    element: <ConfiguracionProyecto />
   }
 ]); 
