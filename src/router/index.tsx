@@ -24,6 +24,7 @@ import App from '../App';
 import Hero from '../components/Hero';
 import Error404 from '../components/Error404';
 import AdminSettingsPage from '../pages/admin/settings';
+import Dashboard from '../components/Dashboard';
 
 export const router = createBrowserRouter([
   {
@@ -43,6 +44,10 @@ export const router = createBrowserRouter([
         path: 'clasificacion',
         element: <DashboardLayout />,
         children: [
+          {
+            index: true,
+            element: <Dashboard />
+          },
           {
             path: 'console',
             element: <div style={{color: 'white', fontSize: 32, textAlign: 'center', marginTop: 40}}>Test Console</div>
