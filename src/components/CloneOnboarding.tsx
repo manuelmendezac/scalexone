@@ -104,7 +104,7 @@ const CloneOnboarding: React.FC = () => {
 
   const handleActivate = () => {
     localStorage.removeItem('onboardingState');
-    navigate('/dashboard/console');
+    navigate('/clasificacion/console');
   };
 
   // Componente de barra de progreso

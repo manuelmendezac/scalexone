@@ -29,7 +29,7 @@ const OnboardingCarousel: React.FC = () => {
     if (currentScreen < SCREENS.length - 1) {
       setCurrentScreen(currentScreen + 1);
     } else {
-      navigate('/dashboard/console');
+      navigate('/clasificacion/console');
     }
   };
 

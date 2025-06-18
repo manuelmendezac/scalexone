@@ -35,7 +35,7 @@ const WelcomePortalOnboarding: React.FC = () => {
   const handleStart = () => {
     sessionStorage.setItem(ONBOARDING_KEY, 'true');
     setShow(false);
-    navigate('/dashboard/console');
+    navigate('/clasificacion/console');
   };
 
   if (!show) return null;
