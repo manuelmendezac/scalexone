@@ -294,6 +294,12 @@ const Topbar: React.FC<TopbarProps> = ({
                 </button>
                 <button
                   className="w-full flex items-center gap-2 px-4 py-2 hover:bg-cyan-900 text-left text-white font-orbitron text-base transition bg-black"
+                  onClick={handleAdminModeToggle}
+                >
+                  <FiSettings className="w-5 h-5" /> {isAdminMode ? 'Modo Afiliado' : 'Modo Admin'}
+                </button>
+                <button
+                  className="w-full flex items-center gap-2 px-4 py-2 hover:bg-cyan-900 text-left text-white font-orbitron text-base transition bg-black"
                   onClick={() => navigate('/admin/settings')}
                 >
                   <FiSettings className="w-5 h-5" /> Configuración
