@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import useNeuroState from '../store/useNeuroState';
 import CursosAdminPanel from '../components/CursosAdminPanel';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useNavigation } from 'react-router-dom';
 import { supabase } from '../supabase';
 import GlobalLoadingSpinner from '../components/GlobalLoadingSpinner';
 import { useGlobalLoading } from '../store/useGlobalLoading';
 
 const CursosPage: React.FC = () => {
+  console.log('RENDER CursosPage');
   const [cursos, setCursos] = useState<any[]>([]);
   const [cursoActivo, setCursoActivo] = useState<any | null>(null);
   const [error, setError] = useState('');
@@ -16,10 +17,11 @@ const CursosPage: React.FC = () => {
   const navigate = useNavigate();
   const [isAdmin, setIsAdmin] = useState(false);
   const setGlobalLoading = useGlobalLoading(state => state.setLoading);
+  const navigation = useNavigation();
 
   useEffect(() => {
     const fetchCursos = async () => {
-      setGlobalLoading(true);
+      if (navigation.state !== 'loading') setGlobalLoading(true);
       try {
         const { data, error } = await supabase.from('cursos').select('*').order('orden', { ascending: true });
         console.log('FETCH CURSOS:', { data, error });
@@ -31,10 +33,11 @@ const CursosPage: React.FC = () => {
         setError('Error inesperado: ' + (err.message || err));
         console.error('ERROR FETCH CURSOS:', err);
       } finally {
-        setGlobalLoading(false);
+        if (navigation.state !== 'loading') setGlobalLoading(false);
       }
     };
     fetchCursos();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
