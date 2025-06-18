@@ -65,7 +65,7 @@ export default function AdminConfigPanel({ selected }: { selected: string }) {
   const { userInfo } = useNeuroState();
   const community_id = userInfo?.community_id || null;
   const isAdmin = userInfo?.rol === 'admin' || userInfo?.rol === 'superadmin';
-  const { menuConfig, loading: menuLoading, saveMenuConfig } = useMenuSecundarioConfig(community_id);
+  const { menuConfig, loading: menuLoading, error, saveMenuConfig } = useMenuSecundarioConfig(community_id);
 
   // Leer datos reales del usuario
   useEffect(() => {
@@ -348,7 +348,7 @@ function MenuPrincipalDemo() {
   const community_id = userInfo?.community_id || null;
   const isSuperAdmin = userInfo?.rol === 'superadmin';
   const isAdmin = userInfo?.rol === 'admin' || isSuperAdmin;
-  const { menuConfig, loading, saveMenuConfig } = useMenuSecundarioConfig(community_id);
+  const { menuConfig, loading, error, saveMenuConfig } = useMenuSecundarioConfig(community_id);
 
   // Obtener el menú real de la barra secundaria (defaultMenu)
   const defaultMenu = [
@@ -422,8 +422,10 @@ function MenuPrincipalDemo() {
   return (
     <div style={{ background: '#23232b', borderRadius: 14, padding: 24, boxShadow: '0 2px 8px #0004' }}>
       <div style={{ marginBottom: 18, color: '#FFD700', fontWeight: 600 }}>
-        Este es el menú real que verán los usuarios de tu comunidad.
+        Este es el menú real que verán los usuarios de tu comunidad.<br/>
+        <span style={{ color: '#fff', fontSize: 13 }}>community_id actual: <b>{community_id || '[null]'}</b></span>
       </div>
+      {error && <div style={{ color: 'red', marginBottom: 12, fontWeight: 700 }}>Error al guardar o cargar menú: {error}</div>}
       {tabs.filter(tab => tab && typeof tab === 'object').map((tab, idx) => (
         <div key={tab.key || idx} style={{ display: 'flex', alignItems: 'center', gap: 16, borderBottom: '1px solid #333', padding: '12px 0' }}>
           <span style={{ color: '#FFD700', fontWeight: tab.predeterminado ? 700 : 500, minWidth: 90 }}>
