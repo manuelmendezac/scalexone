@@ -33,6 +33,8 @@ import Login from './pages/login';
 import Register from './pages/register';
 import ResetPassword from './pages/ResetPassword';
 import ConfiguracionProyecto from './components/ConfiguracionProyecto';
+import CursoDetalle from './pages/cursos/id';
+import ModuloDetalle from './pages/cursos/modulo';
 
 export const router = createBrowserRouter([
   {
@@ -45,7 +47,14 @@ export const router = createBrowserRouter([
       { path: 'clasificacion', element: <Dashboard /> },
       { path: 'home', element: <Inicio /> },
       { path: 'classroom', element: <Classroom /> },
-      { path: 'cursos', element: <CursosPage /> },
+      {
+        path: 'cursos',
+        children: [
+          { index: true, element: <CursosPage /> },
+          { path: ':id', element: <CursoDetalle /> },
+          { path: 'modulo/:moduloIdx', element: <ModuloDetalle /> },
+        ]
+      },
       { path: 'launchpad', element: <Launchpad /> },
       { path: 'comunidad', element: <ComunidadPage /> },
       { path: 'configuracion', element: <ConfiguracionProyecto /> },
