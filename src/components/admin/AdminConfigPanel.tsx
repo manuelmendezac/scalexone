@@ -339,12 +339,11 @@ const botonGuardarEstilo = {
 function MenuPrincipalDemo() {
   const demoTabs = [
     { key: 'inicio', nombre: 'Inicio', visible: true, predeterminado: true },
-    { key: 'dashboard', nombre: 'Dashboard', visible: true, predeterminado: false },
+    { key: 'clasificacion', nombre: 'Clasificación', visible: true, predeterminado: false },
     { key: 'classroom', nombre: 'Classroom', visible: true, predeterminado: false },
     { key: 'cursos', nombre: 'Cursos', visible: true, predeterminado: false },
     { key: 'launchpad', nombre: 'Launchpad', visible: true, predeterminado: false },
     { key: 'comunidad', nombre: 'Comunidad', visible: true, predeterminado: false },
-    { key: 'gamificacion', nombre: 'Gamificación', visible: true, predeterminado: false },
     { key: 'embudos', nombre: 'Embudos', visible: true, predeterminado: false },
     { key: 'ia', nombre: 'IA', visible: true, predeterminado: false },
     { key: 'automatizaciones', nombre: 'Automatizaciones', visible: true, predeterminado: false },
