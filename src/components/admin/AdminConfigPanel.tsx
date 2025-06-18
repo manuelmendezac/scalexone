@@ -4,6 +4,7 @@ import AvatarUploader from '../AvatarUploader';
 import { supabase } from '../../supabase';
 import { useMenuSecundarioConfig } from '../../hooks/useMenuSecundarioConfig';
 import useNeuroState from '../../store/useNeuroState';
+import SecondNavbar from '../SecondNavbar';
 
 const perfilDefault = {
   avatar: '',
@@ -345,28 +346,44 @@ const botonGuardarEstilo = {
 function MenuPrincipalDemo() {
   const { userInfo } = useNeuroState();
   const community_id = userInfo?.community_id || null;
-  const isAdmin = userInfo?.rol === 'admin' || userInfo?.rol === 'superadmin';
+  const isSuperAdmin = userInfo?.rol === 'superadmin';
+  const isAdmin = userInfo?.rol === 'admin' || isSuperAdmin;
   const { menuConfig, loading, saveMenuConfig } = useMenuSecundarioConfig(community_id);
 
-  const defaultTabs = [
-    { key: 'inicio', nombre: 'Inicio', visible: true, predeterminado: true, ruta: '/home' },
-    { key: 'clasificacion', nombre: 'Clasificación', visible: true, predeterminado: false, ruta: '/clasificacion' },
-    { key: 'classroom', nombre: 'Classroom', visible: true, predeterminado: false, ruta: '/classroom' },
-    { key: 'cursos', nombre: 'Cursos', visible: true, predeterminado: false, ruta: '/cursos' },
-    { key: 'launchpad', nombre: 'Launchpad', visible: true, predeterminado: false, ruta: '/launchpad' },
-    { key: 'comunidad', nombre: 'Comunidad', visible: true, predeterminado: false, ruta: '/comunidad' },
-    { key: 'embudos', nombre: 'Embudos', visible: true, predeterminado: false, ruta: '/funnels' },
-    { key: 'ia', nombre: 'IA', visible: true, predeterminado: false, ruta: '/ia' },
-    { key: 'automatizaciones', nombre: 'Automatizaciones', visible: true, predeterminado: false, ruta: '/automatizaciones' },
-    { key: 'whatsappcrm', nombre: 'WhatsApp CRM', visible: true, predeterminado: false, ruta: '/whatsapp-crm' },
-    { key: 'configuracion', nombre: 'Configuración', visible: true, predeterminado: false, ruta: '/configuracion' },
+  // Obtener el menú real de la barra secundaria (defaultMenu)
+  const defaultMenu = [
+    { key: 'inicio', nombre: 'Inicio', visible: true, predeterminado: true, ruta: '/home', icon: '🏠' },
+    { key: 'clasificacion', nombre: 'Clasificación', visible: true, predeterminado: false, ruta: '/clasificacion', icon: '📊' },
+    { key: 'classroom', nombre: 'Classroom', visible: true, predeterminado: false, ruta: '/classroom', icon: '🎓' },
+    { key: 'cursos', nombre: 'Cursos', visible: true, predeterminado: false, ruta: '/cursos', icon: '📚' },
+    { key: 'launchpad', nombre: 'Launchpad', visible: true, predeterminado: false, ruta: '/launchpad', icon: '🚀' },
+    { key: 'comunidad', nombre: 'Comunidad', visible: true, predeterminado: false, ruta: '/comunidad', icon: '👥' },
+    { key: 'embudos', nombre: 'Embudos', visible: true, predeterminado: false, ruta: '/funnels', icon: '🫧' },
+    { key: 'ia', nombre: 'IA', visible: true, predeterminado: false, ruta: '/ia', icon: '🤖' },
+    { key: 'automatizaciones', nombre: 'Automatizaciones', visible: true, predeterminado: false, ruta: '/automatizaciones', icon: '⚙️' },
+    { key: 'whatsappcrm', nombre: 'WhatsApp CRM', visible: true, predeterminado: false, ruta: '/whatsapp-crm', icon: '💬' },
+    { key: 'configuracion', nombre: 'Configuración', visible: true, predeterminado: false, ruta: '/configuracion', icon: '🔧' },
   ];
-  const [tabs, setTabs] = useState<any[]>(Array.isArray(menuConfig) && menuConfig.length > 0 ? menuConfig : defaultTabs);
+
+  // Si la config está vacía o corrupta, usar el defaultMenu
+  const getInitialTabs = () => {
+    if (Array.isArray(menuConfig) && menuConfig.length > 0 && menuConfig.every(tab => tab && typeof tab.key === 'string')) {
+      return menuConfig;
+    }
+    return defaultMenu;
+  };
+
+  const [tabs, setTabs] = useState<any[]>(getInitialTabs());
+  const [hasChanges, setHasChanges] = useState(false);
 
   useEffect(() => {
-    if (Array.isArray(menuConfig) && menuConfig.length > 0) setTabs(menuConfig);
-    else setTabs(defaultTabs);
+    setTabs(getInitialTabs());
   }, [menuConfig]);
+
+  // Detectar cambios
+  useEffect(() => {
+    setHasChanges(JSON.stringify(tabs) !== JSON.stringify(menuConfig));
+  }, [tabs, menuConfig]);
 
   const handleToggle = (idx: number) => {
     setTabs(tabs => tabs.map((t, i) => i === idx ? { ...t, visible: !t.visible } : t));
@@ -384,22 +401,33 @@ function MenuPrincipalDemo() {
     newTabs.splice(to, 0, moved);
     setTabs(newTabs);
   };
+  // Solo el superadmin puede agregar tabs
+  const handleAgregarTab = () => {
+    if (!isSuperAdmin) return;
+    setTabs([...tabs, { key: '', nombre: '', visible: true, predeterminado: false, ruta: '', icon: '' }]);
+  };
+  // Limpiar tabs vacíos antes de guardar
+  const cleanTabs = (arr: any[]) => arr.filter(tab => tab && typeof tab.key === 'string' && tab.key.trim() && typeof tab.nombre === 'string' && tab.nombre.trim());
+
   const handleGuardar = async () => {
     if (!isAdmin) return;
-    await saveMenuConfig(tabs);
+    const cleaned = cleanTabs(tabs);
+    await saveMenuConfig(cleaned);
     alert('Menú actualizado correctamente para la comunidad.');
+    setHasChanges(false);
   };
 
   if (loading) return <div style={{ color: '#FFD700' }}>Cargando menú...</div>;
 
   return (
     <div style={{ background: '#23232b', borderRadius: 14, padding: 24, boxShadow: '0 2px 8px #0004' }}>
+      <div style={{ marginBottom: 18, color: '#FFD700', fontWeight: 600 }}>
+        Este es el menú real que verán los usuarios de tu comunidad.
+      </div>
       {tabs.filter(tab => tab && typeof tab === 'object').map((tab, idx) => (
         <div key={tab.key || idx} style={{ display: 'flex', alignItems: 'center', gap: 16, borderBottom: '1px solid #333', padding: '12px 0' }}>
           <span style={{ color: '#FFD700', fontWeight: tab.predeterminado ? 700 : 500, minWidth: 90 }}>
-            {(tab.key && typeof tab.key === 'string')
-              ? tab.key.charAt(0).toUpperCase() + tab.key.slice(1)
-              : '[Sin clave]'}
+            {tab.icon || ''} {(tab.key && typeof tab.key === 'string') ? tab.key.charAt(0).toUpperCase() + tab.key.slice(1) : '[Sin clave]'}
           </span>
           <input value={typeof tab.nombre === 'string' ? tab.nombre : ''} onChange={e => handleName(idx, e.target.value)} style={{ ...inputEstilo, width: 180, background: '#23232b', color: '#FFD700', fontWeight: 600 }} />
           <button onClick={() => handlePredeterminado(idx)} title="Marcar como predeterminado" style={{ background: tab.predeterminado ? '#FFD700' : 'transparent', color: tab.predeterminado ? '#18181b' : '#FFD700', border: '1.5px solid #FFD700', borderRadius: 8, padding: '4px 12px', fontWeight: 700, cursor: 'pointer' }}>Predeterminado</button>
@@ -413,9 +441,10 @@ function MenuPrincipalDemo() {
           </div>
         </div>
       ))}
-      {isAdmin && (
-        <button style={{ ...botonGuardarEstilo, marginTop: 24 }} onClick={handleGuardar}>Guardar menú</button>
+      {isSuperAdmin && (
+        <button style={{ ...botonGuardarEstilo, marginTop: 16, background: '#23232b', color: '#FFD700', border: '1.5px solid #FFD700' }} onClick={handleAgregarTab}>+ Agregar menú</button>
       )}
+      <button style={{ ...botonGuardarEstilo, marginTop: 24, opacity: hasChanges ? 1 : 0.5, cursor: hasChanges ? 'pointer' : 'not-allowed' }} onClick={handleGuardar} disabled={!hasChanges || !isAdmin}>Guardar menú</button>
     </div>
   );
 } 
