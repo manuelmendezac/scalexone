@@ -23,9 +23,14 @@ const CursosPage: React.FC = () => {
       setGlobalLoading(true);
       try {
         const { data, error } = await supabase.from('cursos').select('*').order('orden', { ascending: true });
-        if (error) setError('Error al cargar cursos');
+        console.log('FETCH CURSOS:', { data, error });
+        if (error) setError('Error al cargar cursos: ' + error.message);
         setCursos(data || []);
         setCursoActivo((data && data[0]) || null);
+      } catch (e) {
+        const err = e as Error;
+        setError('Error inesperado: ' + (err.message || err));
+        console.error('ERROR FETCH CURSOS:', err);
       } finally {
         setGlobalLoading(false);
       }
