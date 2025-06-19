@@ -109,4 +109,48 @@ begin
   
   return user_rank;
 end;
-$$; 
+$$;
+
+-- Tabla de niveles de ventas
+create table if not exists niveles_ventas (
+  id uuid primary key default gen_random_uuid(),
+  nombre text not null,
+  min_ventas integer not null,
+  max_ventas integer not null,
+  descripcion text,
+  icono text default '🏆',
+  color text default '#FFD700',
+  community_id text default 'default',
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null,
+  updated_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
+-- Tabla de progreso de ventas por usuario
+create table if not exists progreso_ventas_usuario (
+  id uuid primary key default gen_random_uuid(),
+  usuario_id uuid references users(id),
+  nivel_actual uuid references niveles_ventas(id),
+  ventas_acumuladas decimal default 0,
+  ultima_venta timestamp with time zone,
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null,
+  updated_at timestamp with time zone default timezone('utc'::text, now()) not null,
+  unique(usuario_id)
+);
+
+-- Insertar niveles por defecto
+insert into niveles_ventas (nombre, min_ventas, max_ventas, descripcion, community_id) values
+  ('Starter', 0, 999, 'Nivel inicial', 'default'),
+  ('Affiliate', 1000, 4999, 'Afiliado activo', 'default'),
+  ('Achiever', 5000, 9999, 'Logrador consistente', 'default'),
+  ('Hustler', 10000, 24999, 'Vendedor destacado', 'default'),
+  ('Builder', 25000, 49999, 'Constructor de negocio', 'default'),
+  ('Connector', 50000, 99999, 'Conector de redes', 'default'),
+  ('Monetizer', 100000, 249999, 'Monetizador experto', 'default'),
+  ('Architect', 250000, 499999, 'Arquitecto de ventas', 'default'),
+  ('Visionary', 500000, 999999, 'Visionario de negocios', 'default'),
+  ('Ambassador', 1000000, 999999999, 'Embajador elite', 'default')
+on conflict do nothing;
+
+-- Crear índices para mejorar el rendimiento
+create index if not exists idx_niveles_ventas_community_id on niveles_ventas(community_id);
+create index if not exists idx_progreso_ventas_usuario_usuario_id on progreso_ventas_usuario(usuario_id); 
