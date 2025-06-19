@@ -4,6 +4,9 @@ import { useAuth } from '../hooks/useAuth';
 import gamificationService from '../services/classroomGamificationService';
 import RewardEffect from './RewardEffect';
 
+// VideoPlayerClassroom: Componente para reproducción de videos con sistema de gamificación integrado
+// Maneja el progreso, recompensas y tracking de videos en el classroom
+
 interface VideoPlayerClassroomProps {
   videoId: string;
   url: string;
