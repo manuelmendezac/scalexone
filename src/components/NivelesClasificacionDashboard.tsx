@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../supabase';
 import useNeuroState from '../store/useNeuroState';
+import DailyStreak from './DailyStreak';
 
 interface Nivel {
   id: string;
@@ -47,6 +48,23 @@ const CircularProgress = ({ value, max = 100, size = 160, stroke = 8, color = '#
         style={{ transition: 'stroke-dashoffset 0.6s' }}
       />
     </svg>
+  );
+};
+
+const ProgressBar = ({ value, max }: { value: number; max: number }) => {
+  const percentage = Math.min(100, Math.round((value / max) * 100));
+  
+  return (
+    <div className="relative w-full h-3 bg-black/40 rounded-full overflow-hidden">
+      <div
+        className="h-full rounded-full transition-all duration-700 bg-gradient-to-r from-neurolink-matrixGreen to-neurolink-cyberBlue"
+        style={{ width: `${percentage}%` }}
+      />
+      <div className="absolute inset-0 w-full h-full">
+        {/* Líneas de escaneo */}
+        <div className="absolute inset-0 bg-[linear-gradient(90deg,transparent_0%,transparent_45%,rgba(255,255,255,0.2)_50%,transparent_55%,transparent_100%)] animate-[scan_2s_linear_infinite]" />
+      </div>
+    </div>
   );
 };
 
@@ -128,7 +146,51 @@ const NivelesClasificacionDashboard: React.FC<NivelesClasificacionDashboardProps
     if (!progresoUsuario) return 0;
     return modelo === 'ventas' 
       ? progresoUsuario.ventas_acumuladas || 0
-      : (progresoUsuario.modulos_completados || 0) * 100 + (progresoUsuario.videos_completados || 0) * 10;
+      : (
+          (progresoUsuario.modulos_completados || 0) * 100 + // XP base por módulo
+          (progresoUsuario.videos_completados || 0) * 10 + // XP por video
+          (progresoUsuario.tareas_completadas || 0) * 25 + // XP por tarea
+          (progresoUsuario.quizzes_completados || 0) * 50 // XP por quiz
+        );
+  };
+
+  // Calcular XP y nivel actual
+  const calculateXPProgress = () => {
+    if (!progresoUsuario) return { xp: 0, xpForNextLevel: 1000, percentage: 0 };
+    
+    const currentXP = getPuntos();
+
+    // Encontrar el nivel actual y el siguiente nivel
+    const currentLevelIndex = niveles.findIndex(nivel => nivel.puntos_minimos > currentXP);
+    const currentLevel = currentLevelIndex > 0 ? niveles[currentLevelIndex - 1] : niveles[0];
+    const nextLevel = niveles[currentLevelIndex] || niveles[niveles.length - 1];
+
+    // Calcular XP necesario para el siguiente nivel
+    const xpForCurrentLevel = currentLevel.puntos_minimos;
+    const xpForNextLevel = nextLevel.puntos_minimos;
+    
+    // Calcular el progreso dentro del nivel actual
+    const xpInCurrentLevel = currentXP - xpForCurrentLevel;
+    const xpNeededForNextLevel = xpForNextLevel - xpForCurrentLevel;
+    const percentage = Math.min(100, Math.round((xpInCurrentLevel / xpNeededForNextLevel) * 100));
+
+    return {
+      xp: xpInCurrentLevel,
+      xpForNextLevel: xpNeededForNextLevel,
+      percentage
+    };
+  };
+
+  const getDetallesPuntos = () => {
+    if (!progresoUsuario || modelo === 'ventas') return null;
+    
+    return {
+      modulos: (progresoUsuario.modulos_completados || 0) * 100,
+      videos: (progresoUsuario.videos_completados || 0) * 10,
+      tareas: (progresoUsuario.tareas_completadas || 0) * 25,
+      quizzes: (progresoUsuario.quizzes_completados || 0) * 50,
+      monedas: progresoUsuario.monedas || 0
+    };
   };
 
   const getPuntosParaSubir = () => {
@@ -206,14 +268,24 @@ const NivelesClasificacionDashboard: React.FC<NivelesClasificacionDashboardProps
             <div className="text-2xl font-bold text-white mb-1">{userName || 'Usuario'}</div>
             <span className="bg-[#FFD700] text-black font-bold px-4 py-1 rounded-full text-base">Nivel {userLevel || 1}</span>
             <div className="mt-2 text-white text-lg font-semibold">
-              {puntos} {modelo === 'ventas' ? '$ en ventas' : 'puntos académicos'}
+              {puntos} {modelo === 'ventas' ? '$ en ventas' : 'XP total'}
             </div>
             <div className="text-gray-400 text-base mt-1">
-              <span className="font-bold">{puntosParaSubir}</span> {modelo === 'ventas' ? '$ para subir' : 'puntos para subir'} de nivel
+              <span className="font-bold">{puntosParaSubir}</span> {modelo === 'ventas' ? '$ para subir' : 'XP para subir'} de nivel
             </div>
+            {/* Desglose de XP para modelo académico */}
+            {modelo === 'educacion' && getDetallesPuntos() && (
+              <div className="mt-4 text-sm space-y-2">
+                <div className="text-green-400">Módulos: {getDetallesPuntos()?.modulos} XP</div>
+                <div className="text-blue-400">Videos: {getDetallesPuntos()?.videos} XP</div>
+                <div className="text-yellow-400">Tareas: {getDetallesPuntos()?.tareas} XP</div>
+                <div className="text-purple-400">Quizzes: {getDetallesPuntos()?.quizzes} XP</div>
+                <div className="text-[#FFD700] mt-4">Monedas: {getDetallesPuntos()?.monedas} 🪙</div>
+              </div>
+            )}
           </div>
         </div>
-        {/* Lista de niveles (simulada, solo visual) */}
+        {/* Lista de niveles */}
         <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="flex flex-col gap-4">
             {niveles.slice(0, 5).map((nivel, idx) => (
@@ -239,6 +311,43 @@ const NivelesClasificacionDashboard: React.FC<NivelesClasificacionDashboardProps
               </div>
             ))}
           </div>
+        </div>
+        {/* Componente de racha diaria */}
+        <DailyStreak />
+      </div>
+      {/* Tarjetas de nivel, experiencia y monedas */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        {/* Nivel */}
+        <div className="bg-black/40 border border-neurolink-cyberBlue/30 rounded-2xl p-6 shadow-xl">
+          <div className="flex items-center gap-2 mb-4">
+            <span className="text-neurolink-matrixGreen text-2xl">🎯</span>
+            <span className="font-orbitron text-xl text-neurolink-coldWhite">Nivel {userLevel || 1}</span>
+          </div>
+          <ProgressBar 
+            value={calculateXPProgress().percentage} 
+            max={100} 
+          />
+          <div className="text-neurolink-coldWhite/70 text-sm mt-2 font-mono">
+            {calculateXPProgress().xp} / {calculateXPProgress().xpForNextLevel} XP
+          </div>
+        </div>
+
+        {/* Experiencia Total */}
+        <div className="bg-black/40 border border-neurolink-cyberBlue/30 rounded-2xl p-6 shadow-xl">
+          <div className="flex items-center gap-2 mb-4">
+            <span className="text-neurolink-matrixGreen text-2xl">⭐</span>
+            <span className="font-orbitron text-xl text-neurolink-coldWhite">Experiencia Total</span>
+          </div>
+          <div className="text-neurolink-matrixGreen text-3xl font-bold">{getPuntos()} XP</div>
+        </div>
+
+        {/* Monedas */}
+        <div className="bg-black/40 border border-neurolink-cyberBlue/30 rounded-2xl p-6 shadow-xl">
+          <div className="flex items-center gap-2 mb-4">
+            <span className="text-neurolink-matrixGreen text-2xl">🪙</span>
+            <span className="font-orbitron text-xl text-neurolink-coldWhite">Monedas</span>
+          </div>
+          <div className="text-neurolink-matrixGreen text-3xl font-bold">{getDetallesPuntos()?.monedas || 0}</div>
         </div>
       </div>
       {/* Tabla de niveles (opcional, para administración) */}
