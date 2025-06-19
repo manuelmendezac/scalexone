@@ -1,6 +1,6 @@
 // Página de línea de videos para classroom, idéntica a cursos pero adaptada a las tablas de classroom
 import React, { useEffect, useState } from 'react';
-import { useSearchParams, useNavigate, useLocation } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '../../supabase';
 import ModalFuturista from '../../components/ModalFuturista';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
@@ -11,8 +11,7 @@ import 'react-quill/dist/quill.snow.css';
 const MODULO_CURSO_ID_RECURSOS = "11111111-1111-1111-1111-111111111111";
 
 const LineaVideosClassroom = () => {
-  const [searchParams] = useSearchParams();
-  const modulo_id = searchParams.get('modulo_id');
+  const { modulo_id } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
   const [modulo, setModulo] = useState<any>(null);
@@ -325,7 +324,7 @@ const LineaVideosClassroom = () => {
           {isAdmin && (
             <button
               className="mb-4 sm:mb-6 px-4 sm:px-6 py-2 sm:py-3 rounded-full bg-cyan-700 hover:bg-cyan-500 text-white font-bold shadow transition-all text-base sm:text-lg w-full"
-              onClick={() => navigate(`/classroom/editar-videos?modulo_id=${modulo_id}`)}
+              onClick={() => navigate(`/classroom/editar-videos/${modulo_id}`)}
             >
               Editar videos del módulo
             </button>
