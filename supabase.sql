@@ -179,4 +179,68 @@ drop trigger if exists update_progreso_ventas_usuario_updated_at on progreso_ven
 create trigger update_progreso_ventas_usuario_updated_at
   before update on progreso_ventas_usuario
   for each row
+  execute function update_updated_at_column();
+
+-- Tabla de niveles académicos
+create table if not exists niveles_academicos (
+  id uuid primary key default gen_random_uuid(),
+  nombre text not null,
+  modulos_requeridos integer not null,
+  videos_requeridos integer not null,
+  descripcion text,
+  icono text default '🎓',
+  color text default '#4F46E5',
+  community_id text references menu_secundario_config(community_id) default 'default',
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null,
+  updated_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
+-- Crear índice para mejorar el rendimiento de búsquedas por community_id
+create index if not exists idx_niveles_academicos_community_id on niveles_academicos(community_id);
+
+-- Insertar niveles académicos por defecto
+insert into niveles_academicos (nombre, modulos_requeridos, videos_requeridos, descripcion, community_id) 
+values 
+  ('Estudiante', 0, 0, 'Nivel inicial de aprendizaje', 'default'),
+  ('Aprendiz', 2, 5, 'Primeros pasos en el conocimiento', 'default'),
+  ('Practicante', 4, 10, 'Aplicando lo aprendido', 'default'),
+  ('Especialista', 6, 15, 'Dominando conceptos clave', 'default'),
+  ('Experto', 8, 20, 'Conocimiento avanzado', 'default'),
+  ('Maestro', 10, 25, 'Dominio completo del material', 'default'),
+  ('Mentor', 12, 30, 'Capacidad de enseñar a otros', 'default'),
+  ('Gurú', 15, 40, 'Referente en la materia', 'default'),
+  ('Visionario', 20, 50, 'Innovador y líder', 'default'),
+  ('Legendario', 25, 60, 'Máximo nivel de maestría', 'default')
+on conflict (id) do nothing;
+
+-- Tabla de progreso académico por usuario
+create table if not exists progreso_academico_usuario (
+  id uuid primary key default gen_random_uuid(),
+  usuario_id uuid references users(id),
+  nivel_actual uuid references niveles_academicos(id),
+  modulos_completados integer default 0,
+  videos_completados integer default 0,
+  modulos_ids text[] default array[]::text[],
+  videos_ids text[] default array[]::text[],
+  ultima_actividad timestamp with time zone,
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null,
+  updated_at timestamp with time zone default timezone('utc'::text, now()) not null,
+  unique(usuario_id)
+);
+
+-- Crear índices para mejorar el rendimiento
+create index if not exists idx_progreso_academico_usuario_usuario_id on progreso_academico_usuario(usuario_id);
+
+-- Trigger para actualizar updated_at en niveles_academicos
+drop trigger if exists update_niveles_academicos_updated_at on niveles_academicos;
+create trigger update_niveles_academicos_updated_at
+  before update on niveles_academicos
+  for each row
+  execute function update_updated_at_column();
+
+-- Trigger para actualizar updated_at en progreso_academico_usuario
+drop trigger if exists update_progreso_academico_usuario_updated_at on progreso_academico_usuario;
+create trigger update_progreso_academico_usuario_updated_at
+  before update on progreso_academico_usuario
+  for each row
   execute function update_updated_at_column(); 
