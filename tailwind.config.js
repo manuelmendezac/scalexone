@@ -14,8 +14,8 @@ export default {
         'neurolink-violet': '#8a2be2',
         neurolink: {
           background: '#0A0A0F',
-          cyberBlue: '#00F0FF',
-          matrixGreen: '#00FF00',
+          cyberBlue: '#00ffff',
+          matrixGreen: '#00ff00',
           sleep: {
             background: '#0e1a2b',
             accent: '#1c1f2e',
@@ -31,6 +31,7 @@ export default {
             accent: '#1a1a2e',
             text: '#00FF00',
           },
+          coldWhite: '#f0f0f0',
         },
         'neurolink-neonPink': '#ff00ff',
       },
@@ -45,6 +46,9 @@ export default {
         'matrix-rain': 'matrixRain 1s linear infinite',
         'sleep-pulse': 'sleepPulse 4s ease-in-out infinite',
         'focus-fade': 'focusFade 2s ease-in-out infinite',
+        'scan': 'scan 2s linear infinite',
+        'spin-slow': 'spin 3s linear infinite',
+        'pulse-glow': 'pulseGlow 2s ease-in-out infinite',
       },
       keyframes: {
         energyPulse: {
@@ -76,6 +80,14 @@ export default {
           '0%, 100%': { opacity: '0.8' },
           '50%': { opacity: '1' },
         },
+        scan: {
+          '0%': { transform: 'translateX(-100%)' },
+          '100%': { transform: 'translateX(100%)' }
+        },
+        pulseGlow: {
+          '0%, 100%': { opacity: 0.4 },
+          '50%': { opacity: 0.8 }
+        }
       },
     },
   },
