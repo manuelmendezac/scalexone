@@ -4,27 +4,23 @@ import UserLevelProgress from './UserLevelProgress';
 import SeguimientoGlobal from './SeguimientoGlobal';
 import { FiZap, FiPlusCircle, FiUser, FiMessageCircle } from 'react-icons/fi';
 import useNeuroState from '../store/useNeuroState';
+import useRankingStore from '../store/useRankingStore';
 import NivelesClasificacionDashboard from './NivelesClasificacionDashboard';
 import { supabase } from '../supabase';
+import LoadingScreen from '../components/LoadingScreen';
 
 // Componente de ranking top 10
-const RankingTop10 = ({ usuarioActual = 'manuel@email.com' }) => {
-  // Datos simulados
-  const top10 = [
-    { nombre: 'Manuel Méndez', email: 'manuel@email.com', pais: '🇲🇽', nivel: 7, xp: 4200, avatar: '/avatars/7.png' },
-    { nombre: 'Ana Torres', email: 'ana@email.com', pais: '🇪🇸', nivel: 6, xp: 3900, avatar: '/avatars/6.png' },
-    { nombre: 'Lucas Silva', email: 'lucas@email.com', pais: '🇧🇷', nivel: 6, xp: 3700, avatar: '/avatars/6b.png' },
-    { nombre: 'Sofía Rojas', email: 'sofia@email.com', pais: '🇨🇴', nivel: 5, xp: 3400, avatar: '/avatars/5.png' },
-    { nombre: 'David Lee', email: 'david@email.com', pais: '🇺🇸', nivel: 5, xp: 3200, avatar: '/avatars/5b.png' },
-    { nombre: 'Marta Ruiz', email: 'marta@email.com', pais: '🇦🇷', nivel: 4, xp: 3000, avatar: '/avatars/4.png' },
-    { nombre: 'Juan Pérez', email: 'juan@email.com', pais: '🇲🇽', nivel: 4, xp: 2900, avatar: '/avatars/4b.png' },
-    { nombre: 'Elena Gómez', email: 'elena@email.com', pais: '🇪🇸', nivel: 3, xp: 2700, avatar: '/avatars/3.png' },
-    { nombre: 'Carlos Díaz', email: 'carlos@email.com', pais: '🇨🇱', nivel: 3, xp: 2500, avatar: '/avatars/3b.png' },
-    { nombre: 'Sara López', email: 'sara@email.com', pais: '🇵🇪', nivel: 2, xp: 2300, avatar: '/avatars/2.png' },
-  ];
-  // Simular usuario fuera del top
-  const usuario = { nombre: 'Tú', email: usuarioActual, pais: '🇲🇽', nivel: 2, xp: 1200, avatar: '/avatars/2b.png', puesto: 23 };
-  const enTop = top10.find(u => u.email === usuarioActual);
+const RankingTop10 = () => {
+  const { top10, userRank, loading, fetchRanking } = useRankingStore();
+
+  useEffect(() => {
+    fetchRanking();
+  }, [fetchRanking]);
+
+  if (loading) {
+    return <LoadingScreen message="Cargando ranking..." />;
+  }
+
   return (
     <section className="w-full max-w-4xl mx-auto mb-8">
       <div className="bg-black/40 border border-neurolink-cyberBlue/30 rounded-2xl p-6 shadow-xl">
@@ -45,7 +41,7 @@ const RankingTop10 = ({ usuarioActual = 'manuel@email.com' }) => {
             </thead>
             <tbody>
               {top10.map((u, i) => (
-                <tr key={u.email} className={`border-b border-neurolink-cyberBlue/10 ${u.email === usuarioActual ? 'bg-neurolink-cyberBlue/10' : ''}`}>
+                <tr key={u.email} className={`border-b border-neurolink-cyberBlue/10 ${userRank?.email === u.email ? 'bg-neurolink-cyberBlue/10' : ''}`}>
                   <td className="py-2 pr-4 font-bold">
                     {i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : i + 1}
                   </td>
@@ -56,14 +52,14 @@ const RankingTop10 = ({ usuarioActual = 'manuel@email.com' }) => {
                   <td className="py-2 pr-4">{u.xp}</td>
                 </tr>
               ))}
-              {!enTop && (
+              {userRank && !top10.find(u => u.email === userRank.email) && (
                 <tr className="bg-neurolink-cyberBlue/10">
-                  <td className="py-2 pr-4 font-bold">{usuario.puesto}</td>
-                  <td className="py-2 pr-4"><img src={usuario.avatar} alt="avatar" className="w-10 h-10 rounded-full border-2 border-neurolink-matrixGreen shadow" /></td>
-                  <td className="py-2 pr-4">{usuario.nombre} (Tú)</td>
-                  <td className="py-2 pr-4 text-2xl">{usuario.pais}</td>
-                  <td className="py-2 pr-4">{usuario.nivel}</td>
-                  <td className="py-2 pr-4">{usuario.xp}</td>
+                  <td className="py-2 pr-4 font-bold">{userRank.puesto}</td>
+                  <td className="py-2 pr-4"><img src={userRank.avatar} alt="avatar" className="w-10 h-10 rounded-full border-2 border-neurolink-matrixGreen shadow" /></td>
+                  <td className="py-2 pr-4">{userRank.nombre} (Tú)</td>
+                  <td className="py-2 pr-4 text-2xl">{userRank.pais}</td>
+                  <td className="py-2 pr-4">{userRank.nivel}</td>
+                  <td className="py-2 pr-4">{userRank.xp}</td>
                 </tr>
               )}
             </tbody>
@@ -187,7 +183,7 @@ const Dashboard: React.FC = () => {
         </section>
 
         {/* Ranking Top 10 */}
-        <RankingTop10 usuarioActual="manuel@email.com" />
+        <RankingTop10 />
 
         {/* Barra de progreso global */}
         <section>
@@ -198,28 +194,38 @@ const Dashboard: React.FC = () => {
         <section className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {/* Accesos rápidos */}
           <div className="bg-black/30 rounded-xl border border-neurolink-cyberBlue/30 p-6 flex flex-col gap-4 shadow-lg">
-            <div className="text-neurolink-coldWhite/80 font-orbitron text-lg mb-2">Accesos rápidos</div>
-            <div className="flex flex-wrap gap-4">
-              {accesos.map((a, i) => (
-                <a key={i} href={a.link} className="flex items-center gap-2 px-4 py-2 rounded-lg bg-neurolink-cyberBlue/20 text-neurolink-cyberBlue hover:bg-neurolink-cyberBlue/40 font-semibold transition">
-                  {a.icon}
-                  <span>{a.texto}</span>
+            <h3 className="text-neurolink-coldWhite/90 font-orbitron text-lg">Accesos Rápidos</h3>
+            <div className="grid grid-cols-1 gap-3">
+              {accesos.map((acceso, i) => (
+                <a
+                  key={i}
+                  href={acceso.link}
+                  className="flex items-center gap-3 p-3 rounded-lg bg-black/40 border border-neurolink-cyberBlue/20 hover:bg-neurolink-cyberBlue/10 transition-colors"
+                >
+                  <span className="text-neurolink-matrixGreen text-xl">{acceso.icon}</span>
+                  <span className="text-neurolink-coldWhite/80">{acceso.texto}</span>
                 </a>
               ))}
             </div>
           </div>
+
           {/* Actividad reciente */}
           <div className="bg-black/30 rounded-xl border border-neurolink-cyberBlue/30 p-6 flex flex-col gap-4 shadow-lg">
-            <div className="text-neurolink-coldWhite/80 font-orbitron text-lg mb-2">Actividad reciente</div>
-            <ul className="space-y-2">
-              {actividad.map((a, i) => (
-                <li key={i} className="flex items-center gap-3 text-neurolink-coldWhite/80">
-                  <span className="text-neurolink-matrixGreen text-xl">{a.icon}</span>
-                  <span>{a.texto}</span>
-                  <span className="ml-auto text-xs text-neurolink-coldWhite/40">{a.fecha}</span>
-                </li>
+            <h3 className="text-neurolink-coldWhite/90 font-orbitron text-lg">Actividad Reciente</h3>
+            <div className="grid grid-cols-1 gap-3">
+              {actividad.map((item, i) => (
+                <div
+                  key={i}
+                  className="flex items-center justify-between p-3 rounded-lg bg-black/40 border border-neurolink-cyberBlue/20"
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="text-neurolink-matrixGreen text-xl">{item.icon}</span>
+                    <span className="text-neurolink-coldWhite/80">{item.texto}</span>
+                  </div>
+                  <span className="text-neurolink-coldWhite/50 text-sm">{item.fecha}</span>
+                </div>
               ))}
-            </ul>
+            </div>
           </div>
         </section>
       </motion.div>
