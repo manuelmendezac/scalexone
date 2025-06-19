@@ -62,5 +62,10 @@ export default defineConfig({
     proxy: {
       '/api': 'http://localhost:4002'
     }
+  },
+  build: {
+    rollupOptions: {
+      external: ['@supabase/auth-helpers-react']
+    }
   }
 })
