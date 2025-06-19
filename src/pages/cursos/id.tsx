@@ -1540,8 +1540,7 @@ const CursoDetalle = () => {
         )}
       </ModalFuturista>
     </div>
-  </div>
-);
+  );
 };
 
 export default CursoDetalle; 
