@@ -10,6 +10,7 @@ interface Nivel {
   descripcion: string;
   xp_requerida: number;
   recompensa_monedas: number;
+  requisitos: string[];
   porcentaje_miembros?: number;
 }
 
@@ -78,12 +79,7 @@ const NivelesClasificacionDashboard: React.FC = () => {
           setProgreso(progresoData);
         }
 
-        const nivelesConPorcentaje = nivelesData?.map((nivel, index) => ({
-          ...nivel,
-          porcentaje_miembros: index === 0 ? 75 : index === 1 ? 25 : 0
-        })) || [];
-
-        setNiveles(nivelesConPorcentaje);
+        setNiveles(nivelesData || []);
 
       } catch (err: any) {
         console.error('Error al cargar datos:', err);
@@ -113,6 +109,10 @@ const NivelesClasificacionDashboard: React.FC = () => {
   }
 
   const nivelActual = niveles.find(n => n.nivel === progreso?.nivel_actual);
+  const siguienteNivel = niveles.find(n => n.nivel === (progreso?.nivel_actual || 0) + 1);
+  const porcentajeProgreso = siguienteNivel 
+    ? ((progreso?.xp_actual || 0) / siguienteNivel.xp_requerida) * 100 
+    : 0;
 
   return (
     <div className="container mx-auto p-8">
@@ -126,12 +126,12 @@ const NivelesClasificacionDashboard: React.FC = () => {
                 <div 
                   className="absolute inset-0 rounded-full"
                   style={{
-                    background: `conic-gradient(#FFD700 ${(progreso?.xp_actual || 0) * 36}deg, transparent 0deg)`,
+                    background: `conic-gradient(#FFD700 ${porcentajeProgreso * 3.6}deg, transparent 0deg)`,
                     transform: 'rotate(-90deg)'
                   }}
                 />
                 <img
-                  src="/images/silueta-perfil.svg"
+                  src={userInfo?.name || "/images/silueta-perfil.svg"}
                   alt="Perfil"
                   className="absolute inset-0 w-full h-full rounded-full object-cover p-1"
                 />
@@ -141,14 +141,14 @@ const NivelesClasificacionDashboard: React.FC = () => {
               </div>
             </div>
 
-            <h2 className="text-2xl font-bold text-white">Metalink Comunidad</h2>
+            <h2 className="text-2xl font-bold text-white">{userInfo?.name || 'Usuario'}</h2>
             <div className="bg-[#FFD700] text-black px-4 py-1 rounded-full font-semibold">
-              Nivel {progreso?.nivel_actual || 1}
+              {nivelActual?.titulo || `Nivel ${progreso?.nivel_actual || 1}`}
             </div>
             <div className="text-center">
               <p className="text-2xl font-bold text-white">{progreso?.xp_actual || 0} XP</p>
               <p className="text-gray-400">
-                {progreso?.xp_siguiente_nivel || 1000} XP para subir de nivel
+                {siguienteNivel ? `${siguienteNivel.xp_requerida - (progreso?.xp_actual || 0)} XP para ${siguienteNivel.titulo}` : 'Nivel máximo alcanzado'}
               </p>
             </div>
           </div>
@@ -179,10 +179,45 @@ const NivelesClasificacionDashboard: React.FC = () => {
                 </div>
                 <div className="flex-1">
                   <h3 className="font-semibold text-white">Nivel {nivel.nivel} - {nivel.titulo}</h3>
-                  <p className="text-gray-400">{nivel.porcentaje_miembros || 0}% de miembros</p>
+                  <p className="text-gray-400">{nivel.descripcion}</p>
                 </div>
               </div>
             ))}
+          </div>
+        </div>
+
+        {/* Tabla de Requisitos */}
+        <div className="mt-12">
+          <h3 className="text-2xl font-bold text-white mb-6">Requisitos por Nivel</h3>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left">
+              <thead>
+                <tr className="bg-[#2A2A2A]">
+                  <th className="p-4 text-white">Nivel</th>
+                  <th className="p-4 text-white">Título</th>
+                  <th className="p-4 text-white">XP Requerida</th>
+                  <th className="p-4 text-white">Recompensa</th>
+                  <th className="p-4 text-white">Requisitos</th>
+                </tr>
+              </thead>
+              <tbody>
+                {niveles.map((nivel) => (
+                  <tr key={nivel.id} className="border-b border-[#333333]">
+                    <td className="p-4 text-white">{nivel.nivel}</td>
+                    <td className="p-4 text-white">{nivel.titulo}</td>
+                    <td className="p-4 text-white">{nivel.xp_requerida} XP</td>
+                    <td className="p-4 text-white">{nivel.recompensa_monedas} Monedas</td>
+                    <td className="p-4 text-white">
+                      <ul className="list-disc list-inside">
+                        {nivel.requisitos?.map((requisito, index) => (
+                          <li key={index}>{requisito}</li>
+                        ))}
+                      </ul>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
       </div>
