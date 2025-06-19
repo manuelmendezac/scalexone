@@ -20,19 +20,20 @@ const CursosPage: React.FC = () => {
   const isHydrated = useHydration();
 
   useEffect(() => {
+    console.log('[Cursos] useEffect fetchCursos', { isHydrated });
     if (!isHydrated) return;
     const fetchCursos = async () => {
       setGlobalLoading(true);
       try {
         const { data, error } = await supabase.from('cursos').select('*').order('orden', { ascending: true });
-        console.log('FETCH CURSOS:', { data, error });
+        console.log('[Cursos] FETCH CURSOS:', { data, error });
         if (error) setError('Error al cargar cursos: ' + error.message);
         setCursos(data || []);
         setCursoActivo((data && data[0]) || null);
       } catch (e) {
         const err = e as Error;
         setError('Error inesperado: ' + (err.message || err));
-        console.error('ERROR FETCH CURSOS:', err);
+        console.error('[Cursos] ERROR FETCH CURSOS:', err);
       } finally {
         setGlobalLoading(false);
       }
@@ -42,6 +43,7 @@ const CursosPage: React.FC = () => {
   }, [isHydrated]);
 
   useEffect(() => {
+    console.log('[Cursos] useEffect isAdmin', { isHydrated });
     if (!isHydrated) return;
     if (typeof window !== 'undefined') {
       setIsAdmin(localStorage.getItem('adminMode') === 'true');
@@ -49,6 +51,7 @@ const CursosPage: React.FC = () => {
   }, [isHydrated]);
 
   useEffect(() => {
+    console.log('[Cursos] useEffect userInfo', { isHydrated, userInfo });
     if (!isHydrated) return;
     if (userInfo && userInfo.email && (!userInfo.name || userInfo.name === userInfo.email)) {
       supabase
@@ -57,6 +60,7 @@ const CursosPage: React.FC = () => {
         .eq('email', userInfo.email)
         .single()
         .then(({ data }) => {
+          console.log('[Cursos] Supabase usuarios result', { data, userInfo });
           if (
             data &&
             ((data.name && data.name !== userInfo.name) ||
