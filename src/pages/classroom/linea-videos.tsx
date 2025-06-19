@@ -393,9 +393,28 @@ const LineaVideosClassroom = () => {
             </div>
           </div>
 
-          {/* Título del video y controles */}
+          {/* Título y botón de completado */}
           <div className="w-full mt-6 flex flex-col items-center">
-            <h2 className="text-xl font-bold text-cyan-300 mb-4">{videoActual.titulo}</h2>
+            <div className="flex items-center gap-4 mb-4">
+              <h2 className="text-xl font-bold text-cyan-300">{videoActual.titulo}</h2>
+              <button
+                className={`px-4 py-2 rounded-full text-sm font-bold transition-all ${
+                  completados[claseActual] 
+                    ? 'bg-green-500 text-black' 
+                    : 'bg-cyan-700 text-white hover:bg-cyan-600'
+                }`}
+                onClick={() => {
+                  setCompletados(prev => ({...prev, [claseActual]: true}));
+                  if (claseActual < clasesOrdenadas.length - 1) {
+                    setTimeout(() => setClaseActual(prev => prev + 1), 400);
+                  }
+                }}
+                disabled={completados[claseActual]}
+              >
+                {completados[claseActual] ? '✓ Completado' : 'Marcar como completado'}
+              </button>
+            </div>
+            
             <div className="flex gap-4">
               <button
                 onClick={() => claseActual > 0 && setClaseActual(claseActual - 1)}
@@ -411,6 +430,68 @@ const LineaVideosClassroom = () => {
               >
                 Siguiente Video
               </button>
+            </div>
+          </div>
+
+          {/* Sección de información y materiales */}
+          <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
+            {/* Sobre este módulo */}
+            <div className="bg-neutral-900/50 rounded-xl border border-cyan-900/40 p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-bold text-cyan-400">Sobre este módulo</h3>
+                {isAdmin && (
+                  <button 
+                    onClick={() => setShowEditDescripcion(true)}
+                    className="px-3 py-1 bg-cyan-700 text-white text-sm rounded-lg hover:bg-cyan-600 transition"
+                  >
+                    Editar
+                  </button>
+                )}
+              </div>
+              <div 
+                className="prose prose-invert max-w-none"
+                dangerouslySetInnerHTML={{ __html: descripcionHtml }}
+              />
+            </div>
+
+            {/* Material y herramientas */}
+            <div className="bg-neutral-900/50 rounded-xl border border-green-900/40 p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-bold text-green-400">Material y herramientas</h3>
+                {isAdmin && (
+                  <button 
+                    onClick={() => setShowEditMateriales(true)}
+                    className="px-3 py-1 bg-green-700 text-white text-sm rounded-lg hover:bg-green-600 transition"
+                  >
+                    Editar
+                  </button>
+                )}
+              </div>
+              <ul className="space-y-2">
+                {materiales.map((material) => (
+                  <li key={material.id} className="flex items-center gap-2">
+                    <svg className="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"/>
+                    </svg>
+                    <a 
+                      href={material.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-green-300 hover:text-green-200 transition"
+                    >
+                      {material.titulo}
+                    </a>
+                    {isAdmin && (
+                      <button
+                        onClick={() => handleDeleteMaterial(material.id)}
+                        className="ml-2 text-xs text-red-400 hover:text-red-300"
+                      >
+                        Eliminar
+                      </button>
+                    )}
+                  </li>
+                ))}
+              </ul>
             </div>
           </div>
         </div>
