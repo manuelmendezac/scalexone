@@ -54,7 +54,7 @@ const CursosPage: React.FC = () => {
         .eq('email', userInfo.email)
         .single()
         .then(({ data }) => {
-          if (data && data.name) {
+          if (data && data.name && data.name !== userInfo.name) {
             updateUserInfo({ 
               name: data.name, 
               email: userInfo.email,
