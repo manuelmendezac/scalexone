@@ -17,8 +17,8 @@ interface Nivel {
 }
 
 interface ProgresoUsuario {
-  nivel_actual: number;
-  puntos_totales: number;
+  nivel_actual: string;
+  ventas_acumuladas: number;
 }
 
 // Componente de progreso circular
@@ -82,69 +82,104 @@ const NivelesClasificacionDashboard: React.FC = () => {
         setLoading(true);
         setError(null);
 
+        // Obtener el usuario actual
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) {
           setError('Usuario no autenticado');
           return;
         }
 
-        // Obtener niveles
+        // Obtener niveles de la comunidad
         const { data: nivelesData, error: nivelesError } = await supabase
           .from('niveles_ventas')
           .select('*')
           .eq('community_id', userInfo?.community_id || 'default')
           .order('min_ventas', { ascending: true });
 
-        if (nivelesError) throw nivelesError;
+        if (nivelesError) {
+          console.error('Error al obtener niveles:', nivelesError);
+          throw new Error('Error al cargar los niveles de clasificación');
+        }
+
+        if (!nivelesData || nivelesData.length === 0) {
+          console.warn('No se encontraron niveles configurados');
+          setError('No hay niveles configurados en el sistema');
+          return;
+        }
 
         // Obtener progreso del usuario
         const { data: progresoData, error: progresoError } = await supabase
           .from('progreso_ventas_usuario')
-          .select('*')
+          .select('nivel_actual, ventas_acumuladas')
           .eq('usuario_id', user.id)
           .single();
 
-        if (progresoError && progresoError.code !== 'PGRST116') throw progresoError;
+        if (progresoError && progresoError.code !== 'PGRST116') {
+          console.error('Error al obtener progreso:', progresoError);
+          throw new Error('Error al cargar el progreso del usuario');
+        }
 
-        // Transformar los datos
-        const nivelesFormateados = nivelesData?.map((nivel, index) => ({
+        // Si no existe progreso, crear uno inicial
+        if (!progresoData) {
+          const nivelInicial = nivelesData[0];
+          const { error: createError } = await supabase
+            .from('progreso_ventas_usuario')
+            .insert({
+              usuario_id: user.id,
+              nivel_actual: nivelInicial.id,
+              ventas_acumuladas: 0
+            });
+
+          if (createError) {
+            console.error('Error al crear progreso inicial:', createError);
+            throw new Error('Error al inicializar el progreso del usuario');
+          }
+
+          setProgresoUsuario({
+            nivel_actual: nivelInicial.id,
+            ventas_acumuladas: 0
+          });
+        } else {
+          setProgresoUsuario(progresoData);
+        }
+
+        // Transformar los datos de niveles
+        const nivelesFormateados = nivelesData.map((nivel, index) => ({
           id: nivel.id,
           nombre: nivel.nombre,
           descripcion: nivel.descripcion || '',
           icono: nivel.icono || '🏆',
           color: nivel.color || '#FFD700',
           orden: index + 1,
-          porcentaje_miembros: 0,
+          porcentaje_miembros: 0, // TODO: Calcular porcentaje real
           puntos_minimos: nivel.min_ventas,
           puntos_maximos: nivel.max_ventas,
           comunidad_id: nivel.community_id
-        })) || [];
+        }));
 
         setNiveles(nivelesFormateados);
-        setProgresoUsuario(progresoData || { nivel_actual: 1, puntos_totales: 0 });
-
-      } catch (err) {
-        console.error('Error fetching data:', err);
-        setError(err instanceof Error ? err.message : 'Error al cargar los datos');
+      } catch (err: any) {
+        console.error('Error en fetchData:', err);
+        setError(err.message || 'Error al cargar los datos');
       } finally {
         setLoading(false);
       }
     };
 
     fetchData();
-  }, [userInfo?.community_id]);
+  }, [userInfo]);
 
   if (loading) {
-    return <LoadingScreen message="Cargando niveles..." />;
+    return <LoadingScreen />;
   }
 
   if (error) {
     return (
-      <div className="text-red-500 text-center p-8 bg-black/50 rounded-lg">
-        <p>Error: {error}</p>
-        <button 
+      <div className="flex flex-col items-center justify-center min-h-[400px] text-center p-4">
+        <div className="text-red-500 mb-4">⚠️ {error}</div>
+        <button
           onClick={() => window.location.reload()}
-          className="mt-4 px-4 py-2 bg-neurolink-matrixGreen text-black rounded hover:bg-neurolink-matrixGreen/80"
+          className="bg-neurolink-matrixGreen text-black px-4 py-2 rounded hover:bg-neurolink-matrixGreen/80"
         >
           Reintentar
         </button>
@@ -152,51 +187,88 @@ const NivelesClasificacionDashboard: React.FC = () => {
     );
   }
 
+  const nivelActual = niveles.find(n => n.id === progresoUsuario?.nivel_actual);
+  const siguienteNivel = niveles.find(n => n.orden === (nivelActual?.orden || 0) + 1);
+
   return (
-    <div className="space-y-8">
-      {/* Panel de Nivel Actual */}
+    <div className="container mx-auto p-4 space-y-6">
+      {/* Sección de Progreso */}
       <div className="bg-black/50 backdrop-blur-sm rounded-lg p-6">
-        <h2 className="text-2xl font-bold text-neurolink-matrixGreen mb-4">
-          Nivel {progresoUsuario?.nivel_actual || 1}
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="space-y-4">
-            {niveles.slice(0, Math.min(5, niveles.length)).map((nivel) => (
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-2xl font-bold text-neurolink-matrixGreen">
+            Nivel {nivelActual?.orden || 1} - {nivelActual?.nombre || 'Starter'}
+          </h2>
+          <div className="text-right">
+            <p className="text-sm text-gray-400">Ventas Acumuladas</p>
+            <p className="text-xl text-white">${progresoUsuario?.ventas_acumuladas?.toLocaleString() || '0'}</p>
+          </div>
+        </div>
+
+        {/* Barra de Progreso */}
+        {nivelActual && siguienteNivel && (
+          <div className="mb-4">
+            <div className="h-4 bg-black/30 rounded-full overflow-hidden">
               <div
-                key={nivel.id}
-                className={`flex items-center gap-4 p-4 rounded-lg ${
-                  nivel.orden === progresoUsuario?.nivel_actual 
-                    ? 'bg-neurolink-matrixGreen/20 border border-neurolink-matrixGreen' 
-                    : 'bg-black/30'
-                }`}
-              >
-                <span className="text-2xl">{nivel.icono}</span>
-                <div>
-                  <h3 className="font-bold text-white">{nivel.nombre}</h3>
-                  <p className="text-sm text-gray-400">{nivel.descripcion}</p>
-                </div>
-              </div>
-            ))}
+                className="h-full bg-neurolink-matrixGreen"
+                style={{
+                  width: `${Math.min(
+                    ((progresoUsuario?.ventas_acumuladas || 0) - nivelActual.puntos_minimos) /
+                    (siguienteNivel.puntos_minimos - nivelActual.puntos_minimos) * 100,
+                    100
+                  )}%`
+                }}
+              />
+            </div>
+            <div className="flex justify-between text-sm mt-1">
+              <span className="text-gray-400">${nivelActual.puntos_minimos.toLocaleString()}</span>
+              <span className="text-gray-400">${siguienteNivel.puntos_minimos.toLocaleString()}</span>
+            </div>
           </div>
-          
-          <div className="space-y-4">
-            {niveles.slice(5, Math.min(10, niveles.length)).map((nivel) => (
-              <div 
-                key={nivel.id} 
-                className={`flex items-center gap-4 p-4 rounded-lg ${
-                  nivel.orden === progresoUsuario?.nivel_actual 
-                    ? 'bg-neurolink-matrixGreen/20 border border-neurolink-matrixGreen' 
-                    : 'bg-black/30'
-                }`}
-              >
-                <span className="text-2xl">{nivel.icono}</span>
-                <div>
-                  <h3 className="font-bold text-white">{nivel.nombre}</h3>
-                  <p className="text-sm text-gray-400">{nivel.descripcion}</p>
-                </div>
+        )}
+      </div>
+
+      {/* Lista de Niveles */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="space-y-4">
+          {niveles.slice(0, Math.ceil(niveles.length / 2)).map((nivel) => (
+            <div
+              key={nivel.id}
+              className={`flex items-center gap-4 p-4 rounded-lg ${
+                nivel.id === progresoUsuario?.nivel_actual
+                  ? 'bg-neurolink-matrixGreen/20 border border-neurolink-matrixGreen'
+                  : 'bg-black/30'
+              }`}
+            >
+              <span className="text-2xl">{nivel.icono}</span>
+              <div className="flex-1">
+                <h3 className="font-bold text-white">{nivel.nombre}</h3>
+                <p className="text-sm text-gray-400">
+                  {nivel.descripcion || `Ventas: $${nivel.puntos_minimos.toLocaleString()} - $${nivel.puntos_maximos.toLocaleString()}`}
+                </p>
               </div>
-            ))}
-          </div>
+            </div>
+          ))}
+        </div>
+        
+        <div className="space-y-4">
+          {niveles.slice(Math.ceil(niveles.length / 2)).map((nivel) => (
+            <div
+              key={nivel.id}
+              className={`flex items-center gap-4 p-4 rounded-lg ${
+                nivel.id === progresoUsuario?.nivel_actual
+                  ? 'bg-neurolink-matrixGreen/20 border border-neurolink-matrixGreen'
+                  : 'bg-black/30'
+              }`}
+            >
+              <span className="text-2xl">{nivel.icono}</span>
+              <div className="flex-1">
+                <h3 className="font-bold text-white">{nivel.nombre}</h3>
+                <p className="text-sm text-gray-400">
+                  {nivel.descripcion || `Ventas: $${nivel.puntos_minimos.toLocaleString()} - $${nivel.puntos_maximos.toLocaleString()}`}
+                </p>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     </div>
