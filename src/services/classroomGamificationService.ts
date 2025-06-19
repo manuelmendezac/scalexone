@@ -54,6 +54,48 @@ class ClassroomGamificationService {
     return ClassroomGamificationService.instance;
   }
 
+  // Verificar si es el primer video del día
+  private async verificarPrimerVideoDia(usuarioId: string): Promise<boolean> {
+    const hoy = new Date();
+    hoy.setHours(0, 0, 0, 0);
+
+    const { data: videosHoy } = await supabase
+      .from('progreso_videos_classroom')
+      .select('video_id')
+      .eq('usuario_id', usuarioId)
+      .gte('ultima_reproduccion', hoy.toISOString())
+      .limit(1);
+
+    return !videosHoy || videosHoy.length === 0;
+  }
+
+  // Calcular racha actual
+  private async calcularRachaActual(usuarioId: string): Promise<number> {
+    const { data: ultimoProgreso } = await supabase
+      .from('progreso_videos_classroom')
+      .select('ultima_reproduccion')
+      .eq('usuario_id', usuarioId)
+      .order('ultima_reproduccion', { ascending: false })
+      .limit(1)
+      .single();
+
+    if (!ultimoProgreso) return 0;
+
+    const ultimaReproduccion = new Date(ultimoProgreso.ultima_reproduccion);
+    const hoy = new Date();
+    const diferenciaDias = Math.floor((hoy.getTime() - ultimaReproduccion.getTime()) / (1000 * 60 * 60 * 24));
+
+    if (diferenciaDias > 1) return 0;
+    
+    const { data: racha } = await supabase
+      .from('rachas_usuario')
+      .select('dias_consecutivos')
+      .eq('usuario_id', usuarioId)
+      .single();
+
+    return racha?.dias_consecutivos || 1;
+  }
+
   // Actualizar progreso de video y dar recompensas
   async actualizarProgresoVideo(
     videoId: string,
@@ -136,20 +178,6 @@ class ClassroomGamificationService {
       console.error('Error al actualizar progreso:', error);
       throw error;
     }
-  }
-
-  // Verificar si es el primer video del día
-  private async verificarPrimerVideoDia(usuarioId: string): Promise<boolean> {
-    const hoy = new Date();
-    hoy.setHours(0, 0, 0, 0);
-
-    const { data: videosHoy } = await supabase
-      .from('progreso_videos_classroom')
-      .select('created_at')
-      .eq('usuario_id', usuarioId)
-      .gte('created_at', hoy.toISOString());
-
-    return !videosHoy || videosHoy.length === 0;
   }
 
   // Verificar si completó un módulo
@@ -278,7 +306,7 @@ class ClassroomGamificationService {
         videos_completados: videosCompletadosDelModulo.length,
         total_videos: videos.length,
         completado,
-        recompensa_reclamada: false // Esto se verificaría desde la tabla progreso_modulos_classroom
+        recompensa_reclamada: false
       };
     } catch (error) {
       console.error('Error al obtener progreso del módulo:', error);
@@ -328,45 +356,6 @@ class ClassroomGamificationService {
         xpTotal: 0,
         monedasTotal: 0
       };
-    }
-  }
-
-  // Calcular racha actual (días consecutivos viendo videos)
-  private async calcularRachaActual(usuarioId: string): Promise<number> {
-    try {
-      const { data: fechasVideos } = await supabase
-        .from('progreso_videos_classroom')
-        .select('created_at')
-        .eq('usuario_id', usuarioId)
-        .eq('completado', true)
-        .order('created_at', { ascending: false });
-
-      if (!fechasVideos || fechasVideos.length === 0) return 0;
-
-      // Convertir fechas a días únicos
-      const diasUnicos = [...new Set(
-        fechasVideos.map(v => new Date(v.created_at).toDateString())
-      )].sort().reverse();
-
-      let racha = 0;
-      const hoy = new Date();
-      let fechaActual = new Date(hoy);
-
-      for (let i = 0; i < diasUnicos.length; i++) {
-        const diaVideo = new Date(diasUnicos[i]);
-        const diferenciaDias = Math.floor((fechaActual.getTime() - diaVideo.getTime()) / (1000 * 60 * 60 * 24));
-
-        if (diferenciaDias === racha) {
-          racha++;
-        } else {
-          break;
-        }
-      }
-
-      return racha;
-    } catch (error) {
-      console.error('Error al calcular racha:', error);
-      return 0;
     }
   }
 }
