@@ -50,46 +50,30 @@ const LineaVideosClassroom = () => {
   }, [modulo_id]);
 
   const fetchModuloYVideos = async () => {
+    if (!modulo_id) return;
+    
     setLoading(true);
-    // Traer datos del módulo de classroom
-    let { data: mod, error: modError } = await supabase.from('classroom_modulos').select('*').eq('id', modulo_id).single();
-    console.log('[DEBUG] classroom_modulos:', mod, modError);
-    let moduloCursoId = mod?.modulo_curso_id;
-    if (!moduloCursoId && mod?.titulo) {
-      // Buscar por título en modulos_curso
-      const { data: foundCursoMod, error: findError } = await supabase
-        .from('modulos_curso')
-        .select('id')
-        .eq('titulo', mod.titulo)
-        .maybeSingle();
-      console.log('[DEBUG] Buscar modulos_curso:', foundCursoMod, findError);
-      if (foundCursoMod?.id) {
-        moduloCursoId = foundCursoMod.id;
-        const { error: updateError } = await supabase.from('classroom_modulos').update({ modulo_curso_id: moduloCursoId }).eq('id', mod.id);
-        console.log('[DEBUG] Update classroom_modulos:', updateError);
-      } else {
-        // Crear el módulo en cursos si no existe
-        const { data: newCursoMod, error: createError } = await supabase
-          .from('modulos_curso')
-          .insert([{ titulo: mod.titulo, descripcion: mod.descripcion || '', orden: mod.orden || 0 }])
-          .select()
-          .maybeSingle();
-        console.log('[DEBUG] Crear modulos_curso:', newCursoMod, createError);
-        if (newCursoMod?.id) {
-          moduloCursoId = newCursoMod.id;
-          const { error: updateError2 } = await supabase.from('classroom_modulos').update({ modulo_curso_id: moduloCursoId }).eq('id', mod.id);
-          console.log('[DEBUG] Update classroom_modulos tras crear:', updateError2);
-        }
-      }
-      // Volver a consultar el registro actualizado
-      const { data: modActualizado } = await supabase.from('classroom_modulos').select('*').eq('id', mod.id).single();
-      mod = modActualizado;
-      moduloCursoId = mod?.modulo_curso_id;
+    
+    // Obtener información del módulo
+    const { data: mod } = await supabase
+      .from('classroom_modulos')
+      .select('*')
+      .eq('id', modulo_id)
+      .single();
+
+    if (!mod) {
+      console.error('No se encontró el módulo');
+      setLoading(false);
+      return;
     }
-    console.log('[DEBUG] modulo final:', mod);
+
     setModulo(mod);
     // Traer videos asociados
-    const { data: vids } = await supabase.from('videos_classroom_modulo').select('*').eq('modulo_id', modulo_id).order('orden', { ascending: true });
+    const { data: vids } = await supabase
+      .from('videos_classroom_modulo')
+      .select('*')
+      .eq('modulo_id', modulo_id)
+      .order('orden', { ascending: true });
     setClases(vids || []);
     setLoading(false);
   };
@@ -141,6 +125,30 @@ const LineaVideosClassroom = () => {
     }
   };
 
+  // Obtener el siguiente módulo
+  const navegarSiguienteModulo = async () => {
+    try {
+      // Buscar el siguiente módulo basado en el orden
+      const { data: siguienteModulo } = await supabase
+        .from('classroom_modulos')
+        .select('id')
+        .gt('orden', modulo?.orden || 0)
+        .order('orden')
+        .limit(1)
+        .single();
+
+      if (siguienteModulo) {
+        navigate(`/classroom/videos/${siguienteModulo.id}`);
+      } else {
+        // Si no hay siguiente módulo, volver al inicio
+        navigate('/classroom');
+      }
+    } catch (error) {
+      console.error('Error al buscar siguiente módulo:', error);
+      navigate('/classroom');
+    }
+  };
+
   // Si todos los videos están completados, mostrar pantalla de felicitación
   if (todosCompletados && !isAdmin) {
     marcarModuloCompletado();
@@ -154,33 +162,20 @@ const LineaVideosClassroom = () => {
         </div>
         <div className="text-3xl font-bold text-cyan-300 text-center">¡Has completado el módulo!</div>
         <audio id="felicitacion-audio" src="/audio/felicitacion-modulo.mp3" autoPlay onEnded={e => { e.currentTarget.currentTime = 0; }} />
-        <div className="flex flex-row gap-4 mt-4 w-full justify-center">
+        <div className="flex flex-row gap-2 mt-4 w-full justify-center">
           <button
-            className="flex items-center gap-2 px-6 py-3 rounded-full bg-neutral-800 hover:bg-cyan-900 text-cyan-200 font-bold text-lg shadow transition-all border border-cyan-700"
+            className="flex items-center gap-2 px-4 py-2 rounded-full bg-neutral-800 hover:bg-cyan-900 text-cyan-200 font-bold text-base shadow transition-all border border-cyan-700"
             onClick={() => navigate('/classroom')}
           >
-            <ChevronLeft className="w-5 h-5" /> Regresar al Inicio
+            <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+            Regresar al Inicio
           </button>
           <button
-            className="flex items-center gap-2 px-6 py-3 rounded-full bg-green-500 hover:bg-green-400 text-black font-bold text-lg shadow transition-all border border-green-700"
-            onClick={async () => {
-              // Buscar el siguiente módulo
-              const { data: siguienteModulo } = await supabase
-                .from('classroom_modulos')
-                .select('id')
-                .gt('orden', modulo?.orden || 0)
-                .order('orden')
-                .limit(1)
-                .single();
-              
-              if (siguienteModulo) {
-                navigate(`/classroom/videos/${siguienteModulo.id}`);
-              } else {
-                navigate('/classroom');
-              }
-            }}
+            className="flex items-center gap-2 px-4 py-2 rounded-full bg-green-500 hover:bg-green-400 text-black font-bold text-base shadow transition-all border border-green-700"
+            onClick={navegarSiguienteModulo}
           >
-            Siguiente Módulo <ChevronRight className="w-5 h-5" />
+            Siguiente Módulo 
+            <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
           </button>
         </div>
       </div>
