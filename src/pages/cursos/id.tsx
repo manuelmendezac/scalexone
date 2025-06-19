@@ -1641,7 +1641,7 @@ const CursoDetalle = () => {
           )}
         </ModalFuturista>
       </div>
-    </GlobalLoadingSpinner>
+    </div>
   );
 };
 
