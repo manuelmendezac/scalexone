@@ -1,9 +1,12 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '../supabase';
 import { HexColorPicker } from 'react-colorful';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import type { DropResult } from 'react-beautiful-dnd';
+import useClassroomStore from '../store/useClassroomStore';
+import { useHydration } from '../store/useNeuroState';
+import ClassroomLoadingState from '../components/ClassroomLoadingState';
+import GlobalLoadingSpinner from '../components/GlobalLoadingSpinner';
 
 // Modelo de módulo con imagen de portada
 type Modulo = {
@@ -80,301 +83,270 @@ const ProgresoFuturista = ({ porcentaje }: { porcentaje: number }) => (
   </div>
 );
 
+const MODULOS_POR_PAGINA = 9;
+
 const Classroom = () => {
-  const [modulos, setModulos] = useState<Modulo[]>([]);
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [editIdx, setEditIdx] = useState<number | null>(null);
-  const [editImg, setEditImg] = useState('');
-  const [editColor, setEditColor] = useState('#fff');
-  const [showEditModal, setShowEditModal] = useState(false);
-  const [editTitulo, setEditTitulo] = useState('');
-  const [editDescripcion, setEditDescripcion] = useState('');
-  const [saveMsg, setSaveMsg] = useState<string | null>(null);
-  const [orderMsg, setOrderMsg] = useState<string | null>(null);
   const navigate = useNavigate();
-  const MODULOS_POR_PAGINA = 9;
-  const [pagina, setPagina] = useState(1);
-  const totalPaginas = Math.ceil(modulos.length / MODULOS_POR_PAGINA);
-  const modulosPagina = modulos.slice((pagina-1)*MODULOS_POR_PAGINA, pagina*MODULOS_POR_PAGINA);
+  const [isAdmin, setIsAdmin] = React.useState(false);
+  const isHydrated = useHydration();
+
+  const {
+    modulos,
+    loading,
+    error,
+    pagina,
+    editIdx,
+    showEditModal,
+    editModulo,
+    saveMsg,
+    orderMsg,
+    fetchModulos,
+    setPagina,
+    setEditIdx,
+    setShowEditModal,
+    setEditModulo,
+    setSaveMsg,
+    setOrderMsg,
+    handleSaveEdit,
+    handleDragEnd: handleDragEndStore,
+    handleDelete
+  } = useClassroomStore();
 
   useEffect(() => {
+    if (!isHydrated) return;
     setIsAdmin(localStorage.getItem('adminMode') === 'true');
     fetchModulos();
-  }, []);
-
-  const fetchModulos = async () => {
-    const { data } = await supabase.from('classroom_modulos').select('*').order('orden', { ascending: true });
-    if (data && data.length > 0) setModulos(data as Modulo[]);
-    else setModulos([]);
-  };
+  }, [isHydrated, fetchModulos]);
 
   // Progreso real: por ahora, siempre 0%
-  const getProgreso = (mod: Modulo, idx: number) => 0;
-  const getBadge = (mod: Modulo, idx: number) => mod.badge_url || (getProgreso(mod, idx) === 100 ? '🏆' : null);
+  const getProgreso = () => 0;
+  const getBadge = (mod: typeof modulos[0]) => mod.badge_url || (getProgreso() === 100 ? '🏆' : null);
 
   const handleEdit = (idx: number) => {
     setEditIdx(idx);
-    setEditImg(modulos[idx].imagen_url || '');
-    setEditColor(modulos[idx].color || '#fff');
-    setEditTitulo(modulos[idx].titulo);
-    setEditDescripcion(modulos[idx].descripcion);
     setShowEditModal(true);
   };
 
-  const handleSaveEdit = async () => {
-    setSaveMsg(null);
-    if (editIdx === null) {
-      const { data, error } = await supabase.from('classroom_modulos').insert({
-        titulo: editTitulo,
-        descripcion: editDescripcion,
-        icono: '',
-        imagen_url: editImg,
-        orden: modulos.length + 1,
-        color: editColor,
-        badge_url: ''
-      });
-      if (!error) {
-        setSaveMsg('¡Módulo creado con éxito!');
-        await fetchModulos();
-        setShowEditModal(false);
-      } else {
-        setSaveMsg('Error al crear el módulo: ' + error.message);
-      }
-      return;
-    }
-    const mod = modulos[editIdx];
-    if (mod.id) {
-      const { error } = await supabase.from('classroom_modulos').update({ imagen_url: editImg, color: editColor, titulo: editTitulo, descripcion: editDescripcion }).eq('id', mod.id);
-      if (!error) {
-        setSaveMsg('¡Módulo actualizado con éxito!');
-        await fetchModulos();
-        setShowEditModal(false);
-      } else {
-        setSaveMsg('Error al actualizar el módulo: ' + error.message);
-      }
-    } else {
-      const { data, error } = await supabase.from('classroom_modulos').insert({
-        titulo: editTitulo,
-        descripcion: editDescripcion,
-        icono: mod.icono,
-        imagen_url: editImg,
-        orden: mod.orden,
-        color: editColor,
-        badge_url: mod.badge_url
-      });
-      if (!error) {
-        setSaveMsg('¡Módulo creado con éxito!');
-        await fetchModulos();
-        setShowEditModal(false);
-      } else {
-        setSaveMsg('Error al crear el módulo: ' + error.message);
-      }
-    }
-    setEditIdx(null);
-  };
-
   // Función para manejar el drag & drop
-  const handleDragEnd = async (result: DropResult) => {
+  const handleDragEnd = (result: DropResult) => {
     if (!result.destination) return;
     const sourceIdx = result.source.index + (pagina - 1) * MODULOS_POR_PAGINA;
     const destIdx = result.destination.index + (pagina - 1) * MODULOS_POR_PAGINA;
-    if (sourceIdx === destIdx) return;
-    const newModulos = Array.from(modulos);
-    const [removed] = newModulos.splice(sourceIdx, 1);
-    newModulos.splice(destIdx, 0, removed);
-    let errores: any[] = [];
-    for (let i = 0; i < newModulos.length; i++) {
-      newModulos[i].orden = i + 1;
-      if (newModulos[i].id) {
-        const { error } = await supabase.from('classroom_modulos').update({ orden: i + 1 }).eq('id', newModulos[i].id);
-        if (error) {
-          console.error(`Error actualizando módulo id=${newModulos[i].id}:`, error);
-          errores.push({ id: newModulos[i].id, error });
-        } else {
-          console.log(`Módulo id=${newModulos[i].id} actualizado a orden ${i + 1}`);
-        }
-      } else {
-        console.warn('Módulo sin id:', newModulos[i]);
-      }
-    }
-    setModulos(newModulos);
-    if (errores.length > 0) {
-      setOrderMsg('Error al guardar el orden. Revisa la consola.');
-    } else {
-      setOrderMsg('¡Orden guardado!');
-    }
-    setTimeout(() => setOrderMsg(null), 3000);
+    handleDragEndStore(sourceIdx, destIdx);
   };
 
-  const handleDelete = async (idx: number) => {
-    const mod = modulos[idx];
-    if (!mod.id) return;
-    if (!window.confirm('¿Seguro que deseas eliminar este módulo? Esta acción no se puede deshacer.')) return;
-    const { error } = await supabase.from('classroom_modulos').delete().eq('id', mod.id);
-    if (!error) await fetchModulos();
-    else alert('Error al eliminar: ' + error.message);
-  };
+  const totalPaginas = Math.ceil(modulos.length / MODULOS_POR_PAGINA);
+  const modulosPagina = modulos.slice((pagina-1)*MODULOS_POR_PAGINA, pagina*MODULOS_POR_PAGINA);
+
+  if (!isHydrated) return (
+    <GlobalLoadingSpinner loading={true}>
+      <div />
+    </GlobalLoadingSpinner>
+  );
+  
+  if (loading) return <ClassroomLoadingState />;
+  if (error) return <div className="min-h-screen flex items-center justify-center text-red-400">{error}</div>;
 
   return (
-    <div className="min-h-screen w-full py-12 px-2" style={{ background: '#000' }}>
-      <h1 className="text-4xl font-bold text-white text-center mb-12">Classroom de Inducción</h1>
-      {/* Mostrar solo a admin */}
-      {isAdmin && (
-        <div className="flex justify-center mb-8">
-          <button
-            className="px-4 py-2 rounded bg-yellow-400 text-black font-bold shadow hover:bg-yellow-500 transition"
-            onClick={() => {
-              localStorage.setItem('adminMode', 'false');
-              window.location.reload();
-            }}
-          >
-            Desactivar modo edición
-          </button>
-        </div>
-      )}
-      {orderMsg && (
-        <div className="fixed top-8 left-1/2 -translate-x-1/2 bg-green-500 text-white px-6 py-3 rounded-xl shadow-lg z-50 text-lg font-bold animate-fade-in">
-          {orderMsg}
-        </div>
-      )}
-      <DragDropContext onDragEnd={handleDragEnd}>
-        <Droppable droppableId="modulos-droppable" direction="horizontal">
-          {(provided) => (
-            <div
-              className="max-w-6xl mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-10 justify-items-center"
-              ref={provided.innerRef}
-              {...provided.droppableProps}
+    <GlobalLoadingSpinner loading={false}>
+      <div className="min-h-screen bg-black text-white p-4">
+        {/* Mensajes de estado */}
+        {saveMsg && (
+          <div className={`fixed top-4 right-4 p-4 rounded-lg ${saveMsg.includes('Error') ? 'bg-red-500' : 'bg-green-500'} text-white`}>
+            {saveMsg}
+          </div>
+        )}
+        {orderMsg && (
+          <div className="fixed top-4 right-4 p-4 rounded-lg bg-red-500 text-white">
+            {orderMsg}
+          </div>
+        )}
+
+        {/* Header */}
+        <div className="w-full flex justify-end items-center mb-8">
+          {isAdmin && (
+            <button
+              onClick={() => {
+                setEditIdx(null);
+                setShowEditModal(true);
+              }}
+              className="px-4 py-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition"
             >
-              {modulosPagina.map((mod, idx) => (
-                <Draggable key={mod.id || idx} draggableId={String(mod.id || idx)} index={idx} isDragDisabled={!isAdmin}>
-                  {(provided, snapshot) => (
-                    <div
-                      ref={provided.innerRef}
-                      {...provided.draggableProps}
-                      {...provided.dragHandleProps}
-                      className={`w-full max-w-xs bg-white rounded-2xl shadow-xl border border-gray-200 flex flex-col cursor-pointer hover:scale-105 transition-transform relative group ${isAdmin ? 'draggable' : ''}`}
-                      style={{ background: mod.color || '#fff', ...provided.draggableProps.style }}
-                      onClick={() => navigate(`/classroom/modulo?modulo_id=${mod.id}`)}
-                    >
-                      {/* Imagen de portada */}
-                      <div className="h-40 w-full rounded-t-2xl overflow-hidden flex items-center justify-center bg-gray-100">
-                        {mod.imagen_url ? (
-                          <img src={mod.imagen_url} alt={mod.titulo} className="object-cover w-full h-full" />
-                        ) : (
-                          <span className="text-6xl">{mod.icono || '📦'}</span>
+              Nuevo Módulo
+            </button>
+          )}
+        </div>
+
+        {/* Grid de módulos */}
+        <DragDropContext onDragEnd={handleDragEnd}>
+          <Droppable droppableId="modulos" direction="horizontal">
+            {(provided) => (
+              <div
+                ref={provided.innerRef}
+                {...provided.droppableProps}
+                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-7xl mx-auto"
+              >
+                {modulosPagina.map((mod, idx) => (
+                  <Draggable
+                    key={mod.id || idx}
+                    draggableId={mod.id || `temp-${idx}`}
+                    index={idx}
+                    isDragDisabled={!isAdmin}
+                  >
+                    {(provided) => (
+                      <div
+                        ref={provided.innerRef}
+                        {...provided.draggableProps}
+                        {...provided.dragHandleProps}
+                        className="bg-neutral-800 rounded-xl p-4 relative group"
+                        style={{
+                          ...provided.draggableProps.style,
+                          cursor: isAdmin ? 'grab' : 'pointer',
+                        }}
+                        onClick={() => !isAdmin && navigate(`/classroom/${mod.id}`)}
+                      >
+                        {/* Imagen del módulo */}
+                        <img
+                          src={mod.imagen_url}
+                          alt={mod.titulo}
+                          className="w-full h-48 object-cover rounded-lg mb-4"
+                        />
+                        
+                        {/* Título y descripción */}
+                        <h3 className="text-xl font-bold mb-2">{mod.titulo}</h3>
+                        <p className="text-gray-300 mb-4">{mod.descripcion}</p>
+                        
+                        {/* Barra de progreso */}
+                        <ProgresoFuturista porcentaje={getProgreso()} />
+                        
+                        {/* Badge si existe */}
+                        {getBadge(mod) && (
+                          <div className="absolute top-2 right-2 text-2xl">
+                            {getBadge(mod)}
+                          </div>
+                        )}
+                        
+                        {/* Botones de admin */}
+                        {isAdmin && (
+                          <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleEdit(idx + (pagina - 1) * MODULOS_POR_PAGINA);
+                              }}
+                              className="px-2 py-1 bg-blue-500 text-white rounded mr-2 hover:bg-blue-600"
+                            >
+                              Editar
+                            </button>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                if (window.confirm('¿Seguro que quieres eliminar este módulo?')) {
+                                  handleDelete(idx + (pagina - 1) * MODULOS_POR_PAGINA);
+                                }
+                              }}
+                              className="px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600"
+                            >
+                              Eliminar
+                            </button>
+                          </div>
                         )}
                       </div>
-                      {/* Badge si aplica */}
-                      {getBadge(mod, idx) && (
-                        <div className="absolute top-3 right-3 text-2xl z-10">{getBadge(mod, idx)}</div>
-                      )}
-                      <div className="flex-1 flex flex-col p-6">
-                        <h2 className="text-xl font-bold text-gray-900 mb-2 text-center">{mod.titulo}</h2>
-                        <p className="text-gray-600 text-sm mb-4 text-center">{mod.descripcion}</p>
-                        <ProgresoFuturista porcentaje={getProgreso(mod, idx)} />
-                      </div>
-                      {/* Overlay de edición solo admin */}
-                      {isAdmin && (
-                        <div className="absolute top-2 left-2 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition z-20">
-                          <button className="bg-yellow-400 text-black px-2 py-1 rounded text-xs font-bold" onClick={e => { e.stopPropagation(); handleEdit(idx); }}>Editar portada/color</button>
-                          <button className="bg-blue-500 text-white px-2 py-1 rounded text-xs font-bold" onClick={e => { e.stopPropagation(); navigate(`/classroom/editar-videos?modulo_id=${mod.id}`); }}>Editar videos</button>
-                          <button className="bg-red-500 text-white px-2 py-1 rounded text-xs font-bold" onClick={e => { e.stopPropagation(); handleDelete(idx); }}>Eliminar</button>
-                          <button className="bg-blue-600 text-white px-2 py-1 rounded text-xs font-bold" onClick={e => { e.stopPropagation(); setEditIdx(null); setEditImg(''); setEditColor('#fff'); setEditTitulo(''); setEditDescripcion(''); setShowEditModal(true); }}>Crear nuevo módulo</button>
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </Draggable>
-              ))}
-              {provided.placeholder}
-            </div>
-          )}
-        </Droppable>
-      </DragDropContext>
-      {modulosPagina.length === 0 && (
-        <div className="flex flex-col items-center mb-8">
-          <div className="text-center text-gray-400 text-lg mb-4">No hay módulos creados. Usa el botón para agregar el primero.</div>
-          {isAdmin && (
-            <div className="flex flex-col items-center mb-8 gap-4">
-              <button
-                className="px-6 py-3 rounded bg-blue-600 text-white font-bold shadow hover:bg-blue-700 transition"
-                onClick={() => {
-                  setEditIdx(null);
-                  setEditImg('');
-                  setEditColor('#fff');
-                  setEditTitulo('');
-                  setEditDescripcion('');
-                  setShowEditModal(true);
-                }}
-              >
-                Crear nuevo módulo
-              </button>
-              <button
-                className="px-4 py-2 rounded bg-yellow-400 text-black font-bold shadow hover:bg-yellow-500 transition"
-                onClick={() => {
-                  localStorage.setItem('adminMode', 'false');
-                  window.location.reload();
-                }}
-              >
-                Desactivar modo edición
-              </button>
-            </div>
-          )}
-        </div>
-      )}
-      {/* Controles de paginación */}
-      {totalPaginas > 1 && (
-        <div className="flex justify-center items-center gap-4 mt-10">
-          <button
-            onClick={() => setPagina(p => Math.max(1, p-1))}
-            disabled={pagina === 1}
-            className="px-4 py-2 rounded bg-gray-200 text-gray-700 font-bold disabled:opacity-50"
-          >Anterior</button>
-          <span className="text-lg font-bold text-gray-700">Página {pagina} de {totalPaginas}</span>
-          <button
-            onClick={() => setPagina(p => Math.min(totalPaginas, p+1))}
-            disabled={pagina === totalPaginas}
-            className="px-4 py-2 rounded bg-gray-200 text-gray-700 font-bold disabled:opacity-50"
-          >Siguiente</button>
-        </div>
-      )}
-      {/* Modal de edición de portada y color */}
-      {showEditModal && (
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
-          <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md flex flex-col gap-4">
-            <h2 className="text-xl font-bold text-gray-800 mb-2">Editar portada y color</h2>
-            <label className="text-gray-700 font-semibold">Imagen de portada (sugerido 600x240px, JPG o PNG)</label>
-            <input type="file" accept="image/*" className="mb-4" onChange={async (e) => {
-              const file = e.target.files?.[0];
-              if (!file) return;
-              // Subir a Supabase Storage
-              const fileExt = file.name.split('.').pop();
-              const fileName = `${Date.now()}_${Math.random().toString(36).substring(2, 8)}.${fileExt}`;
-              const { data, error } = await supabase.storage.from('portadas-classroom').upload(fileName, file);
-              if (!error && data) {
-                const { data: urlData } = supabase.storage.from('portadas-classroom').getPublicUrl(data.path);
-                setEditImg(urlData.publicUrl);
-              } else {
-                alert('Error al subir la imagen');
-              }
-            }} />
-            <label className="text-gray-700 font-semibold">Color de fondo de la tarjeta</label>
-            <HexColorPicker color={editColor} onChange={setEditColor} />
-            <label className="text-gray-700 font-semibold">Título del módulo</label>
-            <input type="text" className="p-2 rounded border border-gray-300 mb-2" value={editTitulo} onChange={e => setEditTitulo(e.target.value)} />
-            <label className="text-gray-700 font-semibold">Descripción</label>
-            <textarea className="p-2 rounded border border-gray-300 mb-2" value={editDescripcion} onChange={e => setEditDescripcion(e.target.value)} rows={2} />
-            {saveMsg && (
-              <div className={`mb-2 text-center font-bold ${saveMsg.startsWith('¡') ? 'text-green-600' : 'text-red-600'}`}>{saveMsg}</div>
+                    )}
+                  </Draggable>
+                ))}
+                {provided.placeholder}
+              </div>
             )}
-            <div className="flex gap-4 mt-2">
-              <button onClick={handleSaveEdit} className="bg-blue-600 text-white px-4 py-2 rounded font-bold hover:bg-blue-700">Guardar</button>
-              <button onClick={() => setShowEditModal(false)} className="bg-gray-300 text-gray-800 px-4 py-2 rounded font-bold hover:bg-gray-400">Cancelar</button>
+          </Droppable>
+        </DragDropContext>
+
+        {/* Paginación */}
+        {totalPaginas > 1 && (
+          <div className="flex justify-center items-center gap-2 mt-8">
+            {Array.from({ length: totalPaginas }, (_, i) => i + 1).map((num) => (
+              <button
+                key={num}
+                onClick={() => setPagina(num)}
+                className={`w-8 h-8 rounded-full ${
+                  pagina === num
+                    ? 'bg-blue-500 text-white'
+                    : 'bg-neutral-800 text-gray-300 hover:bg-neutral-700'
+                }`}
+              >
+                {num}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* Modal de edición */}
+        {showEditModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
+            <div className="bg-neutral-800 rounded-xl p-6 max-w-lg w-full">
+              <h2 className="text-2xl font-bold mb-4">
+                {editIdx === null ? 'Nuevo Módulo' : 'Editar Módulo'}
+              </h2>
+              
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium mb-1">Título</label>
+                  <input
+                    type="text"
+                    value={editModulo.titulo}
+                    onChange={(e) => setEditModulo({ titulo: e.target.value })}
+                    className="w-full px-3 py-2 bg-neutral-700 rounded"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium mb-1">Descripción</label>
+                  <textarea
+                    value={editModulo.descripcion}
+                    onChange={(e) => setEditModulo({ descripcion: e.target.value })}
+                    className="w-full px-3 py-2 bg-neutral-700 rounded"
+                    rows={3}
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium mb-1">URL de Imagen</label>
+                  <input
+                    type="text"
+                    value={editModulo.imagen_url}
+                    onChange={(e) => setEditModulo({ imagen_url: e.target.value })}
+                    className="w-full px-3 py-2 bg-neutral-700 rounded"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium mb-1">Color</label>
+                  <HexColorPicker
+                    color={editModulo.color}
+                    onChange={(color) => setEditModulo({ color })}
+                  />
+                </div>
+              </div>
+              
+              <div className="flex justify-end gap-2 mt-6">
+                <button
+                  onClick={() => setShowEditModal(false)}
+                  className="px-4 py-2 bg-neutral-700 rounded hover:bg-neutral-600"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={handleSaveEdit}
+                  className="px-4 py-2 bg-blue-500 rounded hover:bg-blue-600"
+                >
+                  Guardar
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
-    </div>
+        )}
+      </div>
+    </GlobalLoadingSpinner>
   );
 };
 
