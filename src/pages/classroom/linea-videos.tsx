@@ -355,7 +355,31 @@ const LineaVideosClassroom = () => {
           </div>
 
           {/* Contenedor del video con aspect ratio 16:9 */}
-          <div className="w-full max-w-4xl mx-auto">
+          <div className="w-full max-w-4xl mx-auto relative">
+            {/* Flecha para volver atrás */}
+            <button
+              className="absolute top-2 left-2 sm:top-4 sm:left-4 z-40 bg-black/60 hover:bg-cyan-900 text-cyan-200 p-1 sm:p-2 rounded-full shadow border border-cyan-800 transition"
+              style={{fontSize: 18, opacity: 0.7, minWidth: 28, minHeight: 28, display: 'flex', alignItems: 'center', justifyContent: 'center'}}
+              onClick={() => window.history.back()}
+              title="Volver atrás"
+            >
+              <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
+            </button>
+
+            {/* Botón pantalla completa */}
+            <button
+              className="absolute top-2 right-2 sm:top-4 sm:right-4 z-30 bg-cyan-700 hover:bg-cyan-500 text-white p-2 rounded-full shadow-lg border border-cyan-400 transition"
+              onClick={() => setFullscreen(!fullscreen)}
+              title={fullscreen ? 'Salir de pantalla completa' : 'Ver en pantalla completa'}
+              style={{boxShadow: '0 2px 12px #0008'}}
+            >
+              {fullscreen ? (
+                <svg width="28" height="28" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 19L5 23M5 23h6M5 23v-6M19 9l4-4m0 0v6m0-6h-6"/></svg>
+              ) : (
+                <svg width="28" height="28" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 9V5h4M19 5h4v4M5 19v4h4M19 23h4v-4"/></svg>
+              )}
+            </button>
+
             <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
               <iframe
                 ref={videoRef}
@@ -369,141 +393,26 @@ const LineaVideosClassroom = () => {
             </div>
           </div>
 
-          {/* Video grande y protagonista, sin bordes extras */}
-          <div className={`relative w-full aspect-video bg-black overflow-visible flex flex-col items-center justify-center border-b-4 border-cyan-900/30 shadow-lg`} style={fullscreen ? {position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', zIndex: 100, background: '#000', margin: 0, borderRadius: 0, padding: 0, minHeight: '100vh', maxHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center'} : {width: '100%', minHeight: 200, maxHeight: 700, margin: 0, borderRadius: 0, background: '#000', padding: 0}}>
-            {/* Flecha para volver atrás */}
-            <button
-              className="absolute top-2 left-2 sm:top-4 sm:left-4 z-40 bg-black/60 hover:bg-cyan-900 text-cyan-200 p-1 sm:p-2 rounded-full shadow border border-cyan-800 transition"
-              style={{fontSize: 18, opacity: 0.7, minWidth: 28, minHeight: 28, display: 'flex', alignItems: 'center', justifyContent: 'center'}}
-              onClick={() => window.history.back()}
-              title="Volver atrás"
-            >
-              <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
-            </button>
-            {/* Botón pantalla completa y ESC */}
-            <button
-              className="absolute top-2 right-2 sm:top-4 sm:right-4 z-30 bg-cyan-700 hover:bg-cyan-500 text-white p-2 rounded-full shadow-lg border border-cyan-400 transition"
-              onClick={() => setFullscreen(f => !f)}
-              title={fullscreen ? 'Salir de pantalla completa' : 'Ver en pantalla completa'}
-              style={{boxShadow: '0 2px 12px #0008'}}
-            >
-              {fullscreen ? (
-                <svg width="28" height="28" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 19L5 23M5 23h6M5 23v-6M19 9l4-4m0 0v6m0-6h-6"/></svg>
-              ) : (
-                <svg width="28" height="28" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 9V5h4M19 5h4v4M5 19v4h4M19 23h4v-4"/></svg>
-              )}
-            </button>
-            {fullscreen && (
-              <div className="absolute top-2 left-2 sm:top-4 sm:left-4 z-30 flex items-center gap-2 bg-black/70 px-2 sm:px-3 py-1 rounded-full text-cyan-200 text-xs sm:text-base font-bold shadow-lg">
-                <span className="hidden md:inline">Presiona</span> <kbd className="bg-cyan-800 px-2 py-1 rounded text-white font-mono">ESC</kbd> <span className="hidden md:inline">para salir</span>
-              </div>
-            )}
-            {/* Reproductor de video */}
-            <div className="flex-1 bg-black rounded-2xl overflow-hidden shadow-2xl border-2 border-cyan-700 relative">
-              {embedUrl ? (
-                <div className="relative w-full h-full">
-                  <iframe
-                    ref={videoRef}
-                    src={embedUrl}
-                    className="w-full h-full"
-                    frameBorder="0"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowFullScreen
-                    title={videoActual.titulo}
-                  />
-                  
-                  {/* Componente de gamificación */}
-                  {videoActual.id && modulo_id && (
-                    <ClassroomVideoGamification
-                      videoId={videoActual.id}
-                      moduloId={modulo_id}
-                      currentTime={currentTime}
-                      duration={duration}
-                      onProgressUpdate={handleVideoProgress}
-                    />
-                  )}
-                </div>
-              ) : (
-                <div className="w-full h-full flex items-center justify-center text-cyan-400 text-xl">
-                  Selecciona un video para comenzar
-                </div>
-              )}
+          {/* Título del video y controles */}
+          <div className="w-full mt-6 flex flex-col items-center">
+            <h2 className="text-xl font-bold text-cyan-300 mb-4">{videoActual.titulo}</h2>
+            <div className="flex gap-4">
+              <button
+                onClick={() => claseActual > 0 && setClaseActual(claseActual - 1)}
+                disabled={claseActual === 0}
+                className="px-4 py-2 bg-cyan-700 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-cyan-600 transition"
+              >
+                Video Anterior
+              </button>
+              <button
+                onClick={() => claseActual < clasesOrdenadas.length - 1 && setClaseActual(claseActual + 1)}
+                disabled={claseActual === clasesOrdenadas.length - 1}
+                className="px-4 py-2 bg-cyan-700 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-cyan-600 transition"
+              >
+                Siguiente Video
+              </button>
             </div>
           </div>
-          {/* Solo mostrar el resto del layout si no está en fullscreen */}
-          {!fullscreen && (
-            <>
-              {/* Título grande debajo del video */}
-              <div className="w-full flex flex-col items-center mb-2 mt-4 sm:mb-4 sm:mt-6 px-1 sm:px-2 md:px-0">
-                <div className="flex items-center gap-3">
-                  <span className="text-cyan-200 text-lg sm:text-xl md:text-3xl font-bold uppercase tracking-tight text-center bg-cyan-900/20 px-2 sm:px-4 md:px-6 py-2 md:py-3 rounded-xl shadow">
-                    {videoActual.titulo || 'Sin título'}
-                  </span>
-                  <button
-                    className={`ml-2 px-3 py-1 rounded-full text-xs font-bold transition-all border ${completados[claseActual] ? 'bg-green-500 text-black border-green-600' : 'bg-neutral-800 text-cyan-300 border-cyan-700 hover:bg-cyan-900'}`}
-                    onClick={() => {
-                      setCompletados(prev => ({...prev, [claseActual]: true}));
-                      if (claseActual < clasesOrdenadas.length - 1) {
-                        setTimeout(() => setClaseActual(prev => prev + 1), 400);
-                      }
-                    }}
-                    disabled={completados[claseActual]}
-                  >
-                    {completados[claseActual] ? 'Completado ✓' : 'Marcar como completado'}
-                  </button>
-                </div>
-              </div>
-              {/* Botones de navegación */}
-              <div className="flex gap-4 mt-2 justify-center">
-                <button
-                  className="bg-cyan-700 hover:bg-cyan-500 text-white p-2 rounded-full shadow-md transition-all disabled:opacity-40"
-                  onClick={() => setClaseActual((prev) => Math.max(prev - 1, 0))}
-                  disabled={claseActual === 0}
-                  aria-label="Anterior"
-                >
-                  <ChevronLeft className="w-6 h-6" />
-                </button>
-                <button
-                  className="bg-cyan-700 hover:bg-cyan-500 text-white p-2 rounded-full shadow-md transition-all disabled:opacity-40"
-                  onClick={() => setClaseActual((prev) => Math.min(prev + 1, clasesOrdenadas.length - 1))}
-                  disabled={esUltimoVideo}
-                  aria-label="Siguiente"
-                >
-                  <ChevronRight className="w-6 h-6" />
-                </button>
-              </div>
-              {/* Sección de descripción y materiales */}
-              <div className="w-full flex flex-col md:flex-row gap-6 mt-8">
-                <div className="flex-1 bg-neutral-900 rounded-2xl border-2 border-cyan-700 p-6 shadow-xl">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-cyan-400 text-lg font-bold">Sobre este módulo</span>
-                    {isAdmin && (
-                      <button className="bg-cyan-700 text-white px-3 py-1 rounded text-xs font-bold" onClick={() => setShowEditDescripcion(true)}>Editar</button>
-                    )}
-                  </div>
-                  <div className="prose prose-invert max-w-none" dangerouslySetInnerHTML={{ __html: descripcionHtml }} />
-                </div>
-                <div className="flex-1 bg-neutral-900 rounded-2xl border-2 border-green-700 p-6 shadow-xl">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-green-400 text-lg font-bold">Material y herramientas</span>
-                    {isAdmin && (
-                      <button className="bg-green-700 text-white px-3 py-1 rounded text-xs font-bold" onClick={() => setShowEditMateriales(true)}>Editar</button>
-                    )}
-                  </div>
-                  <ul className="list-disc pl-5">
-                    {materiales.map((m) => (
-                      <li key={m.id} className="mb-2">
-                        <a href={m.url} target="_blank" rel="noopener noreferrer" className="text-green-300 hover:underline">{m.titulo}</a>
-                        {isAdmin && (
-                          <button className="ml-2 text-xs text-red-400 underline" onClick={() => handleDeleteMaterial(m.id)}>Eliminar</button>
-                        )}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
-            </>
-          )}
         </div>
       </div>
       {/* Sidebar de videos */}
