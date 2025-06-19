@@ -404,135 +404,96 @@ const LineaVideosClassroom = () => {
               )}
             </button>
 
-            <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
-              <div className="aspect-video bg-black rounded-xl overflow-hidden">
-                <iframe
-                  ref={videoRef}
-                  src={embedUrl}
-                  className="w-full h-full"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                />
-              </div>
-
-              {/* Componente de gamificación */}
-              <ClassroomVideoGamification
-                videoId={videoActual.id}
-                moduloId={modulo_id || ''}
-                currentTime={currentTime}
-                duration={duration}
-                onProgressUpdate={handleVideoProgress}
+            <div className="aspect-video bg-black rounded-xl overflow-hidden">
+              <iframe
+                ref={videoRef}
+                src={embedUrl}
+                className="w-full h-full"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
               />
             </div>
-          </div>
 
-          {/* Título y botón de completado */}
-          <div className="w-full mt-6 flex flex-col items-center">
-            <div className="flex items-center gap-4 mb-4">
-              <h2 className="text-xl font-bold text-cyan-300">{videoActual.titulo}</h2>
+            {/* Componente de gamificación */}
+            <ClassroomVideoGamification
+              videoId={videoActual.id}
+              moduloId={modulo_id || ''}
+              currentTime={currentTime}
+              duration={duration}
+              onProgressUpdate={handleVideoProgress}
+            />
+
+            {/* Título y botón de completado */}
+            <div className="mt-2 flex justify-between items-center">
+              <h2 className="text-xl font-bold text-cyan-300">
+                {videoActual.titulo || 'Sin título'}
+              </h2>
               <button
-                className={`px-4 py-2 rounded-full text-sm font-bold transition-all ${
-                  completados[claseActual] 
-                    ? 'bg-green-500 text-black' 
-                    : 'bg-cyan-700 text-white hover:bg-cyan-600'
-                }`}
-                onClick={() => {
-                  if (!completados[claseActual]) {
-                    setCompletados(prev => ({...prev, [claseActual]: true}));
-                    // Si es el último video, esperar un momento antes de mostrar la pantalla de felicitación
-                    if (claseActual === clasesOrdenadas.length - 1) {
-                      setTimeout(() => {
-                        marcarModuloCompletado();
-                      }, 500);
-                    } else {
-                      // Si no es el último video, pasar al siguiente automáticamente
-                      setTimeout(() => setClaseActual(prev => prev + 1), 400);
-                    }
-                  }
-                }}
-                disabled={completados[claseActual]}
+                onClick={() => handleVideoProgress(100)}
+                className="bg-cyan-600 hover:bg-cyan-500 text-white px-4 py-2 rounded-lg transition-colors"
               >
-                {completados[claseActual] ? '✓ Completado' : 'Marcar como completado'}
+                Marcar como completado
               </button>
             </div>
-            
-            <div className="flex gap-4">
+
+            {/* Descripción del video */}
+            <p className="mt-1 text-gray-300 text-sm">
+              {videoActual.descripcion || 'Sin descripción'}
+            </p>
+
+            {/* Navegación entre videos */}
+            <div className="flex justify-between mt-3">
               <button
-                onClick={() => claseActual > 0 && setClaseActual(claseActual - 1)}
+                onClick={() => setClaseActual(prev => Math.max(0, prev - 1))}
                 disabled={claseActual === 0}
-                className="px-4 py-2 bg-cyan-700 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-cyan-600 transition"
+                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-cyan-900/50 hover:bg-cyan-800/50 disabled:opacity-50 disabled:cursor-not-allowed"
               >
+                <ChevronLeft className="w-5 h-5" />
                 Video Anterior
               </button>
-              <button
-                onClick={() => claseActual < clasesOrdenadas.length - 1 && setClaseActual(claseActual + 1)}
-                disabled={claseActual === clasesOrdenadas.length - 1}
-                className="px-4 py-2 bg-cyan-700 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-cyan-600 transition"
-              >
-                Siguiente Video
-              </button>
+
+              {esUltimoVideo ? (
+                <button
+                  onClick={navegarSiguienteModulo}
+                  className="flex items-center gap-2 px-4 py-2 rounded-lg bg-green-600 hover:bg-green-700"
+                >
+                  Siguiente Módulo
+                  <ChevronRight className="w-5 h-5" />
+                </button>
+              ) : (
+                <button
+                  onClick={() => setClaseActual(prev => Math.min(clasesOrdenadas.length - 1, prev + 1))}
+                  className="flex items-center gap-2 px-4 py-2 rounded-lg bg-cyan-900/50 hover:bg-cyan-800/50"
+                >
+                  Siguiente Video
+                  <ChevronRight className="w-5 h-5" />
+                </button>
+              )}
             </div>
           </div>
 
-          {/* Sección de información y materiales */}
-          <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
-            {/* Sobre este módulo */}
-            <div className="bg-neutral-900/50 rounded-xl border border-cyan-900/40 p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-bold text-cyan-400">Sobre este módulo</h3>
-                {isAdmin && (
-                  <button 
-                    onClick={() => setShowEditDescripcion(true)}
-                    className="px-3 py-1 bg-cyan-700 text-white text-sm rounded-lg hover:bg-cyan-600 transition"
-                  >
-                    Editar
-                  </button>
-                )}
-              </div>
-              <div 
-                className="prose prose-invert max-w-none"
-                dangerouslySetInnerHTML={{ __html: descripcionHtml }}
-              />
+          {/* Bloques de información */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+            <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-4 border border-cyan-500/20">
+              <h3 className="text-lg font-bold text-cyan-300 mb-2">Sobre este módulo</h3>
+              <div className="text-gray-300" dangerouslySetInnerHTML={{ __html: descripcionHtml }} />
             </div>
 
-            {/* Material y herramientas */}
-            <div className="bg-neutral-900/50 rounded-xl border border-green-900/40 p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-bold text-green-400">Material y herramientas</h3>
-                {isAdmin && (
-                  <button 
-                    onClick={() => setShowEditMateriales(true)}
-                    className="px-3 py-1 bg-green-700 text-white text-sm rounded-lg hover:bg-green-600 transition"
-                  >
-                    Editar
-                  </button>
-                )}
-              </div>
-              <ul className="space-y-2">
+            <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-4 border border-cyan-500/20">
+              <h3 className="text-lg font-bold text-cyan-300 mb-2">Material y herramientas</h3>
+              <div className="space-y-2">
                 {materiales.map((material) => (
-                  <li key={material.id} className="flex items-center gap-2">
-                    <svg className="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"/>
-                    </svg>
-                    <a 
-                      href={material.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-green-300 hover:text-green-200 transition"
-                    >
-                      {material.titulo}
-                    </a>
-                    {isAdmin && (
-                      <button
-                        onClick={() => handleDeleteMaterial(material.id)}
-                        className="ml-2 text-xs text-red-400 hover:text-red-300"
-                      >
-                        Eliminar
-                      </button>
-                    )}
-                  </li>
+                  <a
+                    key={material.id}
+                    href={material.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block p-2 rounded bg-gray-700/50 hover:bg-gray-600/50 transition-colors"
+                  >
+                    {material.titulo}
+                  </a>
                 ))}
-              </ul>
+              </div>
             </div>
           </div>
         </div>
