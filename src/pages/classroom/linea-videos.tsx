@@ -41,6 +41,8 @@ const LineaVideosClassroom = () => {
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [videoProgress, setVideoProgress] = useState(0);
+  const [showReward, setShowReward] = useState(false);
+  const [rewardMessage, setRewardMessage] = useState('');
   const videoRef = useRef<HTMLIFrameElement>(null);
 
   useEffect(() => {
@@ -150,53 +152,53 @@ const LineaVideosClassroom = () => {
     }
   };
 
+  // Reiniciar progreso al cambiar de video
+  useEffect(() => {
+    setVideoProgress(0);
+    setShowReward(false);
+    setRewardMessage('');
+  }, [claseActual]);
+
+  // Función para mostrar recompensas
+  const mostrarRecompensa = (xp: number, monedas: number, mensaje: string) => {
+    setRewardMessage(mensaje);
+    setShowReward(true);
+    setTimeout(() => setShowReward(false), 3000);
+  };
+
+  // Función para marcar video como completado
+  const marcarComoCompletado = async () => {
+    try {
+      const usuarioId = neuro.userInfo?.email || 'anon';
+      const resultado = await classroomGamificationService.actualizarProgresoVideo(
+        videoActual.id,
+        usuarioId,
+        duration,
+        100
+      );
+      
+      if (resultado.xpGanado > 0 || resultado.monedasGanadas > 0) {
+        setCompletados(prev => ({...prev, [claseActual]: true}));
+        mostrarRecompensa(resultado.xpGanado, resultado.monedasGanadas, resultado.mensaje);
+        
+        // Si no es el último video, pasar al siguiente automáticamente
+        if (claseActual < clasesOrdenadas.length - 1) {
+          setTimeout(() => setClaseActual(prev => prev + 1), 2000);
+        }
+      }
+    } catch (error) {
+      console.error('Error al marcar como completado:', error);
+    }
+  };
+
   // Función para manejar el progreso del video
   const handleVideoProgress = (progress: number) => {
     setVideoProgress(progress);
     // Marcar como completado si el progreso es >= 90%
     if (progress >= 90 && !completados[claseActual]) {
-      setCompletados(prev => ({ ...prev, [claseActual]: true }));
-      
-      // Actualizar progreso en el servicio de gamificación
-      const usuarioId = neuro.userInfo?.email || 'anon';
-      classroomGamificationService.actualizarProgresoVideo(
-        videoActual.id,
-        usuarioId,
-        Math.floor(currentTime),
-        progress
-      ).catch(error => console.error('Error al actualizar progreso:', error));
+      marcarComoCompletado();
     }
   };
-
-  // Función para manejar el progreso real del video desde el iframe de Vimeo
-  const handleIframeMessage = (event: MessageEvent) => {
-    // Solo procesar mensajes del iframe de Vimeo
-    if (!event.origin.includes('player.vimeo.com')) return;
-    
-    try {
-      const data = JSON.parse(event.data);
-      
-      // Procesar eventos de Vimeo
-      if (data.event === 'timeupdate') {
-        const currentTime = data.data.seconds;
-        const duration = data.data.duration;
-        setCurrentTime(currentTime);
-        setDuration(duration);
-        
-        // Calcular y actualizar progreso
-        const progress = Math.floor((currentTime / duration) * 100);
-        handleVideoProgress(progress);
-      }
-    } catch (error) {
-      console.error('Error al procesar mensaje del iframe:', error);
-    }
-  };
-
-  // Escuchar mensajes del iframe
-  useEffect(() => {
-    window.addEventListener('message', handleIframeMessage);
-    return () => window.removeEventListener('message', handleIframeMessage);
-  }, []);
 
   // Configurar el iframe para recibir eventos de Vimeo
   useEffect(() => {
@@ -234,7 +236,7 @@ const LineaVideosClassroom = () => {
       player.off('timeupdate');
       player.off('ended');
     };
-  }, [embedUrl]);
+  }, [embedUrl, claseActual]); // Agregamos claseActual para reiniciar el progreso
 
   // Establecer duración del video desde los metadatos
   useEffect(() => {
@@ -404,14 +406,31 @@ const LineaVideosClassroom = () => {
               )}
             </button>
 
-            <div className="aspect-video bg-black rounded-xl overflow-hidden">
-              <iframe
-                ref={videoRef}
-                src={embedUrl}
-                className="w-full h-full"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-              />
+            <div className="relative">
+              <div className="aspect-video bg-black rounded-xl overflow-hidden relative">
+                <iframe
+                  ref={videoRef}
+                  src={embedUrl}
+                  className="w-full h-full"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                />
+              </div>
+
+              {/* Mostrar recompensa */}
+              {showReward && (
+                <div className="absolute top-4 right-4 bg-black/80 backdrop-blur-sm rounded-lg p-4 border border-cyan-500/30 animate-fade-in">
+                  <div className="text-cyan-400 font-medium">{rewardMessage}</div>
+                </div>
+              )}
+
+              {/* Indicador de progreso */}
+              <div className="absolute bottom-0 left-0 w-full h-1 bg-black/50">
+                <div 
+                  className="h-full bg-cyan-500 transition-all duration-300"
+                  style={{ width: `${videoProgress}%` }}
+                />
+              </div>
             </div>
 
             {/* Componente de gamificación */}
@@ -429,27 +448,7 @@ const LineaVideosClassroom = () => {
                 {videoActual.titulo || 'Sin título'}
               </h2>
               <button
-                onClick={async () => {
-                  try {
-                    const usuarioId = neuro.userInfo?.email || 'anon';
-                    const resultado = await classroomGamificationService.actualizarProgresoVideo(
-                      videoActual.id,
-                      usuarioId,
-                      duration,
-                      100
-                    );
-                    
-                    if (resultado.xpGanado > 0 || resultado.monedasGanadas > 0) {
-                      setCompletados(prev => ({...prev, [claseActual]: true}));
-                      // Si no es el último video, pasar al siguiente automáticamente
-                      if (claseActual < clasesOrdenadas.length - 1) {
-                        setTimeout(() => setClaseActual(prev => prev + 1), 1000);
-                      }
-                    }
-                  } catch (error) {
-                    console.error('Error al marcar como completado:', error);
-                  }
-                }}
+                onClick={marcarComoCompletado}
                 disabled={completados[claseActual]}
                 className={`px-4 py-2 rounded-lg transition-all duration-300 font-medium ${
                   completados[claseActual]
