@@ -61,7 +61,7 @@ function App() {
   const { t } = useTranslation();
   const [showOnboarding, setShowOnboarding] = useState(false);
   const navigate = useNavigate();
-  const { avatarUrl, notifications, userName, setHydrated, setMessages, setNotifications, setUserName, updateUserInfo } = useNeuroState();
+  const { avatarUrl, notifications, userName, setHydrated, setMessages, setNotifications, setUserName, updateUserInfo, userInfo } = useNeuroState();
   // Estado para modo oscuro (puedes mejorarlo según tu lógica global)
   const [darkMode, setDarkMode] = useState(false);
   // Simulación de login (ajusta según tu lógica real)
@@ -90,22 +90,30 @@ function App() {
       const { data: { user } } = await supabase.auth.getUser();
       if (user && user.email) {
         const nombre = user.user_metadata?.name || user.user_metadata?.full_name || user.email;
-        setUserName(nombre);
-        
+        if (nombre !== userName) setUserName(nombre);
+
         // Obtener datos completos del usuario desde la tabla usuarios
         const { data: usuarioData } = await supabase
           .from('usuarios')
           .select('rol, community_id')
           .eq('email', user.email)
           .single();
-        
-        updateUserInfo({
-          name: nombre,
-          email: user.email,
-          rol: usuarioData?.rol || user.user_metadata?.rol || 'user',
-          community_id: usuarioData?.community_id || 'default'
-        });
-        
+
+        // Solo actualiza si hay cambios reales
+        if (
+          usuarioData?.rol !== userInfo.rol ||
+          usuarioData?.community_id !== userInfo.community_id ||
+          nombre !== userInfo.name ||
+          user.email !== userInfo.email
+        ) {
+          updateUserInfo({
+            name: nombre,
+            email: user.email,
+            rol: usuarioData?.rol || user.user_metadata?.rol || 'user',
+            community_id: usuarioData?.community_id || 'default'
+          });
+        }
+
         syncUsuarioSupabase(user);
         // Redirige solo si está en login, registro o raíz
         if (["/login", "/registro", "/"].includes(location.pathname)) {
@@ -120,7 +128,7 @@ function App() {
     return () => {
       listener?.subscription.unsubscribe();
     };
-  }, [location.pathname, setUserName, updateUserInfo, navigate]);
+  }, [location.pathname, setUserName, updateUserInfo, navigate, userInfo, userName]);
 
   const handleOnboardingClose = () => {
     setShowOnboarding(false);
