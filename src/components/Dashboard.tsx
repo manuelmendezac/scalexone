@@ -6,6 +6,7 @@ import useNeuroState from '../store/useNeuroState';
 import useRankingStore from '../store/useRankingStore';
 import NivelesClasificacionDashboard from './NivelesClasificacionDashboard';
 import RankingTopSellers from './RankingTopSellers';
+import RankingVentasCompacto from './RankingVentasCompacto';
 import { supabase } from '../supabase';
 import LoadingScreen from '../components/LoadingScreen';
 
@@ -138,8 +139,14 @@ const Dashboard: React.FC = () => {
         {/* Niveles de Clasificación (Encabezado visual) */}
         <NivelesClasificacionDashboard />
 
-        {/* Ranking Top Sellers */}
-        <RankingTopSellers />
+        {/* Grid de Rankings */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+          {/* Ranking Top Sellers (Original) */}
+          <RankingTopSellers />
+          
+          {/* Nuevo Ranking Compacto */}
+          <RankingVentasCompacto />
+        </div>
 
         {/* Ranking Top 10 */}
         <RankingTop10 />

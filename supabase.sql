@@ -283,4 +283,57 @@ end $$;
 -- Actualizar registros existentes para inicializar puntos
 update progreso_ventas_usuario 
 set puntos = 0 
-where puntos is null; 
+where puntos is null;
+
+-- Función para calcular las ventas del mes actual por usuario
+create or replace function calcular_ventas_mes_actual(usuario_id uuid)
+returns numeric
+language plpgsql
+security definer
+as $$
+declare
+  total_mes numeric;
+begin
+  select coalesce(sum(monto), 0)
+  into total_mes
+  from ventas
+  where vendedor_id = usuario_id
+  and fecha_venta >= date_trunc('month', current_date)
+  and fecha_venta < date_trunc('month', current_date) + interval '1 month';
+  
+  return total_mes;
+end;
+$$;
+
+-- Función para obtener el ranking detallado de ventas
+create or replace function obtener_ranking_ventas_detallado()
+returns table (
+  id uuid,
+  nombre text,
+  avatar_url text,
+  ventas_totales numeric,
+  ventas_mes numeric,
+  nivel text,
+  posicion bigint
+)
+language plpgsql
+security definer
+as $$
+begin
+  return query
+  select 
+    u.id,
+    u.nombre,
+    u.avatar_url,
+    coalesce(pvu.ventas_acumuladas, 0) as ventas_totales,
+    calcular_ventas_mes_actual(u.id) as ventas_mes,
+    nv.nombre as nivel,
+    rank() over (order by coalesce(pvu.ventas_acumuladas, 0) desc) as posicion
+  from usuarios u
+  left join progreso_ventas_usuario pvu on u.id = pvu.usuario_id
+  left join niveles_ventas nv on pvu.nivel_actual = nv.id
+  where pvu.ventas_acumuladas > 0
+  order by ventas_totales desc
+  limit 5;
+end;
+$$; 
