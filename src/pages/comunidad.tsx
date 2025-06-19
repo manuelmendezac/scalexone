@@ -1,20 +1,24 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import FeedComunidad from '../components/comunidad/FeedComunidad';
 import BarraLateralComunidad from '../components/comunidad/BarraLateralComunidad';
-import NeonSpinner from '../components/NeonSpinner';
+import LoadingScreen from '../components/LoadingScreen';
+import { useHydration } from '../store/useNeuroState';
 
 const ComunidadPage = () => {
   const [menuAbierto, setMenuAbierto] = useState(false);
   // Detectar si es móvil
   const esMovil = typeof window !== 'undefined' && window.innerWidth < 768;
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const isHydrated = useHydration();
 
-  if (loading) {
-    return (
-      <div style={{ minHeight: '100vh', background: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <NeonSpinner size={64} />
-      </div>
-    );
+  useEffect(() => {
+    if (isHydrated) {
+      setLoading(false);
+    }
+  }, [isHydrated]);
+
+  if (!isHydrated || loading) {
+    return <LoadingScreen message="Cargando comunidad..." />;
   }
 
   return (
