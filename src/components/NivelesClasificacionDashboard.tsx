@@ -3,7 +3,7 @@ import { supabase } from '../supabase';
 import useNeuroState from '../store/useNeuroState';
 import LoadingScreen from './LoadingScreen';
 
-interface Nivel {
+interface NivelVentas {
   id: number;
   nombre: string;
   descripcion: string;
@@ -11,12 +11,27 @@ interface Nivel {
   max_ventas: number;
   icono?: string;
   color?: string;
-  community_id?: string;
 }
 
-interface ProgresoUsuario {
+interface NivelAcademico {
+  id: number;
+  nombre: string;
+  descripcion: string;
+  modulos_requeridos: number;
+  videos_requeridos: number;
+  icono?: string;
+  color?: string;
+}
+
+interface ProgresoVentas {
   nivel_actual: number;
   ventas_acumuladas: number;
+}
+
+interface ProgresoAcademico {
+  nivel_actual: number;
+  modulos_completados: number;
+  videos_completados: number;
 }
 
 // Componente de progreso circular
@@ -69,8 +84,10 @@ const ProgressBar = ({ value, max }: { value: number; max: number }) => {
 
 const NivelesClasificacionDashboard: React.FC = () => {
   const { userInfo } = useNeuroState();
-  const [niveles, setNiveles] = useState<Nivel[]>([]);
-  const [progresoUsuario, setProgresoUsuario] = useState<ProgresoUsuario | null>(null);
+  const [nivelesVentas, setNivelesVentas] = useState<NivelVentas[]>([]);
+  const [nivelesAcademicos, setNivelesAcademicos] = useState<NivelAcademico[]>([]);
+  const [progresoVentas, setProgresoVentas] = useState<ProgresoVentas | null>(null);
+  const [progresoAcademico, setProgresoAcademico] = useState<ProgresoAcademico | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -80,67 +97,82 @@ const NivelesClasificacionDashboard: React.FC = () => {
         setLoading(true);
         setError(null);
 
-        // Obtener el usuario actual
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) {
           setError('Usuario no autenticado');
           return;
         }
 
-        // Obtener niveles
-        const { data: nivelesData, error: nivelesError } = await supabase
+        // Obtener niveles de ventas
+        const { data: nivelesVentasData, error: nivelesVentasError } = await supabase
           .from('niveles_ventas')
           .select('*')
           .order('min_ventas', { ascending: true });
 
-        if (nivelesError) {
-          console.error('Error al obtener niveles:', nivelesError);
-          throw new Error(`Error al cargar los niveles de clasificación: ${nivelesError.message}`);
-        }
+        if (nivelesVentasError) throw nivelesVentasError;
 
-        if (!nivelesData || nivelesData.length === 0) {
-          console.warn('No se encontraron niveles configurados');
-          setError('No hay niveles configurados en el sistema');
-          return;
-        }
+        // Obtener niveles académicos
+        const { data: nivelesAcademicosData, error: nivelesAcademicosError } = await supabase
+          .from('niveles_academicos')
+          .select('*')
+          .order('modulos_requeridos', { ascending: true });
 
-        // Obtener progreso del usuario
-        const { data: progresoData, error: progresoError } = await supabase
+        if (nivelesAcademicosError) throw nivelesAcademicosError;
+
+        // Obtener progreso de ventas
+        const { data: progresoVentasData, error: progresoVentasError } = await supabase
           .from('progreso_ventas_usuario')
           .select('nivel_actual, ventas_acumuladas')
           .eq('usuario_id', user.id)
           .single();
 
-        if (progresoError && progresoError.code !== 'PGRST116') {
-          console.error('Error al obtener progreso:', progresoError);
-          throw new Error('Error al cargar el progreso del usuario');
-        }
+        if (progresoVentasError && progresoVentasError.code !== 'PGRST116') throw progresoVentasError;
 
-        // Si no existe progreso, crear uno inicial
-        if (!progresoData) {
-          const nivelInicial = nivelesData[0];
-          const { error: createError } = await supabase
-            .from('progreso_ventas_usuario')
-            .insert({
+        // Obtener progreso académico
+        const { data: progresoAcademicoData, error: progresoAcademicoError } = await supabase
+          .from('progreso_academico_usuario')
+          .select('nivel_actual, modulos_completados, videos_completados')
+          .eq('usuario_id', user.id)
+          .single();
+
+        if (progresoAcademicoError && progresoAcademicoError.code !== 'PGRST116') throw progresoAcademicoError;
+
+        // Inicializar progreso si no existe
+        if (!progresoVentasData) {
+          const nivelInicialVentas = nivelesVentasData?.[0];
+          if (nivelInicialVentas) {
+            await supabase.from('progreso_ventas_usuario').insert({
               usuario_id: user.id,
-              nivel_actual: nivelInicial.id,
+              nivel_actual: nivelInicialVentas.id,
               ventas_acumuladas: 0
             });
-
-          if (createError) {
-            console.error('Error al crear progreso inicial:', createError);
-            throw new Error('Error al inicializar el progreso del usuario');
+            setProgresoVentas({ nivel_actual: nivelInicialVentas.id, ventas_acumuladas: 0 });
           }
-
-          setProgresoUsuario({
-            nivel_actual: nivelInicial.id,
-            ventas_acumuladas: 0
-          });
         } else {
-          setProgresoUsuario(progresoData);
+          setProgresoVentas(progresoVentasData);
         }
 
-        setNiveles(nivelesData);
+        if (!progresoAcademicoData) {
+          const nivelInicialAcademico = nivelesAcademicosData?.[0];
+          if (nivelInicialAcademico) {
+            await supabase.from('progreso_academico_usuario').insert({
+              usuario_id: user.id,
+              nivel_actual: nivelInicialAcademico.id,
+              modulos_completados: 0,
+              videos_completados: 0
+            });
+            setProgresoAcademico({
+              nivel_actual: nivelInicialAcademico.id,
+              modulos_completados: 0,
+              videos_completados: 0
+            });
+          }
+        } else {
+          setProgresoAcademico(progresoAcademicoData);
+        }
+
+        setNivelesVentas(nivelesVentasData || []);
+        setNivelesAcademicos(nivelesAcademicosData || []);
       } catch (err: any) {
         console.error('Error en fetchData:', err);
         setError(err.message || 'Error al cargar los datos');
@@ -152,9 +184,7 @@ const NivelesClasificacionDashboard: React.FC = () => {
     fetchData();
   }, [userInfo]);
 
-  if (loading) {
-    return <LoadingScreen />;
-  }
+  if (loading) return <LoadingScreen />;
 
   if (error) {
     return (
@@ -170,88 +200,124 @@ const NivelesClasificacionDashboard: React.FC = () => {
     );
   }
 
-  const nivelActual = niveles.find(n => n.id === progresoUsuario?.nivel_actual);
-  const siguienteNivel = niveles.find(n => n.min_ventas > (nivelActual?.max_ventas || 0));
+  const nivelVentasActual = nivelesVentas.find(n => n.id === progresoVentas?.nivel_actual);
+  const siguienteNivelVentas = nivelesVentas.find(n => n.min_ventas > (nivelVentasActual?.max_ventas || 0));
+  
+  const nivelAcademicoActual = nivelesAcademicos.find(n => n.id === progresoAcademico?.nivel_actual);
+  const siguienteNivelAcademico = nivelesAcademicos.find(n => 
+    n.modulos_requeridos > (nivelAcademicoActual?.modulos_requeridos || 0) ||
+    n.videos_requeridos > (nivelAcademicoActual?.videos_requeridos || 0)
+  );
 
   return (
-    <div className="container mx-auto p-4 space-y-6">
-      {/* Sección de Progreso */}
-      <div className="bg-black/50 backdrop-blur-sm rounded-lg p-6">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold text-neurolink-matrixGreen">
-            {nivelActual?.nombre || 'Nivel Inicial'}
-          </h2>
-          <div className="text-right">
-            <p className="text-sm text-gray-400">Ventas Acumuladas</p>
-            <p className="text-xl text-white">${progresoUsuario?.ventas_acumuladas?.toLocaleString() || '0'}</p>
+    <div className="container mx-auto p-4 space-y-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* Panel de Niveles de Ventas */}
+        <div className="bg-black/50 backdrop-blur-sm rounded-lg p-6">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-bold text-neurolink-matrixGreen">
+              Nivel de Ventas: {nivelVentasActual?.nombre || 'Inicial'}
+            </h2>
+            <div className="text-right">
+              <p className="text-sm text-gray-400">Ventas Acumuladas</p>
+              <p className="text-xl text-white">${progresoVentas?.ventas_acumuladas?.toLocaleString() || '0'}</p>
+            </div>
           </div>
+
+          {nivelVentasActual && siguienteNivelVentas && (
+            <div className="mb-6">
+              <div className="h-4 bg-black/30 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-neurolink-matrixGreen"
+                  style={{
+                    width: `${Math.min(
+                      ((progresoVentas?.ventas_acumuladas || 0) - nivelVentasActual.min_ventas) /
+                      (siguienteNivelVentas.min_ventas - nivelVentasActual.min_ventas) * 100,
+                      100
+                    )}%`
+                  }}
+                />
+              </div>
+              <div className="flex justify-between text-sm mt-1">
+                <span className="text-gray-400">${nivelVentasActual.min_ventas.toLocaleString()}</span>
+                <span className="text-gray-400">${siguienteNivelVentas.min_ventas.toLocaleString()}</span>
+              </div>
+            </div>
+          )}
         </div>
 
-        {/* Barra de Progreso */}
-        {nivelActual && siguienteNivel && (
-          <div className="mb-4">
-            <div className="h-4 bg-black/30 rounded-full overflow-hidden">
-              <div
-                className="h-full bg-neurolink-matrixGreen"
-                style={{
-                  width: `${Math.min(
-                    ((progresoUsuario?.ventas_acumuladas || 0) - nivelActual.min_ventas) /
-                    (siguienteNivel.min_ventas - nivelActual.min_ventas) * 100,
-                    100
-                  )}%`
-                }}
-              />
-            </div>
-            <div className="flex justify-between text-sm mt-1">
-              <span className="text-gray-400">${nivelActual.min_ventas.toLocaleString()}</span>
-              <span className="text-gray-400">${siguienteNivel.min_ventas.toLocaleString()}</span>
+        {/* Panel de Niveles Académicos */}
+        <div className="bg-black/50 backdrop-blur-sm rounded-lg p-6">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-bold text-neurolink-matrixGreen">
+              Nivel Académico: {nivelAcademicoActual?.nombre || 'Inicial'}
+            </h2>
+            <div className="text-right">
+              <p className="text-sm text-gray-400">Progreso Académico</p>
+              <p className="text-xl text-white">
+                {progresoAcademico?.modulos_completados || 0} módulos / {progresoAcademico?.videos_completados || 0} videos
+              </p>
             </div>
           </div>
-        )}
+
+          {nivelAcademicoActual && siguienteNivelAcademico && (
+            <div className="mb-6">
+              <div className="h-4 bg-black/30 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-neurolink-matrixGreen"
+                  style={{
+                    width: `${Math.min(
+                      ((progresoAcademico?.modulos_completados || 0) / siguienteNivelAcademico.modulos_requeridos) * 100,
+                      100
+                    )}%`
+                  }}
+                />
+              </div>
+              <div className="flex justify-between text-sm mt-1">
+                <span className="text-gray-400">{nivelAcademicoActual.modulos_requeridos} módulos</span>
+                <span className="text-gray-400">{siguienteNivelAcademico.modulos_requeridos} módulos</span>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
 
-      {/* Lista de Niveles */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="space-y-4">
-          {niveles.slice(0, Math.ceil(niveles.length / 2)).map((nivel) => (
-            <div
-              key={nivel.id}
-              className={`flex items-center gap-4 p-4 rounded-lg ${
-                nivel.id === progresoUsuario?.nivel_actual
-                  ? 'bg-neurolink-matrixGreen/20 border border-neurolink-matrixGreen'
-                  : 'bg-black/30'
-              }`}
-            >
-              <span className="text-2xl">{nivel.icono || '🏆'}</span>
-              <div className="flex-1">
-                <h3 className="font-bold text-white">{nivel.nombre}</h3>
-                <p className="text-sm text-gray-400">
-                  {nivel.descripcion || `Ventas: $${nivel.min_ventas.toLocaleString()} - $${nivel.max_ventas.toLocaleString()}`}
-                </p>
-              </div>
-            </div>
-          ))}
-        </div>
-        
-        <div className="space-y-4">
-          {niveles.slice(Math.ceil(niveles.length / 2)).map((nivel) => (
-            <div
-              key={nivel.id}
-              className={`flex items-center gap-4 p-4 rounded-lg ${
-                nivel.id === progresoUsuario?.nivel_actual
-                  ? 'bg-neurolink-matrixGreen/20 border border-neurolink-matrixGreen'
-                  : 'bg-black/30'
-              }`}
-            >
-              <span className="text-2xl">{nivel.icono || '🏆'}</span>
-              <div className="flex-1">
-                <h3 className="font-bold text-white">{nivel.nombre}</h3>
-                <p className="text-sm text-gray-400">
-                  {nivel.descripcion || `Ventas: $${nivel.min_ventas.toLocaleString()} - $${nivel.max_ventas.toLocaleString()}`}
-                </p>
-              </div>
-            </div>
-          ))}
+      {/* Tabla de Niveles */}
+      <div className="bg-black/50 backdrop-blur-sm rounded-lg p-6">
+        <h3 className="text-xl font-bold text-neurolink-matrixGreen mb-4">Requisitos por Nivel</h3>
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead>
+              <tr className="text-left border-b border-gray-700">
+                <th className="p-3 text-yellow-400">Nivel</th>
+                <th className="p-3 text-yellow-400">Nombre</th>
+                <th className="p-3 text-yellow-400">Ventas Requeridas</th>
+                <th className="p-3 text-yellow-400">Módulos Requeridos</th>
+                <th className="p-3 text-yellow-400">Videos Requeridos</th>
+                <th className="p-3 text-yellow-400">Descripción</th>
+              </tr>
+            </thead>
+            <tbody>
+              {nivelesVentas.map((nivel, index) => {
+                const nivelAcademico = nivelesAcademicos[index];
+                return (
+                  <tr key={nivel.id} className={`border-b border-gray-700/50 ${
+                    nivel.id === progresoVentas?.nivel_actual ? 'bg-neurolink-matrixGreen/20' : ''
+                  }`}>
+                    <td className="p-3">{index + 1}</td>
+                    <td className="p-3">
+                      <span className="mr-2">{nivel.icono || '🏆'}</span>
+                      {nivel.nombre}
+                    </td>
+                    <td className="p-3">${nivel.min_ventas.toLocaleString()} - ${nivel.max_ventas.toLocaleString()}</td>
+                    <td className="p-3">{nivelAcademico?.modulos_requeridos || '-'}</td>
+                    <td className="p-3">{nivelAcademico?.videos_requeridos || '-'}</td>
+                    <td className="p-3">{nivel.descripcion}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
         </div>
       </div>
     </div>
