@@ -60,7 +60,7 @@ interface AdminConfigPanelProps {
 }
 
 const AdminConfigPanel: React.FC<AdminConfigPanelProps> = ({ selected }) => {
-  const { userConfig, loading, fetchUserConfig } = useConfigStore();
+  const { userConfig, loading: configLoading, fetchUserConfig } = useConfigStore();
   const [perfil, setPerfil] = useState(perfilDefault);
   const [guardando, setGuardando] = useState(false);
   const [mensaje, setMensaje] = useState('');
@@ -68,7 +68,8 @@ const AdminConfigPanel: React.FC<AdminConfigPanelProps> = ({ selected }) => {
   const [newPassword, setNewPassword] = useState('');
   const [passwordMsg, setPasswordMsg] = useState('');
   const [cursosActivos, setCursosActivos] = useState<any[]>([]);
-  const [serviciosActivos, setServiciosActivos] = useState<any[]>([]); // Dummy por ahora
+  const [serviciosActivos, setServiciosActivos] = useState<any[]>([]);
+  const [loadingPerfil, setLoadingPerfil] = useState(false);
   const { userInfo } = useNeuroState();
   const community_id = userInfo?.community_id || null;
   const isAdmin = userInfo?.rol === 'admin' || userInfo?.rol === 'superadmin';
@@ -81,50 +82,60 @@ const AdminConfigPanel: React.FC<AdminConfigPanelProps> = ({ selected }) => {
   // Leer datos reales del usuario
   useEffect(() => {
     async function fetchPerfil() {
-      setLoading(true);
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-      // Leer datos de la tabla usuarios
-      const { data: usuario } = await supabase
-        .from('usuarios')
-        .select('*')
-        .eq('id', user.id)
-        .single();
-      if (usuario) {
-        setPerfil({
-          avatar: usuario.avatar_url || '',
-          nombres: usuario.nombres || '',
-          apellidos: usuario.apellidos || '',
-          correo: usuario.email || '',
-          celular: usuario.celular || '',
-          pais: usuario.pais || 'Perú',
-          facebook: usuario.facebook || '',
-          twitter: usuario.twitter || '',
-          instagram: usuario.instagram || '',
-          tiktok: usuario.tiktok || '',
-          membresia: usuario.membresia || '',
-          rol: usuario.rol || '',
-          creditos: usuario.creditos || 0,
-          wallet: usuario.wallet || '',
-          idioma: usuario.idioma || 'Español',
-          zona_horaria: usuario.zona_horaria || 'GMT-5',
-          nivel: usuario.nivel || 1,
-          cursos: usuario.cursos || [],
-          servicios: usuario.servicios || [],
-        });
+      if (selected !== 'welcome') return;
+      
+      setLoadingPerfil(true);
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+        
+        // Leer datos de la tabla usuarios
+        const { data: usuario } = await supabase
+          .from('usuarios')
+          .select('*')
+          .eq('id', user.id)
+          .single();
+
+        if (usuario) {
+          setPerfil({
+            avatar: usuario.avatar_url || '',
+            nombres: usuario.nombres || '',
+            apellidos: usuario.apellidos || '',
+            correo: usuario.email || '',
+            celular: usuario.celular || '',
+            pais: usuario.pais || 'Perú',
+            facebook: usuario.facebook || '',
+            twitter: usuario.twitter || '',
+            instagram: usuario.instagram || '',
+            tiktok: usuario.tiktok || '',
+            membresia: usuario.membresia || '',
+            rol: usuario.rol || '',
+            creditos: usuario.creditos || 0,
+            wallet: usuario.wallet || '',
+            idioma: usuario.idioma || 'Español',
+            zona_horaria: usuario.zona_horaria || 'GMT-5',
+            nivel: usuario.nivel || 1,
+            cursos: usuario.cursos || [],
+            servicios: usuario.servicios || [],
+          });
+        }
+
+        // Leer cursos activos
+        const { data: cursosUsuario } = await supabase
+          .from('usuario_curso')
+          .select('curso_id, estado, cursos:curso_id (nombre, descripcion, imagen)')
+          .eq('usuario_id', user.id)
+          .eq('estado', 'activo');
+
+        setCursosActivos(cursosUsuario?.map((c: any) => c.cursos) || []);
+        setServiciosActivos(usuario?.servicios || []);
+      } catch (error) {
+        console.error('Error fetching perfil:', error);
+      } finally {
+        setLoadingPerfil(false);
       }
-      // Leer cursos activos (join usuario_curso y cursos)
-      const { data: cursosUsuario } = await supabase
-        .from('usuario_curso')
-        .select('curso_id, estado, cursos:curso_id (nombre, descripcion, imagen)')
-        .eq('usuario_id', user.id)
-        .eq('estado', 'activo');
-      setCursosActivos(cursosUsuario?.map((c: any) => c.cursos) || []);
-      // Dummy servicios activos
-      setServiciosActivos(usuario?.servicios || []);
-      setLoading(false);
     }
-    if (selected === 'welcome') fetchPerfil();
+    fetchPerfil();
   }, [selected]);
 
   const handleInput = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -177,7 +188,7 @@ const AdminConfigPanel: React.FC<AdminConfigPanelProps> = ({ selected }) => {
     else setPasswordMsg('¡Contraseña actualizada!');
   };
 
-  if (loading) {
+  if (configLoading || loadingPerfil) {
     return <LoadingScreen message="Cargando configuración..." />;
   }
 
@@ -194,7 +205,7 @@ const AdminConfigPanel: React.FC<AdminConfigPanelProps> = ({ selected }) => {
           <div style={{ width: '100%', padding: '40px 0', background: '#000', display: 'flex', justifyContent: 'center' }}>
             <div style={{ width: '100%', maxWidth: 1200, margin: '0 auto', background: '#000', borderRadius: 18, boxShadow: '0 2px 12px #0006', padding: 40, border: '2px solid #FFD700', display: 'flex', flexDirection: 'column', gap: 32 }}>
               <h2 style={{ color: '#FFD700', fontWeight: 700, fontSize: 28, marginBottom: 28 }}>Mi Perfil</h2>
-              {loading ? <div style={{ color: '#FFD700', fontWeight: 600 }}>Cargando...</div> : (
+              {loadingPerfil ? <div style={{ color: '#FFD700', fontWeight: 600 }}>Cargando...</div> : (
                 <div style={{ display: 'grid', gridTemplateColumns: '340px 1fr', gap: 40, alignItems: 'flex-start', marginBottom: 32 }}>
                   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 18 }}>
                     <AvatarUploader onUpload={handleAvatar} initialUrl={perfil.avatar} label="Foto de perfil" />
