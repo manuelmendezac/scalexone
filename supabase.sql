@@ -156,4 +156,27 @@ create table if not exists progreso_ventas_usuario (
 );
 
 -- Crear índices para mejorar el rendimiento
-create index if not exists idx_progreso_ventas_usuario_usuario_id on progreso_ventas_usuario(usuario_id); 
+create index if not exists idx_progreso_ventas_usuario_usuario_id on progreso_ventas_usuario(usuario_id);
+
+-- Función para actualizar timestamps
+create or replace function update_updated_at_column()
+returns trigger as $$
+begin
+  new.updated_at = timezone('utc'::text, now());
+  return new;
+end;
+$$ language plpgsql;
+
+-- Trigger para actualizar updated_at en niveles_ventas
+drop trigger if exists update_niveles_ventas_updated_at on niveles_ventas;
+create trigger update_niveles_ventas_updated_at
+  before update on niveles_ventas
+  for each row
+  execute function update_updated_at_column();
+
+-- Trigger para actualizar updated_at en progreso_ventas_usuario
+drop trigger if exists update_progreso_ventas_usuario_updated_at on progreso_ventas_usuario;
+create trigger update_progreso_ventas_usuario_updated_at
+  before update on progreso_ventas_usuario
+  for each row
+  execute function update_updated_at_column(); 

@@ -4,20 +4,18 @@ import useNeuroState from '../store/useNeuroState';
 import LoadingScreen from './LoadingScreen';
 
 interface Nivel {
-  id: string;
+  id: number;
   nombre: string;
   descripcion: string;
-  icono: string;
-  color: string;
-  orden: number;
-  porcentaje_miembros: number;
-  puntos_minimos: number;
-  puntos_maximos: number;
-  comunidad_id: string;
+  min_ventas: number;
+  max_ventas: number;
+  icono?: string;
+  color?: string;
+  community_id?: string;
 }
 
 interface ProgresoUsuario {
-  nivel_actual: string;
+  nivel_actual: number;
   ventas_acumuladas: number;
 }
 
@@ -93,7 +91,6 @@ const NivelesClasificacionDashboard: React.FC = () => {
         const { data: nivelesData, error: nivelesError } = await supabase
           .from('niveles_ventas')
           .select('*')
-          .eq('community_id', userInfo?.community_id || 'default')
           .order('min_ventas', { ascending: true });
 
         if (nivelesError) {
@@ -143,21 +140,7 @@ const NivelesClasificacionDashboard: React.FC = () => {
           setProgresoUsuario(progresoData);
         }
 
-        // Transformar los datos de niveles
-        const nivelesFormateados = nivelesData.map((nivel, index) => ({
-          id: nivel.id,
-          nombre: nivel.nombre,
-          descripcion: nivel.descripcion || '',
-          icono: nivel.icono || '🏆',
-          color: nivel.color || '#FFD700',
-          orden: index + 1,
-          porcentaje_miembros: 0, // TODO: Calcular porcentaje real
-          puntos_minimos: nivel.min_ventas,
-          puntos_maximos: nivel.max_ventas,
-          comunidad_id: nivel.community_id
-        }));
-
-        setNiveles(nivelesFormateados);
+        setNiveles(nivelesData);
       } catch (err: any) {
         console.error('Error en fetchData:', err);
         setError(err.message || 'Error al cargar los datos');
@@ -188,7 +171,7 @@ const NivelesClasificacionDashboard: React.FC = () => {
   }
 
   const nivelActual = niveles.find(n => n.id === progresoUsuario?.nivel_actual);
-  const siguienteNivel = niveles.find(n => n.orden === (nivelActual?.orden || 0) + 1);
+  const siguienteNivel = niveles.find(n => n.min_ventas > (nivelActual?.max_ventas || 0));
 
   return (
     <div className="container mx-auto p-4 space-y-6">
@@ -196,7 +179,7 @@ const NivelesClasificacionDashboard: React.FC = () => {
       <div className="bg-black/50 backdrop-blur-sm rounded-lg p-6">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-2xl font-bold text-neurolink-matrixGreen">
-            Nivel {nivelActual?.orden || 1} - {nivelActual?.nombre || 'Starter'}
+            {nivelActual?.nombre || 'Nivel Inicial'}
           </h2>
           <div className="text-right">
             <p className="text-sm text-gray-400">Ventas Acumuladas</p>
@@ -212,16 +195,16 @@ const NivelesClasificacionDashboard: React.FC = () => {
                 className="h-full bg-neurolink-matrixGreen"
                 style={{
                   width: `${Math.min(
-                    ((progresoUsuario?.ventas_acumuladas || 0) - nivelActual.puntos_minimos) /
-                    (siguienteNivel.puntos_minimos - nivelActual.puntos_minimos) * 100,
+                    ((progresoUsuario?.ventas_acumuladas || 0) - nivelActual.min_ventas) /
+                    (siguienteNivel.min_ventas - nivelActual.min_ventas) * 100,
                     100
                   )}%`
                 }}
               />
             </div>
             <div className="flex justify-between text-sm mt-1">
-              <span className="text-gray-400">${nivelActual.puntos_minimos.toLocaleString()}</span>
-              <span className="text-gray-400">${siguienteNivel.puntos_minimos.toLocaleString()}</span>
+              <span className="text-gray-400">${nivelActual.min_ventas.toLocaleString()}</span>
+              <span className="text-gray-400">${siguienteNivel.min_ventas.toLocaleString()}</span>
             </div>
           </div>
         )}
@@ -239,11 +222,11 @@ const NivelesClasificacionDashboard: React.FC = () => {
                   : 'bg-black/30'
               }`}
             >
-              <span className="text-2xl">{nivel.icono}</span>
+              <span className="text-2xl">{nivel.icono || '🏆'}</span>
               <div className="flex-1">
                 <h3 className="font-bold text-white">{nivel.nombre}</h3>
                 <p className="text-sm text-gray-400">
-                  {nivel.descripcion || `Ventas: $${nivel.puntos_minimos.toLocaleString()} - $${nivel.puntos_maximos.toLocaleString()}`}
+                  {nivel.descripcion || `Ventas: $${nivel.min_ventas.toLocaleString()} - $${nivel.max_ventas.toLocaleString()}`}
                 </p>
               </div>
             </div>
@@ -260,11 +243,11 @@ const NivelesClasificacionDashboard: React.FC = () => {
                   : 'bg-black/30'
               }`}
             >
-              <span className="text-2xl">{nivel.icono}</span>
+              <span className="text-2xl">{nivel.icono || '🏆'}</span>
               <div className="flex-1">
                 <h3 className="font-bold text-white">{nivel.nombre}</h3>
                 <p className="text-sm text-gray-400">
-                  {nivel.descripcion || `Ventas: $${nivel.puntos_minimos.toLocaleString()} - $${nivel.puntos_maximos.toLocaleString()}`}
+                  {nivel.descripcion || `Ventas: $${nivel.min_ventas.toLocaleString()} - $${nivel.max_ventas.toLocaleString()}`}
                 </p>
               </div>
             </div>
