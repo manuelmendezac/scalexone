@@ -755,8 +755,24 @@ function renderPostContentWithLinks(text: string) {
     if (match.index > lastIndex) {
       parts.push(text.slice(lastIndex, match.index));
     }
-    // Mostrar preview visual para Instagram, TikTok, YouTube, Facebook, etc.
-    if (/instagram\.com|tiktok\.com|youtube\.com|youtu\.be|facebook\.com/.test(url)) {
+    // Si es un enlace de YouTube, mostrar embed
+    const youtubeMatch = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([\w-]{11})/);
+    if (youtubeMatch) {
+      const videoId = youtubeMatch[1];
+      parts.push(
+        <div key={url + match.index} className="w-full flex justify-center my-2">
+          <iframe
+            src={`https://www.youtube.com/embed/${videoId}`}
+            className="w-full max-w-xl aspect-video rounded-xl border-2 border-[#e6a800]"
+            allow="autoplay; encrypted-media; fullscreen"
+            allowFullScreen
+            loading="lazy"
+            title="YouTube video embed"
+          />
+        </div>
+      );
+    } else if (/instagram\.com|tiktok\.com|facebook\.com/.test(url)) {
+      // Mostrar preview visual para otras redes
       parts.push(<LinkPreview key={url + match.index} url={url} />);
     } else {
       // Si no, mostrar como link normal
