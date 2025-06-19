@@ -109,7 +109,15 @@ class ClassroomGamificationService {
     let mensaje = '';
 
     try {
-      // 1. Actualizar progreso en la base de datos
+      // 1. Verificar si ya se dio recompensa por este video
+      const { data: progresoExistente } = await supabase
+        .from('progreso_videos_classroom')
+        .select('recompensa_reclamada, completado')
+        .eq('video_id', videoId)
+        .eq('usuario_id', usuarioId)
+        .single();
+
+      // 2. Actualizar progreso en la base de datos
       const { error: progresoError } = await supabase
         .from('progreso_videos_classroom')
         .upsert({
@@ -118,57 +126,63 @@ class ClassroomGamificationService {
           tiempo_visto: tiempoVisto,
           porcentaje_completado: porcentajeCompletado,
           completado,
-          ultima_reproduccion: new Date().toISOString()
+          ultima_reproduccion: new Date().toISOString(),
+          // Solo marcar como reclamada si se completa el video
+          recompensa_reclamada: completado ? true : progresoExistente?.recompensa_reclamada || false
         }, {
           onConflict: 'usuario_id,video_id'
         });
 
       if (progresoError) throw progresoError;
 
-      // 2. Si completó el video, verificar si ya se dio recompensa
-      if (completado) {
-        const { data: progresoExistente } = await supabase
-          .from('progreso_videos_classroom')
-          .select('recompensa_reclamada')
-          .eq('video_id', videoId)
-          .eq('usuario_id', usuarioId)
+      // 3. Si completó el video y no había reclamado recompensa antes
+      if (completado && !progresoExistente?.recompensa_reclamada) {
+        // Dar recompensa por completar video
+        xpGanado += CLASSROOM_REWARDS.VIDEO_COMPLETADO.xp;
+        monedasGanadas += CLASSROOM_REWARDS.VIDEO_COMPLETADO.monedas;
+        mensaje += `¡Video completado! +${CLASSROOM_REWARDS.VIDEO_COMPLETADO.xp} XP, +${CLASSROOM_REWARDS.VIDEO_COMPLETADO.monedas} Moneda. `;
+
+        // Verificar si es el primer video del día
+        const esPrimerVideoDia = await this.verificarPrimerVideoDia(usuarioId);
+        if (esPrimerVideoDia) {
+          xpGanado += CLASSROOM_REWARDS.PRIMER_VIDEO_DIA.xp;
+          monedasGanadas += CLASSROOM_REWARDS.PRIMER_VIDEO_DIA.monedas;
+          mensaje += '¡Primer video del día! +15 XP, +2 Monedas. ';
+        }
+
+        // Actualizar recompensas en la base de datos
+        const { data: usuarioActual } = await supabase
+          .from('usuarios')
+          .select('xp, monedas')
+          .eq('id', usuarioId)
           .single();
 
-        if (!progresoExistente?.recompensa_reclamada) {
-          // Dar recompensa por completar video
-          xpGanado += CLASSROOM_REWARDS.VIDEO_COMPLETADO.xp;
-          monedasGanadas += CLASSROOM_REWARDS.VIDEO_COMPLETADO.monedas;
+        if (usuarioActual) {
+          const { error: recompensaError } = await supabase
+            .from('usuarios')
+            .update({
+              xp: usuarioActual.xp + xpGanado,
+              monedas: usuarioActual.monedas + monedasGanadas,
+              ultima_recompensa: new Date().toISOString()
+            })
+            .eq('id', usuarioId);
 
-          // Verificar si es el primer video del día
-          const esPrimerVideoDia = await this.verificarPrimerVideoDia(usuarioId);
-          if (esPrimerVideoDia) {
-            xpGanado += CLASSROOM_REWARDS.PRIMER_VIDEO_DIA.xp;
-            monedasGanadas += CLASSROOM_REWARDS.PRIMER_VIDEO_DIA.monedas;
-            mensaje += '¡Primer video del día! +15 XP, +2 Monedas. ';
-          }
+          if (recompensaError) throw recompensaError;
 
-          // Marcar recompensa como reclamada
-          await supabase
-            .from('progreso_videos_classroom')
-            .update({ recompensa_reclamada: true })
-            .eq('video_id', videoId)
-            .eq('usuario_id', usuarioId);
+          // Solo actualizar estado global después de confirmar actualización en BD
+          const neuro = useNeuroState.getState();
+          neuro.addXP(xpGanado);
+          neuro.addCoins(monedasGanadas);
+        }
 
-          // Actualizar estado global
-          this.neuro.addXP(xpGanado);
-          this.neuro.addCoins(monedasGanadas);
-
-          mensaje += `¡Video completado! +${CLASSROOM_REWARDS.VIDEO_COMPLETADO.xp} XP, +${CLASSROOM_REWARDS.VIDEO_COMPLETADO.monedas} Moneda. `;
-
-          // 3. Verificar si completó el módulo
-          const moduloCompletado = await this.verificarModuloCompletado(videoId, usuarioId);
-          if (moduloCompletado) {
-            const recompensaModulo = await this.darRecompensaModulo(moduloCompletado.modulo_id, usuarioId);
-            if (recompensaModulo) {
-              xpGanado += recompensaModulo.xp;
-              monedasGanadas += recompensaModulo.monedas;
-              mensaje += `¡Módulo completado! +${recompensaModulo.xp} XP, +${recompensaModulo.monedas} Monedas. `;
-            }
+        // 4. Verificar si completó el módulo
+        const moduloCompletado = await this.verificarModuloCompletado(videoId, usuarioId);
+        if (moduloCompletado) {
+          const recompensaModulo = await this.darRecompensaModulo(moduloCompletado.modulo_id, usuarioId);
+          if (recompensaModulo) {
+            xpGanado += recompensaModulo.xp;
+            monedasGanadas += recompensaModulo.monedas;
+            mensaje += `¡Módulo completado! +${recompensaModulo.xp} XP, +${recompensaModulo.monedas} Monedas. `;
           }
         }
       }
