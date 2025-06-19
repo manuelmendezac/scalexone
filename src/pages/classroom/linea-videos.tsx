@@ -349,14 +349,23 @@ const LineaVideosClassroom = () => {
             </button>
 
             <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
-              <iframe
-                ref={videoRef}
-                src={embedUrl}
-                className="absolute top-0 left-0 w-full h-full rounded-lg"
-                frameBorder="0"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-                title={videoActual.titulo}
+              <div className="aspect-video bg-black rounded-xl overflow-hidden">
+                <iframe
+                  ref={videoRef}
+                  src={embedUrl}
+                  className="w-full h-full"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                />
+              </div>
+
+              {/* Componente de gamificación */}
+              <ClassroomVideoGamification
+                videoId={videoActual.id}
+                moduloId={modulo_id || ''}
+                currentTime={currentTime}
+                duration={duration}
+                onProgressUpdate={handleVideoProgress}
               />
             </div>
           </div>

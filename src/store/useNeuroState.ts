@@ -213,6 +213,9 @@ interface NeuroState {
   updateRewardProgress: (rewardId: string, progress: number) => void;
   addXP: (amount: number) => void;
   addCoins: (amount: number) => void;
+  setUserInfo: (info: any) => void;
+  setXP: (amount: number) => void;
+  setCoins: (amount: number) => void;
 }
 
 // Función para convertir las fechas de string a Date al cargar del localStorage
@@ -587,7 +590,7 @@ const useNeuroState = create<NeuroState>()(
           )
         }));
       },
-      addXP: (amount) => {
+      addXP: async (amount) => {
         set((state) => {
           const newXP = state.userXP + amount;
           const xpForNextLevel = state.userLevel * 1000;
@@ -601,12 +604,37 @@ const useNeuroState = create<NeuroState>()(
           
           return { userXP: newXP };
         });
+        try {
+          const { data: { user } } = await supabase.auth.getUser();
+          if (user) {
+            await supabase
+              .from('usuarios')
+              .update({ xp: get().userXP })
+              .eq('id', user.id);
+          }
+        } catch (error) {
+          console.error('Error al actualizar XP:', error);
+        }
       },
-      addCoins: (amount) => {
+      addCoins: async (amount) => {
         set((state) => ({
           userCoins: state.userCoins + amount
         }));
+        try {
+          const { data: { user } } = await supabase.auth.getUser();
+          if (user) {
+            await supabase
+              .from('usuarios')
+              .update({ monedas: get().userCoins })
+              .eq('id', user.id);
+          }
+        } catch (error) {
+          console.error('Error al actualizar monedas:', error);
+        }
       },
+      setUserInfo: (info) => set({ userInfo: info }),
+      setXP: (amount) => set({ userXP: amount }),
+      setCoins: (amount) => set({ userCoins: amount })
     }),
     {
       name: 'neurolink-storage',
