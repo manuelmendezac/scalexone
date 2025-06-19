@@ -25,6 +25,8 @@ import ProgressTracker from './components/pages/ProgressTracker';
 import SettingsPanel from './components/pages/SettingsPanel';
 import Inicio from './pages/Inicio';
 import Classroom from './pages/classroom';
+import LineaVideosClassroom from './pages/classroom/linea-videos';
+import EditarVideosClassroom from './pages/classroom/editar-videos';
 import CursosPage from './pages/cursos';
 import Launchpad from './pages/Launchpad';
 import ComunidadPage from './pages/comunidad';
@@ -47,7 +49,16 @@ export const router = createBrowserRouter([
       { path: 'landing', element: <Hero /> },
       { path: 'clasificacion', element: <Dashboard /> },
       { path: 'home', element: <Inicio /> },
-      { path: 'classroom', element: <Classroom /> },
+      {
+        path: 'classroom',
+        children: [
+          { index: true, element: <Classroom /> },
+          { path: 'videos/:modulo_id', element: <LineaVideosClassroom /> },
+          { path: 'videos', element: <LineaVideosClassroom /> },
+          { path: 'editar-videos/:modulo_id', element: <EditarVideosClassroom /> },
+          { path: 'editar-videos', element: <EditarVideosClassroom /> }
+        ]
+      },
       {
         path: 'cursos',
         children: [

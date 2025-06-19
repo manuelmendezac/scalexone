@@ -1,13 +1,14 @@
 // Página de edición de videos para classroom
 import React, { useEffect, useState } from 'react';
-import { useSearchParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../../supabase';
 import ModalFuturista from '../../components/ModalFuturista';
 import { HexColorPicker } from 'react-colorful';
+import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
+import type { DropResult } from 'react-beautiful-dnd';
 
 const EditarVideosClassroom = () => {
-  const [searchParams] = useSearchParams();
-  const modulo_id = searchParams.get('modulo_id');
+  const { modulo_id } = useParams();
   const navigate = useNavigate();
   const [modulo, setModulo] = useState<any>(null);
   const [videos, setVideos] = useState<any[]>([]);

@@ -204,7 +204,7 @@ const Classroom = () => {
                           background: mod.color || '#fff',
                           cursor: isAdmin ? 'grab' : 'pointer'
                         }}
-                        onClick={() => !isAdmin && navigate(`/classroom/videos?modulo_id=${mod.id}`)}
+                        onClick={() => !isAdmin && navigate(`/classroom/videos/${mod.id}`)}
                       >
                         {/* Imagen del módulo */}
                         <div className="h-40 w-full rounded-t-2xl overflow-hidden flex items-center justify-center bg-gray-100">
