@@ -34,56 +34,11 @@ interface ProgresoAcademico {
   videos_completados: number;
 }
 
-// Componente de progreso circular
-const CircularProgress = ({ value, max = 100, size = 160, stroke = 8, color = '#FFD700', bg = '#23232b' }: any) => {
-  const radius = (size - stroke) / 2;
-  const circ = 2 * Math.PI * radius;
-  const pct = Math.max(0, Math.min(1, value / max));
-  return (
-    <svg width={size} height={size} className="block">
-      <circle
-        cx={size / 2}
-        cy={size / 2}
-        r={radius}
-        fill="none"
-        stroke={bg}
-        strokeWidth={stroke}
-      />
-      <circle
-        cx={size / 2}
-        cy={size / 2}
-        r={radius}
-        fill="none"
-        stroke={color}
-        strokeWidth={stroke}
-        strokeDasharray={circ}
-        strokeDashoffset={circ * (1 - pct)}
-        strokeLinecap="round"
-        style={{ transition: 'stroke-dashoffset 0.6s' }}
-      />
-    </svg>
-  );
-};
-
-const ProgressBar = ({ value, max }: { value: number; max: number }) => {
-  const percentage = Math.min(100, Math.round((value / max) * 100));
-  
-  return (
-    <div className="relative w-full h-3 bg-black/40 rounded-full overflow-hidden">
-      <div
-        className="h-full rounded-full transition-all duration-700 bg-gradient-to-r from-neurolink-matrixGreen to-neurolink-cyberBlue"
-        style={{ width: `${percentage}%` }}
-      />
-      <div className="absolute inset-0 w-full h-full">
-        {/* Líneas de escaneo */}
-        <div className="absolute inset-0 bg-[linear-gradient(90deg,transparent_0%,transparent_45%,rgba(255,255,255,0.2)_50%,transparent_55%,transparent_100%)] animate-[scan_2s_linear_infinite]" />
-      </div>
-    </div>
-  );
-};
+type TipoNivel = 'ventas' | 'educacion';
 
 const NivelesClasificacionDashboard: React.FC = () => {
   const { userInfo } = useNeuroState();
+  const [tipoNivel, setTipoNivel] = useState<TipoNivel>('ventas');
   const [nivelesVentas, setNivelesVentas] = useState<NivelVentas[]>([]);
   const [nivelesAcademicos, setNivelesAcademicos] = useState<NivelAcademico[]>([]);
   const [progresoVentas, setProgresoVentas] = useState<ProgresoVentas | null>(null);
@@ -137,42 +92,15 @@ const NivelesClasificacionDashboard: React.FC = () => {
 
         if (progresoAcademicoError && progresoAcademicoError.code !== 'PGRST116') throw progresoAcademicoError;
 
-        // Inicializar progreso si no existe
-        if (!progresoVentasData) {
-          const nivelInicialVentas = nivelesVentasData?.[0];
-          if (nivelInicialVentas) {
-            await supabase.from('progreso_ventas_usuario').insert({
-              usuario_id: user.id,
-              nivel_actual: nivelInicialVentas.id,
-              ventas_acumuladas: 0
-            });
-            setProgresoVentas({ nivel_actual: nivelInicialVentas.id, ventas_acumuladas: 0 });
-          }
-        } else {
-          setProgresoVentas(progresoVentasData);
-        }
-
-        if (!progresoAcademicoData) {
-          const nivelInicialAcademico = nivelesAcademicosData?.[0];
-          if (nivelInicialAcademico) {
-            await supabase.from('progreso_academico_usuario').insert({
-              usuario_id: user.id,
-              nivel_actual: nivelInicialAcademico.id,
-              modulos_completados: 0,
-              videos_completados: 0
-            });
-            setProgresoAcademico({
-              nivel_actual: nivelInicialAcademico.id,
-              modulos_completados: 0,
-              videos_completados: 0
-            });
-          }
-        } else {
-          setProgresoAcademico(progresoAcademicoData);
-        }
-
         setNivelesVentas(nivelesVentasData || []);
         setNivelesAcademicos(nivelesAcademicosData || []);
+        setProgresoVentas(progresoVentasData || { nivel_actual: nivelesVentasData?.[0]?.id, ventas_acumuladas: 0 });
+        setProgresoAcademico(progresoAcademicoData || { 
+          nivel_actual: nivelesAcademicosData?.[0]?.id, 
+          modulos_completados: 0,
+          videos_completados: 0
+        });
+
       } catch (err: any) {
         console.error('Error en fetchData:', err);
         setError(err.message || 'Error al cargar los datos');
@@ -211,111 +139,152 @@ const NivelesClasificacionDashboard: React.FC = () => {
 
   return (
     <div className="container mx-auto p-4 space-y-8">
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Panel de Niveles de Ventas */}
-        <div className="bg-black/50 backdrop-blur-sm rounded-lg p-6">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold text-neurolink-matrixGreen">
-              Nivel de Ventas: {nivelVentasActual?.nombre || 'Inicial'}
-            </h2>
-            <div className="text-right">
-              <p className="text-sm text-gray-400">Ventas Acumuladas</p>
-              <p className="text-xl text-white">${progresoVentas?.ventas_acumuladas?.toLocaleString() || '0'}</p>
+      {/* Perfil y Progreso */}
+      <div className="bg-black/50 backdrop-blur-sm rounded-lg p-6">
+        <div className="flex items-center gap-6">
+          {/* Foto de perfil */}
+          <div className="relative">
+            <img
+              src="/images/silueta-perfil.svg"
+              alt="Perfil"
+              className="w-24 h-24 rounded-full border-2 border-neurolink-matrixGreen"
+            />
+            <div className="absolute -bottom-2 -right-2 bg-neurolink-matrixGreen text-black rounded-full w-8 h-8 flex items-center justify-center font-bold">
+              {tipoNivel === 'ventas' ? nivelVentasActual?.id : nivelAcademicoActual?.id}
             </div>
           </div>
 
-          {nivelVentasActual && siguienteNivelVentas && (
-            <div className="mb-6">
-              <div className="h-4 bg-black/30 rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-neurolink-matrixGreen"
-                  style={{
-                    width: `${Math.min(
-                      ((progresoVentas?.ventas_acumuladas || 0) - nivelVentasActual.min_ventas) /
-                      (siguienteNivelVentas.min_ventas - nivelVentasActual.min_ventas) * 100,
-                      100
-                    )}%`
-                  }}
-                />
-              </div>
-              <div className="flex justify-between text-sm mt-1">
-                <span className="text-gray-400">${nivelVentasActual.min_ventas.toLocaleString()}</span>
-                <span className="text-gray-400">${siguienteNivelVentas.min_ventas.toLocaleString()}</span>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Panel de Niveles Académicos */}
-        <div className="bg-black/50 backdrop-blur-sm rounded-lg p-6">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold text-neurolink-matrixGreen">
-              Nivel Académico: {nivelAcademicoActual?.nombre || 'Inicial'}
+          {/* Información de nivel */}
+          <div className="flex-1">
+            <h2 className="text-2xl font-bold text-neurolink-matrixGreen mb-2">
+              {tipoNivel === 'ventas' ? nivelVentasActual?.nombre : nivelAcademicoActual?.nombre}
             </h2>
-            <div className="text-right">
-              <p className="text-sm text-gray-400">Progreso Académico</p>
-              <p className="text-xl text-white">
-                {progresoAcademico?.modulos_completados || 0} módulos / {progresoAcademico?.videos_completados || 0} videos
-              </p>
+            <div className="text-sm text-gray-400 mb-4">
+              {tipoNivel === 'ventas' 
+                ? `Ventas Acumuladas: $${progresoVentas?.ventas_acumuladas?.toLocaleString() || '0'}`
+                : `Módulos: ${progresoAcademico?.modulos_completados || 0} / Videos: ${progresoAcademico?.videos_completados || 0}`
+              }
             </div>
-          </div>
 
-          {nivelAcademicoActual && siguienteNivelAcademico && (
-            <div className="mb-6">
-              <div className="h-4 bg-black/30 rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-neurolink-matrixGreen"
-                  style={{
-                    width: `${Math.min(
-                      ((progresoAcademico?.modulos_completados || 0) / siguienteNivelAcademico.modulos_requeridos) * 100,
-                      100
-                    )}%`
-                  }}
-                />
+            {/* Barra de progreso */}
+            {tipoNivel === 'ventas' && nivelVentasActual && siguienteNivelVentas && (
+              <div className="w-full">
+                <div className="h-4 bg-black/30 rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-neurolink-matrixGreen transition-all duration-500"
+                    style={{
+                      width: `${Math.min(
+                        ((progresoVentas?.ventas_acumuladas || 0) - nivelVentasActual.min_ventas) /
+                        (siguienteNivelVentas.min_ventas - nivelVentasActual.min_ventas) * 100,
+                        100
+                      )}%`
+                    }}
+                  />
+                </div>
+                <div className="flex justify-between text-sm mt-1">
+                  <span className="text-gray-400">${nivelVentasActual.min_ventas.toLocaleString()}</span>
+                  <span className="text-gray-400">${siguienteNivelVentas.min_ventas.toLocaleString()}</span>
+                </div>
               </div>
-              <div className="flex justify-between text-sm mt-1">
-                <span className="text-gray-400">{nivelAcademicoActual.modulos_requeridos} módulos</span>
-                <span className="text-gray-400">{siguienteNivelAcademico.modulos_requeridos} módulos</span>
+            )}
+
+            {tipoNivel === 'educacion' && nivelAcademicoActual && siguienteNivelAcademico && (
+              <div className="w-full">
+                <div className="h-4 bg-black/30 rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-neurolink-matrixGreen transition-all duration-500"
+                    style={{
+                      width: `${Math.min(
+                        ((progresoAcademico?.modulos_completados || 0) / siguienteNivelAcademico.modulos_requeridos) * 100,
+                        100
+                      )}%`
+                    }}
+                  />
+                </div>
+                <div className="flex justify-between text-sm mt-1">
+                  <span className="text-gray-400">{nivelAcademicoActual.modulos_requeridos} módulos</span>
+                  <span className="text-gray-400">{siguienteNivelAcademico.modulos_requeridos} módulos</span>
+                </div>
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
+      </div>
+
+      {/* Selector de tipo de nivel */}
+      <div className="flex justify-center gap-4 mb-6">
+        <button
+          onClick={() => setTipoNivel('ventas')}
+          className={`px-6 py-2 rounded-full transition-all duration-300 ${
+            tipoNivel === 'ventas'
+              ? 'bg-neurolink-matrixGreen text-black font-bold'
+              : 'bg-black/30 text-gray-400 hover:bg-black/50'
+          }`}
+        >
+          Niveles de Ventas
+        </button>
+        <button
+          onClick={() => setTipoNivel('educacion')}
+          className={`px-6 py-2 rounded-full transition-all duration-300 ${
+            tipoNivel === 'educacion'
+              ? 'bg-neurolink-matrixGreen text-black font-bold'
+              : 'bg-black/30 text-gray-400 hover:bg-black/50'
+          }`}
+        >
+          Niveles Académicos
+        </button>
       </div>
 
       {/* Tabla de Niveles */}
       <div className="bg-black/50 backdrop-blur-sm rounded-lg p-6">
-        <h3 className="text-xl font-bold text-neurolink-matrixGreen mb-4">Requisitos por Nivel</h3>
+        <h3 className="text-xl font-bold text-neurolink-matrixGreen mb-4">
+          {tipoNivel === 'ventas' ? 'Niveles de Ventas' : 'Niveles Académicos'}
+        </h3>
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
               <tr className="text-left border-b border-gray-700">
                 <th className="p-3 text-yellow-400">Nivel</th>
                 <th className="p-3 text-yellow-400">Nombre</th>
-                <th className="p-3 text-yellow-400">Ventas Requeridas</th>
-                <th className="p-3 text-yellow-400">Módulos Requeridos</th>
-                <th className="p-3 text-yellow-400">Videos Requeridos</th>
+                {tipoNivel === 'ventas' ? (
+                  <th className="p-3 text-yellow-400">Ventas Requeridas</th>
+                ) : (
+                  <>
+                    <th className="p-3 text-yellow-400">Módulos Requeridos</th>
+                    <th className="p-3 text-yellow-400">Videos Requeridos</th>
+                  </>
+                )}
                 <th className="p-3 text-yellow-400">Descripción</th>
               </tr>
             </thead>
             <tbody>
-              {nivelesVentas.map((nivel, index) => {
-                const nivelAcademico = nivelesAcademicos[index];
-                return (
-                  <tr key={nivel.id} className={`border-b border-gray-700/50 ${
-                    nivel.id === progresoVentas?.nivel_actual ? 'bg-neurolink-matrixGreen/20' : ''
-                  }`}>
-                    <td className="p-3">{index + 1}</td>
+              {(tipoNivel === 'ventas' ? nivelesVentas : nivelesAcademicos).map((nivel, index) => (
+                <tr 
+                  key={nivel.id} 
+                  className={`border-b border-gray-700/50 ${
+                    (tipoNivel === 'ventas' ? progresoVentas?.nivel_actual : progresoAcademico?.nivel_actual) === nivel.id
+                      ? 'bg-neurolink-matrixGreen/20'
+                      : ''
+                  }`}
+                >
+                  <td className="p-3">{index + 1}</td>
+                  <td className="p-3">
+                    <span className="mr-2">{nivel.icono || '🏆'}</span>
+                    {nivel.nombre}
+                  </td>
+                  {tipoNivel === 'ventas' ? (
                     <td className="p-3">
-                      <span className="mr-2">{nivel.icono || '🏆'}</span>
-                      {nivel.nombre}
+                      ${(nivel as NivelVentas).min_ventas.toLocaleString()} - ${(nivel as NivelVentas).max_ventas.toLocaleString()}
                     </td>
-                    <td className="p-3">${nivel.min_ventas.toLocaleString()} - ${nivel.max_ventas.toLocaleString()}</td>
-                    <td className="p-3">{nivelAcademico?.modulos_requeridos || '-'}</td>
-                    <td className="p-3">{nivelAcademico?.videos_requeridos || '-'}</td>
-                    <td className="p-3">{nivel.descripcion}</td>
-                  </tr>
-                );
-              })}
+                  ) : (
+                    <>
+                      <td className="p-3">{(nivel as NivelAcademico).modulos_requeridos}</td>
+                      <td className="p-3">{(nivel as NivelAcademico).videos_requeridos}</td>
+                    </>
+                  )}
+                  <td className="p-3">{nivel.descripcion}</td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>
