@@ -149,9 +149,54 @@ const LineaVideosClassroom = () => {
     }
   };
 
+  // Función para manejar el progreso del video
+  const handleVideoProgress = (progress: number) => {
+    setVideoProgress(progress);
+    // Marcar como completado si el progreso es >= 90%
+    if (progress >= 90 && !completados[claseActual]) {
+      setCompletados(prev => ({ ...prev, [claseActual]: true }));
+    }
+  };
+
+  // Función para simular el progreso del video (ya que no podemos acceder directamente al iframe)
+  useEffect(() => {
+    if (!embedUrl) return;
+
+    const interval = setInterval(() => {
+      // Simular progreso del video (esto se puede mejorar con postMessage si el video lo soporta)
+      setCurrentTime(prev => {
+        const newTime = prev + 1;
+        if (newTime >= duration) {
+          clearInterval(interval);
+          return duration;
+        }
+        return newTime;
+      });
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [embedUrl, duration]);
+
+  // Establecer duración del video (simulado)
+  useEffect(() => {
+    if (videoActual?.duracion) {
+      setDuration(videoActual.duracion);
+    } else {
+      // Duración por defecto de 10 minutos si no está especificada
+      setDuration(600);
+    }
+  }, [videoActual]);
+
+  useEffect(() => {
+    if (todosCompletados && !isAdmin) {
+      marcarModuloCompletado();
+    }
+  }, [todosCompletados, isAdmin]);
+
+  if (loading) return <div className="text-cyan-400 text-center py-10">Cargando módulo...</div>;
+
   // Si todos los videos están completados, mostrar pantalla de felicitación
   if (todosCompletados && !isAdmin) {
-    marcarModuloCompletado();
     return (
       <div className="flex flex-col items-center gap-6 mt-8 transition-opacity duration-700 opacity-100 min-h-screen bg-black text-white p-8">
         <div className="flex flex-col items-center">
@@ -264,44 +309,6 @@ const LineaVideosClassroom = () => {
     setMateriales(materiales.filter(m => m.id !== id));
   }
 
-  // Función para manejar el progreso del video
-  const handleVideoProgress = (progress: number) => {
-    setVideoProgress(progress);
-    // Marcar como completado si el progreso es >= 90%
-    if (progress >= 90 && !completados[claseActual]) {
-      setCompletados(prev => ({ ...prev, [claseActual]: true }));
-    }
-  };
-
-  // Función para simular el progreso del video (ya que no podemos acceder directamente al iframe)
-  useEffect(() => {
-    if (!embedUrl) return;
-
-    const interval = setInterval(() => {
-      // Simular progreso del video (esto se puede mejorar con postMessage si el video lo soporta)
-      setCurrentTime(prev => {
-        const newTime = prev + 1;
-        if (newTime >= duration) {
-          clearInterval(interval);
-          return duration;
-        }
-        return newTime;
-      });
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, [embedUrl, duration]);
-
-  // Establecer duración del video (simulado)
-  useEffect(() => {
-    if (videoActual?.duracion) {
-      setDuration(videoActual.duracion);
-    } else {
-      // Duración por defecto de 10 minutos si no está especificada
-      setDuration(600);
-    }
-  }, [videoActual]);
-
   if (loading) return <div className="text-cyan-400 text-center py-10">Cargando módulo...</div>;
 
   return (
@@ -399,9 +406,17 @@ const LineaVideosClassroom = () => {
                     : 'bg-cyan-700 text-white hover:bg-cyan-600'
                 }`}
                 onClick={() => {
-                  setCompletados(prev => ({...prev, [claseActual]: true}));
-                  if (claseActual < clasesOrdenadas.length - 1) {
-                    setTimeout(() => setClaseActual(prev => prev + 1), 400);
+                  if (!completados[claseActual]) {
+                    setCompletados(prev => ({...prev, [claseActual]: true}));
+                    // Si es el último video, esperar un momento antes de mostrar la pantalla de felicitación
+                    if (claseActual === clasesOrdenadas.length - 1) {
+                      setTimeout(() => {
+                        marcarModuloCompletado();
+                      }, 500);
+                    } else {
+                      // Si no es el último video, pasar al siguiente automáticamente
+                      setTimeout(() => setClaseActual(prev => prev + 1), 400);
+                    }
                   }
                 }}
                 disabled={completados[claseActual]}
