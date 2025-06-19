@@ -4,7 +4,7 @@ import CursosAdminPanel from '../components/CursosAdminPanel';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../supabase';
 import useCursosStore from '../store/useCursosStore';
-import CursosLoadingState from '../components/CursosLoadingState';
+import LoadingScreen from '../components/LoadingScreen';
 import GlobalLoadingSpinner from '../components/GlobalLoadingSpinner';
 
 const CursosPage: React.FC = () => {
@@ -61,7 +61,8 @@ const CursosPage: React.FC = () => {
       <div />
     </GlobalLoadingSpinner>
   );
-  if (loading) return <CursosLoadingState />;
+  
+  if (loading) return <LoadingScreen message="Cargando cursos..." />;
   if (error) return <div className="min-h-screen flex items-center justify-center text-red-400">{error}</div>;
 
   return (
