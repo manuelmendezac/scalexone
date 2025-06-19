@@ -38,10 +38,12 @@ const FeedComunidad = () => {
   const { 
     posts,
     reaccionesPorPost,
+    miReaccionPorPost,
     usuarios,
     loading,
     fetchPosts,
-    cargarReacciones
+    cargarReacciones,
+    reaccionar
   } = useCommunityStore();
 
   const [contenido, setContenido] = useState('');
@@ -253,8 +255,12 @@ const FeedComunidad = () => {
     }
   }, [posts]);
 
+  const handleReaccionar = async (postId: string, tipo: string) => {
+    await reaccionar(postId, tipo);
+  };
+
   if (loading) {
-    return <LoadingScreen message="Cargando publicaciones..." />;
+    return <LoadingScreen message="Cargando comunidad..." />;
   }
 
   return (
@@ -461,13 +467,13 @@ const FeedComunidad = () => {
                   <CarruselImagenes imagenes={post.imagenes_urls} />
                 )}
                 {/* Reacciones tipo Facebook y botones unificados */}
-                <div className="flex gap-4 mt-2 items-center">
+                <div className="mt-4 flex items-center gap-4">
                   <ReaccionesFacebook
                     postId={post.id}
                     usuarioId={usuarioId}
                     reacciones={reaccionesPorPost[post.id] || []}
                     miReaccion={miReaccionPorPost[post.id] || null}
-                    onReact={tipo => manejarReaccion(post.id, tipo)}
+                    onReact={(tipo) => handleReaccionar(post.id, tipo)}
                   />
                   {/* Ícono de comentar con contador */}
                   <button
