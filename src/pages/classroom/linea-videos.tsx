@@ -193,40 +193,6 @@ const LineaVideosClassroom = () => {
     }
   }, [todosCompletados, isAdmin]);
 
-  if (loading) return <div className="text-cyan-400 text-center py-10">Cargando módulo...</div>;
-
-  // Si todos los videos están completados, mostrar pantalla de felicitación
-  if (todosCompletados && !isAdmin) {
-    return (
-      <div className="flex flex-col items-center gap-6 mt-8 transition-opacity duration-700 opacity-100 min-h-screen bg-black text-white p-8">
-        <div className="flex flex-col items-center">
-          <svg width="80" height="80" fill="none" stroke="#4ade80" strokeWidth="2" className="animate-bounce">
-            <circle cx="40" cy="40" r="38"/>
-            <path d="M20 40l15 15 25-25"/>
-          </svg>
-        </div>
-        <div className="text-3xl font-bold text-cyan-300 text-center">¡Has completado el módulo!</div>
-        <audio id="felicitacion-audio" src="/audio/felicitacion-modulo.mp3" autoPlay onEnded={e => { e.currentTarget.currentTime = 0; }} />
-        <div className="flex flex-row gap-2 mt-4 w-full justify-center">
-          <button
-            className="flex items-center gap-2 px-4 py-2 rounded-full bg-neutral-800 hover:bg-cyan-900 text-cyan-200 font-bold text-base shadow transition-all border border-cyan-700"
-            onClick={() => navigate('/classroom')}
-          >
-            <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
-            Regresar al Inicio
-          </button>
-          <button
-            className="flex items-center gap-2 px-4 py-2 rounded-full bg-green-500 hover:bg-green-400 text-black font-bold text-base shadow transition-all border border-green-700"
-            onClick={navegarSiguienteModulo}
-          >
-            Siguiente Módulo 
-            <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-          </button>
-        </div>
-      </div>
-    );
-  }
-
   // Guardar descripción global
   async function handleSaveDescripcion() {
     setDescMsg(null);
@@ -518,38 +484,71 @@ const LineaVideosClassroom = () => {
               Editar videos del módulo
             </button>
           )}
-          <h3 className="text-xl sm:text-2xl md:text-3xl font-bold mb-4 sm:mb-6 text-cyan-300 tracking-tight uppercase text-center drop-shadow-glow">Clases del módulo</h3>
-          {clasesOrdenadas.map((v, idx) => {
-            let thumb = v.miniatura_url;
-            if ((!thumb || thumb === 'null') && v.url) {
-              const ytMatch = v.url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([\w-]{11})/);
-              if (ytMatch) thumb = `https://img.youtube.com/vi/${ytMatch[1]}/hqdefault.jpg`;
-              const vimeoMatch = v.url.match(/vimeo\.com\/(\d+)/);
-              if (vimeoMatch) thumb = `https://vumbnail.com/${vimeoMatch[1]}.jpg`;
-            }
-            return (
-              <div
-                key={v.id}
-                className={`flex items-center gap-4 p-3 rounded-2xl cursor-pointer transition border-2 ${v.id === videoActual.id ? 'bg-cyan-900/30 border-cyan-400' : 'bg-neutral-900 border-neutral-800 hover:bg-cyan-900/10'} group`}
-                onClick={() => setClaseActual(idx)}
-                style={{ minHeight: 110 }}
-              >
-                <div className="flex-shrink-0 w-32 h-20 bg-black rounded-xl overflow-hidden flex items-center justify-center border-2 border-cyan-800 group-hover:border-cyan-400 transition">
-                  {thumb ? (
-                    <img src={thumb} alt={v.titulo} className="w-full h-full object-cover" />
-                  ) : v.url && (v.url.endsWith('.mp4') || v.url.endsWith('.webm')) ? (
-                    <video src={v.url} className="w-full h-full object-cover" muted playsInline preload="metadata" style={{pointerEvents:'none'}} />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-cyan-400">Sin video</div>
-                  )}
-                </div>
-                <div className="flex-1 flex flex-col justify-center min-w-0">
-                  <div className="font-bold text-cyan-200 text-base truncate mb-1" style={{fontSize:'1rem'}}>{v.titulo}</div>
-                  <div className="text-xs text-cyan-400 opacity-70">Video</div>
-                </div>
+
+          {/* Mostrar pantalla de felicitación o lista de videos */}
+          {todosCompletados && !isAdmin ? (
+            <div className="flex flex-col items-center gap-6 py-8 transition-opacity duration-700 opacity-100">
+              <div className="flex flex-col items-center">
+                <svg width="64" height="64" fill="none" stroke="#4ade80" strokeWidth="2" className="animate-bounce">
+                  <circle cx="32" cy="32" r="30"/>
+                  <path d="M16 32l12 12 20-20"/>
+                </svg>
               </div>
-            );
-          })}
+              <div className="text-2xl font-bold text-cyan-300 text-center">¡Has completado el módulo!</div>
+              <audio id="felicitacion-audio" src="/audio/felicitacion-modulo.mp3" autoPlay onEnded={e => { e.currentTarget.currentTime = 0; }} />
+              <div className="flex flex-col gap-2 mt-2 w-full">
+                <button
+                  className="flex items-center justify-center gap-2 px-4 py-2 rounded-full bg-neutral-800 hover:bg-cyan-900 text-cyan-200 font-bold text-sm shadow transition-all border border-cyan-700 w-full"
+                  onClick={() => navigate('/classroom')}
+                >
+                  <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 8H4M8 12L4 8l4-4"/></svg>
+                  Regresar al Inicio
+                </button>
+                <button
+                  className="flex items-center justify-center gap-2 px-4 py-2 rounded-full bg-green-500 hover:bg-green-400 text-black font-bold text-sm shadow transition-all border border-green-700 w-full"
+                  onClick={navegarSiguienteModulo}
+                >
+                  Siguiente Módulo 
+                  <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 8h11M11 4l4 4-4 4"/></svg>
+                </button>
+              </div>
+            </div>
+          ) : (
+            <>
+              <h3 className="text-xl sm:text-2xl md:text-3xl font-bold mb-4 sm:mb-6 text-cyan-300 tracking-tight uppercase text-center drop-shadow-glow">Clases del módulo</h3>
+              {clasesOrdenadas.map((v, idx) => {
+                let thumb = v.miniatura_url;
+                if ((!thumb || thumb === 'null') && v.url) {
+                  const ytMatch = v.url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([\w-]{11})/);
+                  if (ytMatch) thumb = `https://img.youtube.com/vi/${ytMatch[1]}/hqdefault.jpg`;
+                  const vimeoMatch = v.url.match(/vimeo\.com\/(\d+)/);
+                  if (vimeoMatch) thumb = `https://vumbnail.com/${vimeoMatch[1]}.jpg`;
+                }
+                return (
+                  <div
+                    key={v.id}
+                    className={`flex items-center gap-4 p-3 rounded-2xl cursor-pointer transition border-2 ${v.id === videoActual.id ? 'bg-cyan-900/30 border-cyan-400' : 'bg-neutral-900 border-neutral-800 hover:bg-cyan-900/10'} group`}
+                    onClick={() => setClaseActual(idx)}
+                    style={{ minHeight: 110 }}
+                  >
+                    <div className="flex-shrink-0 w-32 h-20 bg-black rounded-xl overflow-hidden flex items-center justify-center border-2 border-cyan-800 group-hover:border-cyan-400 transition">
+                      {thumb ? (
+                        <img src={thumb} alt={v.titulo} className="w-full h-full object-cover" />
+                      ) : v.url && (v.url.endsWith('.mp4') || v.url.endsWith('.webm')) ? (
+                        <video src={v.url} className="w-full h-full object-cover" muted playsInline preload="metadata" style={{pointerEvents:'none'}} />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-cyan-400">Sin video</div>
+                      )}
+                    </div>
+                    <div className="flex-1 flex flex-col justify-center min-w-0">
+                      <div className="font-bold text-cyan-200 text-base truncate mb-1" style={{fontSize:'1rem'}}>{v.titulo}</div>
+                      <div className="text-xs text-cyan-400 opacity-70">Video</div>
+                    </div>
+                  </div>
+                );
+              })}
+            </>
+          )}
         </div>
       )}
       {/* Modales de edición */}
