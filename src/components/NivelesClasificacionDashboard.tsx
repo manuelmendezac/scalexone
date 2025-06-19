@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { useSession } from '@supabase/auth-helpers-react';
 import { supabase } from '../supabase';
 import useNeuroState from '../store/useNeuroState';
 import LoadingScreen from './LoadingScreen';
@@ -71,7 +70,6 @@ const ProgressBar = ({ value, max }: { value: number; max: number }) => {
 };
 
 const NivelesClasificacionDashboard: React.FC = () => {
-  const session = useSession();
   const { userInfo } = useNeuroState();
   const [niveles, setNiveles] = useState<Nivel[]>([]);
   const [progresoUsuario, setProgresoUsuario] = useState<ProgresoUsuario | null>(null);
@@ -80,11 +78,15 @@ const NivelesClasificacionDashboard: React.FC = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      if (!session?.user?.id) return;
-      
       try {
         setLoading(true);
         setError(null);
+
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+          setError('Usuario no autenticado');
+          return;
+        }
 
         // Obtener niveles
         const { data: nivelesData, error: nivelesError } = await supabase
@@ -99,7 +101,7 @@ const NivelesClasificacionDashboard: React.FC = () => {
         const { data: progresoData, error: progresoError } = await supabase
           .from('progreso_ventas_usuario')
           .select('*')
-          .eq('usuario_id', session.user.id)
+          .eq('usuario_id', user.id)
           .single();
 
         if (progresoError && progresoError.code !== 'PGRST116') throw progresoError;
@@ -130,7 +132,7 @@ const NivelesClasificacionDashboard: React.FC = () => {
     };
 
     fetchData();
-  }, [session?.user?.id, userInfo?.community_id]);
+  }, [userInfo?.community_id]);
 
   if (loading) {
     return <LoadingScreen message="Cargando niveles..." />;
