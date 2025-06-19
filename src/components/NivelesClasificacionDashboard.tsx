@@ -89,7 +89,7 @@ const NivelesClasificacionDashboard: React.FC = () => {
           return;
         }
 
-        // Obtener niveles de la comunidad
+        // Obtener niveles
         const { data: nivelesData, error: nivelesError } = await supabase
           .from('niveles_ventas')
           .select('*')
@@ -98,7 +98,7 @@ const NivelesClasificacionDashboard: React.FC = () => {
 
         if (nivelesError) {
           console.error('Error al obtener niveles:', nivelesError);
-          throw new Error('Error al cargar los niveles de clasificación');
+          throw new Error(`Error al cargar los niveles de clasificación: ${nivelesError.message}`);
         }
 
         if (!nivelesData || nivelesData.length === 0) {

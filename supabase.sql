@@ -120,10 +120,28 @@ create table if not exists niveles_ventas (
   descripcion text,
   icono text default '🏆',
   color text default '#FFD700',
-  community_id text default 'default',
+  community_id text references menu_secundario_config(community_id) default 'default',
   created_at timestamp with time zone default timezone('utc'::text, now()) not null,
   updated_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
+
+-- Crear índice para mejorar el rendimiento de búsquedas por community_id
+create index if not exists idx_niveles_ventas_community_id on niveles_ventas(community_id);
+
+-- Insertar niveles por defecto solo si no existen
+insert into niveles_ventas (nombre, min_ventas, max_ventas, descripcion, community_id) 
+values 
+  ('Starter', 0, 999, 'Nivel inicial', 'default'),
+  ('Affiliate', 1000, 4999, 'Afiliado activo', 'default'),
+  ('Achiever', 5000, 9999, 'Logrador consistente', 'default'),
+  ('Hustler', 10000, 24999, 'Vendedor destacado', 'default'),
+  ('Builder', 25000, 49999, 'Constructor de negocio', 'default'),
+  ('Connector', 50000, 99999, 'Conector de redes', 'default'),
+  ('Monetizer', 100000, 249999, 'Monetizador experto', 'default'),
+  ('Architect', 250000, 499999, 'Arquitecto de ventas', 'default'),
+  ('Visionary', 500000, 999999, 'Visionario de negocios', 'default'),
+  ('Ambassador', 1000000, 999999999, 'Embajador elite', 'default')
+on conflict (id) do nothing;
 
 -- Tabla de progreso de ventas por usuario
 create table if not exists progreso_ventas_usuario (
@@ -137,20 +155,5 @@ create table if not exists progreso_ventas_usuario (
   unique(usuario_id)
 );
 
--- Insertar niveles por defecto
-insert into niveles_ventas (nombre, min_ventas, max_ventas, descripcion, community_id) values
-  ('Starter', 0, 999, 'Nivel inicial', 'default'),
-  ('Affiliate', 1000, 4999, 'Afiliado activo', 'default'),
-  ('Achiever', 5000, 9999, 'Logrador consistente', 'default'),
-  ('Hustler', 10000, 24999, 'Vendedor destacado', 'default'),
-  ('Builder', 25000, 49999, 'Constructor de negocio', 'default'),
-  ('Connector', 50000, 99999, 'Conector de redes', 'default'),
-  ('Monetizer', 100000, 249999, 'Monetizador experto', 'default'),
-  ('Architect', 250000, 499999, 'Arquitecto de ventas', 'default'),
-  ('Visionary', 500000, 999999, 'Visionario de negocios', 'default'),
-  ('Ambassador', 1000000, 999999999, 'Embajador elite', 'default')
-on conflict do nothing;
-
 -- Crear índices para mejorar el rendimiento
-create index if not exists idx_niveles_ventas_community_id on niveles_ventas(community_id);
 create index if not exists idx_progreso_ventas_usuario_usuario_id on progreso_ventas_usuario(usuario_id); 
