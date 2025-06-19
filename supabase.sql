@@ -111,6 +111,30 @@ begin
 end;
 $$;
 
+-- Función para obtener el ranking de un vendedor
+create or replace function get_seller_rank(user_email text)
+returns integer
+language plpgsql
+security definer
+as $$
+declare
+  user_rank integer;
+begin
+  select rank
+  into user_rank
+  from (
+    select 
+      email,
+      rank() over (order by coalesce(pvu.ventas_acumuladas, 0) desc) as rank
+    from usuarios u
+    left join progreso_ventas_usuario pvu on u.id = pvu.usuario_id
+  ) ranked
+  where email = user_email;
+  
+  return user_rank;
+end;
+$$;
+
 -- Tabla de niveles de ventas
 create table if not exists niveles_ventas (
   id uuid primary key default gen_random_uuid(),
