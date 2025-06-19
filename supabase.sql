@@ -150,6 +150,7 @@ create table if not exists progreso_ventas_usuario (
   nivel_actual uuid references niveles_ventas(id),
   ventas_acumuladas decimal default 0,
   ultima_venta timestamp with time zone,
+  puntos integer default 0,
   created_at timestamp with time zone default timezone('utc'::text, now()) not null,
   updated_at timestamp with time zone default timezone('utc'::text, now()) not null,
   unique(usuario_id)
@@ -243,4 +244,19 @@ drop trigger if exists update_progreso_academico_usuario_updated_at on progreso_
 create trigger update_progreso_academico_usuario_updated_at
   before update on progreso_academico_usuario
   for each row
-  execute function update_updated_at_column(); 
+  execute function update_updated_at_column();
+
+-- Agregar columna puntos a la tabla progreso_ventas_usuario si no existe
+do $$
+begin
+  if not exists (select 1 from information_schema.columns 
+    where table_name = 'progreso_ventas_usuario' and column_name = 'puntos') then
+    alter table progreso_ventas_usuario 
+    add column puntos integer default 0;
+  end if;
+end $$;
+
+-- Actualizar registros existentes para inicializar puntos
+update progreso_ventas_usuario 
+set puntos = 0 
+where puntos is null; 
