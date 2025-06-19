@@ -312,8 +312,8 @@ const LineaVideosClassroom = () => {
   return (
     <div className={`min-h-screen bg-black text-white flex flex-col ${fullscreen ? '' : 'md:flex-row'} px-1 sm:px-2`}>
       {/* Panel principal mejorado */}
-      <div className={`flex-1 flex flex-col items-center justify-center ${fullscreen ? 'fixed inset-0 z-50 bg-black overflow-auto' : 'p-1 sm:p-2 md:p-8'} transition-all duration-300`} style={fullscreen ? {maxWidth: '100vw', maxHeight: '100vh', overflow: 'auto'} : {}}>
-        <div className={`w-full ${fullscreen ? '' : 'max-w-6xl'} bg-gradient-to-br from-neutral-950 to-black rounded-3xl shadow-2xl p-0 md:p-0 flex flex-col items-center border border-cyan-900/40`} style={fullscreen ? {minHeight: '100vh', justifyContent: 'center', alignItems: 'center', display: 'flex', padding: 0} : {}}>
+      <div className={`flex-1 flex flex-col items-center justify-center ${fullscreen ? 'fixed inset-0 z-50 bg-black overflow-auto' : 'p-1 sm:p-2 md:p-8'} transition-all duration-300`}>
+        <div className={`w-full ${fullscreen ? '' : 'max-w-6xl'} bg-gradient-to-br from-neutral-950 to-black rounded-3xl shadow-2xl p-4 flex flex-col items-center border border-cyan-900/40`}>
           {/* Header con información del módulo y progreso */}
           <div className="w-full flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
             <div className="flex-1">
@@ -353,6 +353,22 @@ const LineaVideosClassroom = () => {
               </div>
             </div>
           </div>
+
+          {/* Contenedor del video con aspect ratio 16:9 */}
+          <div className="w-full max-w-4xl mx-auto">
+            <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
+              <iframe
+                ref={videoRef}
+                src={embedUrl}
+                className="absolute top-0 left-0 w-full h-full rounded-lg"
+                frameBorder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+                title={videoActual.titulo}
+              />
+            </div>
+          </div>
+
           {/* Video grande y protagonista, sin bordes extras */}
           <div className={`relative w-full aspect-video bg-black overflow-visible flex flex-col items-center justify-center border-b-4 border-cyan-900/30 shadow-lg`} style={fullscreen ? {position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', zIndex: 100, background: '#000', margin: 0, borderRadius: 0, padding: 0, minHeight: '100vh', maxHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center'} : {width: '100%', minHeight: 200, maxHeight: 700, margin: 0, borderRadius: 0, background: '#000', padding: 0}}>
             {/* Flecha para volver atrás */}
