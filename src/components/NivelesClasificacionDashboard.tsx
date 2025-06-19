@@ -236,7 +236,7 @@ const NivelesClasificacionDashboard: React.FC = () => {
 
           {/* Grid de Niveles */}
           <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-12">
-            {(tipoNivel === 'ventas' ? nivelesVentas : nivelesAcademicos).map((nivel) => (
+            {(tipoNivel === 'ventas' ? nivelesVentas : nivelesAcademicos).map((nivel, index) => (
               <div 
                 key={nivel.id}
                 className={`relative p-4 rounded-lg ${
@@ -251,16 +251,10 @@ const NivelesClasificacionDashboard: React.FC = () => {
                       ? 'bg-[#FFD700] text-black'
                       : 'bg-[#333333] text-gray-500'
                   }`}>
-                    {nivel.id <= (tipoNivel === 'ventas' ? progreso?.nivel_actual_ventas || 1 : progreso?.nivel_actual_academico || 1) ? (
-                      nivel.id
-                    ) : (
-                      <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 116 0z" clipRule="evenodd" />
-                      </svg>
-                    )}
+                    {index + 1}
                   </div>
                   <div>
-                    <h3 className="font-semibold text-white text-lg">Nivel {nivel.id}</h3>
+                    <h3 className="font-semibold text-white text-lg">Nivel {index + 1}</h3>
                     <h4 className="text-[#FFD700]">{nivel.nombre}</h4>
                   </div>
                 </div>
@@ -296,9 +290,9 @@ const NivelesClasificacionDashboard: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {(tipoNivel === 'ventas' ? nivelesVentas : nivelesAcademicos).map((nivel) => (
+                  {(tipoNivel === 'ventas' ? nivelesVentas : nivelesAcademicos).map((nivel, index) => (
                     <tr key={nivel.id} className="border-b border-[#333333] hover:bg-[#2A2A2A] transition-colors">
-                      <td className="p-4 text-white font-semibold">{nivel.id}</td>
+                      <td className="p-4 text-white font-semibold">{index + 1}</td>
                       <td className="p-4 text-[#FFD700]">{nivel.nombre}</td>
                       {tipoNivel === 'ventas' ? (
                         <>
