@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import UserLevelProgress from './UserLevelProgress';
 import SeguimientoGlobal from './SeguimientoGlobal';
 import { FiZap, FiPlusCircle, FiUser, FiMessageCircle } from 'react-icons/fi';
 import useNeuroState from '../store/useNeuroState';
@@ -172,12 +171,34 @@ const Dashboard: React.FC = () => {
         <section>
           <div className="flex flex-col md:flex-row items-center justify-between gap-8 w-full">
             <div className="flex-1">
-              <UserLevelProgress />
+              <div className="bg-black/40 border border-[#FFD700]/30 rounded-xl p-6">
+                <div className="flex items-center gap-4 mb-4">
+                  <img 
+                    src={avatarUrl || '/images/silueta-perfil.svg'}
+                    alt="Avatar" 
+                    className="w-12 h-12 rounded-full border-2 border-[#FFD700]"
+                  />
+                  <div>
+                    <h3 className="text-white font-bold">{userInfo?.name || 'Usuario'}</h3>
+                    <div className="text-sm text-white/70">Nivel {userLevel}</div>
+                  </div>
+                </div>
+                <div className="w-full bg-black/60 rounded-full h-4 overflow-hidden">
+                  <div 
+                    className="bg-[#FFD700] h-full rounded-full transition-all duration-500"
+                    style={{ width: `${(userXP / xpForNextLevel) * 100}%` }}
+                  />
+                </div>
+                <div className="flex justify-between mt-2 text-sm text-white/70">
+                  <span>{userXP} XP</span>
+                  <span>{xpForNextLevel} XP</span>
+                </div>
+              </div>
             </div>
-            <div className="flex flex-col items-center justify-center min-w-[180px] bg-black/40 border border-neurolink-cyberBlue/30 rounded-2xl p-6 shadow-xl">
-              <div className="text-neurolink-matrixGreen text-4xl font-bold mb-2">🔥 {streak}</div>
-              <div className="text-neurolink-coldWhite/80 text-lg font-orbitron">Racha de uso</div>
-              <div className="text-neurolink-coldWhite/50 text-sm">Días seguidos</div>
+            <div className="flex flex-col items-center justify-center min-w-[180px] bg-black/40 border border-[#FFD700]/30 rounded-2xl p-6 shadow-xl">
+              <div className="text-[#FFD700] text-4xl font-bold mb-2">🔥 {streak}</div>
+              <div className="text-white/80 text-lg font-orbitron">Racha de uso</div>
+              <div className="text-white/50 text-sm">Días seguidos</div>
             </div>
           </div>
         </section>
