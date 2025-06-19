@@ -137,72 +137,6 @@ const Dashboard: React.FC = () => {
         {/* Niveles de Clasificación (Encabezado visual) */}
         <NivelesClasificacionDashboard />
 
-        {/* Panel de tarjetas de nivel, experiencia y monedas (estilo horizontal) */}
-        <section className="mb-8">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full">
-            {/* Nivel */}
-            <div className="border border-neurolink-cyberBlue/40 rounded-xl p-6 bg-black/60 flex flex-col items-start gap-2 shadow-md">
-              <div className="flex items-center gap-2 mb-1">
-                <span className="text-neurolink-matrixGreen text-2xl"><svg width="28" height="28" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M7 21h10M12 17v4M17 17a5 5 0 0 0 2-4V7.5a2.5 2.5 0 0 0-5 0V13a2.5 2.5 0 0 1-5 0V7.5a2.5 2.5 0 0 0-5 0V13a5 5 0 0 0 2 4"/></svg></span>
-                <span className="font-orbitron text-xl text-neurolink-coldWhite">Nivel {userLevel}</span>
-              </div>
-              <span className="text-neurolink-coldWhite/70 text-base font-mono">{userXP} / {xpForNextLevel} XP</span>
-            </div>
-            {/* Experiencia Total */}
-            <div className="border border-neurolink-cyberBlue/40 rounded-xl p-6 bg-black/60 flex flex-col items-start gap-2 shadow-md">
-              <div className="flex items-center gap-2 mb-1">
-                <span className="text-neurolink-matrixGreen text-2xl"><svg width="28" height="28" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M12 17.75l-6.16 3.24 1.18-6.88L2 9.76l6.92-1L12 2.5l3.08 6.26 6.92 1-5.02 4.35 1.18 6.88z"/></svg></span>
-                <span className="font-orbitron text-xl text-neurolink-coldWhite">Experiencia Total</span>
-              </div>
-              <span className="text-neurolink-matrixGreen text-2xl font-bold">{userXP} XP</span>
-            </div>
-            {/* Monedas */}
-            <div className="border border-neurolink-cyberBlue/40 rounded-xl p-6 bg-black/60 flex flex-col items-start gap-2 shadow-md">
-              <div className="flex items-center gap-2 mb-1">
-                <span className="text-neurolink-matrixGreen text-2xl"><svg width="28" height="28" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M8 12h8M12 8v8"/></svg></span>
-                <span className="font-orbitron text-xl text-neurolink-coldWhite">Monedas</span>
-              </div>
-              <span className="text-neurolink-matrixGreen text-2xl font-bold">{userCoins}</span>
-            </div>
-          </div>
-        </section>
-
-        {/* Panel de nivel, experiencia, monedas y racha */}
-        <section>
-          <div className="flex flex-col md:flex-row items-center justify-between gap-8 w-full">
-            <div className="flex-1">
-              <div className="bg-black/40 border border-[#FFD700]/30 rounded-xl p-6">
-                <div className="flex items-center gap-4 mb-4">
-                  <img 
-                    src={avatarUrl || '/images/silueta-perfil.svg'}
-                    alt="Avatar" 
-                    className="w-12 h-12 rounded-full border-2 border-[#FFD700]"
-                  />
-                  <div>
-                    <h3 className="text-white font-bold">{userInfo?.name || 'Usuario'}</h3>
-                    <div className="text-sm text-white/70">Nivel {userLevel}</div>
-                  </div>
-                </div>
-                <div className="w-full bg-black/60 rounded-full h-4 overflow-hidden">
-                  <div 
-                    className="bg-[#FFD700] h-full rounded-full transition-all duration-500"
-                    style={{ width: `${(userXP / xpForNextLevel) * 100}%` }}
-                  />
-                </div>
-                <div className="flex justify-between mt-2 text-sm text-white/70">
-                  <span>{userXP} XP</span>
-                  <span>{xpForNextLevel} XP</span>
-                </div>
-              </div>
-            </div>
-            <div className="flex flex-col items-center justify-center min-w-[180px] bg-black/40 border border-[#FFD700]/30 rounded-2xl p-6 shadow-xl">
-              <div className="text-[#FFD700] text-4xl font-bold mb-2">🔥 {streak}</div>
-              <div className="text-white/80 text-lg font-orbitron">Racha de uso</div>
-              <div className="text-white/50 text-sm">Días seguidos</div>
-            </div>
-          </div>
-        </section>
-
         {/* Ranking Top 10 */}
         <RankingTop10 />
 
@@ -214,36 +148,36 @@ const Dashboard: React.FC = () => {
         {/* Accesos rápidos y actividad reciente */}
         <section className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {/* Accesos rápidos */}
-          <div className="bg-black/30 rounded-xl border border-neurolink-cyberBlue/30 p-6 flex flex-col gap-4 shadow-lg">
-            <h3 className="text-neurolink-coldWhite/90 font-orbitron text-lg">Accesos Rápidos</h3>
+          <div className="bg-black/30 rounded-xl border border-[#FFD700]/30 p-6 flex flex-col gap-4 shadow-lg">
+            <h3 className="text-white/90 font-orbitron text-lg">Accesos Rápidos</h3>
             <div className="grid grid-cols-1 gap-3">
               {accesos.map((acceso, i) => (
                 <a
                   key={i}
                   href={acceso.link}
-                  className="flex items-center gap-3 p-3 rounded-lg bg-black/40 border border-neurolink-cyberBlue/20 hover:bg-neurolink-cyberBlue/10 transition-colors"
+                  className="flex items-center gap-3 p-3 rounded-lg bg-black/40 border border-[#FFD700]/20 hover:bg-[#FFD700]/10 transition-colors"
                 >
-                  <span className="text-neurolink-matrixGreen text-xl">{acceso.icon}</span>
-                  <span className="text-neurolink-coldWhite/80">{acceso.texto}</span>
+                  <span className="text-[#FFD700] text-xl">{acceso.icon}</span>
+                  <span className="text-white/80">{acceso.texto}</span>
                 </a>
               ))}
             </div>
           </div>
 
           {/* Actividad reciente */}
-          <div className="bg-black/30 rounded-xl border border-neurolink-cyberBlue/30 p-6 flex flex-col gap-4 shadow-lg">
-            <h3 className="text-neurolink-coldWhite/90 font-orbitron text-lg">Actividad Reciente</h3>
+          <div className="bg-black/30 rounded-xl border border-[#FFD700]/30 p-6 flex flex-col gap-4 shadow-lg">
+            <h3 className="text-white/90 font-orbitron text-lg">Actividad Reciente</h3>
             <div className="grid grid-cols-1 gap-3">
               {actividad.map((item, i) => (
                 <div
                   key={i}
-                  className="flex items-center justify-between p-3 rounded-lg bg-black/40 border border-neurolink-cyberBlue/20"
+                  className="flex items-center justify-between p-3 rounded-lg bg-black/40 border border-[#FFD700]/20"
                 >
                   <div className="flex items-center gap-3">
-                    <span className="text-neurolink-matrixGreen text-xl">{item.icon}</span>
-                    <span className="text-neurolink-coldWhite/80">{item.texto}</span>
+                    <span className="text-[#FFD700] text-xl">{item.icon}</span>
+                    <span className="text-white/80">{item.texto}</span>
                   </div>
-                  <span className="text-neurolink-coldWhite/50 text-sm">{item.fecha}</span>
+                  <span className="text-white/50 text-sm">{item.fecha}</span>
                 </div>
               ))}
             </div>
