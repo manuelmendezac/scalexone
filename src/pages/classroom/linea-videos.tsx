@@ -8,6 +8,7 @@ import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 import ClassroomVideoGamification from '../../components/ClassroomVideoGamification';
 import useNeuroState from '../../store/useNeuroState';
+import classroomGamificationService from '../../services/classroomGamificationService';
 
 // UUID especial para el portal de recursos de classroom (válido para campos tipo uuid)
 const MODULO_CURSO_ID_RECURSOS = "11111111-1111-1111-1111-111111111111";
@@ -88,13 +89,13 @@ const LineaVideosClassroom = () => {
     setMateriales(mats || []);
   };
 
-  // Utilidad para transformar links normales a embed
+  // Utilidad para transformar links normales a embed de Vimeo
   function toEmbedUrl(url: string): string {
     if (!url) return '';
-    const ytMatch = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([\w-]{11})/);
-    if (ytMatch) return `https://www.youtube.com/embed/${ytMatch[1]}`;
     const vimeoMatch = url.match(/vimeo\.com\/(\d+)/);
-    if (vimeoMatch) return `https://player.vimeo.com/video/${vimeoMatch[1]}`;
+    if (vimeoMatch) {
+      return `https://player.vimeo.com/video/${vimeoMatch[1]}?api=1&player_id=vimeo-player`;
+    }
     return url;
   }
 
@@ -155,35 +156,90 @@ const LineaVideosClassroom = () => {
     // Marcar como completado si el progreso es >= 90%
     if (progress >= 90 && !completados[claseActual]) {
       setCompletados(prev => ({ ...prev, [claseActual]: true }));
+      
+      // Actualizar progreso en el servicio de gamificación
+      const usuarioId = neuro.userInfo?.email || 'anon';
+      classroomGamificationService.actualizarProgresoVideo(
+        videoActual.id,
+        usuarioId,
+        Math.floor(currentTime),
+        progress
+      ).catch(error => console.error('Error al actualizar progreso:', error));
     }
   };
 
-  // Función para simular el progreso del video (ya que no podemos acceder directamente al iframe)
+  // Función para manejar el progreso real del video desde el iframe de Vimeo
+  const handleIframeMessage = (event: MessageEvent) => {
+    // Solo procesar mensajes del iframe de Vimeo
+    if (!event.origin.includes('player.vimeo.com')) return;
+    
+    try {
+      const data = JSON.parse(event.data);
+      
+      // Procesar eventos de Vimeo
+      if (data.event === 'timeupdate') {
+        const currentTime = data.data.seconds;
+        const duration = data.data.duration;
+        setCurrentTime(currentTime);
+        setDuration(duration);
+        
+        // Calcular y actualizar progreso
+        const progress = Math.floor((currentTime / duration) * 100);
+        handleVideoProgress(progress);
+      }
+    } catch (error) {
+      console.error('Error al procesar mensaje del iframe:', error);
+    }
+  };
+
+  // Escuchar mensajes del iframe
+  useEffect(() => {
+    window.addEventListener('message', handleIframeMessage);
+    return () => window.removeEventListener('message', handleIframeMessage);
+  }, []);
+
+  // Configurar el iframe para recibir eventos de Vimeo
   useEffect(() => {
     if (!embedUrl) return;
 
-    const interval = setInterval(() => {
-      // Simular progreso del video (esto se puede mejorar con postMessage si el video lo soporta)
-      setCurrentTime(prev => {
-        const newTime = prev + 1;
-        if (newTime >= duration) {
-          clearInterval(interval);
-          return duration;
-        }
-        return newTime;
-      });
-    }, 1000);
+    const iframe = videoRef.current;
+    if (!iframe) return;
 
-    return () => clearInterval(interval);
-  }, [embedUrl, duration]);
+    // Agregar parámetros para habilitar la API de Vimeo
+    const url = new URL(embedUrl);
+    url.searchParams.set('api', '1');
+    url.searchParams.set('player_id', 'vimeo-player');
+    iframe.src = url.toString();
 
-  // Establecer duración del video (simulado)
+    // Inicializar comunicación con el player de Vimeo
+    const player = new (window as any).Vimeo.Player(iframe);
+    
+    // Escuchar eventos de progreso
+    player.on('timeupdate', (data: any) => {
+      const { seconds, duration } = data;
+      setCurrentTime(seconds);
+      setDuration(duration);
+      
+      // Calcular y actualizar progreso
+      const progress = Math.floor((seconds / duration) * 100);
+      handleVideoProgress(progress);
+    });
+
+    // Escuchar evento de finalización
+    player.on('ended', () => {
+      handleVideoProgress(100);
+    });
+
+    return () => {
+      player.off('timeupdate');
+      player.off('ended');
+    };
+  }, [embedUrl]);
+
+  // Establecer duración del video desde los metadatos
   useEffect(() => {
     if (videoActual?.duracion) {
       setDuration(videoActual.duracion);
-    } else {
-      // Duración por defecto de 10 minutos si no está especificada
-      setDuration(600);
     }
   }, [videoActual]);
 
@@ -528,8 +584,6 @@ const LineaVideosClassroom = () => {
               {clasesOrdenadas.map((v, idx) => {
                 let thumb = v.miniatura_url;
                 if ((!thumb || thumb === 'null') && v.url) {
-                  const ytMatch = v.url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([\w-]{11})/);
-                  if (ytMatch) thumb = `https://img.youtube.com/vi/${ytMatch[1]}/hqdefault.jpg`;
                   const vimeoMatch = v.url.match(/vimeo\.com\/(\d+)/);
                   if (vimeoMatch) thumb = `https://vumbnail.com/${vimeoMatch[1]}.jpg`;
                 }
