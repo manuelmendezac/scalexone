@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import useNeuroState from '../store/useNeuroState';
 import CursosAdminPanel from '../components/CursosAdminPanel';
-import { useNavigate, useNavigation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '../supabase';
 import GlobalLoadingSpinner from '../components/GlobalLoadingSpinner';
 import { useGlobalLoading } from '../store/useGlobalLoading';
@@ -17,11 +17,10 @@ const CursosPage: React.FC = () => {
   const navigate = useNavigate();
   const [isAdmin, setIsAdmin] = useState(false);
   const setGlobalLoading = useGlobalLoading(state => state.setLoading);
-  const navigation = useNavigation();
 
   useEffect(() => {
     const fetchCursos = async () => {
-      if (navigation.state !== 'loading') setGlobalLoading(true);
+      setGlobalLoading(true);
       try {
         const { data, error } = await supabase.from('cursos').select('*').order('orden', { ascending: true });
         console.log('FETCH CURSOS:', { data, error });
@@ -33,7 +32,7 @@ const CursosPage: React.FC = () => {
         setError('Error inesperado: ' + (err.message || err));
         console.error('ERROR FETCH CURSOS:', err);
       } finally {
-        if (navigation.state !== 'loading') setGlobalLoading(false);
+        setGlobalLoading(false);
       }
     };
     fetchCursos();
