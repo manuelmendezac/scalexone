@@ -1,11 +1,13 @@
 // Página de línea de videos para classroom, idéntica a cursos pero adaptada a las tablas de classroom
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '../../supabase';
 import ModalFuturista from '../../components/ModalFuturista';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
+import ClassroomVideoGamification from '../../components/ClassroomVideoGamification';
+import useNeuroState from '../../store/useNeuroState';
 
 // UUID especial para el portal de recursos de classroom (válido para campos tipo uuid)
 const MODULO_CURSO_ID_RECURSOS = "11111111-1111-1111-1111-111111111111";
@@ -14,6 +16,7 @@ const LineaVideosClassroom = () => {
   const { modulo_id } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
+  const neuro = useNeuroState();
   const [modulo, setModulo] = useState<any>(null);
   const [clases, setClases] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -32,6 +35,12 @@ const LineaVideosClassroom = () => {
   const [materialFile, setMaterialFile] = useState<File|null>(null);
   const [materialMsg, setMaterialMsg] = useState<string|null>(null);
   const [materialLoading, setMaterialLoading] = useState(false);
+  
+  // Variables para el reproductor de video
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
+  const [videoProgress, setVideoProgress] = useState(0);
+  const videoRef = useRef<HTMLIFrameElement>(null);
 
   useEffect(() => {
     setIsAdmin(localStorage.getItem('adminMode') === 'true');
@@ -260,6 +269,44 @@ const LineaVideosClassroom = () => {
     setMateriales(materiales.filter(m => m.id !== id));
   }
 
+  // Función para manejar el progreso del video
+  const handleVideoProgress = (progress: number) => {
+    setVideoProgress(progress);
+    // Marcar como completado si el progreso es >= 90%
+    if (progress >= 90 && !completados[claseActual]) {
+      setCompletados(prev => ({ ...prev, [claseActual]: true }));
+    }
+  };
+
+  // Función para simular el progreso del video (ya que no podemos acceder directamente al iframe)
+  useEffect(() => {
+    if (!embedUrl) return;
+
+    const interval = setInterval(() => {
+      // Simular progreso del video (esto se puede mejorar con postMessage si el video lo soporta)
+      setCurrentTime(prev => {
+        const newTime = prev + 1;
+        if (newTime >= duration) {
+          clearInterval(interval);
+          return duration;
+        }
+        return newTime;
+      });
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [embedUrl, duration]);
+
+  // Establecer duración del video (simulado)
+  useEffect(() => {
+    if (videoActual?.duracion) {
+      setDuration(videoActual.duracion);
+    } else {
+      // Duración por defecto de 10 minutos si no está especificada
+      setDuration(600);
+    }
+  }, [videoActual]);
+
   if (loading) return <div className="text-cyan-400 text-center py-10">Cargando módulo...</div>;
 
   return (
@@ -267,6 +314,45 @@ const LineaVideosClassroom = () => {
       {/* Panel principal mejorado */}
       <div className={`flex-1 flex flex-col items-center justify-center ${fullscreen ? 'fixed inset-0 z-50 bg-black overflow-auto' : 'p-1 sm:p-2 md:p-8'} transition-all duration-300`} style={fullscreen ? {maxWidth: '100vw', maxHeight: '100vh', overflow: 'auto'} : {}}>
         <div className={`w-full ${fullscreen ? '' : 'max-w-6xl'} bg-gradient-to-br from-neutral-950 to-black rounded-3xl shadow-2xl p-0 md:p-0 flex flex-col items-center border border-cyan-900/40`} style={fullscreen ? {minHeight: '100vh', justifyContent: 'center', alignItems: 'center', display: 'flex', padding: 0} : {}}>
+          {/* Header con información del módulo y progreso */}
+          <div className="w-full flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+            <div className="flex-1">
+              <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-cyan-300 mb-2">
+                {modulo?.titulo || 'Módulo de Classroom'}
+              </h1>
+              <p className="text-cyan-200 text-sm sm:text-base">
+                {modulo?.descripcion || 'Descripción del módulo'}
+              </p>
+            </div>
+            
+            {/* Indicador de progreso y recompensas */}
+            <div className="flex flex-col items-end gap-2">
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-1 bg-yellow-500/20 px-3 py-1 rounded-full border border-yellow-500/30">
+                  <span className="text-yellow-400 font-bold text-sm">XP: {neuro.userXP}</span>
+                </div>
+                <div className="flex items-center gap-1 bg-yellow-500/20 px-3 py-1 rounded-full border border-yellow-500/30">
+                  <img src="/images/modulos/neurocoin.svg" alt="Coin" className="w-4 h-4" />
+                  <span className="text-yellow-400 font-bold text-sm">{neuro.userCoins}</span>
+                </div>
+              </div>
+              
+              {/* Progreso del módulo */}
+              <div className="flex items-center gap-2">
+                <span className="text-cyan-300 text-sm">
+                  {clasesOrdenadas.filter((_, idx) => completados[idx]).length} / {clasesOrdenadas.length} videos
+                </span>
+                <div className="w-24 h-2 bg-cyan-900 rounded-full overflow-hidden">
+                  <div 
+                    className="h-full bg-gradient-to-r from-cyan-500 to-blue-500 transition-all duration-300"
+                    style={{ 
+                      width: `${(clasesOrdenadas.filter((_, idx) => completados[idx]).length / Math.max(clasesOrdenadas.length, 1)) * 100}%` 
+                    }}
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
           {/* Video grande y protagonista, sin bordes extras */}
           <div className={`relative w-full aspect-video bg-black overflow-visible flex flex-col items-center justify-center border-b-4 border-cyan-900/30 shadow-lg`} style={fullscreen ? {position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', zIndex: 100, background: '#000', margin: 0, borderRadius: 0, padding: 0, minHeight: '100vh', maxHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center'} : {width: '100%', minHeight: 200, maxHeight: 700, margin: 0, borderRadius: 0, background: '#000', padding: 0}}>
             {/* Flecha para volver atrás */}
@@ -296,18 +382,37 @@ const LineaVideosClassroom = () => {
                 <span className="hidden md:inline">Presiona</span> <kbd className="bg-cyan-800 px-2 py-1 rounded text-white font-mono">ESC</kbd> <span className="hidden md:inline">para salir</span>
               </div>
             )}
-            {embedUrl ? (
-              <iframe
-                src={embedUrl + '?autoplay=0&title=0&byline=0&portrait=0'}
-                title={videoActual.titulo}
-                className="w-full h-full min-h-[180px] sm:min-h-[200px] md:min-h-[400px] max-w-[100vw]"
-                allow="autoplay; fullscreen"
-                allowFullScreen
-                style={fullscreen ? { border: 'none', width: '100vw', height: '100vh', aspectRatio: '16/9', maxHeight: '100vh', borderRadius: 0, background: '#000' } : { border: 'none', width: '100%', height: '100%', aspectRatio: '16/9', maxHeight: 700, borderRadius: 0, background: '#000' }}
-              />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center text-cyan-400 text-lg">No hay video para mostrar</div>
-            )}
+            {/* Reproductor de video */}
+            <div className="flex-1 bg-black rounded-2xl overflow-hidden shadow-2xl border-2 border-cyan-700 relative">
+              {embedUrl ? (
+                <div className="relative w-full h-full">
+                  <iframe
+                    ref={videoRef}
+                    src={embedUrl}
+                    className="w-full h-full"
+                    frameBorder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                    title={videoActual.titulo}
+                  />
+                  
+                  {/* Componente de gamificación */}
+                  {videoActual.id && modulo_id && (
+                    <ClassroomVideoGamification
+                      videoId={videoActual.id}
+                      moduloId={modulo_id}
+                      currentTime={currentTime}
+                      duration={duration}
+                      onProgressUpdate={handleVideoProgress}
+                    />
+                  )}
+                </div>
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-cyan-400 text-xl">
+                  Selecciona un video para comenzar
+                </div>
+              )}
+            </div>
           </div>
           {/* Solo mostrar el resto del layout si no está en fullscreen */}
           {!fullscreen && (
