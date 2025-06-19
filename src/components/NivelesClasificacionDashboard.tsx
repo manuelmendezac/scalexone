@@ -5,15 +5,19 @@ import LoadingScreen from './LoadingScreen';
 
 interface Nivel {
   id: number;
-  nombre: string;
+  nivel: number;
+  titulo: string;
   descripcion: string;
+  xp_requerida: number;
+  recompensa_monedas: number;
   porcentaje_miembros?: number;
 }
 
 interface ProgresoUsuario {
   nivel_actual: number;
-  puntos: number;
-  puntos_siguiente_nivel: number;
+  xp_actual: number;
+  xp_siguiente_nivel: number;
+  monedas: number;
 }
 
 const NivelesClasificacionDashboard: React.FC = () => {
@@ -29,21 +33,50 @@ const NivelesClasificacionDashboard: React.FC = () => {
         setLoading(true);
         setError(null);
 
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+          setError('Usuario no autenticado');
+          return;
+        }
+
         // Obtener niveles
         const { data: nivelesData, error: nivelesError } = await supabase
-          .from('niveles_ventas')
+          .from('niveles_xp')
           .select('*')
-          .order('id', { ascending: true });
+          .order('nivel', { ascending: true });
 
         if (nivelesError) throw nivelesError;
 
         // Obtener progreso del usuario
         const { data: progresoData, error: progresoError } = await supabase
-          .from('progreso_ventas_usuario')
-          .select('nivel_actual, puntos')
+          .from('progreso_usuario_xp')
+          .select('*')
+          .eq('usuario_id', user.id)
           .single();
 
         if (progresoError && progresoError.code !== 'PGRST116') throw progresoError;
+
+        // Si no existe el progreso, crearlo
+        if (!progresoData) {
+          const nuevoProgreso = {
+            usuario_id: user.id,
+            nivel_actual: 1,
+            xp_actual: 0,
+            xp_siguiente_nivel: 1000,
+            monedas: 0
+          };
+
+          const { data: nuevoProgresoData, error: nuevoProgresoError } = await supabase
+            .from('progreso_usuario_xp')
+            .insert(nuevoProgreso)
+            .select()
+            .single();
+
+          if (nuevoProgresoError) throw nuevoProgresoError;
+          setProgreso(nuevoProgresoData);
+        } else {
+          setProgreso(progresoData);
+        }
 
         const nivelesConPorcentaje = nivelesData?.map((nivel, index) => ({
           ...nivel,
@@ -51,17 +84,6 @@ const NivelesClasificacionDashboard: React.FC = () => {
         })) || [];
 
         setNiveles(nivelesConPorcentaje);
-        setProgreso(progresoData 
-          ? { 
-              ...progresoData, 
-              puntos_siguiente_nivel: 2 
-            }
-          : { 
-              nivel_actual: 1, 
-              puntos: 0, 
-              puntos_siguiente_nivel: 2 
-            }
-        );
 
       } catch (err: any) {
         console.error('Error al cargar datos:', err);
@@ -90,7 +112,7 @@ const NivelesClasificacionDashboard: React.FC = () => {
     );
   }
 
-  const nivelActual = niveles.find(n => n.id === progreso?.nivel_actual);
+  const nivelActual = niveles.find(n => n.nivel === progreso?.nivel_actual);
 
   return (
     <div className="container mx-auto p-8">
@@ -104,7 +126,7 @@ const NivelesClasificacionDashboard: React.FC = () => {
                 <div 
                   className="absolute inset-0 rounded-full"
                   style={{
-                    background: `conic-gradient(#FFD700 ${(progreso?.puntos || 0) * 36}deg, transparent 0deg)`,
+                    background: `conic-gradient(#FFD700 ${(progreso?.xp_actual || 0) * 36}deg, transparent 0deg)`,
                     transform: 'rotate(-90deg)'
                   }}
                 />
@@ -124,9 +146,9 @@ const NivelesClasificacionDashboard: React.FC = () => {
               Nivel {progreso?.nivel_actual || 1}
             </div>
             <div className="text-center">
-              <p className="text-2xl font-bold text-white">{progreso?.puntos || 0} Puntos</p>
+              <p className="text-2xl font-bold text-white">{progreso?.xp_actual || 0} XP</p>
               <p className="text-gray-400">
-                {progreso?.puntos_siguiente_nivel || 2} puntos para subir de nivel
+                {progreso?.xp_siguiente_nivel || 1000} XP para subir de nivel
               </p>
             </div>
           </div>
@@ -137,18 +159,18 @@ const NivelesClasificacionDashboard: React.FC = () => {
               <div 
                 key={nivel.id}
                 className={`flex items-center gap-4 p-4 rounded-lg ${
-                  nivel.id <= (progreso?.nivel_actual || 1)
+                  nivel.nivel <= (progreso?.nivel_actual || 1)
                     ? 'bg-[#2A2A2A]'
                     : 'bg-[#232323]'
                 }`}
               >
                 <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
-                  nivel.id <= (progreso?.nivel_actual || 1)
+                  nivel.nivel <= (progreso?.nivel_actual || 1)
                     ? 'bg-[#FFD700] text-black'
                     : 'bg-[#333333] text-gray-500'
                 }`}>
-                  {nivel.id <= (progreso?.nivel_actual || 1) ? (
-                    nivel.id
+                  {nivel.nivel <= (progreso?.nivel_actual || 1) ? (
+                    nivel.nivel
                   ) : (
                     <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 116 0z" clipRule="evenodd" />
@@ -156,7 +178,7 @@ const NivelesClasificacionDashboard: React.FC = () => {
                   )}
                 </div>
                 <div className="flex-1">
-                  <h3 className="font-semibold text-white">Nivel {nivel.id} - {nivel.nombre}</h3>
+                  <h3 className="font-semibold text-white">Nivel {nivel.nivel} - {nivel.titulo}</h3>
                   <p className="text-gray-400">{nivel.porcentaje_miembros || 0}% de miembros</p>
                 </div>
               </div>
