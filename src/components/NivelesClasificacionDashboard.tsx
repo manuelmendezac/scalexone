@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../supabase';
 import useNeuroState from '../store/useNeuroState';
-import DailyStreak from './DailyStreak';
+
 
 interface Nivel {
   id: string;
@@ -312,8 +312,7 @@ const NivelesClasificacionDashboard: React.FC<NivelesClasificacionDashboardProps
             ))}
           </div>
         </div>
-        {/* Componente de racha diaria */}
-        <DailyStreak />
+        
       </div>
       {/* Tarjetas de nivel, experiencia y monedas */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
