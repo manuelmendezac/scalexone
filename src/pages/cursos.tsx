@@ -65,8 +65,6 @@ const CursosPage: React.FC = () => {
       <div className="w-full flex justify-end items-center mb-8 px-2 max-w-7xl mx-auto">
         <div className="flex gap-2">
           <button className="px-4 py-2 rounded-full bg-neutral-900 text-white font-semibold border border-neutral-700">Próximamente</button>
-          <button className="px-3 py-2 rounded-full bg-neutral-900 text-white font-semibold border border-neutral-700">?</button>
-          <div className="w-8 h-8 rounded-full bg-neutral-800 flex items-center justify-center text-xs font-bold border border-neutral-700">MU</div>
         </div>
       </div>
       {/* Título */}
