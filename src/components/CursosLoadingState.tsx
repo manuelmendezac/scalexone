@@ -7,8 +7,6 @@ const CursosLoadingState: React.FC = () => {
       <div className="w-full flex justify-end items-center mb-8 px-2 max-w-7xl mx-auto">
         <div className="flex gap-2">
           <div className="w-24 h-10 rounded-full bg-neutral-800 animate-pulse"></div>
-          <div className="w-10 h-10 rounded-full bg-neutral-800 animate-pulse"></div>
-          <div className="w-10 h-10 rounded-full bg-neutral-800 animate-pulse"></div>
         </div>
       </div>
 
