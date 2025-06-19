@@ -158,17 +158,17 @@ const NivelesClasificacionDashboard: React.FC = () => {
   const porcentajeProgreso = calcularPorcentajeProgreso();
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-black to-[#1a1a1a] p-8">
-      <div className="max-w-7xl mx-auto space-y-12">
-        {/* Sistema Original de Niveles */}
-        <div className="bg-black/40 border border-[#FFD700]/30 rounded-xl p-8">
-          {/* Selector de tipo de nivel */}
-          <div className="flex justify-center gap-4 mb-8">
+    <div className="min-h-screen bg-gradient-to-b from-black to-[#1a1a1a] p-4 sm:p-8">
+      <div className="max-w-7xl mx-auto space-y-8">
+        {/* Sistema de Niveles */}
+        <div className="bg-black/40 border border-[#FFD700]/30 rounded-xl p-4 sm:p-8">
+          {/* Selector de tipo de nivel - Versión móvil mejorada */}
+          <div className="flex flex-col sm:flex-row justify-center gap-3 mb-8">
             <button
               onClick={() => setTipoNivel('ventas')}
-              className={`px-6 py-3 rounded-xl font-bold transition-all ${
+              className={`px-6 py-4 rounded-xl font-bold text-lg transition-all ${
                 tipoNivel === 'ventas'
-                  ? 'bg-[#FFD700] text-black'
+                  ? 'bg-[#FFD700] text-black shadow-lg shadow-[#FFD700]/20'
                   : 'bg-black/40 text-[#FFD700] border border-[#FFD700]/30'
               }`}
             >
@@ -176,9 +176,9 @@ const NivelesClasificacionDashboard: React.FC = () => {
             </button>
             <button
               onClick={() => setTipoNivel('educacion')}
-              className={`px-6 py-3 rounded-xl font-bold transition-all ${
+              className={`px-6 py-4 rounded-xl font-bold text-lg transition-all ${
                 tipoNivel === 'educacion'
-                  ? 'bg-[#FFD700] text-black'
+                  ? 'bg-[#FFD700] text-black shadow-lg shadow-[#FFD700]/20'
                   : 'bg-black/40 text-[#FFD700] border border-[#FFD700]/30'
               }`}
             >
@@ -186,11 +186,11 @@ const NivelesClasificacionDashboard: React.FC = () => {
             </button>
           </div>
 
-          {/* Perfil y Progreso */}
-          <div className="flex items-center gap-8 mb-12">
+          {/* Perfil y Progreso - Versión móvil mejorada */}
+          <div className="flex flex-col sm:flex-row items-center gap-6 mb-8">
             {/* Círculo de Progreso y Perfil */}
-            <div className="relative min-w-[180px]">
-              <div className="w-44 h-44 rounded-full bg-[#2A2A2A] relative overflow-hidden border-4 border-[#FFD700]">
+            <div className="relative w-32 sm:w-44 mb-4 sm:mb-0">
+              <div className="aspect-square rounded-full bg-[#2A2A2A] relative overflow-hidden border-4 border-[#FFD700]">
                 <img
                   src={avatarUrl}
                   alt="Perfil"
@@ -203,24 +203,24 @@ const NivelesClasificacionDashboard: React.FC = () => {
             </div>
 
             {/* Información del Usuario */}
-            <div className="flex-1">
-              <h2 className="text-3xl font-bold text-white mb-2">{userInfo?.name || 'Usuario'} - Investor Nomad</h2>
-              <div className="flex items-center gap-4 mb-4">
-                <span className="bg-[#FFD700] text-black px-6 py-2 rounded-full font-semibold text-lg">
+            <div className="flex-1 text-center sm:text-left">
+              <h2 className="text-2xl sm:text-3xl font-bold text-white mb-3">{userInfo?.name || 'Usuario'} - Investor Nomad</h2>
+              <div className="flex flex-col sm:flex-row items-center gap-4 mb-4">
+                <span className="bg-[#FFD700] text-black px-6 py-2 rounded-full font-semibold text-lg w-full sm:w-auto text-center">
                   {nivelActual?.nombre || `Nivel ${tipoNivel === 'ventas' ? progreso?.nivel_actual_ventas : progreso?.nivel_actual_academico}`}
                 </span>
-                <span className="text-gray-400">|</span>
+                <span className="hidden sm:block text-gray-400">|</span>
                 {tipoNivel === 'ventas' ? (
-                  <span className="text-2xl font-bold text-[#FFD700]">{progreso?.ventas_actuales || 0} Ventas</span>
+                  <span className="text-xl sm:text-2xl font-bold text-[#FFD700]">{progreso?.ventas_actuales || 0} Ventas</span>
                 ) : (
-                  <div className="flex items-center gap-4">
-                    <span className="text-xl font-bold text-[#FFD700]">{progreso?.modulos_completados || 0} Módulos</span>
-                    <span className="text-gray-400">|</span>
-                    <span className="text-xl font-bold text-[#FFD700]">{progreso?.videos_completados || 0} Videos</span>
+                  <div className="flex flex-col sm:flex-row items-center gap-4">
+                    <span className="text-lg sm:text-xl font-bold text-[#FFD700]">{progreso?.modulos_completados || 0} Módulos</span>
+                    <span className="hidden sm:block text-gray-400">|</span>
+                    <span className="text-lg sm:text-xl font-bold text-[#FFD700]">{progreso?.videos_completados || 0} Videos</span>
                   </div>
                 )}
               </div>
-              <p className="text-gray-400 text-lg">
+              <p className="text-gray-400 text-base sm:text-lg text-center sm:text-left">
                 {tipoNivel === 'ventas' && siguienteNivel ? (
                   `${(siguienteNivel as NivelVentas).min_ventas - (progreso?.ventas_actuales || 0)} ventas para ${siguienteNivel.nombre}`
                 ) : siguienteNivel ? (
@@ -234,19 +234,19 @@ const NivelesClasificacionDashboard: React.FC = () => {
             </div>
           </div>
 
-          {/* Grid de Niveles */}
-          <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-12">
+          {/* Grid de Niveles - Versión móvil mejorada */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
             {(tipoNivel === 'ventas' ? nivelesVentas : nivelesAcademicos).map((nivel, index) => (
               <div 
                 key={nivel.id}
                 className={`relative p-4 rounded-lg ${
                   nivel.id <= (tipoNivel === 'ventas' ? progreso?.nivel_actual_ventas || 1 : progreso?.nivel_actual_academico || 1)
-                    ? 'bg-[#2A2A2A] border border-[#FFD700]'
+                    ? 'bg-[#2A2A2A] border border-[#FFD700] shadow-lg shadow-[#FFD700]/10'
                     : 'bg-[#232323] opacity-80'
                 }`}
               >
-                <div className="flex items-center gap-3 mb-2">
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                <div className="flex items-center gap-3">
+                  <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
                     nivel.id <= (tipoNivel === 'ventas' ? progreso?.nivel_actual_ventas || 1 : progreso?.nivel_actual_academico || 1)
                       ? 'bg-[#FFD700] text-black'
                       : 'bg-[#333333] text-gray-500'
@@ -258,7 +258,7 @@ const NivelesClasificacionDashboard: React.FC = () => {
                     <h4 className="text-[#FFD700]">{nivel.nombre}</h4>
                   </div>
                 </div>
-                <p className="text-gray-400 text-sm">{nivel.descripcion}</p>
+                <p className="text-gray-400 text-sm mt-2">{nivel.descripcion}</p>
               </div>
             ))}
           </div>
