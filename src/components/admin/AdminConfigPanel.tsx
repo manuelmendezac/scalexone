@@ -6,6 +6,8 @@ import { useMenuSecundarioConfig } from '../../hooks/useMenuSecundarioConfig';
 import useNeuroState from '../../store/useNeuroState';
 import SecondNavbar from '../SecondNavbar';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
+import useConfigStore from '../../store/useConfigStore';
+import LoadingScreen from '../LoadingScreen';
 
 const perfilDefault = {
   avatar: '',
@@ -53,11 +55,15 @@ function TarjetaResumen({ titulo, valor, subvalor, icono, color }: any) {
   );
 }
 
-export default function AdminConfigPanel({ selected }: { selected: string }) {
+interface AdminConfigPanelProps {
+  selected: string;
+}
+
+const AdminConfigPanel: React.FC<AdminConfigPanelProps> = ({ selected }) => {
+  const { userConfig, loading, fetchUserConfig } = useConfigStore();
   const [perfil, setPerfil] = useState(perfilDefault);
   const [guardando, setGuardando] = useState(false);
   const [mensaje, setMensaje] = useState('');
-  const [loading, setLoading] = useState(true);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [newPassword, setNewPassword] = useState('');
   const [passwordMsg, setPasswordMsg] = useState('');
@@ -67,6 +73,10 @@ export default function AdminConfigPanel({ selected }: { selected: string }) {
   const community_id = userInfo?.community_id || null;
   const isAdmin = userInfo?.rol === 'admin' || userInfo?.rol === 'superadmin';
   const { menuConfig, loading: menuLoading, error, saveMenuConfig } = useMenuSecundarioConfig(community_id);
+
+  useEffect(() => {
+    fetchUserConfig();
+  }, [fetchUserConfig]);
 
   // Leer datos reales del usuario
   useEffect(() => {
@@ -167,141 +177,153 @@ export default function AdminConfigPanel({ selected }: { selected: string }) {
     else setPasswordMsg('¡Contraseña actualizada!');
   };
 
+  if (loading) {
+    return <LoadingScreen message="Cargando configuración..." />;
+  }
+
   return (
-    <main style={{ flex: 1, padding: 0, background: '#000', minHeight: '100vh' }}>
-      {selected === 'welcome' && (
-        <div style={{ width: '100%', padding: '40px 0', background: '#000', display: 'flex', justifyContent: 'center' }}>
-          <div style={{ width: '100%', maxWidth: 1200, margin: '0 auto', background: '#000', borderRadius: 18, boxShadow: '0 2px 12px #0006', padding: 40, border: '2px solid #FFD700', display: 'flex', flexDirection: 'column', gap: 32 }}>
-            <h2 style={{ color: '#FFD700', fontWeight: 700, fontSize: 28, marginBottom: 28 }}>Mi Perfil</h2>
-            {loading ? <div style={{ color: '#FFD700', fontWeight: 600 }}>Cargando...</div> : (
-              <div style={{ display: 'grid', gridTemplateColumns: '340px 1fr', gap: 40, alignItems: 'flex-start', marginBottom: 32 }}>
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 18 }}>
-                  <AvatarUploader onUpload={handleAvatar} initialUrl={perfil.avatar} label="Foto de perfil" />
-                  <button style={botonEstilo} onClick={() => setShowPasswordModal(true)}>Cambiar contraseña</button>
+    <div className="flex-1 p-8 bg-black">
+      <div className="max-w-4xl mx-auto">
+        {selected === 'welcome' && (
+          <div>
+            <h1 className="text-2xl font-bold text-yellow-400 mb-4">Bienvenida</h1>
+            {/* Contenido de bienvenida */}
+          </div>
+        )}
+        {selected === 'welcome' && (
+          <div style={{ width: '100%', padding: '40px 0', background: '#000', display: 'flex', justifyContent: 'center' }}>
+            <div style={{ width: '100%', maxWidth: 1200, margin: '0 auto', background: '#000', borderRadius: 18, boxShadow: '0 2px 12px #0006', padding: 40, border: '2px solid #FFD700', display: 'flex', flexDirection: 'column', gap: 32 }}>
+              <h2 style={{ color: '#FFD700', fontWeight: 700, fontSize: 28, marginBottom: 28 }}>Mi Perfil</h2>
+              {loading ? <div style={{ color: '#FFD700', fontWeight: 600 }}>Cargando...</div> : (
+                <div style={{ display: 'grid', gridTemplateColumns: '340px 1fr', gap: 40, alignItems: 'flex-start', marginBottom: 32 }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 18 }}>
+                    <AvatarUploader onUpload={handleAvatar} initialUrl={perfil.avatar} label="Foto de perfil" />
+                    <button style={botonEstilo} onClick={() => setShowPasswordModal(true)}>Cambiar contraseña</button>
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 18, minWidth: 0 }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, minWidth: 0 }}>
+                      <input style={{ background: '#000', color: '#FFD700', border: '2px solid #FFD700', borderRadius: 8, padding: 12, minWidth: 0 }} placeholder="Nombres" value={perfil.nombres} onChange={e => setPerfil({ ...perfil, nombres: e.target.value })} />
+                      <input style={{ background: '#000', color: '#FFD700', border: '2px solid #FFD700', borderRadius: 8, padding: 12, minWidth: 0 }} placeholder="Apellidos" value={perfil.apellidos} onChange={e => setPerfil({ ...perfil, apellidos: e.target.value })} />
+                      <input style={{ background: '#000', color: '#FFD700', border: '2px solid #FFD700', borderRadius: 8, padding: 12, minWidth: 0 }} placeholder="Correo" value={perfil.correo} readOnly />
+                      <input style={{ background: '#000', color: '#FFD700', border: '2px solid #FFD700', borderRadius: 8, padding: 12, minWidth: 0 }} placeholder="Celular" value={perfil.celular} onChange={e => setPerfil({ ...perfil, celular: e.target.value })} />
+                      <select style={{ background: '#000', color: '#FFD700', border: '2px solid #FFD700', borderRadius: 8, padding: 12, minWidth: 0 }} value={perfil.pais} onChange={e => setPerfil({ ...perfil, pais: e.target.value })}>
+                        <option value="Perú">Perú</option>
+                        <option value="México">México</option>
+                        <option value="Colombia">Colombia</option>
+                        <option value="Argentina">Argentina</option>
+                        <option value="España">España</option>
+                        <option value="Otro">Otro</option>
+                      </select>
+                      <select style={{ background: '#000', color: '#FFD700', border: '2px solid #FFD700', borderRadius: 8, padding: 12, minWidth: 0 }} value={perfil.idioma} onChange={e => setPerfil({ ...perfil, idioma: e.target.value })}>
+                        <option value="Español">Español</option>
+                        <option value="Inglés">Inglés</option>
+                      </select>
+                      <select style={{ background: '#000', color: '#FFD700', border: '2px solid #FFD700', borderRadius: 8, padding: 12, minWidth: 0 }} value={perfil.zona_horaria} onChange={e => setPerfil({ ...perfil, zona_horaria: e.target.value })}>
+                        <option value="GMT-5">GMT-5</option>
+                        <option value="GMT-6">GMT-6</option>
+                        <option value="GMT-3">GMT-3</option>
+                        <option value="GMT-8">GMT-8</option>
+                      </select>
+                      <input style={{ background: '#000', color: '#FFD700', border: '2px solid #FFD700', borderRadius: 8, padding: 12, minWidth: 0 }} placeholder="Wallet (opcional)" value={perfil.wallet} onChange={e => setPerfil({ ...perfil, wallet: e.target.value })} />
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: 16, minWidth: 0 }}>
+                      <input style={{ background: '#000', color: '#FFD700', border: '2px solid #FFD700', borderRadius: 8, padding: 12, minWidth: 0 }} placeholder="Facebook" value={perfil.facebook} onChange={e => setPerfil({ ...perfil, facebook: e.target.value })} />
+                      <input style={{ background: '#000', color: '#FFD700', border: '2px solid #FFD700', borderRadius: 8, padding: 12, minWidth: 0 }} placeholder="Twitter" value={perfil.twitter} onChange={e => setPerfil({ ...perfil, twitter: e.target.value })} />
+                      <input style={{ background: '#000', color: '#FFD700', border: '2px solid #FFD700', borderRadius: 8, padding: 12, minWidth: 0 }} placeholder="Instagram" value={perfil.instagram} onChange={e => setPerfil({ ...perfil, instagram: e.target.value })} />
+                      <input style={{ background: '#000', color: '#FFD700', border: '2px solid #FFD700', borderRadius: 8, padding: 12, minWidth: 0 }} placeholder="TikTok" value={perfil.tiktok} onChange={e => setPerfil({ ...perfil, tiktok: e.target.value })} />
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16, minWidth: 0 }}>
+                      <select style={{ background: '#000', color: '#FFD700', border: '2px solid #FFD700', borderRadius: 8, padding: 12, minWidth: 0 }} value={perfil.membresia} onChange={e => setPerfil({ ...perfil, membresia: e.target.value })}>
+                        <option value="Afiliado">Afiliado</option>
+                        <option value="Premium">Premium</option>
+                        <option value="Free">Free</option>
+                      </select>
+                      <input style={{ background: '#000', color: '#FFD700', border: '2px solid #FFD700', borderRadius: 8, padding: 12, minWidth: 0 }} value={perfil.rol} readOnly />
+                      <input style={{ background: '#000', color: '#FFD700', border: '2px solid #FFD700', borderRadius: 8, padding: 12, minWidth: 0 }} value={perfil.creditos} readOnly />
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16, minWidth: 0 }}>
+                      <input style={{ background: '#000', color: '#FFD700', border: '2px solid #FFD700', borderRadius: 8, padding: 12, minWidth: 0 }} value={perfil.nivel} readOnly />
+                      <input style={{ background: '#000', color: '#FFD700', border: '2px solid #FFD700', borderRadius: 8, padding: 12, minWidth: 0 }} value={perfil.cursos.join(', ')} onChange={e => handleArrayInput(e, 'cursos')} />
+                      <input style={{ background: '#000', color: '#FFD700', border: '2px solid #FFD700', borderRadius: 8, padding: 12, minWidth: 0 }} value={perfil.servicios.join(', ')} onChange={e => handleArrayInput(e, 'servicios')} />
+                    </div>
+                    <button style={botonGuardarEstilo} onClick={handleGuardar} disabled={guardando}>{guardando ? 'Guardando...' : 'Guardar cambios'}</button>
+                  </div>
                 </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 18, minWidth: 0 }}>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, minWidth: 0 }}>
-                    <input style={{ background: '#000', color: '#FFD700', border: '2px solid #FFD700', borderRadius: 8, padding: 12, minWidth: 0 }} placeholder="Nombres" value={perfil.nombres} onChange={e => setPerfil({ ...perfil, nombres: e.target.value })} />
-                    <input style={{ background: '#000', color: '#FFD700', border: '2px solid #FFD700', borderRadius: 8, padding: 12, minWidth: 0 }} placeholder="Apellidos" value={perfil.apellidos} onChange={e => setPerfil({ ...perfil, apellidos: e.target.value })} />
-                    <input style={{ background: '#000', color: '#FFD700', border: '2px solid #FFD700', borderRadius: 8, padding: 12, minWidth: 0 }} placeholder="Correo" value={perfil.correo} readOnly />
-                    <input style={{ background: '#000', color: '#FFD700', border: '2px solid #FFD700', borderRadius: 8, padding: 12, minWidth: 0 }} placeholder="Celular" value={perfil.celular} onChange={e => setPerfil({ ...perfil, celular: e.target.value })} />
-                    <select style={{ background: '#000', color: '#FFD700', border: '2px solid #FFD700', borderRadius: 8, padding: 12, minWidth: 0 }} value={perfil.pais} onChange={e => setPerfil({ ...perfil, pais: e.target.value })}>
-                      <option value="Perú">Perú</option>
-                      <option value="México">México</option>
-                      <option value="Colombia">Colombia</option>
-                      <option value="Argentina">Argentina</option>
-                      <option value="España">España</option>
-                      <option value="Otro">Otro</option>
-                    </select>
-                    <select style={{ background: '#000', color: '#FFD700', border: '2px solid #FFD700', borderRadius: 8, padding: 12, minWidth: 0 }} value={perfil.idioma} onChange={e => setPerfil({ ...perfil, idioma: e.target.value })}>
-                      <option value="Español">Español</option>
-                      <option value="Inglés">Inglés</option>
-                    </select>
-                    <select style={{ background: '#000', color: '#FFD700', border: '2px solid #FFD700', borderRadius: 8, padding: 12, minWidth: 0 }} value={perfil.zona_horaria} onChange={e => setPerfil({ ...perfil, zona_horaria: e.target.value })}>
-                      <option value="GMT-5">GMT-5</option>
-                      <option value="GMT-6">GMT-6</option>
-                      <option value="GMT-3">GMT-3</option>
-                      <option value="GMT-8">GMT-8</option>
-                    </select>
-                    <input style={{ background: '#000', color: '#FFD700', border: '2px solid #FFD700', borderRadius: 8, padding: 12, minWidth: 0 }} placeholder="Wallet (opcional)" value={perfil.wallet} onChange={e => setPerfil({ ...perfil, wallet: e.target.value })} />
+              )}
+              <div style={{ marginTop: 32 }}>
+                <h3 style={{ color: '#FFD700', fontWeight: 600, fontSize: 22, marginBottom: 16 }}>Cursos Activos</h3>
+                {cursosActivos.length === 0 ? (
+                  <div style={{ color: '#fff' }}>No tienes cursos activos.</div>
+                ) : (
+                  <div style={{ display: 'flex', gap: 24, flexWrap: 'wrap' }}>
+                    {cursosActivos.map((curso, idx) => (
+                      <div key={idx} style={{ background: '#23232b', border: '1.5px solid #FFD700', borderRadius: 12, padding: 18, minWidth: 260, maxWidth: 320 }}>
+                        {curso.imagen && <img src={curso.imagen} alt={curso.nombre} style={{ width: '100%', borderRadius: 8, marginBottom: 10 }} />}
+                        <div style={{ color: '#FFD700', fontWeight: 700, fontSize: 18 }}>{curso.nombre}</div>
+                        <div style={{ color: '#fff', fontSize: 15 }}>{curso.descripcion}</div>
+                      </div>
+                    ))}
                   </div>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: 16, minWidth: 0 }}>
-                    <input style={{ background: '#000', color: '#FFD700', border: '2px solid #FFD700', borderRadius: 8, padding: 12, minWidth: 0 }} placeholder="Facebook" value={perfil.facebook} onChange={e => setPerfil({ ...perfil, facebook: e.target.value })} />
-                    <input style={{ background: '#000', color: '#FFD700', border: '2px solid #FFD700', borderRadius: 8, padding: 12, minWidth: 0 }} placeholder="Twitter" value={perfil.twitter} onChange={e => setPerfil({ ...perfil, twitter: e.target.value })} />
-                    <input style={{ background: '#000', color: '#FFD700', border: '2px solid #FFD700', borderRadius: 8, padding: 12, minWidth: 0 }} placeholder="Instagram" value={perfil.instagram} onChange={e => setPerfil({ ...perfil, instagram: e.target.value })} />
-                    <input style={{ background: '#000', color: '#FFD700', border: '2px solid #FFD700', borderRadius: 8, padding: 12, minWidth: 0 }} placeholder="TikTok" value={perfil.tiktok} onChange={e => setPerfil({ ...perfil, tiktok: e.target.value })} />
+                )}
+              </div>
+              <div style={{ marginTop: 32 }}>
+                <h3 style={{ color: '#FFD700', fontWeight: 600, fontSize: 22, marginBottom: 16 }}>Servicios Activos</h3>
+                {serviciosActivos.length === 0 ? (
+                  <div style={{ color: '#fff' }}>No tienes servicios activos.</div>
+                ) : (
+                  <div style={{ display: 'flex', gap: 24, flexWrap: 'wrap' }}>
+                    {serviciosActivos.map((servicio, idx) => (
+                      <div key={idx} style={{ background: '#23232b', border: '1.5px solid #FFD700', borderRadius: 12, padding: 18, minWidth: 220, maxWidth: 320, color: '#FFD700', fontWeight: 600 }}>{servicio}</div>
+                    ))}
                   </div>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16, minWidth: 0 }}>
-                    <select style={{ background: '#000', color: '#FFD700', border: '2px solid #FFD700', borderRadius: 8, padding: 12, minWidth: 0 }} value={perfil.membresia} onChange={e => setPerfil({ ...perfil, membresia: e.target.value })}>
-                      <option value="Afiliado">Afiliado</option>
-                      <option value="Premium">Premium</option>
-                      <option value="Free">Free</option>
-                    </select>
-                    <input style={{ background: '#000', color: '#FFD700', border: '2px solid #FFD700', borderRadius: 8, padding: 12, minWidth: 0 }} value={perfil.rol} readOnly />
-                    <input style={{ background: '#000', color: '#FFD700', border: '2px solid #FFD700', borderRadius: 8, padding: 12, minWidth: 0 }} value={perfil.creditos} readOnly />
-                  </div>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16, minWidth: 0 }}>
-                    <input style={{ background: '#000', color: '#FFD700', border: '2px solid #FFD700', borderRadius: 8, padding: 12, minWidth: 0 }} value={perfil.nivel} readOnly />
-                    <input style={{ background: '#000', color: '#FFD700', border: '2px solid #FFD700', borderRadius: 8, padding: 12, minWidth: 0 }} value={perfil.cursos.join(', ')} onChange={e => handleArrayInput(e, 'cursos')} />
-                    <input style={{ background: '#000', color: '#FFD700', border: '2px solid #FFD700', borderRadius: 8, padding: 12, minWidth: 0 }} value={perfil.servicios.join(', ')} onChange={e => handleArrayInput(e, 'servicios')} />
-                  </div>
-                  <button style={botonGuardarEstilo} onClick={handleGuardar} disabled={guardando}>{guardando ? 'Guardando...' : 'Guardar cambios'}</button>
+                )}
+              </div>
+            </div>
+            {showPasswordModal && (
+              <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: '#000a', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <div style={{ background: '#23232b', borderRadius: 16, padding: 32, minWidth: 340, boxShadow: '0 2px 12px #0008', color: '#fff' }}>
+                  <h3 style={{ color: '#FFD700', fontWeight: 700, fontSize: 22, marginBottom: 18 }}>Cambiar contraseña</h3>
+                  <input type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)} placeholder="Nueva contraseña" style={inputEstilo} />
+                  <button style={{ ...botonEstilo, width: '100%', marginTop: 16 }} onClick={handlePasswordChange}>Actualizar</button>
+                  {passwordMsg && <div style={{ color: passwordMsg.includes('¡Contraseña') ? '#FFD700' : 'red', marginTop: 10 }}>{passwordMsg}</div>}
+                  <button style={{ ...botonEstilo, background: '#23232b', color: '#FFD700', border: '1.5px solid #FFD700', marginTop: 18 }} onClick={() => setShowPasswordModal(false)}>Cerrar</button>
                 </div>
               </div>
             )}
-            <div style={{ marginTop: 32 }}>
-              <h3 style={{ color: '#FFD700', fontWeight: 600, fontSize: 22, marginBottom: 16 }}>Cursos Activos</h3>
-              {cursosActivos.length === 0 ? (
-                <div style={{ color: '#fff' }}>No tienes cursos activos.</div>
-              ) : (
-                <div style={{ display: 'flex', gap: 24, flexWrap: 'wrap' }}>
-                  {cursosActivos.map((curso, idx) => (
-                    <div key={idx} style={{ background: '#23232b', border: '1.5px solid #FFD700', borderRadius: 12, padding: 18, minWidth: 260, maxWidth: 320 }}>
-                      {curso.imagen && <img src={curso.imagen} alt={curso.nombre} style={{ width: '100%', borderRadius: 8, marginBottom: 10 }} />}
-                      <div style={{ color: '#FFD700', fontWeight: 700, fontSize: 18 }}>{curso.nombre}</div>
-                      <div style={{ color: '#fff', fontSize: 15 }}>{curso.descripcion}</div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-            <div style={{ marginTop: 32 }}>
-              <h3 style={{ color: '#FFD700', fontWeight: 600, fontSize: 22, marginBottom: 16 }}>Servicios Activos</h3>
-              {serviciosActivos.length === 0 ? (
-                <div style={{ color: '#fff' }}>No tienes servicios activos.</div>
-              ) : (
-                <div style={{ display: 'flex', gap: 24, flexWrap: 'wrap' }}>
-                  {serviciosActivos.map((servicio, idx) => (
-                    <div key={idx} style={{ background: '#23232b', border: '1.5px solid #FFD700', borderRadius: 12, padding: 18, minWidth: 220, maxWidth: 320, color: '#FFD700', fontWeight: 600 }}>{servicio}</div>
-                  ))}
-                </div>
-              )}
-            </div>
           </div>
-          {showPasswordModal && (
-            <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: '#000a', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <div style={{ background: '#23232b', borderRadius: 16, padding: 32, minWidth: 340, boxShadow: '0 2px 12px #0008', color: '#fff' }}>
-                <h3 style={{ color: '#FFD700', fontWeight: 700, fontSize: 22, marginBottom: 18 }}>Cambiar contraseña</h3>
-                <input type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)} placeholder="Nueva contraseña" style={inputEstilo} />
-                <button style={{ ...botonEstilo, width: '100%', marginTop: 16 }} onClick={handlePasswordChange}>Actualizar</button>
-                {passwordMsg && <div style={{ color: passwordMsg.includes('¡Contraseña') ? '#FFD700' : 'red', marginTop: 10 }}>{passwordMsg}</div>}
-                <button style={{ ...botonEstilo, background: '#23232b', color: '#FFD700', border: '1.5px solid #FFD700', marginTop: 18 }} onClick={() => setShowPasswordModal(false)}>Cerrar</button>
-              </div>
+        )}
+        {selected === 'levels' && <LevelsSection />}
+        {selected === 'channels' && <div style={{ color: '#fff' }}>Canales (aquí irá la gestión de canales)</div>}
+        {selected === 'mainMenu' && (
+          <div style={{ width: '100%', margin: 0, background: '#18181b', borderRadius: 18, boxShadow: '0 2px 12px #0006', padding: 40 }}>
+            <h2 style={{ color: '#FFD700', fontWeight: 700, fontSize: 28, marginBottom: 18 }}>Menú Secundario (Barras Desktop, Móvil Scroll, App Móvil)</h2>
+            <div style={{ color: '#fff', marginBottom: 18 }}>
+              Configura los botones que aparecerán en la barra scroll horizontal de desktop, la barra scroll horizontal de móvil y la barra inferior tipo app móvil. Puedes arrastrar, agregar, quitar y ocultar los botones de cada barra de forma independiente. No se permiten duplicados en la misma barra.
             </div>
-          )}
-        </div>
-      )}
-      {selected === 'levels' && <LevelsSection />}
-      {selected === 'channels' && <div style={{ color: '#fff' }}>Canales (aquí irá la gestión de canales)</div>}
-      {selected === 'mainMenu' && (
-        <div style={{ width: '100%', margin: 0, background: '#18181b', borderRadius: 18, boxShadow: '0 2px 12px #0006', padding: 40 }}>
-          <h2 style={{ color: '#FFD700', fontWeight: 700, fontSize: 28, marginBottom: 18 }}>Menú Secundario (Barras Desktop, Móvil Scroll, App Móvil)</h2>
-          <div style={{ color: '#fff', marginBottom: 18 }}>
-            Configura los botones que aparecerán en la barra scroll horizontal de desktop, la barra scroll horizontal de móvil y la barra inferior tipo app móvil. Puedes arrastrar, agregar, quitar y ocultar los botones de cada barra de forma independiente. No se permiten duplicados en la misma barra.
+            <MenuSecundarioTresBarras />
           </div>
-          <MenuSecundarioTresBarras />
-        </div>
-      )}
-      {selected === 'members' && <div style={{ color: '#fff' }}>Miembros (aquí irá la gestión de miembros)</div>}
-      {selected === 'events' && <div style={{ color: '#fff' }}>Eventos (aquí irá la gestión de eventos)</div>}
-      {selected === 'chats' && <div style={{ color: '#fff' }}>Chats (aquí irá la gestión de chats)</div>}
-      {selected === 'affiliates' && <div style={{ color: '#fff' }}>Afiliados (aquí irá la gestión de afiliados)</div>}
-      {selected === 'payments' && <div style={{ color: '#fff' }}>Métodos de Cobro (aquí irá la gestión de métodos de cobro)</div>}
-      {selected === 'salesHistory' && <div style={{ color: '#fff' }}>Historial de Ventas (aquí irá el historial de ventas)</div>}
-      {selected === 'transactions' && <div style={{ color: '#fff' }}>Transacciones (aquí irá la gestión de transacciones)</div>}
-      {selected === 'cryptoTransactions' && <div style={{ color: '#fff' }}>Transacciones Crypto (aquí irá la gestión de transacciones cripto)</div>}
-      {selected === 'profile' && <div style={{ color: '#fff' }}>Perfil (aquí irá la configuración del perfil)</div>}
-      {selected === 'account' && <div style={{ color: '#fff' }}>Cuenta (aquí irá la configuración de la cuenta)</div>}
-      {selected === 'password' && <div style={{ color: '#fff' }}>Contraseña (aquí irá el cambio de contraseña)</div>}
-      {selected === 'paymentHistory' && <div style={{ color: '#fff' }}>Historial de Pagos (aquí irá el historial de pagos)</div>}
-      {selected === 'invites' && <div style={{ color: '#fff' }}>Invitados (aquí irá la gestión de invitados)</div>}
-      {selected === 'commissions' && <div style={{ color: '#fff' }}>Comisiones (aquí irá la gestión de comisiones)</div>}
-      {selected === 'wallet' && <div style={{ color: '#fff' }}>Billetera (aquí irá la gestión de la billetera)</div>}
-      {selected === 'domain' && <div style={{ color: '#fff' }}>Dominio (aquí irá la configuración del dominio personalizado)</div>}
-      {selected === 'about' && <div style={{ color: '#fff' }}>Página Pública (aquí irá la edición de la página pública de la comunidad)</div>}
-    </main>
+        )}
+        {selected === 'members' && <div style={{ color: '#fff' }}>Miembros (aquí irá la gestión de miembros)</div>}
+        {selected === 'events' && <div style={{ color: '#fff' }}>Eventos (aquí irá la gestión de eventos)</div>}
+        {selected === 'chats' && <div style={{ color: '#fff' }}>Chats (aquí irá la gestión de chats)</div>}
+        {selected === 'affiliates' && <div style={{ color: '#fff' }}>Afiliados (aquí irá la gestión de afiliados)</div>}
+        {selected === 'payments' && <div style={{ color: '#fff' }}>Métodos de Cobro (aquí irá la gestión de métodos de cobro)</div>}
+        {selected === 'salesHistory' && <div style={{ color: '#fff' }}>Historial de Ventas (aquí irá el historial de ventas)</div>}
+        {selected === 'transactions' && <div style={{ color: '#fff' }}>Transacciones (aquí irá la gestión de transacciones)</div>}
+        {selected === 'cryptoTransactions' && <div style={{ color: '#fff' }}>Transacciones Crypto (aquí irá la gestión de transacciones cripto)</div>}
+        {selected === 'profile' && <div style={{ color: '#fff' }}>Perfil (aquí irá la configuración del perfil)</div>}
+        {selected === 'account' && <div style={{ color: '#fff' }}>Cuenta (aquí irá la configuración de la cuenta)</div>}
+        {selected === 'password' && <div style={{ color: '#fff' }}>Contraseña (aquí irá el cambio de contraseña)</div>}
+        {selected === 'paymentHistory' && <div style={{ color: '#fff' }}>Historial de Pagos (aquí irá el historial de pagos)</div>}
+        {selected === 'invites' && <div style={{ color: '#fff' }}>Invitados (aquí irá la gestión de invitados)</div>}
+        {selected === 'commissions' && <div style={{ color: '#fff' }}>Comisiones (aquí irá la gestión de comisiones)</div>}
+        {selected === 'wallet' && <div style={{ color: '#fff' }}>Billetera (aquí irá la gestión de la billetera)</div>}
+        {selected === 'domain' && <div style={{ color: '#fff' }}>Dominio (aquí irá la configuración del dominio personalizado)</div>}
+        {selected === 'about' && <div style={{ color: '#fff' }}>Página Pública (aquí irá la edición de la página pública de la comunidad)</div>}
+      </div>
+    </div>
   );
-}
+};
 
 const inputEstilo = {
   background: '#23232b',
@@ -549,3 +571,5 @@ function MenuSecundarioTresBarras() {
     </div>
   );
 }
+
+export default AdminConfigPanel;
