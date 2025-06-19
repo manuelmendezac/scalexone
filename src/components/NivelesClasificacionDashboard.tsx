@@ -1,4 +1,5 @@
-// Componente de Niveles de Clasificación - v1.0.0
+// Dashboard de niveles de clasificación - Sistema de niveles
+// Forzando nuevo deploy - 2024
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../supabase';
 import useNeuroState from '../store/useNeuroState';
