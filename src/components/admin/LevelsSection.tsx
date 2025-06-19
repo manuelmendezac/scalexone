@@ -102,7 +102,13 @@ export default function LevelsSection() {
 
   return (
     <div className="bg-[#23232b] rounded-xl p-8 shadow-lg">
-      <h2 className="text-2xl font-bold text-yellow-400 mb-4">Gestión de Niveles</h2>
+      <h2 className="text-2xl font-bold text-yellow-400 mb-2">Gestión de Niveles</h2>
+      <p className="text-white mb-4 text-sm">
+        Aquí puedes crear, editar y eliminar los niveles de gamificación de tu comunidad. <br />
+        <span className="text-yellow-300">Niveles por Ventas:</span> Define los rangos de ventas acumuladas que debe alcanzar un usuario para subir de nivel.<br />
+        <span className="text-yellow-300">Niveles por Educación:</span> Define cuántos módulos y videos debe completar un usuario para avanzar de nivel académico.<br />
+        <span className="text-gray-400">Recuerda guardar los cambios después de editar o agregar niveles.</span>
+      </p>
       <div className="mb-4 flex gap-4">
         <button
           className={`px-4 py-2 rounded ${tab === 'ventas' ? 'bg-yellow-400 text-black font-bold' : 'bg-neutral-800 text-white'}`}
@@ -126,11 +132,11 @@ export default function LevelsSection() {
             <div>
               <table className="w-full mb-4">
                 <thead>
-                  <tr className="text-yellow-400">
-                    <th className="p-2">Nombre</th>
-                    <th className="p-2">Mín. Ventas</th>
-                    <th className="p-2">Máx. Ventas</th>
-                    <th className="p-2">Descripción</th>
+                  <tr className="text-yellow-400 text-xs">
+                    <th className="p-2">Nombre<br /><span className="text-gray-400 font-normal">Ej: Starter, Pro, Elite</span></th>
+                    <th className="p-2">Mín. Ventas<br /><span className="text-gray-400 font-normal">Ej: 0</span></th>
+                    <th className="p-2">Máx. Ventas<br /><span className="text-gray-400 font-normal">Ej: 1000</span></th>
+                    <th className="p-2">Descripción<br /><span className="text-gray-400 font-normal">Opcional</span></th>
                     <th className="p-2">Acciones</th>
                   </tr>
                 </thead>
@@ -140,6 +146,7 @@ export default function LevelsSection() {
                       <td className="p-2">
                         <input
                           className="bg-neutral-800 text-white rounded px-2 py-1 w-full"
+                          placeholder="Ej: Starter"
                           value={nivel.nombre}
                           onChange={e => {
                             const nuevos = [...nivelesVentas];
@@ -152,6 +159,7 @@ export default function LevelsSection() {
                         <input
                           type="number"
                           className="bg-neutral-800 text-white rounded px-2 py-1 w-full"
+                          placeholder="0"
                           value={nivel.min_ventas}
                           onChange={e => {
                             const nuevos = [...nivelesVentas];
@@ -164,6 +172,7 @@ export default function LevelsSection() {
                         <input
                           type="number"
                           className="bg-neutral-800 text-white rounded px-2 py-1 w-full"
+                          placeholder="1000"
                           value={nivel.max_ventas}
                           onChange={e => {
                             const nuevos = [...nivelesVentas];
@@ -175,6 +184,7 @@ export default function LevelsSection() {
                       <td className="p-2">
                         <input
                           className="bg-neutral-800 text-white rounded px-2 py-1 w-full"
+                          placeholder="Descripción opcional"
                           value={nivel.descripcion}
                           onChange={e => {
                             const nuevos = [...nivelesVentas];
@@ -186,6 +196,7 @@ export default function LevelsSection() {
                       <td className="p-2">
                         <button
                           className="bg-red-600 text-white px-2 py-1 rounded hover:bg-red-500"
+                          title="Eliminar este nivel"
                           onClick={() => eliminarNivel('ventas', nivel.id)}
                           disabled={saving}
                         >Eliminar</button>
@@ -198,6 +209,7 @@ export default function LevelsSection() {
                 className="bg-green-500 text-white px-4 py-2 rounded font-bold hover:bg-green-400 mr-2"
                 onClick={() => agregarNivel('ventas')}
                 disabled={saving}
+                title="Agregar un nuevo nivel de ventas"
               >
                 + Agregar Nivel
               </button>
@@ -205,6 +217,7 @@ export default function LevelsSection() {
                 className="bg-yellow-400 text-black px-4 py-2 rounded font-bold hover:bg-yellow-300"
                 onClick={guardarNiveles}
                 disabled={saving}
+                title="Guardar todos los cambios realizados"
               >
                 Guardar Cambios
               </button>
@@ -213,11 +226,11 @@ export default function LevelsSection() {
             <div>
               <table className="w-full mb-4">
                 <thead>
-                  <tr className="text-yellow-400">
-                    <th className="p-2">Nombre</th>
-                    <th className="p-2">Módulos Req.</th>
-                    <th className="p-2">Videos Req.</th>
-                    <th className="p-2">Descripción</th>
+                  <tr className="text-yellow-400 text-xs">
+                    <th className="p-2">Nombre<br /><span className="text-gray-400 font-normal">Ej: Estudiante, Experto</span></th>
+                    <th className="p-2">Módulos Req.<br /><span className="text-gray-400 font-normal">Ej: 3</span></th>
+                    <th className="p-2">Videos Req.<br /><span className="text-gray-400 font-normal">Ej: 5</span></th>
+                    <th className="p-2">Descripción<br /><span className="text-gray-400 font-normal">Opcional</span></th>
                     <th className="p-2">Acciones</th>
                   </tr>
                 </thead>
@@ -227,6 +240,7 @@ export default function LevelsSection() {
                       <td className="p-2">
                         <input
                           className="bg-neutral-800 text-white rounded px-2 py-1 w-full"
+                          placeholder="Ej: Estudiante"
                           value={nivel.nombre}
                           onChange={e => {
                             const nuevos = [...nivelesAcademicos];
@@ -239,6 +253,7 @@ export default function LevelsSection() {
                         <input
                           type="number"
                           className="bg-neutral-800 text-white rounded px-2 py-1 w-full"
+                          placeholder="3"
                           value={nivel.modulos_requeridos}
                           onChange={e => {
                             const nuevos = [...nivelesAcademicos];
@@ -251,6 +266,7 @@ export default function LevelsSection() {
                         <input
                           type="number"
                           className="bg-neutral-800 text-white rounded px-2 py-1 w-full"
+                          placeholder="5"
                           value={nivel.videos_requeridos}
                           onChange={e => {
                             const nuevos = [...nivelesAcademicos];
@@ -262,6 +278,7 @@ export default function LevelsSection() {
                       <td className="p-2">
                         <input
                           className="bg-neutral-800 text-white rounded px-2 py-1 w-full"
+                          placeholder="Descripción opcional"
                           value={nivel.descripcion}
                           onChange={e => {
                             const nuevos = [...nivelesAcademicos];
@@ -273,6 +290,7 @@ export default function LevelsSection() {
                       <td className="p-2">
                         <button
                           className="bg-red-600 text-white px-2 py-1 rounded hover:bg-red-500"
+                          title="Eliminar este nivel"
                           onClick={() => eliminarNivel('educacion', nivel.id)}
                           disabled={saving}
                         >Eliminar</button>
@@ -285,6 +303,7 @@ export default function LevelsSection() {
                 className="bg-green-500 text-white px-4 py-2 rounded font-bold hover:bg-green-400 mr-2"
                 onClick={() => agregarNivel('educacion')}
                 disabled={saving}
+                title="Agregar un nuevo nivel académico"
               >
                 + Agregar Nivel
               </button>
@@ -292,6 +311,7 @@ export default function LevelsSection() {
                 className="bg-yellow-400 text-black px-4 py-2 rounded font-bold hover:bg-yellow-300"
                 onClick={guardarNiveles}
                 disabled={saving}
+                title="Guardar todos los cambios realizados"
               >
                 Guardar Cambios
               </button>
