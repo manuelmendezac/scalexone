@@ -429,10 +429,35 @@ const LineaVideosClassroom = () => {
                 {videoActual.titulo || 'Sin título'}
               </h2>
               <button
-                onClick={() => handleVideoProgress(100)}
-                className="bg-cyan-600 hover:bg-cyan-500 text-white px-4 py-2 rounded-lg transition-colors"
+                onClick={async () => {
+                  try {
+                    const usuarioId = neuro.userInfo?.email || 'anon';
+                    const resultado = await classroomGamificationService.actualizarProgresoVideo(
+                      videoActual.id,
+                      usuarioId,
+                      duration,
+                      100
+                    );
+                    
+                    if (resultado.xpGanado > 0 || resultado.monedasGanadas > 0) {
+                      setCompletados(prev => ({...prev, [claseActual]: true}));
+                      // Si no es el último video, pasar al siguiente automáticamente
+                      if (claseActual < clasesOrdenadas.length - 1) {
+                        setTimeout(() => setClaseActual(prev => prev + 1), 1000);
+                      }
+                    }
+                  } catch (error) {
+                    console.error('Error al marcar como completado:', error);
+                  }
+                }}
+                disabled={completados[claseActual]}
+                className={`px-4 py-2 rounded-lg transition-all duration-300 font-medium ${
+                  completados[claseActual]
+                    ? 'bg-green-500 text-black cursor-not-allowed'
+                    : 'bg-neutral-800 text-cyan-300 hover:bg-neutral-700 active:bg-neutral-600'
+                }`}
               >
-                Marcar como completado
+                {completados[claseActual] ? '✓ Completado' : 'Marcar como completado'}
               </button>
             </div>
 

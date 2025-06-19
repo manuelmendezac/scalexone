@@ -117,30 +117,12 @@ class ClassroomGamificationService {
         .eq('usuario_id', usuarioId)
         .single();
 
-      // 2. Actualizar progreso en la base de datos
-      const { error: progresoError } = await supabase
-        .from('progreso_videos_classroom')
-        .upsert({
-          video_id: videoId,
-          usuario_id: usuarioId,
-          tiempo_visto: tiempoVisto,
-          porcentaje_completado: porcentajeCompletado,
-          completado,
-          ultima_reproduccion: new Date().toISOString(),
-          // Solo marcar como reclamada si se completa el video
-          recompensa_reclamada: completado ? true : progresoExistente?.recompensa_reclamada || false
-        }, {
-          onConflict: 'usuario_id,video_id'
-        });
-
-      if (progresoError) throw progresoError;
-
-      // 3. Si completó el video y no había reclamado recompensa antes
-      if (completado && !progresoExistente?.recompensa_reclamada) {
+      // Si no hay progreso existente o no se ha reclamado la recompensa
+      if (!progresoExistente?.recompensa_reclamada && completado) {
         // Dar recompensa por completar video
-        xpGanado += CLASSROOM_REWARDS.VIDEO_COMPLETADO.xp;
-        monedasGanadas += CLASSROOM_REWARDS.VIDEO_COMPLETADO.monedas;
-        mensaje += `¡Video completado! +${CLASSROOM_REWARDS.VIDEO_COMPLETADO.xp} XP, +${CLASSROOM_REWARDS.VIDEO_COMPLETADO.monedas} Moneda. `;
+        xpGanado = CLASSROOM_REWARDS.VIDEO_COMPLETADO.xp;
+        monedasGanadas = CLASSROOM_REWARDS.VIDEO_COMPLETADO.monedas;
+        mensaje = `¡Video completado! +${xpGanado} XP, +${monedasGanadas} Moneda. `;
 
         // Verificar si es el primer video del día
         const esPrimerVideoDia = await this.verificarPrimerVideoDia(usuarioId);
@@ -174,8 +156,27 @@ class ClassroomGamificationService {
           neuro.addXP(xpGanado);
           neuro.addCoins(monedasGanadas);
         }
+      }
 
-        // 4. Verificar si completó el módulo
+      // 2. Actualizar progreso en la base de datos
+      const { error: progresoError } = await supabase
+        .from('progreso_videos_classroom')
+        .upsert({
+          video_id: videoId,
+          usuario_id: usuarioId,
+          tiempo_visto: tiempoVisto,
+          porcentaje_completado: porcentajeCompletado,
+          completado,
+          ultima_reproduccion: new Date().toISOString(),
+          recompensa_reclamada: completado // Marcar como reclamada si se completa
+        }, {
+          onConflict: 'usuario_id,video_id'
+        });
+
+      if (progresoError) throw progresoError;
+
+      // 3. Verificar si completó el módulo
+      if (completado) {
         const moduloCompletado = await this.verificarModuloCompletado(videoId, usuarioId);
         if (moduloCompletado) {
           const recompensaModulo = await this.darRecompensaModulo(moduloCompletado.modulo_id, usuarioId);
