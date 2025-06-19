@@ -3,7 +3,8 @@ import BannerSlider from '../components/BannerSlider';
 import KPIDashboard from '../components/KPIDashboard';
 import QuickAccess from '../components/QuickAccess';
 import TipsCarousel from '../components/TipsCarousel';
-import useNeuroState from '../store/useNeuroState';
+import useNeuroState, { useHydration } from '../store/useNeuroState';
+import LoadingScreen from '../components/LoadingScreen';
 import { FaUserAstronaut } from 'react-icons/fa';
 import { WaveSurfer, WaveForm } from "wavesurfer-react";
 import OnboardingMentor from '../components/OnboardingMentor';
@@ -11,6 +12,7 @@ import { useNavigate } from 'react-router-dom';
 
 const Inicio: React.FC = () => {
   const { userName } = useNeuroState();
+  const isHydrated = useHydration();
   const navigate = useNavigate();
   // Simulación de datos
   const kpis = {
@@ -31,6 +33,8 @@ const Inicio: React.FC = () => {
   useEffect(() => {
     // Eliminar reproducción automática de audio remoto
   }, [userName]);
+
+  if (!isHydrated) return <LoadingScreen message="Cargando inicio..." />;
 
   return (
     <div className="w-full min-h-screen" style={{ background: '#000' }}>
