@@ -88,4 +88,25 @@ $$ language plpgsql;
 drop trigger if exists trigger_crear_comision_venta on sales;
 create trigger trigger_crear_comision_venta
   after insert on sales
-  for each row execute function crear_comision_venta(); 
+  for each row execute function crear_comision_venta();
+
+-- Función para obtener el ranking de un usuario por su email
+create or replace function get_user_rank(user_email text)
+returns integer
+language plpgsql
+as $$
+declare
+  user_rank integer;
+begin
+  select rank
+  into user_rank
+  from (
+    select email,
+           rank() over (order by xp desc) as rank
+    from usuarios
+  ) ranked
+  where email = user_email;
+  
+  return user_rank;
+end;
+$$; 
