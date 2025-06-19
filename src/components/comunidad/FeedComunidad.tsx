@@ -3,6 +3,8 @@ import { supabase } from '../../supabase';
 import ComunidadComentarios from './ComunidadComentarios';
 import ReaccionesFacebook from './ReaccionesFacebook';
 import ComunidadPostModal from './ComunidadPostModal';
+import useCommunityStore from '../../store/useCommunityStore';
+import LoadingScreen from '../LoadingScreen';
 import {
   WhatsappShareButton,
   FacebookShareButton,
@@ -33,8 +35,15 @@ interface Post {
 }
 
 const FeedComunidad = () => {
-  const [posts, setPosts] = useState<Post[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { 
+    posts,
+    reaccionesPorPost,
+    usuarios,
+    loading,
+    fetchPosts,
+    cargarReacciones
+  } = useCommunityStore();
+
   const [contenido, setContenido] = useState('');
   const [tipo, setTipo] = useState<'texto' | 'imagen' | 'video' | 'enlace'>('texto');
   const [mediaUrl, setMediaUrl] = useState('');
@@ -44,11 +53,8 @@ const FeedComunidad = () => {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [archivoSeleccionado, setArchivoSeleccionado] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [reaccionesPorPost, setReaccionesPorPost] = useState<Record<string, any>>({});
-  const [miReaccionPorPost, setMiReaccionPorPost] = useState<Record<string, string | null>>({});
   const [usuarioId, setUsuarioId] = useState<string>('');
   const [usuarioCargando, setUsuarioCargando] = useState(true);
-  const [usuarios, setUsuarios] = useState<Record<string, { avatar_url?: string; name?: string }>>({});
   const [editandoPostId, setEditandoPostId] = useState<string | null>(null);
   const [editContenido, setEditContenido] = useState('');
   const [editDescripcion, setEditDescripcion] = useState('');
@@ -62,7 +68,7 @@ const FeedComunidad = () => {
 
   useEffect(() => {
     fetchPosts();
-  }, []);
+  }, [fetchPosts]);
 
   useEffect(() => {
     let mounted = true;
@@ -75,131 +81,19 @@ const FeedComunidad = () => {
       }
     };
     obtenerUsuario();
-    // Escuchar cambios de sesión
+    
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUsuarioId(session?.user?.id || '');
-      setUsuarioCargando(false);
+      if (mounted) {
+        setUsuarioId(session?.user?.id || '');
+        setUsuarioCargando(false);
+      }
     });
+    
     return () => {
       mounted = false;
       listener?.subscription.unsubscribe();
     };
   }, []);
-
-  const fetchPosts = async () => {
-    setLoading(true);
-    const { data, error } = await supabase
-      .from('comunidad_posts')
-      .select('*, usuario:usuario_id ( avatar_url, name )')
-      .order('created_at', { ascending: false });
-    if (!error && data) {
-      setPosts(data);
-      // Cargar reacciones para todos los posts
-      data.forEach((post: any) => cargarReacciones(post.id));
-      // Guardar usuarios para lookup rápido
-      const usuariosMap: Record<string, { avatar_url?: string; name?: string }> = {};
-      data.forEach((post: any) => {
-        if (post.usuario_id && post.usuario) {
-          usuariosMap[post.usuario_id] = {
-            avatar_url: post.usuario.avatar_url,
-            name: post.usuario.name,
-          };
-        }
-      });
-      setUsuarios(usuariosMap);
-    }
-    setLoading(false);
-  };
-
-  const cargarReacciones = async (postId: string) => {
-    const { data, error } = await supabase
-      .from('comunidad_reacciones')
-      .select('*')
-      .eq('post_id', postId);
-    if (!error && data) {
-      const agrupadas: Record<string, { tipo: string; count: number; usuarios: string[] }> = {};
-      let miReaccion: string | null = null;
-      data.forEach((r: any) => {
-        if (!agrupadas[r.tipo]) agrupadas[r.tipo] = { tipo: r.tipo, count: 0, usuarios: [] };
-        agrupadas[r.tipo].count++;
-        agrupadas[r.tipo].usuarios.push(r.usuario_id);
-        if (r.usuario_id === usuarioId) miReaccion = r.tipo;
-      });
-      setReaccionesPorPost(prev => ({ ...prev, [postId]: Object.values(agrupadas) }));
-      setMiReaccionPorPost(prev => ({ ...prev, [postId]: miReaccion }));
-    }
-  };
-
-  // Verifica y crea el usuario en la tabla si no existe
-  const asegurarUsuarioEnTabla = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user || !user.email) {
-      alert('No se pudo obtener el email del usuario. No se puede registrar.');
-      return false;
-    }
-    // Verifica si existe en la tabla usuarios
-    const { data: existe, error: errorExiste } = await supabase
-      .from('usuarios')
-      .select('*')
-      .eq('id', user.id)
-      .single();
-    if (existe) return true;
-    // Si no existe, créalo
-    const name = user.user_metadata?.name || user.user_metadata?.full_name || user.email.split('@')[0] || 'Usuario';
-    const avatar_url = user.user_metadata?.avatar_url || '';
-    const { error: errorInsert } = await supabase
-      .from('usuarios')
-      .insert({ id: user.id, email: user.email, name, avatar_url });
-    if (errorInsert) {
-      // Si el error es por conflicto de email, busca el usuario por email y permite reaccionar
-      if (errorInsert.code === '23505' || (errorInsert.message && errorInsert.message.includes('duplicate key')) || (errorInsert.details && errorInsert.details.includes('already exists'))) {
-        const { data: usuarioPorEmail, error: errorEmail } = await supabase
-          .from('usuarios')
-          .select('*')
-          .eq('email', user.email)
-          .single();
-        if (usuarioPorEmail) {
-          setUsuarioId(usuarioPorEmail.id);
-          return true;
-        }
-      }
-      alert('Error al crear usuario en tabla: ' + (errorInsert.message || JSON.stringify(errorInsert)));
-      console.error('Error al crear usuario en tabla:', errorInsert);
-      return false;
-    }
-    return true;
-  };
-
-  const manejarReaccion = async (postId: string, tipo: string) => {
-    if (usuarioCargando) {
-      alert('Cargando usuario, intenta de nuevo en un momento.');
-      return;
-    }
-    if (!usuarioId) {
-      alert('Debes iniciar sesión para reaccionar.');
-      return;
-    }
-    // Asegura que el usuario exista en la tabla antes de reaccionar
-    const ok = await asegurarUsuarioEnTabla();
-    if (!ok) {
-      alert('No se pudo registrar tu usuario. Intenta de nuevo.');
-      return;
-    }
-    if (!postId || !tipo) {
-      alert('Faltan datos para reaccionar.');
-      return;
-    }
-    // Siempre insertar una nueva reacción
-    const { error: errorInsert } = await supabase
-      .from('comunidad_reacciones')
-      .insert({ post_id: postId, usuario_id: usuarioId, tipo, comentario_id: null });
-    if (errorInsert) {
-      alert('Error al insertar reacción: ' + (errorInsert.message || JSON.stringify(errorInsert)));
-      console.error('Error al insertar reacción:', errorInsert);
-      return;
-    }
-    cargarReacciones(postId);
-  };
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -358,6 +252,10 @@ const FeedComunidad = () => {
       posts.forEach(post => fetchComentariosPorPost(post.id));
     }
   }, [posts]);
+
+  if (loading) {
+    return <LoadingScreen message="Cargando publicaciones..." />;
+  }
 
   return (
     <div className="max-w-2xl mx-auto flex flex-col gap-8">
