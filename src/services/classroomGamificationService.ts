@@ -42,7 +42,17 @@ export interface ModuloProgress {
 }
 
 class ClassroomGamificationService {
+  private static instance: ClassroomGamificationService;
   private neuro = useNeuroState.getState();
+
+  private constructor() {}
+
+  public static getInstance(): ClassroomGamificationService {
+    if (!ClassroomGamificationService.instance) {
+      ClassroomGamificationService.instance = new ClassroomGamificationService();
+    }
+    return ClassroomGamificationService.instance;
+  }
 
   // Actualizar progreso de video y dar recompensas
   async actualizarProgresoVideo(
@@ -361,4 +371,4 @@ class ClassroomGamificationService {
   }
 }
 
-export default new ClassroomGamificationService(); 
+export default ClassroomGamificationService.getInstance(); 
