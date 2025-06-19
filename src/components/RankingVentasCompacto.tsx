@@ -57,7 +57,7 @@ const RankingVentasCompacto = () => {
     <div className="bg-black/40 border border-[#FFD700]/30 rounded-xl p-6">
       <div className="flex items-center justify-between mb-6">
         <h3 className="text-xl font-orbitron text-white/90">
-          🏆 Top Vendedores
+          🏆 Top Afiliados
         </h3>
         <div className="flex gap-4">
           <span className="text-[#FFD700] text-sm">
