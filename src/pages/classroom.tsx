@@ -198,45 +198,56 @@ const Classroom = () => {
                         ref={provided.innerRef}
                         {...provided.draggableProps}
                         {...provided.dragHandleProps}
-                        className="bg-neutral-800 rounded-xl p-4 relative group"
+                        className="w-full max-w-xs bg-white rounded-2xl shadow-xl border border-gray-200 flex flex-col cursor-pointer hover:scale-105 transition-transform relative group"
                         style={{
                           ...provided.draggableProps.style,
-                          cursor: isAdmin ? 'grab' : 'pointer',
+                          background: mod.color || '#fff',
+                          cursor: isAdmin ? 'grab' : 'pointer'
                         }}
                         onClick={() => !isAdmin && navigate(`/classroom/${mod.id}`)}
                       >
                         {/* Imagen del módulo */}
-                        <img
-                          src={mod.imagen_url}
-                          alt={mod.titulo}
-                          className="w-full h-48 object-cover rounded-lg mb-4"
-                        />
-                        
-                        {/* Título y descripción */}
-                        <h3 className="text-xl font-bold mb-2">{mod.titulo}</h3>
-                        <p className="text-gray-300 mb-4">{mod.descripcion}</p>
-                        
-                        {/* Barra de progreso */}
-                        <ProgresoFuturista porcentaje={getProgreso()} />
+                        <div className="h-40 w-full rounded-t-2xl overflow-hidden flex items-center justify-center bg-gray-100">
+                          {mod.imagen_url ? (
+                            <img src={mod.imagen_url} alt={mod.titulo} className="object-cover w-full h-full" />
+                          ) : (
+                            <span className="text-6xl">{mod.icono || '📦'}</span>
+                          )}
+                        </div>
                         
                         {/* Badge si existe */}
                         {getBadge(mod) && (
-                          <div className="absolute top-2 right-2 text-2xl">
+                          <div className="absolute top-3 right-3 text-2xl z-10">
                             {getBadge(mod)}
                           </div>
                         )}
+
+                        <div className="flex-1 flex flex-col p-6">
+                          <h3 className="text-xl font-bold text-gray-900 mb-2 text-center">{mod.titulo}</h3>
+                          <p className="text-gray-600 text-sm mb-4 text-center">{mod.descripcion}</p>
+                          <ProgresoFuturista porcentaje={getProgreso()} />
+                        </div>
                         
                         {/* Botones de admin */}
                         {isAdmin && (
-                          <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <div className="absolute top-2 left-2 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition z-20">
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
                                 handleEdit(idx + (pagina - 1) * MODULOS_POR_PAGINA);
                               }}
-                              className="px-2 py-1 bg-blue-500 text-white rounded mr-2 hover:bg-blue-600"
+                              className="bg-yellow-400 text-black px-2 py-1 rounded text-xs font-bold hover:bg-yellow-500"
                             >
-                              Editar
+                              Editar portada/color
+                            </button>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                navigate(`/classroom/editar-videos?modulo_id=${mod.id}`);
+                              }}
+                              className="bg-blue-500 text-white px-2 py-1 rounded text-xs font-bold hover:bg-blue-600"
+                            >
+                              Editar videos
                             </button>
                             <button
                               onClick={(e) => {
@@ -245,7 +256,7 @@ const Classroom = () => {
                                   handleDelete(idx + (pagina - 1) * MODULOS_POR_PAGINA);
                                 }
                               }}
-                              className="px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600"
+                              className="bg-red-500 text-white px-2 py-1 rounded text-xs font-bold hover:bg-red-600"
                             >
                               Eliminar
                             </button>
