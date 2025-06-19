@@ -3,6 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Calendar, Share2, MessageSquare, Info, ChevronLeft, ChevronRight, Maximize2, Menu, Upload, Star, Minimize2 } from 'lucide-react';
 import LaunchCalendar from '../components/launchpad/LaunchCalendar';
 import { supabase } from '../supabase';
+import { useHydration } from '../store/useNeuroState';
+import LoadingScreen from '../components/LoadingScreen';
 
 interface LaunchEvent {
   id: string;
@@ -129,6 +131,7 @@ const Launchpad: React.FC = () => {
   // Estado para mostrar el menú de compartir
   const [shareMenuOpen, setShareMenuOpen] = useState(false);
   const videoRef = useRef<HTMLDivElement>(null);
+  const isHydrated = useHydration();
 
   // Ajustar barra lateral según el ancho de pantalla después del primer render
   useEffect(() => {
@@ -547,6 +550,17 @@ const Launchpad: React.FC = () => {
       videoRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   }, [selectedEvent]);
+
+  // Determinar si está cargando datos principales
+  const loadingMain = loadingFeatured || loadingLinks || loadingSettings || loadingVideos;
+
+  if (!isHydrated) {
+    return <LoadingScreen message="Cargando launchpad..." />;
+  }
+
+  if (loadingMain) {
+    return <LoadingScreen message="Cargando launchpad..." />;
+  }
 
   return (
     <div className="w-full min-h-screen" style={{ background: '#000' }}>
