@@ -47,16 +47,19 @@ const CursosPage: React.FC = () => {
 
   useEffect(() => {
     if (userInfo && userInfo.email && (!userInfo.name || userInfo.name === userInfo.email)) {
-      // Buscar el nombre en la tabla usuarios de Supabase
       supabase
         .from('usuarios')
         .select('name, community_id')
         .eq('email', userInfo.email)
         .single()
         .then(({ data }) => {
-          if (data && data.name && data.name !== userInfo.name) {
-            updateUserInfo({ 
-              name: data.name, 
+          if (
+            data &&
+            ((data.name && data.name !== userInfo.name) ||
+             (data.community_id && data.community_id !== userInfo.community_id))
+          ) {
+            updateUserInfo({
+              name: data.name,
               email: userInfo.email,
               community_id: data.community_id || 'default'
             });
