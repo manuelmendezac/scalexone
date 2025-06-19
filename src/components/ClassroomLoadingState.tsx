@@ -11,19 +11,21 @@ const ClassroomLoadingState: React.FC = () => {
       {/* Grid de módulos skeleton */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-7xl mx-auto">
         {[1, 2, 3, 4, 5, 6].map((i) => (
-          <div key={i} className="bg-neutral-800 rounded-xl p-4 animate-pulse">
+          <div key={i} className="w-full max-w-xs bg-white rounded-2xl shadow-xl border border-gray-200 flex flex-col animate-pulse">
             {/* Imagen skeleton */}
-            <div className="w-full h-48 bg-neutral-700 rounded-lg mb-4"></div>
+            <div className="h-40 w-full rounded-t-2xl bg-gray-200"></div>
             
-            {/* Título skeleton */}
-            <div className="w-3/4 h-6 bg-neutral-700 rounded mb-2"></div>
-            
-            {/* Descripción skeleton */}
-            <div className="w-full h-4 bg-neutral-700 rounded mb-2"></div>
-            <div className="w-2/3 h-4 bg-neutral-700 rounded"></div>
+            <div className="flex-1 flex flex-col p-6">
+              {/* Título skeleton */}
+              <div className="w-3/4 h-6 bg-gray-200 rounded mx-auto mb-2"></div>
+              
+              {/* Descripción skeleton */}
+              <div className="w-full h-4 bg-gray-200 rounded mb-2 mx-auto"></div>
+              <div className="w-2/3 h-4 bg-gray-200 rounded mx-auto mb-4"></div>
 
-            {/* Barra de progreso skeleton */}
-            <div className="w-full h-3 bg-neutral-700 rounded-full mt-4"></div>
+              {/* Barra de progreso skeleton */}
+              <div className="w-full h-3 bg-gray-200 rounded-full"></div>
+            </div>
           </div>
         ))}
       </div>
