@@ -56,6 +56,7 @@ interface ViewConfig {
 }
 
 function App() {
+  console.log('RENDER App');
   const isHydrated = useHydration();
   const { t } = useTranslation();
   const [showOnboarding, setShowOnboarding] = useState(false);
