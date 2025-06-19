@@ -52,3 +52,5 @@ export default tseslint.config({
   },
 })
 ```
+
+Última actualización: 2024-03-19
