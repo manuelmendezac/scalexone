@@ -110,6 +110,74 @@ const LineaVideosClassroom = () => {
   const esUltimoVideo = claseActual === clasesOrdenadas.length - 1;
   const embedUrl = toEmbedUrl(videoActual.url);
 
+  // Verificar si todos los videos están completados
+  const todosCompletados = clasesOrdenadas.length > 0 && 
+    clasesOrdenadas.every((_, idx) => completados[idx]);
+
+  // Marcar módulo como completado
+  const marcarModuloCompletado = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      await supabase
+        .from('modulos_completados')
+        .upsert({
+          usuario_id: user.id,
+          modulo_id: modulo_id,
+          completado_en: new Date().toISOString()
+        });
+    } catch (error) {
+      console.error('Error al marcar módulo como completado:', error);
+    }
+  };
+
+  // Si todos los videos están completados, mostrar pantalla de felicitación
+  if (todosCompletados && !isAdmin) {
+    marcarModuloCompletado();
+    return (
+      <div className="flex flex-col items-center gap-6 mt-8 transition-opacity duration-700 opacity-100 min-h-screen bg-black text-white p-8">
+        <div className="flex flex-col items-center">
+          <svg width="80" height="80" fill="none" stroke="#4ade80" strokeWidth="2" className="animate-bounce">
+            <circle cx="40" cy="40" r="38"/>
+            <path d="M20 40l15 15 25-25"/>
+          </svg>
+        </div>
+        <div className="text-3xl font-bold text-cyan-300 text-center">¡Has completado el módulo!</div>
+        <audio id="felicitacion-audio" src="/audio/felicitacion-modulo.mp3" autoPlay onEnded={e => { e.currentTarget.currentTime = 0; }} />
+        <div className="flex flex-row gap-4 mt-4 w-full justify-center">
+          <button
+            className="flex items-center gap-2 px-6 py-3 rounded-full bg-neutral-800 hover:bg-cyan-900 text-cyan-200 font-bold text-lg shadow transition-all border border-cyan-700"
+            onClick={() => navigate('/classroom')}
+          >
+            <ChevronLeft className="w-5 h-5" /> Regresar al Inicio
+          </button>
+          <button
+            className="flex items-center gap-2 px-6 py-3 rounded-full bg-green-500 hover:bg-green-400 text-black font-bold text-lg shadow transition-all border border-green-700"
+            onClick={async () => {
+              // Buscar el siguiente módulo
+              const { data: siguienteModulo } = await supabase
+                .from('classroom_modulos')
+                .select('id')
+                .gt('orden', modulo?.orden || 0)
+                .order('orden')
+                .limit(1)
+                .single();
+              
+              if (siguienteModulo) {
+                navigate(`/classroom/videos/${siguienteModulo.id}`);
+              } else {
+                navigate('/classroom');
+              }
+            }}
+          >
+            Siguiente Módulo <ChevronRight className="w-5 h-5" />
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   // Guardar descripción global
   async function handleSaveDescripcion() {
     setDescMsg(null);
