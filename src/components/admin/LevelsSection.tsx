@@ -73,18 +73,31 @@ export default function LevelsSection() {
     setSaving(false);
   }
 
-  // Eliminar nivel
-  async function eliminarNivel(tab: Tab, id: number) {
+  // Eliminar nivel (mejorado para manejar niveles nuevos sin id)
+  async function eliminarNivel(tab: Tab, id: number, idx: number) {
     if (!window.confirm('¿Seguro que quieres eliminar este nivel?')) return;
     setSaving(true);
     setError(null);
     try {
-      if (tab === 'ventas') {
-        await supabase.from('niveles_ventas').delete().eq('id', id);
+      if (id) {
+        if (tab === 'ventas') {
+          await supabase.from('niveles_ventas').delete().eq('id', id);
+        } else {
+          await supabase.from('niveles_academicos').delete().eq('id', id);
+        }
+        fetchNiveles();
       } else {
-        await supabase.from('niveles_academicos').delete().eq('id', id);
+        // Si es un nivel nuevo (sin id), solo lo quitamos del array local
+        if (tab === 'ventas') {
+          const nuevos = [...nivelesVentas];
+          nuevos.splice(idx, 1);
+          setNivelesVentas(nuevos);
+        } else {
+          const nuevos = [...nivelesAcademicos];
+          nuevos.splice(idx, 1);
+          setNivelesAcademicos(nuevos);
+        }
       }
-      fetchNiveles();
     } catch (e: any) {
       setError('Error al eliminar: ' + e.message);
     }
@@ -197,7 +210,7 @@ export default function LevelsSection() {
                         <button
                           className="bg-red-600 text-white px-2 py-1 rounded hover:bg-red-500"
                           title="Eliminar este nivel"
-                          onClick={() => eliminarNivel('ventas', nivel.id)}
+                          onClick={() => eliminarNivel('ventas', nivel.id, idx)}
                           disabled={saving}
                         >Eliminar</button>
                       </td>
@@ -291,7 +304,7 @@ export default function LevelsSection() {
                         <button
                           className="bg-red-600 text-white px-2 py-1 rounded hover:bg-red-500"
                           title="Eliminar este nivel"
-                          onClick={() => eliminarNivel('educacion', nivel.id)}
+                          onClick={() => eliminarNivel('educacion', nivel.id, idx)}
                           disabled={saving}
                         >Eliminar</button>
                       </td>
