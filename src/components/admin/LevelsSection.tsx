@@ -2,14 +2,17 @@ import React, { useEffect, useState } from 'react';
 import { supabase } from '../../supabase';
 
 interface NivelVentas {
-  id: number;
+  id: string;
   nombre: string;
   min_ventas: number;
   max_ventas: number;
+  color: string;
+  icono: string;
   descripcion: string;
 }
+
 interface NivelAcademico {
-  id: number;
+  id: string;
   nombre: string;
   modulos_requeridos: number;
   videos_requeridos: number;
@@ -18,320 +21,414 @@ interface NivelAcademico {
 
 type Tab = 'ventas' | 'educacion';
 
-export default function LevelsSection() {
+const LevelsSection: React.FC = () => {
   const [tab, setTab] = useState<Tab>('ventas');
   const [nivelesVentas, setNivelesVentas] = useState<NivelVentas[]>([]);
   const [nivelesAcademicos, setNivelesAcademicos] = useState<NivelAcademico[]>([]);
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Fetch niveles
   useEffect(() => {
     fetchNiveles();
   }, []);
 
   async function fetchNiveles() {
-    setLoading(true);
-    setError(null);
     try {
-      const { data: ventas } = await supabase.from('niveles_ventas').select('*').order('min_ventas');
-      const { data: academicos } = await supabase.from('niveles_academicos').select('*').order('modulos_requeridos');
-      setNivelesVentas(ventas || []);
-      setNivelesAcademicos(academicos || []);
-    } catch (e: any) {
-      setError('Error al cargar niveles: ' + e.message);
+      setLoading(true);
+      // Cargar niveles de ventas
+      const { data: ventasData, error: ventasError } = await supabase
+        .from('niveles_ventas')
+        .select('*')
+        .order('min_ventas', { ascending: true });
+
+      if (ventasError) throw ventasError;
+      setNivelesVentas(ventasData || []);
+
+      // Cargar niveles académicos
+      const { data: academicosData, error: academicosError } = await supabase
+        .from('niveles_academicos')
+        .select('*')
+        .order('modulos_requeridos', { ascending: true });
+
+      if (academicosError) throw academicosError;
+      setNivelesAcademicos(academicosData || []);
+    } catch (err: any) {
+      console.error('Error al cargar niveles:', err);
+      setError(err.message);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   }
 
-  // Guardar cambios
-  async function guardarNiveles() {
-    setSaving(true);
-    setError(null);
+  async function guardarNivelVentas(nivel: NivelVentas) {
     try {
-      // Guardar ventas
-      for (const nivel of nivelesVentas) {
-        if (nivel.id) {
-          await supabase.from('niveles_ventas').update(nivel).eq('id', nivel.id);
-        } else {
-          await supabase.from('niveles_ventas').insert({ ...nivel, id: undefined });
-        }
-      }
-      // Guardar academicos
-      for (const nivel of nivelesAcademicos) {
-        if (nivel.id) {
-          await supabase.from('niveles_academicos').update(nivel).eq('id', nivel.id);
-        } else {
-          await supabase.from('niveles_academicos').insert({ ...nivel, id: undefined });
-        }
-      }
-      fetchNiveles();
-    } catch (e: any) {
-      setError('Error al guardar: ' + e.message);
+      const { error } = await supabase
+        .from('niveles_ventas')
+        .upsert({
+          id: nivel.id || crypto.randomUUID(),
+          nombre: nivel.nombre,
+          min_ventas: nivel.min_ventas,
+          max_ventas: nivel.max_ventas,
+          color: nivel.color,
+          icono: nivel.icono,
+          descripcion: nivel.descripcion
+        });
+
+      if (error) throw error;
+      await fetchNiveles();
+    } catch (err: any) {
+      setError('Error al guardar nivel de ventas: ' + err.message);
     }
-    setSaving(false);
   }
 
-  // Eliminar nivel (mejorado para manejar niveles nuevos sin id)
-  async function eliminarNivel(tab: Tab, id: number, idx: number) {
-    if (!window.confirm('¿Seguro que quieres eliminar este nivel?')) return;
-    setSaving(true);
-    setError(null);
+  async function guardarNivelAcademico(nivel: NivelAcademico) {
     try {
-      if (id) {
-        if (tab === 'ventas') {
-          await supabase.from('niveles_ventas').delete().eq('id', id);
-        } else {
-          await supabase.from('niveles_academicos').delete().eq('id', id);
-        }
-        fetchNiveles();
-      } else {
-        // Si es un nivel nuevo (sin id), solo lo quitamos del array local
-        if (tab === 'ventas') {
-          const nuevos = [...nivelesVentas];
-          nuevos.splice(idx, 1);
-          setNivelesVentas(nuevos);
-        } else {
-          const nuevos = [...nivelesAcademicos];
-          nuevos.splice(idx, 1);
-          setNivelesAcademicos(nuevos);
-        }
-      }
-    } catch (e: any) {
-      setError('Error al eliminar: ' + e.message);
+      const { error } = await supabase
+        .from('niveles_academicos')
+        .upsert({
+          id: nivel.id || crypto.randomUUID(),
+          nombre: nivel.nombre,
+          modulos_requeridos: nivel.modulos_requeridos,
+          videos_requeridos: nivel.videos_requeridos,
+          descripcion: nivel.descripcion
+        });
+
+      if (error) throw error;
+      await fetchNiveles();
+    } catch (err: any) {
+      setError('Error al guardar nivel académico: ' + err.message);
     }
-    setSaving(false);
   }
 
-  // Añadir nivel
-  function agregarNivel(tab: Tab) {
-    if (tab === 'ventas') {
-      setNivelesVentas([...nivelesVentas, { id: 0, nombre: '', min_ventas: 0, max_ventas: 0, descripcion: '' }]);
-    } else {
-      setNivelesAcademicos([...nivelesAcademicos, { id: 0, nombre: '', modulos_requeridos: 0, videos_requeridos: 0, descripcion: '' }]);
+  async function eliminarNivel(tipo: Tab, id: string) {
+    if (!window.confirm('¿Seguro que deseas eliminar este nivel?')) return;
+    
+    try {
+      const { error } = await supabase
+        .from(tipo === 'ventas' ? 'niveles_ventas' : 'niveles_academicos')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+      await fetchNiveles();
+    } catch (err: any) {
+      setError(`Error al eliminar nivel: ${err.message}`);
     }
   }
+
+  function agregarNivelVentas() {
+    const nuevoNivel: NivelVentas = {
+      id: crypto.randomUUID(),
+      nombre: '',
+      min_ventas: 0,
+      max_ventas: 100,
+      color: '#FFD700',
+      icono: '⭐',
+      descripcion: ''
+    };
+    setNivelesVentas([...nivelesVentas, nuevoNivel]);
+  }
+
+  function agregarNivelAcademico() {
+    const nuevoNivel: NivelAcademico = {
+      id: crypto.randomUUID(),
+      nombre: '',
+      modulos_requeridos: 0,
+      videos_requeridos: 0,
+      descripcion: ''
+    };
+    setNivelesAcademicos([...nivelesAcademicos, nuevoNivel]);
+  }
+
+  if (loading) return <div className="text-center p-4">Cargando niveles...</div>;
 
   return (
-    <div className="bg-[#23232b] rounded-xl p-8 shadow-lg">
-      <h2 className="text-2xl font-bold text-yellow-400 mb-2">Gestión de Niveles</h2>
-      <p className="text-white mb-4 text-sm">
-        Aquí puedes crear, editar y eliminar los niveles de gamificación de tu comunidad. <br />
-        <span className="text-yellow-300">Niveles por Ventas:</span> Define los rangos de ventas acumuladas que debe alcanzar un usuario para subir de nivel.<br />
-        <span className="text-yellow-300">Niveles por Educación:</span> Define cuántos módulos y videos debe completar un usuario para avanzar de nivel académico.<br />
-        <span className="text-gray-400">Recuerda guardar los cambios después de editar o agregar niveles.</span>
-      </p>
-      <div className="mb-4 flex gap-4">
-        <button
-          className={`px-4 py-2 rounded ${tab === 'ventas' ? 'bg-yellow-400 text-black font-bold' : 'bg-neutral-800 text-white'}`}
-          onClick={() => setTab('ventas')}
-        >
-          Niveles por Ventas
-        </button>
-        <button
-          className={`px-4 py-2 rounded ${tab === 'educacion' ? 'bg-yellow-400 text-black font-bold' : 'bg-neutral-800 text-white'}`}
-          onClick={() => setTab('educacion')}
-        >
-          Niveles por Educación
-        </button>
+    <div className="bg-[#1a1a1a] p-6 rounded-lg">
+      <div className="mb-6">
+        <h2 className="text-2xl font-bold text-[#FFD700] mb-2">Configuración de Niveles</h2>
+        <p className="text-gray-400 text-sm mb-4">
+          Configura los niveles de gamificación para tu plataforma. Puedes definir niveles basados en ventas o en progreso educativo.
+        </p>
+
+        {/* Tabs de selección */}
+        <div className="flex gap-4 mb-6">
+          <button
+            onClick={() => setTab('ventas')}
+            className={`px-6 py-3 rounded-lg font-medium transition-colors ${
+              tab === 'ventas'
+                ? 'bg-[#FFD700] text-black'
+                : 'bg-[#2a2a2a] text-white hover:bg-[#3a3a3a]'
+            }`}
+          >
+            Niveles por Ventas
+          </button>
+          <button
+            onClick={() => setTab('educacion')}
+            className={`px-6 py-3 rounded-lg font-medium transition-colors ${
+              tab === 'educacion'
+                ? 'bg-[#FFD700] text-black'
+                : 'bg-[#2a2a2a] text-white hover:bg-[#3a3a3a]'
+            }`}
+          >
+            Niveles por Educación
+          </button>
+        </div>
       </div>
-      {error && <div className="text-red-400 mb-2">{error}</div>}
-      {loading ? (
-        <div className="text-white">Cargando niveles...</div>
-      ) : (
-        <>
-          {tab === 'ventas' ? (
-            <div>
-              <table className="w-full mb-4">
-                <thead>
-                  <tr className="text-yellow-400 text-xs">
-                    <th className="p-2">Nombre<br /><span className="text-gray-400 font-normal">Ej: Starter, Pro, Elite</span></th>
-                    <th className="p-2">Mín. Ventas<br /><span className="text-gray-400 font-normal">Ej: 0</span></th>
-                    <th className="p-2">Máx. Ventas<br /><span className="text-gray-400 font-normal">Ej: 1000</span></th>
-                    <th className="p-2">Descripción<br /><span className="text-gray-400 font-normal">Opcional</span></th>
-                    <th className="p-2">Acciones</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {nivelesVentas.map((nivel, idx) => (
-                    <tr key={nivel.id || idx} className="bg-neutral-900 border-b border-neutral-800">
-                      <td className="p-2">
-                        <input
-                          className="bg-neutral-800 text-white rounded px-2 py-1 w-full"
-                          placeholder="Ej: Starter"
-                          value={nivel.nombre}
-                          onChange={e => {
-                            const nuevos = [...nivelesVentas];
-                            nuevos[idx].nombre = e.target.value;
-                            setNivelesVentas(nuevos);
-                          }}
-                        />
-                      </td>
-                      <td className="p-2">
-                        <input
-                          type="number"
-                          className="bg-neutral-800 text-white rounded px-2 py-1 w-full"
-                          placeholder="0"
-                          value={nivel.min_ventas}
-                          onChange={e => {
-                            const nuevos = [...nivelesVentas];
-                            nuevos[idx].min_ventas = Number(e.target.value);
-                            setNivelesVentas(nuevos);
-                          }}
-                        />
-                      </td>
-                      <td className="p-2">
-                        <input
-                          type="number"
-                          className="bg-neutral-800 text-white rounded px-2 py-1 w-full"
-                          placeholder="1000"
-                          value={nivel.max_ventas}
-                          onChange={e => {
-                            const nuevos = [...nivelesVentas];
-                            nuevos[idx].max_ventas = Number(e.target.value);
-                            setNivelesVentas(nuevos);
-                          }}
-                        />
-                      </td>
-                      <td className="p-2">
-                        <input
-                          className="bg-neutral-800 text-white rounded px-2 py-1 w-full"
-                          placeholder="Descripción opcional"
-                          value={nivel.descripcion}
-                          onChange={e => {
-                            const nuevos = [...nivelesVentas];
-                            nuevos[idx].descripcion = e.target.value;
-                            setNivelesVentas(nuevos);
-                          }}
-                        />
-                      </td>
-                      <td className="p-2">
-                        <button
-                          className="bg-red-600 text-white px-2 py-1 rounded hover:bg-red-500"
-                          title="Eliminar este nivel"
-                          onClick={() => eliminarNivel('ventas', nivel.id, idx)}
-                          disabled={saving}
-                        >Eliminar</button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-              <button
-                className="bg-green-500 text-white px-4 py-2 rounded font-bold hover:bg-green-400 mr-2"
-                onClick={() => agregarNivel('ventas')}
-                disabled={saving}
-                title="Agregar un nuevo nivel de ventas"
-              >
-                + Agregar Nivel
-              </button>
-              <button
-                className="bg-yellow-400 text-black px-4 py-2 rounded font-bold hover:bg-yellow-300"
-                onClick={guardarNiveles}
-                disabled={saving}
-                title="Guardar todos los cambios realizados"
-              >
-                Guardar Cambios
-              </button>
-            </div>
-          ) : (
-            <div>
-              <table className="w-full mb-4">
-                <thead>
-                  <tr className="text-yellow-400 text-xs">
-                    <th className="p-2">Nombre<br /><span className="text-gray-400 font-normal">Ej: Estudiante, Experto</span></th>
-                    <th className="p-2">Módulos Req.<br /><span className="text-gray-400 font-normal">Ej: 3</span></th>
-                    <th className="p-2">Videos Req.<br /><span className="text-gray-400 font-normal">Ej: 5</span></th>
-                    <th className="p-2">Descripción<br /><span className="text-gray-400 font-normal">Opcional</span></th>
-                    <th className="p-2">Acciones</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {nivelesAcademicos.map((nivel, idx) => (
-                    <tr key={nivel.id || idx} className="bg-neutral-900 border-b border-neutral-800">
-                      <td className="p-2">
-                        <input
-                          className="bg-neutral-800 text-white rounded px-2 py-1 w-full"
-                          placeholder="Ej: Estudiante"
-                          value={nivel.nombre}
-                          onChange={e => {
-                            const nuevos = [...nivelesAcademicos];
-                            nuevos[idx].nombre = e.target.value;
-                            setNivelesAcademicos(nuevos);
-                          }}
-                        />
-                      </td>
-                      <td className="p-2">
-                        <input
-                          type="number"
-                          className="bg-neutral-800 text-white rounded px-2 py-1 w-full"
-                          placeholder="3"
-                          value={nivel.modulos_requeridos}
-                          onChange={e => {
-                            const nuevos = [...nivelesAcademicos];
-                            nuevos[idx].modulos_requeridos = Number(e.target.value);
-                            setNivelesAcademicos(nuevos);
-                          }}
-                        />
-                      </td>
-                      <td className="p-2">
-                        <input
-                          type="number"
-                          className="bg-neutral-800 text-white rounded px-2 py-1 w-full"
-                          placeholder="5"
-                          value={nivel.videos_requeridos}
-                          onChange={e => {
-                            const nuevos = [...nivelesAcademicos];
-                            nuevos[idx].videos_requeridos = Number(e.target.value);
-                            setNivelesAcademicos(nuevos);
-                          }}
-                        />
-                      </td>
-                      <td className="p-2">
-                        <input
-                          className="bg-neutral-800 text-white rounded px-2 py-1 w-full"
-                          placeholder="Descripción opcional"
-                          value={nivel.descripcion}
-                          onChange={e => {
-                            const nuevos = [...nivelesAcademicos];
-                            nuevos[idx].descripcion = e.target.value;
-                            setNivelesAcademicos(nuevos);
-                          }}
-                        />
-                      </td>
-                      <td className="p-2">
-                        <button
-                          className="bg-red-600 text-white px-2 py-1 rounded hover:bg-red-500"
-                          title="Eliminar este nivel"
-                          onClick={() => eliminarNivel('educacion', nivel.id, idx)}
-                          disabled={saving}
-                        >Eliminar</button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-              <button
-                className="bg-green-500 text-white px-4 py-2 rounded font-bold hover:bg-green-400 mr-2"
-                onClick={() => agregarNivel('educacion')}
-                disabled={saving}
-                title="Agregar un nuevo nivel académico"
-              >
-                + Agregar Nivel
-              </button>
-              <button
-                className="bg-yellow-400 text-black px-4 py-2 rounded font-bold hover:bg-yellow-300"
-                onClick={guardarNiveles}
-                disabled={saving}
-                title="Guardar todos los cambios realizados"
-              >
-                Guardar Cambios
-              </button>
-            </div>
-          )}
-        </>
+
+      {error && (
+        <div className="bg-red-900/50 border border-red-500 text-red-200 p-3 rounded mb-4">
+          {error}
+        </div>
       )}
+
+      <div className="space-y-6">
+        {tab === 'ventas' ? (
+          // Niveles de Ventas
+          <>
+            {nivelesVentas.map((nivel, index) => (
+              <div key={index} className="bg-[#2a2a2a] p-6 rounded-lg border border-gray-700">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                      Nombre del Nivel
+                    </label>
+                    <input
+                      type="text"
+                      value={nivel.nombre}
+                      onChange={(e) => {
+                        const nuevos = [...nivelesVentas];
+                        nuevos[index].nombre = e.target.value;
+                        setNivelesVentas(nuevos);
+                      }}
+                      className="w-full bg-[#1a1a1a] text-white p-3 rounded border border-gray-700 focus:border-[#FFD700] focus:ring-1 focus:ring-[#FFD700]"
+                      placeholder="Ej: Principiante, Experto, Elite..."
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                      Ventas Mínimas (USD)
+                    </label>
+                    <input
+                      type="number"
+                      value={nivel.min_ventas}
+                      onChange={(e) => {
+                        const nuevos = [...nivelesVentas];
+                        nuevos[index].min_ventas = Number(e.target.value);
+                        setNivelesVentas(nuevos);
+                      }}
+                      className="w-full bg-[#1a1a1a] text-white p-3 rounded border border-gray-700 focus:border-[#FFD700] focus:ring-1 focus:ring-[#FFD700]"
+                      placeholder="Ej: 0, 100, 500..."
+                      min="0"
+                      step="50"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                      Ventas Máximas (USD)
+                    </label>
+                    <input
+                      type="number"
+                      value={nivel.max_ventas}
+                      onChange={(e) => {
+                        const nuevos = [...nivelesVentas];
+                        nuevos[index].max_ventas = Number(e.target.value);
+                        setNivelesVentas(nuevos);
+                      }}
+                      className="w-full bg-[#1a1a1a] text-white p-3 rounded border border-gray-700 focus:border-[#FFD700] focus:ring-1 focus:ring-[#FFD700]"
+                      placeholder="Ej: 100, 500, 1000..."
+                      min="0"
+                      step="50"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                      Color del Nivel
+                    </label>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="color"
+                        value={nivel.color}
+                        onChange={(e) => {
+                          const nuevos = [...nivelesVentas];
+                          nuevos[index].color = e.target.value;
+                          setNivelesVentas(nuevos);
+                        }}
+                        className="h-10 w-20 rounded border border-gray-700"
+                      />
+                      <span className="text-gray-400 text-sm">
+                        {nivel.color.toUpperCase()}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                      Icono del Nivel
+                    </label>
+                    <input
+                      type="text"
+                      value={nivel.icono}
+                      onChange={(e) => {
+                        const nuevos = [...nivelesVentas];
+                        nuevos[index].icono = e.target.value;
+                        setNivelesVentas(nuevos);
+                      }}
+                      className="w-full bg-[#1a1a1a] text-white p-3 rounded border border-gray-700 focus:border-[#FFD700] focus:ring-1 focus:ring-[#FFD700]"
+                      placeholder="Ej: ⭐ 🌟 💎 🏆"
+                      maxLength={2}
+                    />
+                  </div>
+
+                  <div className="col-span-2">
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                      Descripción del Nivel
+                    </label>
+                    <textarea
+                      value={nivel.descripcion}
+                      onChange={(e) => {
+                        const nuevos = [...nivelesVentas];
+                        nuevos[index].descripcion = e.target.value;
+                        setNivelesVentas(nuevos);
+                      }}
+                      className="w-full bg-[#1a1a1a] text-white p-3 rounded border border-gray-700 focus:border-[#FFD700] focus:ring-1 focus:ring-[#FFD700] h-24"
+                      placeholder="Describe los beneficios y características de este nivel..."
+                    />
+                  </div>
+                </div>
+
+                <div className="flex justify-end gap-3 mt-6">
+                  <button
+                    onClick={() => eliminarNivel('ventas', nivel.id)}
+                    className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
+                  >
+                    Eliminar Nivel
+                  </button>
+                  <button
+                    onClick={() => guardarNivelVentas(nivel)}
+                    className="px-4 py-2 bg-[#FFD700] text-black font-medium rounded hover:bg-yellow-500 transition-colors"
+                  >
+                    Guardar Nivel
+                  </button>
+                </div>
+              </div>
+            ))}
+
+            <button
+              onClick={agregarNivelVentas}
+              className="w-full bg-green-600 text-white p-3 rounded hover:bg-green-700 transition-colors font-medium"
+            >
+              + Agregar Nuevo Nivel de Ventas
+            </button>
+          </>
+        ) : (
+          // Niveles de Educación
+          <>
+            {nivelesAcademicos.map((nivel, index) => (
+              <div key={index} className="bg-[#2a2a2a] p-6 rounded-lg border border-gray-700">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                      Nombre del Nivel
+                    </label>
+                    <input
+                      type="text"
+                      value={nivel.nombre}
+                      onChange={(e) => {
+                        const nuevos = [...nivelesAcademicos];
+                        nuevos[index].nombre = e.target.value;
+                        setNivelesAcademicos(nuevos);
+                      }}
+                      className="w-full bg-[#1a1a1a] text-white p-3 rounded border border-gray-700 focus:border-[#FFD700] focus:ring-1 focus:ring-[#FFD700]"
+                      placeholder="Ej: Estudiante, Experto..."
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                      Módulos Requeridos
+                    </label>
+                    <input
+                      type="number"
+                      value={nivel.modulos_requeridos}
+                      onChange={(e) => {
+                        const nuevos = [...nivelesAcademicos];
+                        nuevos[index].modulos_requeridos = Number(e.target.value);
+                        setNivelesAcademicos(nuevos);
+                      }}
+                      className="w-full bg-[#1a1a1a] text-white p-3 rounded border border-gray-700 focus:border-[#FFD700] focus:ring-1 focus:ring-[#FFD700]"
+                      placeholder="Ej: 3, 5, 8..."
+                      min="0"
+                      step="1"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                      Videos Requeridos
+                    </label>
+                    <input
+                      type="number"
+                      value={nivel.videos_requeridos}
+                      onChange={(e) => {
+                        const nuevos = [...nivelesAcademicos];
+                        nuevos[index].videos_requeridos = Number(e.target.value);
+                        setNivelesAcademicos(nuevos);
+                      }}
+                      className="w-full bg-[#1a1a1a] text-white p-3 rounded border border-gray-700 focus:border-[#FFD700] focus:ring-1 focus:ring-[#FFD700]"
+                      placeholder="Ej: 5, 10, 15..."
+                      min="0"
+                      step="1"
+                    />
+                  </div>
+
+                  <div className="col-span-2">
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                      Descripción del Nivel
+                    </label>
+                    <textarea
+                      value={nivel.descripcion}
+                      onChange={(e) => {
+                        const nuevos = [...nivelesAcademicos];
+                        nuevos[index].descripcion = e.target.value;
+                        setNivelesAcademicos(nuevos);
+                      }}
+                      className="w-full bg-[#1a1a1a] text-white p-3 rounded border border-gray-700 focus:border-[#FFD700] focus:ring-1 focus:ring-[#FFD700] h-24"
+                      placeholder="Describe los beneficios y características de este nivel..."
+                    />
+                  </div>
+                </div>
+
+                <div className="flex justify-end gap-3 mt-6">
+                  <button
+                    onClick={() => eliminarNivel('educacion', nivel.id)}
+                    className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
+                  >
+                    Eliminar Nivel
+                  </button>
+                  <button
+                    onClick={() => guardarNivelAcademico(nivel)}
+                    className="px-4 py-2 bg-[#FFD700] text-black font-medium rounded hover:bg-yellow-500 transition-colors"
+                  >
+                    Guardar Nivel
+                  </button>
+                </div>
+              </div>
+            ))}
+
+            <button
+              onClick={agregarNivelAcademico}
+              className="w-full bg-green-600 text-white p-3 rounded hover:bg-green-700 transition-colors font-medium"
+            >
+              + Agregar Nuevo Nivel de Educación
+            </button>
+          </>
+        )}
+      </div>
     </div>
   );
-} 
+};
+
+export default LevelsSection; 
