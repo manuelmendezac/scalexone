@@ -67,87 +67,25 @@ export const router = createBrowserRouter([
       { path: 'habits', element: <HabitIntelligence /> },
       { path: 'progress', element: <ProgressTracker /> },
       { path: 'settings', element: <SettingsPanel /> },
+      { path: 'train', element: <AutonomousTrainingHub /> },
+      { path: 'feedback', element: <NeuroFeedbackEngine /> },
+      { path: 'autoagent', element: <NeuroAutoAgentLab /> },
+      { path: 'monetization', element: <MonetizationHub /> },
+      { path: 'pricing', element: <PricingPage /> },
+      { path: 'account/subscription', element: <SubscriptionPanel /> },
+      { path: 'reseller/dashboard', element: <ResellerDashboard /> },
+      { path: 'referrals', element: <ReferralDashboard /> },
+      { path: 'funnels', element: <FunnelHub /> },
+      { path: 'afiliados', element: <AfiliadosPage /> },
+      { path: 'affiliates', element: <AffiliateDashboard /> },
+      { path: 'automation', element: <EmailAutomationCenter /> },
+      { path: 'export', element: <ExportCenter /> },
+      { path: 'store', element: <NeuroCloneStore /> },
+      { path: 'login', element: <Login /> },
+      { path: 'register', element: <Register /> },
+      { path: 'reset-password', element: <ResetPassword /> },
+      { path: 'registro', element: <Register /> },
       { path: '*', element: <Error404 /> }
     ]
-  },
-  {
-    path: 'afiliados',
-    element: <AfiliadosPage />
-  },
-  {
-    path: 'train',
-    element: <AutonomousTrainingHub />
-  },
-  {
-    path: 'feedback',
-    element: <NeuroFeedbackEngine />
-  },
-  {
-    path: 'autoagent',
-    element: <NeuroAutoAgentLab />
-  },
-  {
-    path: 'monetization',
-    element: <MonetizationHub />
-  },
-  {
-    path: 'pricing',
-    element: <PricingPage />
-  },
-  {
-    path: 'account/subscription',
-    element: <SubscriptionPanel />
-  },
-  {
-    path: 'reseller/dashboard',
-    element: <ResellerDashboard />
-  },
-  {
-    path: 'referrals',
-    element: <ReferralDashboard />
-  },
-  {
-    path: 'funnels',
-    element: <FunnelHub />
-  },
-  {
-    path: 'affiliates',
-    element: <AffiliateDashboard />
-  },
-  {
-    path: 'automation',
-    element: <EmailAutomationCenter />
-  },
-  {
-    path: 'export',
-    element: <ExportCenter />
-  },
-  {
-    path: 'monetization',
-    element: <LeadMonetizationCenter />
-  },
-  {
-    path: 'store',
-    element: <NeuroCloneStore />
-  },
-  {
-    path: '*',
-    element: <Error404 />
-  },
-  {
-    path: 'login',
-    element: <Login />
-  },
-  {
-    path: 'register',
-    element: <Register />
-  },
-  {
-    path: 'reset-password',
-    element: <ResetPassword />
-  },
-  {
-    path: 'registro',
-    element: <Register />
   }
 ]); 
