@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { supabase } from '../supabase';
+import { registrarProgresoAcademico } from '../utils/actualizarNivelUsuario';
 
 export type Modulo = {
   id?: string;
@@ -12,6 +13,13 @@ export type Modulo = {
   badge_url?: string;
 };
 
+interface EditModulo {
+  titulo: string;
+  descripcion: string;
+  imagen_url: string;
+  color: string;
+}
+
 interface ClassroomStore {
   modulos: Modulo[];
   loading: boolean;
@@ -20,12 +28,7 @@ interface ClassroomStore {
   pagina: number;
   editIdx: number | null;
   showEditModal: boolean;
-  editModulo: {
-    titulo: string;
-    descripcion: string;
-    imagen_url: string;
-    color: string;
-  };
+  editModulo: EditModulo;
   saveMsg: string | null;
   orderMsg: string | null;
   
@@ -34,12 +37,14 @@ interface ClassroomStore {
   setPagina: (pagina: number) => void;
   setEditIdx: (idx: number | null) => void;
   setShowEditModal: (show: boolean) => void;
-  setEditModulo: (modulo: Partial<typeof editModulo>) => void;
+  setEditModulo: (modulo: Partial<EditModulo>) => void;
   setSaveMsg: (msg: string | null) => void;
   setOrderMsg: (msg: string | null) => void;
   handleSaveEdit: () => Promise<void>;
   handleDragEnd: (sourceIdx: number, destIdx: number) => Promise<void>;
   handleDelete: (idx: number) => Promise<void>;
+  marcarVideoCompletado: (videoId: string) => Promise<void>;
+  marcarModuloCompletado: (moduloId: string) => Promise<void>;
 }
 
 const CACHE_DURATION = 60000; // 1 minuto
@@ -197,6 +202,64 @@ const useClassroomStore = create<ClassroomStore>((set, get) => ({
       set({ 
         saveMsg: `Error al eliminar el módulo: ${error instanceof Error ? error.message : 'Error desconocido'}` 
       });
+    }
+  },
+
+  // NUEVO: Marcar un video como completado
+  marcarVideoCompletado: async (videoId: string) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Usuario no autenticado');
+
+      // Registrar el video como completado
+      const { error } = await supabase
+        .from('videos_completados')
+        .upsert({
+          usuario_id: user.id,
+          video_id: videoId,
+          completado_en: new Date().toISOString()
+        });
+
+      if (error) throw error;
+
+      // Actualizar progreso y nivel académico
+      await registrarProgresoAcademico(user.id, 'video', videoId);
+
+      // Opcional: Mostrar mensaje de éxito
+      set({ saveMsg: '¡Video completado!' });
+      setTimeout(() => set({ saveMsg: null }), 2000);
+    } catch (error) {
+      console.error('Error al marcar video como completado:', error);
+      set({ saveMsg: 'Error al marcar el video como completado' });
+    }
+  },
+
+  // NUEVO: Marcar un módulo como completado
+  marcarModuloCompletado: async (moduloId: string) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Usuario no autenticado');
+
+      // Registrar el módulo como completado
+      const { error } = await supabase
+        .from('modulos_completados')
+        .upsert({
+          usuario_id: user.id,
+          modulo_id: moduloId,
+          completado_en: new Date().toISOString()
+        });
+
+      if (error) throw error;
+
+      // Actualizar progreso y nivel académico
+      await registrarProgresoAcademico(user.id, 'modulo', moduloId);
+
+      // Opcional: Mostrar mensaje de éxito
+      set({ saveMsg: '¡Módulo completado!' });
+      setTimeout(() => set({ saveMsg: null }), 2000);
+    } catch (error) {
+      console.error('Error al marcar módulo como completado:', error);
+      set({ saveMsg: 'Error al marcar el módulo como completado' });
     }
   }
 }));
