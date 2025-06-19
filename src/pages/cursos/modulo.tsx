@@ -418,13 +418,8 @@ const ModuloDetalle = () => {
     setMateriales(materiales.filter(m => m.id !== id));
   }
 
-  useEffect(() => {
-    setGlobalLoading(loading);
-    return () => setGlobalLoading(false);
-  }, [loading, setGlobalLoading]);
-
   return (
-    <GlobalLoadingSpinner loading={loading}>
+    <GlobalLoadingSpinner>
       <div className={`min-h-screen bg-black text-white flex flex-col ${fullscreen ? '' : 'md:flex-row'} px-1 sm:px-2`}>
         {/* Panel principal mejorado */}
         <div className={`flex-1 flex flex-col items-center justify-center ${fullscreen ? 'fixed inset-0 z-50 bg-black overflow-auto' : 'p-1 sm:p-2 md:p-8'} transition-all duration-300`} style={fullscreen ? {maxWidth: '100vw', maxHeight: '100vh', overflow: 'auto'} : {}}>
