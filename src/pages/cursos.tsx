@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import useNeuroState from '../store/useNeuroState';
+import useNeuroState, { useHydration } from '../store/useNeuroState';
 import CursosAdminPanel from '../components/CursosAdminPanel';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../supabase';
@@ -17,8 +17,10 @@ const CursosPage: React.FC = () => {
   const navigate = useNavigate();
   const [isAdmin, setIsAdmin] = useState(false);
   const setGlobalLoading = useGlobalLoading(state => state.setLoading);
+  const isHydrated = useHydration();
 
   useEffect(() => {
+    if (!isHydrated) return;
     const fetchCursos = async () => {
       setGlobalLoading(true);
       try {
@@ -37,15 +39,17 @@ const CursosPage: React.FC = () => {
     };
     fetchCursos();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [isHydrated]);
 
   useEffect(() => {
+    if (!isHydrated) return;
     if (typeof window !== 'undefined') {
       setIsAdmin(localStorage.getItem('adminMode') === 'true');
     }
-  }, []);
+  }, [isHydrated]);
 
   useEffect(() => {
+    if (!isHydrated) return;
     if (userInfo && userInfo.email && (!userInfo.name || userInfo.name === userInfo.email)) {
       supabase
         .from('usuarios')
@@ -66,7 +70,7 @@ const CursosPage: React.FC = () => {
           }
         });
     }
-  }, [userInfo, updateUserInfo]);
+  }, [isHydrated, userInfo, updateUserInfo]);
 
   if (error) return <div className="min-h-screen flex items-center justify-center text-red-400">{error}</div>;
 
