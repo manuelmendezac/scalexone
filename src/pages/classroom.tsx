@@ -5,7 +5,7 @@ import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import type { DropResult } from 'react-beautiful-dnd';
 import useClassroomStore from '../store/useClassroomStore';
 import { useHydration } from '../store/useNeuroState';
-import ClassroomLoadingState from '../components/ClassroomLoadingState';
+import LoadingScreen from '../components/LoadingScreen';
 import GlobalLoadingSpinner from '../components/GlobalLoadingSpinner';
 
 // Modelo de módulo con imagen de portada
@@ -144,7 +144,7 @@ const Classroom = () => {
     </GlobalLoadingSpinner>
   );
   
-  if (loading) return <ClassroomLoadingState />;
+  if (loading) return <LoadingScreen message="Cargando classroom..." />;
   if (error) return <div className="min-h-screen flex items-center justify-center text-red-400">{error}</div>;
 
   return (
