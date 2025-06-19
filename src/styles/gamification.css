@@ -1,0 +1,234 @@
+/* Colores principales */
+:root {
+  --color-gold: #FFD700;
+  --color-gold-hover: #FFA500;
+  --color-background: #000000;
+  --color-card-bg: rgba(0, 0, 0, 0.4);
+  --color-border: rgba(255, 215, 0, 0.3);
+  --color-text: #FFFFFF;
+  --color-text-secondary: rgba(255, 255, 255, 0.6);
+}
+
+/* Estilos de tarjetas */
+.card-gamification {
+  @apply bg-black/40 border border-[#FFD700]/30 rounded-xl p-6 shadow-xl;
+}
+
+/* Estilos de texto */
+.title-gamification {
+  @apply text-white font-bold text-xl;
+}
+
+.subtitle-gamification {
+  @apply text-[#FFD700] text-sm font-orbitron;
+}
+
+.text-gamification {
+  @apply text-white/60 text-sm;
+}
+
+/* Estilos de botones */
+.button-gamification {
+  @apply px-6 py-3 rounded-xl font-bold transition-all;
+}
+
+.button-gamification-active {
+  @apply bg-[#FFD700] text-black;
+}
+
+.button-gamification-inactive {
+  @apply bg-black/40 text-[#FFD700] border border-[#FFD700]/30;
+}
+
+/* Estilos de barras de progreso */
+.progress-bar-gamification {
+  @apply w-full h-4 bg-white/10 rounded-lg overflow-hidden mb-1;
+}
+
+.progress-bar-fill-gamification {
+  @apply h-full bg-gradient-to-r from-[#FFD700] to-[#FFA500];
+}
+
+/* Estilos de tablas */
+.table-gamification {
+  @apply w-full;
+}
+
+.table-header-gamification {
+  @apply bg-[#FFD700]/10;
+}
+
+.table-header-cell-gamification {
+  @apply px-6 py-4 text-left text-[#FFD700] font-bold;
+}
+
+.table-row-gamification {
+  @apply border-t border-[#FFD700]/10 hover:bg-[#FFD700]/5 transition-colors;
+}
+
+.table-cell-gamification {
+  @apply px-6 py-4 text-white;
+}
+
+/* Animaciones */
+@keyframes pulse-gold {
+  0%, 100% {
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 30px rgba(255, 215, 0, 0.5);
+  }
+}
+
+.animate-pulse-gold {
+  animation: pulse-gold 2s infinite;
+}
+
+/* Estados de carga */
+.loading-gamification {
+  @apply animate-pulse bg-gray-800 rounded-xl;
+}
+
+/* Estilos de iconos */
+.icon-gamification {
+  @apply text-[#FFD700] w-8 h-8;
+}
+
+/* Estilos de avatar */
+.avatar-gamification {
+  @apply w-20 h-20 rounded-full border-4 border-[#FFD700] shadow-lg;
+}
+
+/* Estilos de contenedor principal */
+.container-gamification {
+  @apply min-h-screen bg-gradient-to-b from-black to-[#1a1a1a] p-8;
+}
+
+.content-gamification {
+  @apply max-w-7xl mx-auto space-y-8;
+}
+
+.gamification-container {
+  background: rgba(0, 0, 0, 0.8);
+  border-radius: 12px;
+  padding: 16px;
+  color: white;
+  margin: 16px 0;
+}
+
+.gamification-stats {
+  display: flex;
+  justify-content: space-around;
+  margin-bottom: 16px;
+}
+
+.stat-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.stat-icon {
+  font-size: 24px;
+}
+
+.stat-value {
+  font-weight: bold;
+  font-size: 16px;
+}
+
+.progress-bar {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  height: 20px;
+  position: relative;
+  overflow: hidden;
+  margin: 8px 0;
+}
+
+.progress-fill {
+  background: linear-gradient(90deg, #4F46E5 0%, #7C3AED 100%);
+  height: 100%;
+  transition: width 0.3s ease;
+}
+
+.progress-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 12px;
+  font-weight: bold;
+  text-shadow: 0 0 4px rgba(0, 0, 0, 0.5);
+}
+
+.reward-popup {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: #FFD700;
+  color: black;
+  padding: 12px 24px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  animation: slideIn 0.3s ease-out;
+  z-index: 1000;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.reward-icon {
+  font-size: 24px;
+}
+
+.reward-text {
+  font-weight: bold;
+}
+
+.recent-achievements {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.recent-achievements h4 {
+  font-size: 14px;
+  margin-bottom: 8px;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.achievement-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 4px 0;
+  padding: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 6px;
+}
+
+.achievement-icon {
+  font-size: 20px;
+}
+
+.achievement-title {
+  font-size: 14px;
+}
+
+.gamification-loading {
+  text-align: center;
+  padding: 16px;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+} 
