@@ -6,7 +6,6 @@ import ModalFuturista from '../../components/ModalFuturista';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
-import ClassroomVideoGamification from '../../components/ClassroomVideoGamification';
 import useNeuroState from '../../store/useNeuroState';
 import classroomGamificationService from '../../services/classroomGamificationService';
 
@@ -24,9 +23,11 @@ const LineaVideosClassroom = () => {
   const [claseActual, setClaseActual] = useState(0);
   const [isAdmin, setIsAdmin] = useState(false);
   const [fullscreen, setFullscreen] = useState(false);
-  const [completados, setCompletados] = useState<{[key:number]:boolean}>({});
+  
+  // Nuevo estado para el seguimiento de videos completados
+  const [videosCompletados, setVideosCompletados] = useState<Set<string>>(new Set());
   const [userId, setUserId] = useState<string | null>(null);
-  const videoSwitchRef = useRef(false); // Ref para detectar cambio de video
+
   // Descripción y materiales
   const [showEditDescripcion, setShowEditDescripcion] = useState(false);
   const [descripcionHtml, setDescripcionHtml] = useState<string>('');
@@ -39,55 +40,80 @@ const LineaVideosClassroom = () => {
   const [materialMsg, setMaterialMsg] = useState<string|null>(null);
   const [materialLoading, setMaterialLoading] = useState(false);
   
-  // Variables para el reproductor de video
-  const [currentTime, setCurrentTime] = useState(0);
-  const [duration, setDuration] = useState(0);
+  // Estado de la UI
   const [videoProgress, setVideoProgress] = useState(0);
-  const [showReward, setShowReward] = useState(false);
-  const [rewardMessage, setRewardMessage] = useState('');
+  const [showModuloCompletadoModal, setShowModuloCompletadoModal] = useState(false);
+  const [recompensaTotal, setRecompensaTotal] = useState({ xp: 0, coins: 0 });
+
   const videoRef = useRef<HTMLIFrameElement>(null);
+  const playerRef = useRef<any>(null); // Ref para la instancia del reproductor
 
   useEffect(() => {
-    const fetchUser = async () => {
+    const initialize = async () => {
+      setLoading(true);
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
         setUserId(user.id);
+        if (modulo_id) {
+          await fetchModuloYProgreso(modulo_id, user.id);
+        }
+      } else {
+        // Si no hay usuario, podemos dejarlo ver los videos pero sin progreso
+        if (modulo_id) {
+           await fetchModuloYProgreso(modulo_id, null);
+        }
+      }
+      setIsAdmin(localStorage.getItem('adminMode') === 'true');
+      fetchRecursosGlobales();
+      setLoading(false);
+    };
+
+    initialize();
+
+    return () => {
+      // Limpiar instancia del reproductor al desmontar
+      if (playerRef.current) {
+        playerRef.current.destroy();
+        playerRef.current = null;
       }
     };
-    fetchUser();
-    setIsAdmin(localStorage.getItem('adminMode') === 'true');
-    if (modulo_id) fetchModuloYVideos();
-    // Cargar recursos globales
-    fetchRecursosGlobales();
   }, [modulo_id]);
 
-  const fetchModuloYVideos = async () => {
-    if (!modulo_id) return;
-    
-    setLoading(true);
-    
-    // Obtener información del módulo
+  const fetchModuloYProgreso = async (currentModuloId: string, currentUserId: string | null) => {
+    // 1. Obtener información del módulo
     const { data: mod } = await supabase
       .from('classroom_modulos')
       .select('*')
-      .eq('id', modulo_id)
+      .eq('id', currentModuloId)
       .single();
 
     if (!mod) {
       console.error('No se encontró el módulo');
-      setLoading(false);
       return;
     }
-
     setModulo(mod);
-    // Traer videos asociados
+
+    // 2. Traer videos asociados
     const { data: vids } = await supabase
       .from('videos_classroom_modulo')
       .select('*')
-      .eq('modulo_id', modulo_id)
+      .eq('modulo_id', currentModuloId)
       .order('orden', { ascending: true });
-    setClases(vids || []);
-    setLoading(false);
+    
+    const videosOrdenados = vids || [];
+    setClases(videosOrdenados);
+
+    // 3. Obtener progreso del usuario
+    if (currentUserId) {
+      const { data: progreso } = await supabase
+        .from('progreso_videos_classroom')
+        .select('video_id')
+        .eq('usuario_id', currentUserId)
+        .eq('modulo_id', currentModuloId);
+
+      const completadosSet = new Set(progreso?.map(p => p.video_id) || []);
+      setVideosCompletados(completadosSet);
+    }
   };
 
   // Cargar recursos globales
@@ -117,7 +143,7 @@ const LineaVideosClassroom = () => {
 
   // Verificar si todos los videos están completados
   const todosCompletados = clasesOrdenadas.length > 0 && 
-    clasesOrdenadas.every((_, idx) => completados[idx]);
+    clasesOrdenadas.every(video => videosCompletados.has(video.id));
 
   // Marcar módulo como completado
   const marcarModuloCompletado = async () => {
@@ -160,78 +186,90 @@ const LineaVideosClassroom = () => {
     }
   };
 
-    // Callback para cuando el componente de gamificación confirma que un video está completo
-    const handleVideoCompleted = useCallback((videoId: string) => {
-      if (videoActual.id === videoId) {
-        setCompletados(prev => ({...prev, [claseActual]: true}));
-        
-        if (claseActual < clasesOrdenadas.length - 1) {
-          videoSwitchRef.current = true; // Marcar que estamos cambiando de video
+  const handleVideoEnded = useCallback(async () => {
+    if (!userId || !videoActual.id || !modulo_id) return;
+    
+    // Si el video ya está completado, no hacer nada.
+    if (videosCompletados.has(videoActual.id)) {
+      console.log(`Video ${videoActual.id} ya estaba completado.`);
+      // Si no es el último video, pasa al siguiente
+      if (!esUltimoVideo) {
+        setClaseActual(prev => prev + 1);
+      }
+      return;
+    }
+
+    console.log(`Video ${videoActual.id} completado. Procesando progreso.`);
+    
+    try {
+      // Llamar al servicio con los argumentos correctos
+      const resultado = await classroomGamificationService.actualizarProgresoVideo(
+        videoActual.id,
+        userId,
+        0, // tiempo_visto (no relevante para videos completados)
+        100 // porcentaje_completado (100% = completado)
+      );
+
+      // Actualizar estado local
+      setVideosCompletados(prev => new Set(prev).add(videoActual.id));
+      
+      // Si el servicio devolvió recompensa, significa que el módulo se completó
+      if (resultado.xpGanado > 0 || resultado.monedasGanadas > 0) {
+        console.log("¡Módulo completado! Recompensa otorgada:", resultado);
+        setRecompensaTotal({ xp: resultado.xpGanado, coins: resultado.monedasGanadas });
+        setShowModuloCompletadoModal(true);
+      } else {
+        // Si no hay recompensa, pasar al siguiente video
+        if (!esUltimoVideo) {
           setClaseActual(prev => prev + 1);
         }
       }
-    }, [claseActual, videoActual.id]);
-
-  // Función para manejar el progreso del video
-  const handleVideoProgress = (progress: number) => {
-    setVideoProgress(progress);
-    // Ya no se llama a marcarComoCompletado desde aquí
-  };
+    } catch (error) {
+      console.error("Error al procesar la finalización del video:", error);
+    }
+  }, [userId, videoActual.id, modulo_id, videosCompletados, esUltimoVideo, clasesOrdenadas]);
 
   // Configurar el iframe para recibir eventos de Vimeo
   useEffect(() => {
-    if (!embedUrl) return;
-
+    if (!embedUrl || !videoRef.current) return;
+  
     const iframe = videoRef.current;
-    if (!iframe) return;
-
-    // Agregar parámetros para habilitar la API de Vimeo
-    const url = new URL(embedUrl);
-    url.searchParams.set('api', '1');
-    url.searchParams.set('player_id', 'vimeo-player');
-    iframe.src = url.toString();
-
-    // Inicializar comunicación con el player de Vimeo
-    const player = new (window as any).Vimeo.Player(iframe);
+  
+    // Evitar reinicializar si la instancia ya existe y la URL es la misma
+    if (playerRef.current && iframe.src.includes(embedUrl)) {
+      return;
+    }
+  
+    // Si la instancia existe, destruirla antes de crear una nueva
+    if (playerRef.current) {
+      playerRef.current.destroy();
+    }
     
-    // Reiniciar estado en el primer 'play' después de cambiar de video
+    // Asegurarse de que el Iframe esté listo y la API de Vimeo disponible
+    if (!(window as any).Vimeo) {
+      console.error("Vimeo Player API not available.");
+      return;
+    }
+    
+    const player = new (window as any).Vimeo.Player(iframe);
+    playerRef.current = player;
+  
     player.on('play', () => {
-      if (videoSwitchRef.current) {
-        setCurrentTime(0);
-        setVideoProgress(0);
-        setShowReward(false);
-        videoSwitchRef.current = false; // Resetear la bandera
+      setVideoProgress(0); // Reinicia la barra de progreso visual al empezar a reproducir
+    });
+  
+    player.on('timeupdate', (data: any) => {
+      if (data.duration > 0) {
+        const progress = Math.floor((data.seconds / data.duration) * 100);
+        setVideoProgress(progress);
       }
     });
-    
-    // Escuchar eventos de progreso
-    player.on('timeupdate', (data: any) => {
-      const { seconds, duration } = data;
-      setCurrentTime(seconds);
-      setDuration(duration);
-      
-      // Calcular y actualizar progreso
-      const progress = Math.floor((seconds / duration) * 100);
-      handleVideoProgress(progress);
-    });
-
-    // Escuchar evento de finalización
-    player.on('ended', () => {
-      handleVideoProgress(100);
-    });
-
-    return () => {
-      player.off('play');
-      player.off('timeupdate');
-      player.off('ended');
-    };
-  }, [embedUrl, claseActual]); // Agregamos claseActual para reiniciar el progreso
-
-  useEffect(() => {
-    if (todosCompletados && !isAdmin) {
-      marcarModuloCompletado();
-    }
-  }, [todosCompletados, isAdmin]);
+  
+    player.on('ended', handleVideoEnded);
+  
+    // La limpieza se hará al desmontar el componente o antes de crear una nueva instancia
+  
+  }, [embedUrl, handleVideoEnded]);
 
   // Guardar descripción global
   async function handleSaveDescripcion() {
@@ -317,7 +355,8 @@ const LineaVideosClassroom = () => {
 
   // Función para mostrar recompensas
   const mostrarRecompensa = (xp: number, monedas: number, mensaje: string) => {
-    setRewardMessage(mensaje);
+    // Esta función ya no se usa, pero la mantengo por si acaso
+    console.log(`Recompensa: ${xp} XP, ${monedas} monedas - ${mensaje}`);
   };
 
   if (loading) return <div className="text-cyan-400 text-center py-10">Cargando módulo...</div>;
@@ -353,13 +392,13 @@ const LineaVideosClassroom = () => {
               {/* Progreso del módulo */}
               <div className="flex items-center gap-2">
                 <span className="text-cyan-300 text-sm">
-                  {clasesOrdenadas.filter((_, idx) => completados[idx]).length} / {clasesOrdenadas.length} videos
+                  {videosCompletados.size} / {clasesOrdenadas.length} videos
                 </span>
                 <div className="w-24 h-2 bg-cyan-900 rounded-full overflow-hidden">
                   <div 
                     className="h-full bg-gradient-to-r from-cyan-500 to-blue-500 transition-all duration-300"
                     style={{ 
-                      width: `${(clasesOrdenadas.filter((_, idx) => completados[idx]).length / Math.max(clasesOrdenadas.length, 1)) * 100}%` 
+                      width: `${(videosCompletados.size / Math.max(clasesOrdenadas.length, 1)) * 100}%` 
                     }}
                   />
                 </div>
@@ -404,66 +443,58 @@ const LineaVideosClassroom = () => {
                 />
               </div>
 
-              {/* Mostrar recompensa */}
-              {showReward && (
-                <div className="absolute top-4 right-4 bg-black/80 backdrop-blur-sm rounded-lg p-4 border border-cyan-500/30 animate-fade-in">
-                  <div className="text-cyan-400 font-medium">{rewardMessage}</div>
-                </div>
-              )}
-
-              {/* Indicador de progreso */}
-              <div className="absolute bottom-0 left-0 w-full h-1 bg-black/50">
+              {/* Indicador de progreso del video actual */}
+              <div className="absolute bottom-0 left-0 w-full h-1 bg-black/50 pointer-events-none">
                 <div 
-                  className="h-full bg-cyan-500 transition-all duration-300"
-                  style={{ width: `${videoProgress}%` }}
+                  className="h-full bg-cyan-500"
+                  style={{ width: `${videoProgress}%`, transition: 'width 0.2s linear' }}
                 />
               </div>
             </div>
 
-            {/* Componente de gamificación */}
-            {userId && (
-              <ClassroomVideoGamification
-                videoId={videoActual.id}
-                moduloId={modulo_id || ''}
-                usuarioId={userId}
-                currentTime={currentTime}
-                duration={duration}
-                onProgressUpdate={handleVideoProgress}
-                onVideoCompleted={handleVideoCompleted}
-              />
-            )}
-
-            {/* Título y botón de completado */}
-            <div className="mt-2 flex justify-between items-center">
+            {/* Título y botones de navegación */}
+            <div className="mt-4 flex justify-between items-center">
               <h2 className="text-xl font-bold text-cyan-300">
                 {videoActual.titulo || 'Sin título'}
               </h2>
-              <button
-                onClick={() => setClaseActual(prev => Math.max(0, prev - 1))}
-                disabled={claseActual === 0}
-                className="px-4 py-2 rounded-lg transition-all duration-300 font-medium bg-cyan-900/50 hover:bg-cyan-800/50 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <ChevronLeft className="w-5 h-5" />
-                Video Anterior
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setClaseActual(prev => Math.max(0, prev - 1))}
+                  disabled={claseActual === 0}
+                  className="px-3 py-2 rounded-lg transition-all duration-300 font-medium bg-cyan-900/50 hover:bg-cyan-800/50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                >
+                  <ChevronLeft className="w-5 h-5" />
+                  <span className="hidden sm:inline">Anterior</span>
+                </button>
 
-              {esUltimoVideo ? (
-                <button
-                  onClick={navegarSiguienteModulo}
-                  className="px-4 py-2 rounded-lg transition-all duration-300 font-medium bg-green-600 hover:bg-green-700"
-                >
-                  Siguiente Módulo
-                  <ChevronRight className="w-5 h-5" />
-                </button>
-              ) : (
-                <button
-                  onClick={() => setClaseActual(prev => Math.min(clasesOrdenadas.length - 1, prev + 1))}
-                  className="px-4 py-2 rounded-lg transition-all duration-300 font-medium bg-cyan-900/50 hover:bg-cyan-800/50"
-                >
-                  Siguiente Video
-                  <ChevronRight className="w-5 h-5" />
-                </button>
-              )}
+                {esUltimoVideo ? (
+                  todosCompletados ? (
+                     <button
+                        onClick={navegarSiguienteModulo}
+                        className="px-3 py-2 rounded-lg transition-all duration-300 font-medium bg-green-600 hover:bg-green-700 flex items-center gap-2"
+                      >
+                       <span className="hidden sm:inline">Siguiente Módulo</span>
+                        <ChevronRight className="w-5 h-5" />
+                      </button>
+                  ) : (
+                    <button
+                      onClick={handleVideoEnded}
+                      className="px-3 py-2 rounded-lg transition-all duration-300 font-medium bg-cyan-600 hover:bg-cyan-700 flex items-center gap-2"
+                    >
+                      <span className="hidden sm:inline">Completar y Finalizar</span>
+                      <ChevronRight className="w-5 h-5" />
+                    </button>
+                  )
+                ) : (
+                  <button
+                    onClick={() => setClaseActual(prev => Math.min(clasesOrdenadas.length - 1, prev + 1))}
+                    className="px-3 py-2 rounded-lg transition-all duration-300 font-medium bg-cyan-900/50 hover:bg-cyan-800/50 flex items-center gap-2"
+                  >
+                    <span className="hidden sm:inline">Siguiente</span>
+                    <ChevronRight className="w-5 h-5" />
+                  </button>
+                )}
+              </div>
             </div>
 
             {/* Descripción del video */}
@@ -575,6 +606,34 @@ const LineaVideosClassroom = () => {
           )}
         </div>
       )}
+      {/* Modal de Módulo Completado */}
+      {showModuloCompletadoModal && (
+        <ModalFuturista open={showModuloCompletadoModal} onClose={() => setShowModuloCompletadoModal(false)}>
+          <div className="flex flex-col items-center gap-4 text-center">
+            <h3 className="text-2xl font-bold text-cyan-300">¡Felicidades, módulo completado!</h3>
+            <p className="text-lg text-cyan-200">Has ganado un total de:</p>
+            <div className="flex gap-6 my-4">
+              <div className="bg-yellow-500/20 px-4 py-2 rounded-lg border border-yellow-500/30">
+                <span className="text-yellow-400 font-bold text-2xl">{recompensaTotal.xp} XP</span>
+              </div>
+              <div className="flex items-center gap-2 bg-yellow-500/20 px-4 py-2 rounded-lg border border-yellow-500/30">
+                <img src="/images/modulos/neurocoin.svg" alt="Coin" className="w-8 h-8" />
+                <span className="text-yellow-400 font-bold text-2xl">{recompensaTotal.coins}</span>
+              </div>
+            </div>
+            <button
+              onClick={() => {
+                setShowModuloCompletadoModal(false);
+                navegarSiguienteModulo();
+              }}
+              className="mt-4 px-6 py-3 rounded-full bg-green-600 hover:bg-green-500 text-white font-bold shadow-lg transition-all"
+            >
+              Ir al Siguiente Módulo
+            </button>
+          </div>
+        </ModalFuturista>
+      )}
+
       {/* Modales de edición */}
       <ModalFuturista open={showEditDescripcion} onClose={() => setShowEditDescripcion(false)}>
         <div className="flex flex-col gap-4 w-full">
