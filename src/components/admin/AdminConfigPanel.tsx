@@ -70,7 +70,7 @@ const AdminConfigPanel: React.FC<AdminConfigPanelProps> = ({ selected }) => {
   const [cursosActivos, setCursosActivos] = useState<any[]>([]);
   const [serviciosActivos, setServiciosActivos] = useState<any[]>([]);
   const [loadingPerfil, setLoadingPerfil] = useState(false);
-  const { userInfo } = useNeuroState();
+  const { userInfo, clearAllProgress } = useNeuroState();
   const community_id = userInfo?.community_id || null;
   const isAdmin = userInfo?.rol === 'admin' || userInfo?.rol === 'superadmin';
   const { menuConfig, loading: menuLoading, error, saveMenuConfig } = useMenuSecundarioConfig(community_id);
@@ -331,6 +331,33 @@ const AdminConfigPanel: React.FC<AdminConfigPanelProps> = ({ selected }) => {
         {selected === 'wallet' && <div style={{ color: '#fff' }}>Billetera (aquí irá la gestión de la billetera)</div>}
         {selected === 'domain' && <div style={{ color: '#fff' }}>Dominio (aquí irá la configuración del dominio personalizado)</div>}
         {selected === 'about' && <div style={{ color: '#fff' }}>Página Pública (aquí irá la edición de la página pública de la comunidad)</div>}
+        {selected === 'configuracion' && (
+          <div>
+            <h2 className="text-2xl font-bold text-yellow-400 mb-4">Configuración General</h2>
+            {isAdmin && (
+              <div className="bg-gray-800 p-4 rounded-lg mb-6">
+                <h3 className="text-lg font-bold text-red-400 mb-2">Zona de Administrador</h3>
+                <p className="text-sm text-gray-300 mb-4">
+                  Esta acción es irreversible. Limpiará todo el progreso de gamificación (XP, monedas, videos vistos) para todos los usuarios y recargará la aplicación.
+                </p>
+                <button
+                  onClick={() => {
+                    if (window.confirm('¿Estás seguro de que quieres borrar TODO el progreso de TODOS los usuarios?')) {
+                      clearAllProgress();
+                    }
+                  }}
+                  className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
+                >
+                  Reiniciar Progreso de Gamificación
+                </button>
+              </div>
+            )}
+            {/* Otras configuraciones aquí */}
+          </div>
+        )}
+        {selected === 'niveles' && isAdmin && (
+          <LevelsSection />
+        )}
       </div>
     </div>
   );
