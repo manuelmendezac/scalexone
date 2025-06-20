@@ -174,43 +174,23 @@ const LineaVideosClassroom = () => {
     setTimeout(() => setShowReward(false), 3000);
   };
 
-  // Función para marcar video como completado
-  const marcarComoCompletado = async () => {
-    if (!userId) {
-      console.error('Intento de marcar como completado sin ID de usuario.');
-      return;
-    }
-    try {
-      const resultado = await classroomGamificationService.actualizarProgresoVideo(
-        videoActual.id,
-        userId,
-        duration,
-        100
-      );
+  // Callback para cuando el componente de gamificación confirma que un video está completo
+  const handleVideoCompleted = (videoId: string) => {
+    // Verificamos que el video completado sea el actual
+    if (videoActual.id === videoId) {
+      setCompletados(prev => ({...prev, [claseActual]: true}));
       
-      if (resultado.xpGanado > 0 || resultado.monedasGanadas > 0) {
-        setCompletados(prev => ({...prev, [claseActual]: true}));
-        mostrarRecompensa(resultado.xpGanado, resultado.monedasGanadas, resultado.mensaje);
-        
-        // Si no es el último video, pasar al siguiente automáticamente
-        if (claseActual < clasesOrdenadas.length - 1) {
-          setTimeout(() => setClaseActual(prev => prev + 1), 2000);
-        }
+      // Si no es el último video, pasar al siguiente automáticamente
+      if (claseActual < clasesOrdenadas.length - 1) {
+        setTimeout(() => setClaseActual(prev => prev + 1), 2000);
       }
-    } catch (error) {
-      console.error('Error al marcar como completado:', error);
     }
   };
 
   // Función para manejar el progreso del video
   const handleVideoProgress = (progress: number) => {
-    if (!userId) return;
-
     setVideoProgress(progress);
-    // Marcar como completado si el progreso es >= 90%
-    if (progress >= 90 && !completados[claseActual]) {
-      marcarComoCompletado();
-    }
+    // Ya no se llama a marcarComoCompletado desde aquí
   };
 
   // Configurar el iframe para recibir eventos de Vimeo
@@ -455,6 +435,7 @@ const LineaVideosClassroom = () => {
                 currentTime={currentTime}
                 duration={duration}
                 onProgressUpdate={handleVideoProgress}
+                onVideoCompleted={handleVideoCompleted}
               />
             )}
 
@@ -464,29 +445,9 @@ const LineaVideosClassroom = () => {
                 {videoActual.titulo || 'Sin título'}
               </h2>
               <button
-                onClick={marcarComoCompletado}
-                disabled={completados[claseActual]}
-                className={`px-4 py-2 rounded-lg transition-all duration-300 font-medium ${
-                  completados[claseActual]
-                    ? 'bg-green-500 text-black cursor-not-allowed'
-                    : 'bg-neutral-800 text-cyan-300 hover:bg-neutral-700 active:bg-neutral-600'
-                }`}
-              >
-                {completados[claseActual] ? '✓ Completado' : 'Marcar como completado'}
-              </button>
-            </div>
-
-            {/* Descripción del video */}
-            <p className="mt-1 text-gray-300 text-sm">
-              {videoActual.descripcion || 'Sin descripción'}
-            </p>
-
-            {/* Navegación entre videos */}
-            <div className="flex justify-between mt-3">
-              <button
                 onClick={() => setClaseActual(prev => Math.max(0, prev - 1))}
                 disabled={claseActual === 0}
-                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-cyan-900/50 hover:bg-cyan-800/50 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-4 py-2 rounded-lg transition-all duration-300 font-medium bg-cyan-900/50 hover:bg-cyan-800/50 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <ChevronLeft className="w-5 h-5" />
                 Video Anterior
@@ -495,7 +456,7 @@ const LineaVideosClassroom = () => {
               {esUltimoVideo ? (
                 <button
                   onClick={navegarSiguienteModulo}
-                  className="flex items-center gap-2 px-4 py-2 rounded-lg bg-green-600 hover:bg-green-700"
+                  className="px-4 py-2 rounded-lg transition-all duration-300 font-medium bg-green-600 hover:bg-green-700"
                 >
                   Siguiente Módulo
                   <ChevronRight className="w-5 h-5" />
@@ -503,13 +464,18 @@ const LineaVideosClassroom = () => {
               ) : (
                 <button
                   onClick={() => setClaseActual(prev => Math.min(clasesOrdenadas.length - 1, prev + 1))}
-                  className="flex items-center gap-2 px-4 py-2 rounded-lg bg-cyan-900/50 hover:bg-cyan-800/50"
+                  className="px-4 py-2 rounded-lg transition-all duration-300 font-medium bg-cyan-900/50 hover:bg-cyan-800/50"
                 >
                   Siguiente Video
                   <ChevronRight className="w-5 h-5" />
                 </button>
               )}
             </div>
+
+            {/* Descripción del video */}
+            <p className="mt-1 text-gray-300 text-sm">
+              {videoActual.descripcion || 'Sin descripción'}
+            </p>
           </div>
 
           {/* Bloques de información */}

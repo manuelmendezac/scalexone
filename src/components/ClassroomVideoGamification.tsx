@@ -11,6 +11,7 @@ interface ClassroomVideoGamificationProps {
   currentTime: number;
   duration: number;
   onProgressUpdate?: (progress: number) => void;
+  onVideoCompleted?: (videoId: string) => void;
 }
 
 interface RewardNotification {
@@ -29,7 +30,8 @@ export const ClassroomVideoGamification: React.FC<ClassroomVideoGamificationProp
   usuarioId,
   currentTime,
   duration,
-  onProgressUpdate
+  onProgressUpdate,
+  onVideoCompleted
 }) => {
   const neuro = useNeuroState();
   const [lastUpdate, setLastUpdate] = useState(0);
@@ -37,22 +39,30 @@ export const ClassroomVideoGamification: React.FC<ClassroomVideoGamificationProp
   const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState(0);
   const lastRewardRef = useRef<string>('');
+  const [completed, setCompleted] = useState(false);
+
+  useEffect(() => {
+    // Resetea el estado 'completed' cuando cambia el video
+    setCompleted(false);
+  }, [videoId]);
 
   useEffect(() => {
     const updateProgress = async () => {
-      if (!duration || currentTime === lastUpdate || loading) return;
+      if (!duration || loading || completed) return;
 
       const porcentajeCompletado = Math.floor((currentTime / duration) * 100);
       setProgress(porcentajeCompletado);
+      
+      if (onProgressUpdate) {
+        onProgressUpdate(porcentajeCompletado);
+      }
 
-      // Actualizar progreso cada 30 segundos o cuando se complete el 90%
-      if (
-        currentTime - lastUpdate >= 30 ||
-        (porcentajeCompletado >= 90 && lastUpdate === 0)
-      ) {
+      // Si el video se ha completado, llama al servicio y a los callbacks
+      if (porcentajeCompletado >= 90) {
+        setCompleted(true); // Evita llamadas múltiples
+        setLoading(true);
+
         try {
-          setLoading(true);
-          
           const resultado = await classroomGamificationService.actualizarProgresoVideo(
             videoId,
             usuarioId,
@@ -60,38 +70,31 @@ export const ClassroomVideoGamification: React.FC<ClassroomVideoGamificationProp
             porcentajeCompletado
           );
 
-          setLastUpdate(currentTime);
-
-          // Mostrar recompensa si se ganó XP o monedas
+          // Mostrar recompensa si se ganó algo
           if (resultado.xpGanado > 0 || resultado.monedasGanadas > 0) {
             const rewardId = `${videoId}-${Date.now()}`;
-            if (rewardId !== lastRewardRef.current) {
-              const notification: RewardNotification = {
-                id: rewardId,
-                type: 'video',
-                title: '¡Recompensa Ganada!',
-                message: resultado.mensaje,
-                xp: resultado.xpGanado,
-                coins: resultado.monedasGanadas,
-                icon: <Trophy className="w-8 h-8 text-yellow-400" />
-              };
+            const notification: RewardNotification = {
+              id: rewardId,
+              type: 'video',
+              title: '¡Video Completado!',
+              message: resultado.mensaje,
+              xp: resultado.xpGanado,
+              coins: resultado.monedasGanadas,
+              icon: <Trophy className="w-8 h-8 text-yellow-400" />
+            };
 
-              setShowReward(notification);
-              lastRewardRef.current = rewardId;
-
-              // Ocultar notificación después de 4 segundos
-              setTimeout(() => {
-                setShowReward(null);
-              }, 4000);
-            }
+            setShowReward(notification);
+            setTimeout(() => setShowReward(null), 4000);
+          }
+          
+          // Informar al componente padre que el video está completo
+          if (onVideoCompleted) {
+            onVideoCompleted(videoId);
           }
 
-          // Llamar callback de progreso si existe
-          if (onProgressUpdate) {
-            onProgressUpdate(porcentajeCompletado);
-          }
         } catch (error) {
           console.error('Error al actualizar progreso:', error);
+          setCompleted(false); // Permite reintentar si hubo un error
         } finally {
           setLoading(false);
         }
@@ -99,7 +102,7 @@ export const ClassroomVideoGamification: React.FC<ClassroomVideoGamificationProp
     };
 
     updateProgress();
-  }, [currentTime, duration, videoId, moduloId, lastUpdate, loading, usuarioId, onProgressUpdate]);
+  }, [currentTime, duration, videoId, usuarioId, onVideoCompleted, completed, loading]);
 
   // Mostrar progreso actual
   const renderProgress = () => (
