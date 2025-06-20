@@ -216,6 +216,7 @@ interface NeuroState {
   setUserInfo: (info: any) => void;
   setXP: (amount: number) => void;
   setCoins: (amount: number) => void;
+  clearAllProgress: () => void;
 }
 
 // Función para convertir las fechas de string a Date al cargar del localStorage
@@ -634,7 +635,17 @@ const useNeuroState = create<NeuroState>()(
       },
       setUserInfo: (info) => set({ userInfo: info }),
       setXP: (amount) => set({ userXP: amount }),
-      setCoins: (amount) => set({ userCoins: amount })
+      setCoins: (amount) => set({ userCoins: amount }),
+      clearAllProgress: () => {
+        set({
+          userXP: 0,
+          userCoins: 0,
+          rewards: [],
+          iaModules: initialIAModules,
+        });
+        localStorage.removeItem('neurolink-storage');
+        window.location.reload();
+      },
     }),
     {
       name: 'neurolink-storage',
