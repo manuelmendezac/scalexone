@@ -89,107 +89,78 @@ class ClassroomGamificationService {
   // Actualizar progreso de video y dar recompensas
   async actualizarProgresoVideo(
     videoId: string,
-    usuarioId: string,
-    tiempoVisto: number,
-    porcentajeCompletado: number
+    moduloId: string,
+    usuarioId: string
   ): Promise<{ xpGanado: number; monedasGanadas: number; mensaje: string }> {
-    const completado = porcentajeCompletado >= 100;
+    
+    // 1. Obtener el progreso académico actual del usuario
+    let { data: progreso, error: fetchError } = await supabase
+      .from('progreso_academico_usuario')
+      .select('videos_ids, videos_completados')
+      .eq('usuario_id', usuarioId)
+      .single();
 
-    if (!completado) {
-      // Si el video no está completo, no hacemos nada más.
-      return { xpGanado: 0, monedasGanadas: 0, mensaje: '' };
+    if (fetchError && fetchError.code !== 'PGRST116') { // PGRST116 = no rows found
+      console.error('Error al obtener el progreso del usuario:', fetchError);
+      return { xpGanado: 0, monedasGanadas: 0, mensaje: 'Error al obtener progreso.' };
+    }
+    
+    // Si no existe progreso, creamos un registro inicial
+    if (!progreso) {
+      progreso = { videos_ids: [], videos_completados: 0 };
     }
 
-    // 1. Marcar el video como completado en la base de datos.
-    const { error: upsertError } = await supabase
-      .from('progreso_videos_classroom')
+    // 2. Verificar si el video ya fue completado
+    const videosVistos = new Set(progreso.videos_ids || []);
+    if (videosVistos.has(videoId)) {
+      console.log(`El video ${videoId} ya fue completado anteriormente.`);
+      return { xpGanado: 0, monedasGanadas: 0, mensaje: 'Video ya completado.' };
+    }
+
+    // 3. Actualizar el progreso
+    const nuevosVideosIds = [...videosVistos, videoId];
+    const nuevosVideosCompletados = (progreso.videos_completados || 0) + 1;
+
+    const { error: updateError } = await supabase
+      .from('progreso_academico_usuario')
       .upsert({
-        video_id: videoId,
         usuario_id: usuarioId,
-        tiempo_visto: tiempoVisto,
-        porcentaje_completado: porcentajeCompletado,
-        completado: true,
-        ultima_reproduccion: new Date().toISOString(),
-      }, { onConflict: 'usuario_id,video_id' });
+        videos_ids: nuevosVideosIds,
+        videos_completados: nuevosVideosCompletados,
+        ultima_actividad: new Date().toISOString(),
+      }, { onConflict: 'usuario_id' });
 
-    if (upsertError) {
-      console.error('Error al guardar el progreso del video:', upsertError);
-      return { xpGanado: 0, monedasGanadas: 0, mensaje: 'Error al guardar el progreso.' };
+    if (updateError) {
+      console.error('Error al actualizar el progreso del usuario:', updateError);
+      return { xpGanado: 0, monedasGanadas: 0, mensaje: 'Error al guardar progreso.' };
     }
+    
+    // 4. Otorgar recompensa por el video
+    const { xp, monedas } = CLASSROOM_REWARDS.VIDEO_COMPLETADO;
+    const neuro = useNeuroState.getState();
+    neuro.addXP(xp);
+    neuro.addCoins(monedas);
 
-    // 2. Verificar si el módulo completo se ha alcanzado AHORA.
-    const moduloInfo = await this.verificarModuloCompletado(videoId, usuarioId);
-
-    if (moduloInfo && !moduloInfo.recompensaReclamada) {
-      // 3. Si el módulo está completo Y la recompensa no se ha dado, calcular y dar la recompensa TOTAL.
-      return await this.darRecompensaTotalPorModulo(moduloInfo.modulo_id, usuarioId, moduloInfo.totalVideos);
-    }
-
-    // 4. Si el módulo no está completo, no devolver ninguna recompensa.
-    return { xpGanado: 0, monedasGanadas: 0, mensaje: '' };
-  }
-
-  private async verificarModuloCompletado(videoId: string, usuarioId: string): Promise<{ modulo_id: string; totalVideos: number; recompensaReclamada: boolean } | null> {
-    const { data: video } = await supabase.from('videos_classroom_modulo').select('modulo_id').eq('id', videoId).single();
-    if (!video) return null;
-    const { modulo_id } = video;
-
-    const { data: videosDelModulo, error: videosError } = await supabase
+    // 5. Verificar si el módulo se completó
+    const { data: videosDelModulo } = await supabase
       .from('videos_classroom_modulo')
       .select('id')
-      .eq('modulo_id', modulo_id);
-    if (videosError || !videosDelModulo) return null;
+      .eq('modulo_id', moduloId);
 
-    const { data: videosCompletados, error: progresoError } = await supabase
-      .from('progreso_videos_classroom')
-      .select('video_id')
-      .eq('usuario_id', usuarioId)
-      .eq('completado', true)
-      .in('video_id', videosDelModulo.map(v => v.id));
+    if (videosDelModulo) {
+        const idVideosDelModulo = new Set(videosDelModulo.map(v => v.id));
+        const videosVistosDelModulo = nuevosVideosIds.filter(id => idVideosDelModulo.has(id));
 
-    if (progresoError || videosCompletados === null) return null;
-    
-    const idVideosCompletados = new Set(videosCompletados.map(v => v.video_id));
-    idVideosCompletados.add(videoId);
-
-    if (idVideosCompletados.size === videosDelModulo.length) {
-      const { data: progresoModulo } = await supabase
-        .from('progreso_modulos_classroom')
-        .select('recompensa_reclamada')
-        .eq('modulo_id', modulo_id)
-        .eq('usuario_id', usuarioId)
-        .single();
-        
-      return { 
-        modulo_id, 
-        totalVideos: videosDelModulo.length, 
-        recompensaReclamada: progresoModulo?.recompensa_reclamada || false 
-      };
+        if (videosVistosDelModulo.length === idVideosDelModulo.size) {
+            // Lógica para marcar módulo como completo (opcional, por ahora solo damos recompensa total)
+            console.log(`¡Módulo ${moduloId} completado!`);
+        }
     }
 
-    return null;
-  }
-
-  private async darRecompensaTotalPorModulo(moduloId: string, usuarioId: string, totalVideos: number): Promise<{ xpGanado: number; monedasGanadas: number; mensaje: string }> {
-    const xpPorVideos = totalVideos * CLASSROOM_REWARDS.VIDEO_COMPLETADO.xp;
-    const monedasPorVideos = totalVideos * CLASSROOM_REWARDS.VIDEO_COMPLETADO.monedas;
-
-    const neuro = useNeuroState.getState();
-    neuro.addXP(xpPorVideos);
-    neuro.addCoins(monedasPorVideos);
-    
-    await supabase.from('progreso_modulos_classroom').upsert({
-      modulo_id: moduloId,
-      usuario_id: usuarioId,
-      recompensa_reclamada: true,
-      completado: true,
-      fecha_completado: new Date().toISOString()
-    }, { onConflict: 'modulo_id,usuario_id' });
-
     return {
-      xpGanado: xpPorVideos,
-      monedasGanadas: monedasPorVideos,
-      mensaje: `¡Módulo completado! Has ganado un total de +${xpPorVideos} XP y +${monedasPorVideos} Monedas.`
+      xpGanado: xp,
+      monedasGanadas: monedas,
+      mensaje: `¡Video completado! +${xp} XP, +${monedas} Monedas.`
     };
   }
 
