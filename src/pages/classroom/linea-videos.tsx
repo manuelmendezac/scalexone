@@ -187,6 +187,13 @@ const LineaVideosClassroom = () => {
     }
   };
 
+  const cambiarVideo = useCallback((index: number) => {
+    if (index >= 0 && index < clasesOrdenadas.length) {
+      setVideoProgress(0);
+      setClaseActual(index);
+    }
+  }, [clasesOrdenadas.length]);
+
   const handleVideoEnded = useCallback(async () => {
     if (!userId || !videoActual.id || !modulo_id) return;
     
@@ -195,7 +202,7 @@ const LineaVideosClassroom = () => {
       console.log(`Video ${videoActual.id} ya estaba completado.`);
       // Si no es el último video, pasa al siguiente
       if (!esUltimoVideo) {
-        setClaseActual(prev => prev + 1);
+        cambiarVideo(claseActual + 1);
       }
       return;
     }
@@ -223,7 +230,7 @@ const LineaVideosClassroom = () => {
       } else {
         // Si no hay recompensa, pasar al siguiente video
         if (!esUltimoVideo) {
-          setClaseActual(prev => prev + 1);
+          cambiarVideo(claseActual + 1);
         }
       }
     } catch (error) {
@@ -231,7 +238,7 @@ const LineaVideosClassroom = () => {
     } finally {
       setIsSaving(false);
     }
-  }, [userId, videoActual.id, modulo_id, videosCompletados, esUltimoVideo, clasesOrdenadas]);
+  }, [userId, videoActual.id, modulo_id, videosCompletados, esUltimoVideo, clasesOrdenadas, cambiarVideo, claseActual]);
 
   // Configurar el iframe para recibir eventos de Vimeo
   useEffect(() => {
@@ -259,7 +266,7 @@ const LineaVideosClassroom = () => {
     playerRef.current = player;
   
     player.on('play', () => {
-      setVideoProgress(0); // Reinicia la barra de progreso visual al empezar a reproducir
+      // Ya no es necesario reiniciar aquí, se controla con cambiarVideo
     });
   
     player.on('timeupdate', (data: any) => {
@@ -477,7 +484,7 @@ const LineaVideosClassroom = () => {
               </h2>
               <div className="flex items-center gap-2">
                 <button
-                  onClick={() => setClaseActual(prev => Math.max(0, prev - 1))}
+                  onClick={() => cambiarVideo(claseActual - 1)}
                   disabled={claseActual === 0}
                   className="px-3 py-2 rounded-lg transition-all duration-300 font-medium bg-cyan-900/50 hover:bg-cyan-800/50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                 >
@@ -505,7 +512,7 @@ const LineaVideosClassroom = () => {
                   )
                 ) : (
                   <button
-                    onClick={() => setClaseActual(prev => Math.min(clasesOrdenadas.length - 1, prev + 1))}
+                    onClick={() => cambiarVideo(claseActual + 1)}
                     className="px-3 py-2 rounded-lg transition-all duration-300 font-medium bg-cyan-900/50 hover:bg-cyan-800/50 flex items-center gap-2"
                   >
                     <span className="hidden sm:inline">Siguiente</span>
@@ -601,7 +608,7 @@ const LineaVideosClassroom = () => {
                   <div
                     key={v.id}
                     className={`flex items-center gap-4 p-3 rounded-2xl cursor-pointer transition border-2 ${v.id === videoActual.id ? 'bg-cyan-900/30 border-cyan-400' : 'bg-neutral-900 border-neutral-800 hover:bg-cyan-900/10'} group`}
-                    onClick={() => setClaseActual(idx)}
+                    onClick={() => cambiarVideo(idx)}
                     style={{ minHeight: 110 }}
                   >
                     <div className="flex-shrink-0 w-32 h-20 bg-black rounded-xl overflow-hidden flex items-center justify-center border-2 border-cyan-800 group-hover:border-cyan-400 transition">
