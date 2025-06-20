@@ -245,27 +245,12 @@ const LineaVideosClassroom = () => {
 
   // Configurar el iframe para recibir eventos de Vimeo
   useEffect(() => {
-    if (!embedUrl || !videoRef.current) return;
-  
-    const iframe = videoRef.current;
-  
-    // Evitar reinicializar si la instancia ya existe y la URL es la misma
-    if (playerRef.current && iframe.src.includes(embedUrl)) {
+    if (!embedUrl || !videoRef.current || !(window as any).Vimeo) {
+      console.warn("Vimeo player setup skipped: missing URL, ref, or API.");
       return;
     }
-  
-    // Si la instancia existe, destruirla antes de crear una nueva
-    if (playerRef.current) {
-      playerRef.current.destroy();
-    }
-    
-    // Asegurarse de que el Iframe esté listo y la API de Vimeo disponible
-    if (!(window as any).Vimeo) {
-      console.error("Vimeo Player API not available.");
-      return;
-    }
-    
-    const player = new (window as any).Vimeo.Player(iframe);
+
+    const player = new (window as any).Vimeo.Player(videoRef.current);
     playerRef.current = player;
   
     player.on('play', () => {
@@ -281,7 +266,12 @@ const LineaVideosClassroom = () => {
   
     player.on('ended', handleVideoEnded);
   
-    // La limpieza se hará al desmontar el componente o antes de crear una nueva instancia
+    // Función de limpieza: se ejecuta cuando embedUrl cambia (antes del siguiente efecto)
+    // o cuando el componente se desmonta. Esto es crucial.
+    return () => {
+      player.destroy().catch((err: any) => console.error("Error destroying Vimeo player:", err));
+      playerRef.current = null;
+    };
   
   }, [embedUrl, handleVideoEnded]);
 
