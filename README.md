@@ -54,3 +54,9 @@ export default tseslint.config({
 ```
 
 Última actualización: 2024-03-19
+
+# ScalexOne
+
+Plataforma de entrenamiento para Neuro-Clones de IA.
+
+<!-- Triggering deploy -->
