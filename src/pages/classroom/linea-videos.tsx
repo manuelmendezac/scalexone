@@ -22,6 +22,9 @@ const LineaVideosClassroom = () => {
   const [clases, setClases] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [claseActual, setClaseActual] = useState(0);
+
+  console.log('--- RENDER LineaVideosClassroom ---', { claseActual });
+  
   const [isAdmin, setIsAdmin] = useState(false);
   const [fullscreen, setFullscreen] = useState(false);
   const [completados, setCompletados] = useState<{[key:number]:boolean}>({});
@@ -220,7 +223,6 @@ const LineaVideosClassroom = () => {
 
    // Reiniciar estado al cambiar de video
    useEffect(() => {
-    console.log(`REINICIANDO ESTADO para video índice: ${claseActual}`, { videoId: videoActual.id });
     // Resetear contadores de tiempo y progreso
     setCurrentTime(0);
     setVideoProgress(0);
