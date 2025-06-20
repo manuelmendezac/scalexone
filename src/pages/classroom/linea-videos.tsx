@@ -22,11 +22,11 @@ const LineaVideosClassroom = () => {
   const [clases, setClases] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [claseActual, setClaseActual] = useState(0);
-  const [isTransitioning, setIsTransitioning] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [fullscreen, setFullscreen] = useState(false);
   const [completados, setCompletados] = useState<{[key:number]:boolean}>({});
   const [userId, setUserId] = useState<string | null>(null);
+  const videoSwitchRef = useRef(false); // Ref para detectar cambio de video
   // Descripción y materiales
   const [showEditDescripcion, setShowEditDescripcion] = useState(false);
   const [descripcionHtml, setDescripcionHtml] = useState<string>('');
@@ -162,15 +162,15 @@ const LineaVideosClassroom = () => {
 
     // Callback para cuando el componente de gamificación confirma que un video está completo
     const handleVideoCompleted = useCallback((videoId: string) => {
-      if (videoActual.id === videoId && !isTransitioning) {
+      if (videoActual.id === videoId) {
         setCompletados(prev => ({...prev, [claseActual]: true}));
         
         if (claseActual < clasesOrdenadas.length - 1) {
-          setIsTransitioning(true);
+          videoSwitchRef.current = true; // Marcar que estamos cambiando de video
           setClaseActual(prev => prev + 1);
         }
       }
-    }, [claseActual, videoActual.id, isTransitioning]);
+    }, [claseActual, videoActual.id]);
 
   // Función para manejar el progreso del video
   const handleVideoProgress = (progress: number) => {
@@ -194,6 +194,16 @@ const LineaVideosClassroom = () => {
     // Inicializar comunicación con el player de Vimeo
     const player = new (window as any).Vimeo.Player(iframe);
     
+    // Reiniciar estado en el primer 'play' después de cambiar de video
+    player.on('play', () => {
+      if (videoSwitchRef.current) {
+        setCurrentTime(0);
+        setVideoProgress(0);
+        setShowReward(false);
+        videoSwitchRef.current = false; // Resetear la bandera
+      }
+    });
+    
     // Escuchar eventos de progreso
     player.on('timeupdate', (data: any) => {
       const { seconds, duration } = data;
@@ -211,29 +221,11 @@ const LineaVideosClassroom = () => {
     });
 
     return () => {
+      player.off('play');
       player.off('timeupdate');
       player.off('ended');
     };
   }, [embedUrl, claseActual]); // Agregamos claseActual para reiniciar el progreso
-
-   // Reiniciar estado al cambiar de video
-   useEffect(() => {
-    // Resetear contadores de tiempo y progreso
-    setCurrentTime(0);
-    setVideoProgress(0);
-    setShowReward(false);
-
-    // Poner la duración del nuevo video desde los metadatos o resetearla
-    if (videoActual?.duracion) {
-      setDuration(videoActual.duracion);
-    } else {
-      setDuration(0);
-    }
-    
-    // Finalizar la transición después de que el estado se haya reiniciado
-    const timer = setTimeout(() => setIsTransitioning(false), 100);
-    return () => clearTimeout(timer);
-  }, [claseActual, videoActual]);
 
   useEffect(() => {
     if (todosCompletados && !isAdmin) {
@@ -436,7 +428,6 @@ const LineaVideosClassroom = () => {
                 usuarioId={userId}
                 currentTime={currentTime}
                 duration={duration}
-                isTransitioning={isTransitioning}
                 onProgressUpdate={handleVideoProgress}
                 onVideoCompleted={handleVideoCompleted}
               />
