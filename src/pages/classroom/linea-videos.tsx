@@ -433,6 +433,7 @@ const LineaVideosClassroom = () => {
               <div className="aspect-video bg-black rounded-xl overflow-hidden relative">
                 {embedUrl ? (
                   <iframe
+                    key={videoActual.id}
                     ref={videoRef}
                     src={embedUrl}
                     className="w-full h-full"
