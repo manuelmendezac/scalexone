@@ -190,3 +190,12 @@ html, body, #root {
     height: 24px;
   }
 }
+
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 8px rgba(0, 255, 255, 0.7), 0 0 12px rgba(0, 191, 255, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 16px rgba(0, 255, 255, 1), 0 0 24px rgba(0, 191, 255, 0.7);
+  }
+}

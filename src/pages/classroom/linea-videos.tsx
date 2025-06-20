@@ -457,10 +457,15 @@ const LineaVideosClassroom = () => {
               </div>
 
               {/* Indicador de progreso del video actual */}
-              <div className="absolute bottom-0 left-0 w-full h-1 bg-black/50 pointer-events-none">
+              <div className="absolute bottom-0 left-0 w-full h-2 bg-black/50 pointer-events-none rounded-b-xl overflow-hidden">
                 <div 
-                  className="h-full bg-cyan-500"
-                  style={{ width: `${videoProgress}%`, transition: 'width 0.2s linear' }}
+                  className="h-full bg-gradient-to-r from-cyan-500 to-blue-500"
+                  style={{ 
+                    width: `${videoProgress}%`, 
+                    transition: 'width 0.2s linear',
+                    boxShadow: '0 0 8px rgba(0, 255, 255, 0.7), 0 0 12px rgba(0, 191, 255, 0.5)',
+                    animation: 'pulse-glow 2s infinite ease-in-out'
+                  }}
                 />
               </div>
             </div>
