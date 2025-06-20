@@ -91,7 +91,7 @@ class ClassroomGamificationService {
     videoId: string,
     moduloId: string,
     usuarioId: string
-  ): Promise<{ xpGanado: number; monedasGanadas: number; mensaje: string }> {
+  ): Promise<{ xpGanado: number; monedasGanadas: number; mensaje: string; moduloCompletado: boolean }> {
     
     // 1. Obtener el progreso académico actual del usuario
     let { data: progreso, error: fetchError } = await supabase
@@ -102,7 +102,7 @@ class ClassroomGamificationService {
 
     if (fetchError && fetchError.code !== 'PGRST116') { // PGRST116 = no rows found
       console.error('Error al obtener el progreso del usuario:', fetchError);
-      return { xpGanado: 0, monedasGanadas: 0, mensaje: 'Error al obtener progreso.' };
+      return { xpGanado: 0, monedasGanadas: 0, mensaje: 'Error al obtener progreso.', moduloCompletado: false };
     }
     
     // Si no existe progreso, creamos un registro inicial
@@ -114,7 +114,7 @@ class ClassroomGamificationService {
     const videosVistos = new Set(progreso.videos_ids || []);
     if (videosVistos.has(videoId)) {
       console.log(`El video ${videoId} ya fue completado anteriormente.`);
-      return { xpGanado: 0, monedasGanadas: 0, mensaje: 'Video ya completado.' };
+      return { xpGanado: 0, monedasGanadas: 0, mensaje: 'Video ya completado.', moduloCompletado: false };
     }
 
     // 3. Actualizar el progreso
@@ -132,7 +132,7 @@ class ClassroomGamificationService {
 
     if (updateError) {
       console.error('Error al actualizar el progreso del usuario:', updateError);
-      return { xpGanado: 0, monedasGanadas: 0, mensaje: 'Error al guardar progreso.' };
+      return { xpGanado: 0, monedasGanadas: 0, mensaje: 'Error al guardar progreso.', moduloCompletado: false };
     }
     
     // 4. Otorgar recompensa por el video
@@ -142,6 +142,7 @@ class ClassroomGamificationService {
     neuro.addCoins(monedas);
 
     // 5. Verificar si el módulo se completó
+    let moduloCompletado = false;
     const { data: videosDelModulo } = await supabase
       .from('videos_classroom_modulo')
       .select('id')
@@ -152,7 +153,7 @@ class ClassroomGamificationService {
         const videosVistosDelModulo = nuevosVideosIds.filter(id => idVideosDelModulo.has(id));
 
         if (videosVistosDelModulo.length === idVideosDelModulo.size) {
-            // Lógica para marcar módulo como completo (opcional, por ahora solo damos recompensa total)
+            moduloCompletado = true;
             console.log(`¡Módulo ${moduloId} completado!`);
         }
     }
@@ -160,7 +161,8 @@ class ClassroomGamificationService {
     return {
       xpGanado: xp,
       monedasGanadas: monedas,
-      mensaje: `¡Video completado! +${xp} XP, +${monedas} Monedas.`
+      mensaje: `¡Video completado! +${xp} XP, +${monedas} Monedas.`,
+      moduloCompletado,
     };
   }
 
