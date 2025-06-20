@@ -100,32 +100,16 @@ class ClassroomGamificationService {
       return { xpGanado: 0, monedasGanadas: 0, mensaje: '' };
     }
 
-    // --- CORRECCIÓN: OBTENER MODULO_ID ANTES DE GUARDAR ---
-    const { data: videoData, error: videoError } = await supabase
-      .from('videos_classroom_modulo')
-      .select('modulo_id')
-      .eq('id', videoId)
-      .single();
-
-    if (videoError || !videoData) {
-      console.error('Error al buscar el módulo para el video:', videoError?.message || 'Video no encontrado');
-      return { xpGanado: 0, monedasGanadas: 0, mensaje: 'Error interno: No se pudo asociar el video a un módulo.' };
-    }
-    const { modulo_id } = videoData;
-    // --- FIN DE LA CORRECCIÓN ---
-
     // 1. Marcar el video como completado en la base de datos.
     const { error: upsertError } = await supabase
       .from('progreso_videos_classroom')
       .upsert({
         video_id: videoId,
         usuario_id: usuarioId,
-        modulo_id: modulo_id,
         tiempo_visto: tiempoVisto,
         porcentaje_completado: porcentajeCompletado,
         completado: true,
         ultima_reproduccion: new Date().toISOString(),
-        recompensa_reclamada: true, // Marcamos que la recompensa individual (ahora inexistente) está "reclamada"
       }, { onConflict: 'usuario_id,video_id' });
 
     if (upsertError) {
