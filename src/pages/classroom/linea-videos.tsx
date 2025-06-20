@@ -169,7 +169,13 @@ const LineaVideosClassroom = () => {
   // Función para marcar video como completado
   const marcarComoCompletado = async () => {
     try {
-      const usuarioId = neuro.userInfo?.email || 'anon';
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        console.error('Usuario no autenticado, no se puede guardar el progreso.');
+        return;
+      }
+      const usuarioId = user.id;
+
       const resultado = await classroomGamificationService.actualizarProgresoVideo(
         videoActual.id,
         usuarioId,
