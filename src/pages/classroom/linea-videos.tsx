@@ -262,7 +262,7 @@ const LineaVideosClassroom = () => {
     // Función de limpieza: se ejecuta cuando embedUrl cambia (antes del siguiente efecto)
     // o cuando el componente se desmonta. Esto es crucial.
     return () => {
-      player.destroy().catch((err: any) => console.error("Error destroying Vimeo player:", err));
+      player.unload().catch((err: any) => console.error("Error unloading Vimeo player:", err));
       playerRef.current = null;
     };
   
