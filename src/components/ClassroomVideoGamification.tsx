@@ -53,12 +53,22 @@ export const ClassroomVideoGamification: React.FC<ClassroomVideoGamificationProp
       const porcentajeCompletado = Math.floor((currentTime / duration) * 100);
       setProgress(porcentajeCompletado);
       
+      // Log de depuración
+      console.log('ClassroomVideoGamification - Debug:', {
+        currentTime,
+        duration,
+        porcentajeCompletado,
+        completed,
+        loading
+      });
+      
       if (onProgressUpdate) {
         onProgressUpdate(porcentajeCompletado);
       }
 
       // Si el video se ha completado, llama al servicio y a los callbacks
       if (porcentajeCompletado >= 100) {
+        console.log('ClassroomVideoGamification - Video completado al 100%');
         setCompleted(true); // Evita llamadas múltiples
         setLoading(true);
 
