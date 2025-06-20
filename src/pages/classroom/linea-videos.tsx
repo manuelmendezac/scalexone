@@ -1,5 +1,5 @@
 // Página de línea de videos para classroom, idéntica a cursos pero adaptada a las tablas de classroom
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '../../supabase';
 import ModalFuturista from '../../components/ModalFuturista';
@@ -160,7 +160,7 @@ const LineaVideosClassroom = () => {
   };
 
     // Callback para cuando el componente de gamificación confirma que un video está completo
-    const handleVideoCompleted = (videoId: string) => {
+    const handleVideoCompleted = useCallback((videoId: string) => {
       // Verificamos que el video completado sea el actual
       if (videoActual.id === videoId) {
         setCompletados(prev => ({...prev, [claseActual]: true}));
@@ -172,7 +172,7 @@ const LineaVideosClassroom = () => {
           }, 2000);
         }
       }
-    };
+    }, [claseActual, clasesOrdenadas, videoActual.id]);
 
   // Función para manejar el progreso del video
   const handleVideoProgress = (progress: number) => {
