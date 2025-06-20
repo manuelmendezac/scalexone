@@ -1,24 +1,15 @@
 import { supabase } from '../supabase';
 import useNeuroState from '../store/useNeuroState';
 
-// Constantes de recompensas para classroom
+// ========================================================================
+// REGLAS DE RECOMPENSA SIMPLIFICADAS (Según solicitud)
+// ========================================================================
 export const CLASSROOM_REWARDS = {
   VIDEO_COMPLETADO: {
-    xp: 25,
-    monedas: 1
-  },
-  MODULO_COMPLETADO: {
-    xp: 100,
-    monedas: 5
-  },
-  RACHA_DIARIA: {
     xp: 10,
     monedas: 1
   },
-  PRIMER_VIDEO_DIA: {
-    xp: 15,
-    monedas: 2
-  }
+  // Se eliminan los bonus para una lógica más clara
 };
 
 export interface VideoProgress {
@@ -175,15 +166,10 @@ class ClassroomGamificationService {
   private async darRecompensaTotalPorModulo(moduloId: string, usuarioId: string, totalVideos: number): Promise<{ xpGanado: number; monedasGanadas: number; mensaje: string }> {
     const xpPorVideos = totalVideos * CLASSROOM_REWARDS.VIDEO_COMPLETADO.xp;
     const monedasPorVideos = totalVideos * CLASSROOM_REWARDS.VIDEO_COMPLETADO.monedas;
-    const xpBonusModulo = CLASSROOM_REWARDS.MODULO_COMPLETADO.xp;
-    const monedasBonusModulo = CLASSROOM_REWARDS.MODULO_COMPLETADO.monedas;
-
-    const totalXp = xpPorVideos + xpBonusModulo;
-    const totalMonedas = monedasPorVideos + monedasBonusModulo;
 
     const neuro = useNeuroState.getState();
-    neuro.addXP(totalXp);
-    neuro.addCoins(totalMonedas);
+    neuro.addXP(xpPorVideos);
+    neuro.addCoins(monedasPorVideos);
     
     await supabase.from('progreso_modulos_classroom').upsert({
       modulo_id: moduloId,
@@ -194,9 +180,9 @@ class ClassroomGamificationService {
     }, { onConflict: 'modulo_id,usuario_id' });
 
     return {
-      xpGanado: totalXp,
-      monedasGanadas: totalMonedas,
-      mensaje: `¡Módulo completado! Has ganado un total de +${totalXp} XP y +${totalMonedas} Monedas.`
+      xpGanado: xpPorVideos,
+      monedasGanadas: monedasPorVideos,
+      mensaje: `¡Módulo completado! Has ganado un total de +${xpPorVideos} XP y +${monedasPorVideos} Monedas.`
     };
   }
 

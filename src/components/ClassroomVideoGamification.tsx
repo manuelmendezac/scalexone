@@ -41,12 +41,10 @@ export const ClassroomVideoGamification: React.FC<ClassroomVideoGamificationProp
   const [completed, setCompleted] = useState(false);
 
   useEffect(() => {
-    // Resetea el estado 'completed' cuando cambia el video
     setCompleted(false);
   }, [videoId]);
 
   useEffect(() => {
-    // No hacer nada si la duración no es válida, ya está cargando, o ya se completó en esta sesión.
     if (!duration || loading || completed) return;
 
     const porcentajeCompletado = Math.floor((currentTime / duration) * 100);
@@ -65,14 +63,12 @@ export const ClassroomVideoGamification: React.FC<ClassroomVideoGamificationProp
           videoId,
           usuarioId,
           Math.floor(currentTime),
-          100 // Siempre 100 al completar
+          100
         );
 
-        // Si se recibió una recompensa (es decir, módulo completado), mostrarla.
-        if (resultado.xpGanado > 0 || resultado.monedasGanadas > 0) {
-          const rewardId = `${videoId}-module-reward`;
+        if (resultado.xpGanado > 0) {
           const notification: RewardNotification = {
-            id: rewardId,
+            id: `${videoId}-module-reward`,
             type: 'module',
             title: '¡Módulo Completado!',
             message: resultado.mensaje,
@@ -81,7 +77,7 @@ export const ClassroomVideoGamification: React.FC<ClassroomVideoGamificationProp
             icon: <Trophy className="w-8 h-8 text-yellow-400" />
           };
           setShowReward(notification);
-          setTimeout(() => setShowReward(null), 5000); // Un poco más de tiempo para leer
+          setTimeout(() => setShowReward(null), 5000);
         }
         
         if (onVideoCompleted) {
