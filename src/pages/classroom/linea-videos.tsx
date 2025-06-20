@@ -162,20 +162,15 @@ const LineaVideosClassroom = () => {
 
     // Callback para cuando el componente de gamificación confirma que un video está completo
     const handleVideoCompleted = useCallback((videoId: string) => {
-      // Verificamos que el video completado sea el actual
       if (videoActual.id === videoId && !isTransitioning) {
         setCompletados(prev => ({...prev, [claseActual]: true}));
         
-        // Si no es el último video, pasar al siguiente automáticamente
         if (claseActual < clasesOrdenadas.length - 1) {
           setIsTransitioning(true);
-          setTimeout(() => {
-            setClaseActual(prev => prev + 1);
-            setIsTransitioning(false);
-          }, 1500); // Un tiempo de transición prudente
+          setClaseActual(prev => prev + 1);
         }
       }
-    }, [claseActual, clasesOrdenadas, videoActual.id, isTransitioning]);
+    }, [claseActual, videoActual.id, isTransitioning]);
 
   // Función para manejar el progreso del video
   const handleVideoProgress = (progress: number) => {
@@ -234,6 +229,10 @@ const LineaVideosClassroom = () => {
     } else {
       setDuration(0);
     }
+    
+    // Finalizar la transición después de que el estado se haya reiniciado
+    const timer = setTimeout(() => setIsTransitioning(false), 100);
+    return () => clearTimeout(timer);
   }, [claseActual, videoActual]);
 
   useEffect(() => {
