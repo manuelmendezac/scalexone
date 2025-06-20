@@ -7,6 +7,7 @@ import useNeuroState from '../store/useNeuroState';
 interface ClassroomVideoGamificationProps {
   videoId: string;
   moduloId: string;
+  usuarioId: string;
   currentTime: number;
   duration: number;
   onProgressUpdate?: (progress: number) => void;
@@ -25,6 +26,7 @@ interface RewardNotification {
 export const ClassroomVideoGamification: React.FC<ClassroomVideoGamificationProps> = ({
   videoId,
   moduloId,
+  usuarioId,
   currentTime,
   duration,
   onProgressUpdate
@@ -50,7 +52,6 @@ export const ClassroomVideoGamification: React.FC<ClassroomVideoGamificationProp
       ) {
         try {
           setLoading(true);
-          const usuarioId = neuro.userInfo?.email || 'anon';
           
           const resultado = await classroomGamificationService.actualizarProgresoVideo(
             videoId,
@@ -98,7 +99,7 @@ export const ClassroomVideoGamification: React.FC<ClassroomVideoGamificationProp
     };
 
     updateProgress();
-  }, [currentTime, duration, videoId, moduloId, lastUpdate, loading, neuro.userInfo?.email, onProgressUpdate]);
+  }, [currentTime, duration, videoId, moduloId, lastUpdate, loading, usuarioId, onProgressUpdate]);
 
   // Mostrar progreso actual
   const renderProgress = () => (

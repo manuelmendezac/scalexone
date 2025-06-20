@@ -25,6 +25,7 @@ const LineaVideosClassroom = () => {
   const [isAdmin, setIsAdmin] = useState(false);
   const [fullscreen, setFullscreen] = useState(false);
   const [completados, setCompletados] = useState<{[key:number]:boolean}>({});
+  const [userId, setUserId] = useState<string | null>(null);
   // Descripción y materiales
   const [showEditDescripcion, setShowEditDescripcion] = useState(false);
   const [descripcionHtml, setDescripcionHtml] = useState<string>('');
@@ -46,6 +47,13 @@ const LineaVideosClassroom = () => {
   const videoRef = useRef<HTMLIFrameElement>(null);
 
   useEffect(() => {
+    const fetchUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        setUserId(user.id);
+      }
+    };
+    fetchUser();
     setIsAdmin(localStorage.getItem('adminMode') === 'true');
     if (modulo_id) fetchModuloYVideos();
     // Cargar recursos globales
@@ -168,17 +176,14 @@ const LineaVideosClassroom = () => {
 
   // Función para marcar video como completado
   const marcarComoCompletado = async () => {
+    if (!userId) {
+      console.error('Usuario no autenticado, no se puede guardar el progreso.');
+      return;
+    }
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        console.error('Usuario no autenticado, no se puede guardar el progreso.');
-        return;
-      }
-      const usuarioId = user.id;
-
       const resultado = await classroomGamificationService.actualizarProgresoVideo(
         videoActual.id,
-        usuarioId,
+        userId,
         duration,
         100
       );
@@ -440,13 +445,16 @@ const LineaVideosClassroom = () => {
             </div>
 
             {/* Componente de gamificación */}
-            <ClassroomVideoGamification
-              videoId={videoActual.id}
-              moduloId={modulo_id || ''}
-              currentTime={currentTime}
-              duration={duration}
-              onProgressUpdate={handleVideoProgress}
-            />
+            {userId && (
+              <ClassroomVideoGamification
+                videoId={videoActual.id}
+                moduloId={modulo_id || ''}
+                usuarioId={userId}
+                currentTime={currentTime}
+                duration={duration}
+                onProgressUpdate={handleVideoProgress}
+              />
+            )}
 
             {/* Título y botón de completado */}
             <div className="mt-2 flex justify-between items-center">
