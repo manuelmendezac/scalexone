@@ -156,38 +156,23 @@ const LineaVideosClassroom = () => {
       }
     } catch (error) {
       console.error('Error al buscar siguiente módulo:', error);
-      navigate('/classroom');
     }
   };
 
-  // Reiniciar progreso al cambiar de video
-  useEffect(() => {
-    setVideoProgress(0);
-    setShowReward(false);
-    setRewardMessage('');
-    setCurrentTime(0);
-    setDuration(0);
-  }, [claseActual]);
-
-  // Función para mostrar recompensas
-  const mostrarRecompensa = (xp: number, monedas: number, mensaje: string) => {
-    setRewardMessage(mensaje);
-    setShowReward(true);
-    setTimeout(() => setShowReward(false), 3000);
-  };
-
-  // Callback para cuando el componente de gamificación confirma que un video está completo
-  const handleVideoCompleted = (videoId: string) => {
-    // Verificamos que el video completado sea el actual
-    if (videoActual.id === videoId) {
-      setCompletados(prev => ({...prev, [claseActual]: true}));
-      
-      // Si no es el último video, pasar al siguiente automáticamente
-      if (claseActual < clasesOrdenadas.length - 1) {
-        setTimeout(() => setClaseActual(prev => prev + 1), 2000);
+    // Callback para cuando el componente de gamificación confirma que un video está completo
+    const handleVideoCompleted = (videoId: string) => {
+      // Verificamos que el video completado sea el actual
+      if (videoActual.id === videoId) {
+        setCompletados(prev => ({...prev, [claseActual]: true}));
+        
+        // Si no es el último video, pasar al siguiente automáticamente
+        if (claseActual < clasesOrdenadas.length - 1) {
+          setTimeout(() => {
+            setClaseActual(prev => prev + 1);
+          }, 2000);
+        }
       }
-    }
-  };
+    };
 
   // Función para manejar el progreso del video
   const handleVideoProgress = (progress: number) => {
@@ -233,12 +218,20 @@ const LineaVideosClassroom = () => {
     };
   }, [embedUrl, claseActual]); // Agregamos claseActual para reiniciar el progreso
 
-  // Establecer duración del video desde los metadatos
-  useEffect(() => {
+   // Reiniciar estado al cambiar de video
+   useEffect(() => {
+    // Resetear contadores de tiempo y progreso
+    setCurrentTime(0);
+    setVideoProgress(0);
+    setShowReward(false);
+
+    // Poner la duración del nuevo video desde los metadatos o resetearla
     if (videoActual?.duracion) {
       setDuration(videoActual.duracion);
+    } else {
+      setDuration(0);
     }
-  }, [videoActual]);
+  }, [claseActual, videoActual]);
 
   useEffect(() => {
     if (todosCompletados && !isAdmin) {
@@ -327,6 +320,11 @@ const LineaVideosClassroom = () => {
       .eq('id', id);
     setMateriales(materiales.filter(m => m.id !== id));
   }
+
+  // Función para mostrar recompensas
+  const mostrarRecompensa = (xp: number, monedas: number, mensaje: string) => {
+    setRewardMessage(mensaje);
+  };
 
   if (loading) return <div className="text-cyan-400 text-center py-10">Cargando módulo...</div>;
 
