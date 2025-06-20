@@ -220,6 +220,7 @@ const LineaVideosClassroom = () => {
 
    // Reiniciar estado al cambiar de video
    useEffect(() => {
+    console.log(`REINICIANDO ESTADO para video índice: ${claseActual}`, { videoId: videoActual.id });
     // Resetear contadores de tiempo y progreso
     setCurrentTime(0);
     setVideoProgress(0);
