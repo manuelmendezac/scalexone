@@ -102,6 +102,7 @@ const LineaVideosClassroom = () => {
       .order('orden', { ascending: true });
     
     const videosOrdenados = vids || [];
+    console.log('DEBUG: Datos de videos recibidos de Supabase:', videosOrdenados);
     setClases(videosOrdenados);
 
     // 3. Obtener progreso del usuario DESDE LA TABLA CORRECTA
@@ -139,6 +140,7 @@ const LineaVideosClassroom = () => {
 
   const clasesOrdenadas = [...clases].sort((a, b) => (a.orden || 0) - (b.orden || 0));
   const videoActual = clasesOrdenadas[claseActual] || {};
+  console.log(`DEBUG: Renderizando video. Índice: ${claseActual}, Título: ${videoActual.titulo}, URL: ${videoActual.url}`);
   const esUltimoVideo = claseActual === clasesOrdenadas.length - 1;
   const embedUrl = toEmbedUrl(videoActual.url);
 
@@ -438,13 +440,25 @@ const LineaVideosClassroom = () => {
 
             <div className="relative">
               <div className="aspect-video bg-black rounded-xl overflow-hidden relative">
-                <iframe
-                  ref={videoRef}
-                  src={embedUrl}
-                  className="w-full h-full"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                />
+                {embedUrl ? (
+                  <iframe
+                    ref={videoRef}
+                    src={embedUrl}
+                    className="w-full h-full"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                  />
+                ) : (
+                  <div className="w-full h-full flex flex-col items-center justify-center bg-neutral-800 text-center p-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 text-cyan-500 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.55a1 1 0 01.55.89V14.1a1 1 0 01-.55.9l-4.55 2.73a1 1 0 01-1.45-.9V8.17a1 1 0 011.45-.89zM4 18h8a2 2 0 002-2V8a2 2 0 00-2-2H4a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
+                    <h3 className="text-xl font-bold text-cyan-300">Video no disponible</h3>
+                    {isAdmin && (
+                       <p className="text-yellow-400 mt-2">
+                         Administrador: Falta la URL de este video. Por favor, edita el módulo para añadir una URL de Vimeo válida.
+                       </p>
+                    )}
+                  </div>
+                )}
                 {isSaving && (
                   <div className="absolute inset-0 bg-black/70 flex flex-col items-center justify-center z-10 rounded-xl">
                     <svg className="animate-spin -ml-1 mr-3 h-8 w-8 text-cyan-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
