@@ -177,7 +177,7 @@ const LineaVideosClassroom = () => {
   // Función para marcar video como completado
   const marcarComoCompletado = async () => {
     if (!userId) {
-      console.error('Usuario no autenticado, no se puede guardar el progreso.');
+      console.error('Intento de marcar como completado sin ID de usuario.');
       return;
     }
     try {
@@ -204,6 +204,8 @@ const LineaVideosClassroom = () => {
 
   // Función para manejar el progreso del video
   const handleVideoProgress = (progress: number) => {
+    if (!userId) return;
+
     setVideoProgress(progress);
     // Marcar como completado si el progreso es >= 90%
     if (progress >= 90 && !completados[claseActual]) {
