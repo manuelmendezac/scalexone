@@ -23,8 +23,6 @@ const LineaVideosClassroom = () => {
   const [loading, setLoading] = useState(true);
   const [claseActual, setClaseActual] = useState(0);
 
-  console.log('--- RENDER LineaVideosClassroom ---', { claseActual });
-  
   const [isAdmin, setIsAdmin] = useState(false);
   const [fullscreen, setFullscreen] = useState(false);
   const [completados, setCompletados] = useState<{[key:number]:boolean}>({});

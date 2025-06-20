@@ -48,19 +48,11 @@ export const ClassroomVideoGamification: React.FC<ClassroomVideoGamificationProp
 
   useEffect(() => {
     const updateProgress = async () => {
-      if (!duration || loading || completed) return;
+      // Si la duración o el tiempo es 0, o si ya está cargando/completado, no hacer nada.
+      if (!duration || currentTime === 0 || loading || completed) return;
 
       const porcentajeCompletado = Math.floor((currentTime / duration) * 100);
       setProgress(porcentajeCompletado);
-      
-      // Log de depuración
-      console.log('ClassroomVideoGamification - Debug:', {
-        currentTime,
-        duration,
-        porcentajeCompletado,
-        completed,
-        loading
-      });
       
       if (onProgressUpdate) {
         onProgressUpdate(porcentajeCompletado);
@@ -68,7 +60,6 @@ export const ClassroomVideoGamification: React.FC<ClassroomVideoGamificationProp
 
       // Si el video se ha completado, llama al servicio y a los callbacks
       if (porcentajeCompletado >= 100) {
-        console.log('ClassroomVideoGamification - Video completado al 100%');
         setCompleted(true); // Evita llamadas múltiples
         setLoading(true);
 
