@@ -165,6 +165,8 @@ const LineaVideosClassroom = () => {
     setVideoProgress(0);
     setShowReward(false);
     setRewardMessage('');
+    setCurrentTime(0);
+    setDuration(0);
   }, [claseActual]);
 
   // Función para mostrar recompensas
