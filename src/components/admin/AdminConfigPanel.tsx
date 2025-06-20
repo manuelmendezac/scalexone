@@ -323,7 +323,30 @@ const AdminConfigPanel: React.FC<AdminConfigPanelProps> = ({ selected }) => {
         {selected === 'transactions' && <div style={{ color: '#fff' }}>Transacciones (aquí irá la gestión de transacciones)</div>}
         {selected === 'cryptoTransactions' && <div style={{ color: '#fff' }}>Transacciones Crypto (aquí irá la gestión de transacciones cripto)</div>}
         {selected === 'profile' && <div style={{ color: '#fff' }}>Perfil (aquí irá la configuración del perfil)</div>}
-        {selected === 'account' && <div style={{ color: '#fff' }}>Cuenta (aquí irá la configuración de la cuenta)</div>}
+        {selected === 'account' && (
+          <div>
+            <h2 className="text-2xl font-bold text-yellow-400 mb-4">Mi Cuenta</h2>
+            {isAdmin && (
+              <div className="bg-gray-800 p-4 rounded-lg my-6 border border-red-500/50">
+                <h3 className="text-lg font-bold text-red-400 mb-2">Zona de Administrador</h3>
+                <p className="text-sm text-gray-300 mb-4">
+                  Esta acción es irreversible. Limpiará el LocalStorage y todo el progreso de gamificación (XP, monedas, videos vistos) para todos los usuarios.
+                </p>
+                <button
+                  onClick={() => {
+                    if (window.confirm('¿Estás seguro de que quieres borrar TODO el progreso de TODOS los usuarios?')) {
+                      clearAllProgress();
+                    }
+                  }}
+                  className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded transition-colors"
+                >
+                  Reiniciar Progreso de Gamificación
+                </button>
+              </div>
+            )}
+            {/* Otras configuraciones de la cuenta aquí */}
+          </div>
+        )}
         {selected === 'password' && <div style={{ color: '#fff' }}>Contraseña (aquí irá el cambio de contraseña)</div>}
         {selected === 'paymentHistory' && <div style={{ color: '#fff' }}>Historial de Pagos (aquí irá el historial de pagos)</div>}
         {selected === 'invites' && <div style={{ color: '#fff' }}>Invitados (aquí irá la gestión de invitados)</div>}
