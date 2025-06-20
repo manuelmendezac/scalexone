@@ -218,16 +218,19 @@ const LineaVideosClassroom = () => {
       // Actualizar estado local
       setVideosCompletados(prev => new Set(prev).add(videoActual.id));
       
-      // Si el servicio devolvió recompensa, mostrarla y pasar al siguiente video
-      if (resultado.xpGanado > 0 || resultado.monedasGanadas > 0) {
-        console.log("Recompensa otorgada por video:", resultado);
-        if (!esUltimoVideo) {
-          setTimeout(() => cambiarVideo(claseActual + 1), 1500); // Dar tiempo para ver el spinner
-        }
-      } else {
-        if (!esUltimoVideo) {
-          cambiarVideo(claseActual + 1);
-        }
+      // Mostrar feedback
+      console.log("Recompensa otorgada por video:", resultado);
+
+      // Si el módulo está completo, mostrar la modal final
+      if (resultado.moduloCompletado) {
+        // Calculamos la recompensa total para mostrarla
+        const totalXP = clasesOrdenadas.length * 10; // Asumiendo 10xp por video
+        const totalMonedas = clasesOrdenadas.length * 1; // Asumiendo 1 moneda por video
+        setRecompensaTotal({ xp: totalXP, coins: totalMonedas });
+        setShowModuloCompletadoModal(true);
+      } else if (!esUltimoVideo) {
+        // Si no, pasar al siguiente video
+        setTimeout(() => cambiarVideo(claseActual + 1), 1500); // Dar tiempo para ver el spinner
       }
     } catch (error) {
       console.error("Error al procesar la finalización del video:", error);
