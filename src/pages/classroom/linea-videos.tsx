@@ -89,7 +89,6 @@ const LineaVideosClassroom = () => {
       .single();
 
     if (!mod) {
-      console.error('No se encontró el módulo');
       return;
     }
     setModulo(mod);
@@ -102,7 +101,6 @@ const LineaVideosClassroom = () => {
       .order('orden', { ascending: true });
     
     const videosOrdenados = vids || [];
-    console.log('DEBUG: Datos de videos recibidos de Supabase:', videosOrdenados);
     setClases(videosOrdenados);
 
     // 3. Obtener progreso del usuario DESDE LA TABLA CORRECTA
@@ -140,9 +138,8 @@ const LineaVideosClassroom = () => {
 
   const clasesOrdenadas = [...clases].sort((a, b) => (a.orden || 0) - (b.orden || 0));
   const videoActual = clasesOrdenadas[claseActual] || {};
-  console.log(`DEBUG: Renderizando video. Índice: ${claseActual}, Título: ${videoActual.titulo}, URL: ${videoActual.url}`);
-  const esUltimoVideo = claseActual === clasesOrdenadas.length - 1;
   const embedUrl = toEmbedUrl(videoActual.url);
+  const esUltimoVideo = claseActual === clasesOrdenadas.length - 1;
 
   // Verificar si todos los videos están completados
   const todosCompletados = clasesOrdenadas.length > 0 && 
@@ -201,8 +198,6 @@ const LineaVideosClassroom = () => {
     
     // Si el video ya está completado, no hacer nada.
     if (videosCompletados.has(videoActual.id)) {
-      console.log(`Video ${videoActual.id} ya estaba completado.`);
-      // Si no es el último video, pasa al siguiente
       if (!esUltimoVideo) {
         cambiarVideo(claseActual + 1);
       }
@@ -226,13 +221,10 @@ const LineaVideosClassroom = () => {
       // Si el servicio devolvió recompensa, mostrarla y pasar al siguiente video
       if (resultado.xpGanado > 0 || resultado.monedasGanadas > 0) {
         console.log("Recompensa otorgada por video:", resultado);
-        // Aquí podrías mostrar un toast o una pequeña animación
-        // Por ahora, solo pasamos al siguiente video.
         if (!esUltimoVideo) {
           setTimeout(() => cambiarVideo(claseActual + 1), 1500); // Dar tiempo para ver el spinner
         }
       } else {
-        // Si no hay recompensa (p.ej. video ya visto), pasar al siguiente
         if (!esUltimoVideo) {
           cambiarVideo(claseActual + 1);
         }
@@ -248,7 +240,6 @@ const LineaVideosClassroom = () => {
   // Configurar el iframe para recibir eventos de Vimeo
   useEffect(() => {
     if (!embedUrl || !videoRef.current || !(window as any).Vimeo) {
-      console.warn("Vimeo player setup skipped: missing URL, ref, or API.");
       return;
     }
 
@@ -442,6 +433,7 @@ const LineaVideosClassroom = () => {
               <div className="aspect-video bg-black rounded-xl overflow-hidden relative">
                 {embedUrl ? (
                   <iframe
+                    key={videoActual.id}
                     ref={videoRef}
                     src={embedUrl}
                     className="w-full h-full"

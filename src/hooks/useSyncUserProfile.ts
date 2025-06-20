@@ -7,54 +7,36 @@ export const useSyncUserProfile = () => {
 
   useEffect(() => {
     const syncData = async () => {
-      // 1. Obtener el usuario autenticado
       const { data: { user } } = await supabase.auth.getUser();
 
       if (user) {
-        // 2. Obtener el perfil principal del usuario
-        const { data: profileData, error: profileError } = await supabase
+        const { data: profileData, error } = await supabase
           .from('usuarios')
-          .select('*')
+          .select('*, xp, monedas')
           .eq('id', user.id)
           .single();
 
-        if (profileError) {
-          console.error('Error al sincronizar perfil de usuario:', profileError);
+        if (error) {
+          console.error('Error al sincronizar perfil de usuario:', error);
           return;
         }
 
         if (profileData) {
           setUserInfo(profileData);
+          setXP(profileData.xp || 0);
+          setCoins(profileData.monedas || 0);
         }
-
-        // 3. Obtener el progreso de gamificación
-        const { data: progressData, error: progressError } = await supabase
-          .from('progreso_usuario_xp')
-          .select('xp_actual, monedas')
-          .eq('usuario_id', user.id)
-          .single();
-        
-        if (progressError && progressError.code !== 'PGRST116') { // Ignorar si no hay fila
-          console.error('Error al sincronizar progreso de gamificación:', progressError);
-          return;
-        }
-        
-        // 4. Actualizar el estado de Zustand con datos frescos
-        setXP(progressData?.xp_actual || 0);
-        setCoins(progressData?.monedas || 0);
       }
     };
 
-    // Escuchar cambios en el estado de autenticación
     const { data: authListener } = supabase.auth.onAuthStateChange(
-      (event, session) => {
+      (event) => {
         if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION') {
           syncData();
         }
       }
     );
 
-    // Limpiar el listener al desmontar el componente
     return () => {
       authListener.subscription.unsubscribe();
     };
