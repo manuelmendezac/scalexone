@@ -104,15 +104,15 @@ const LineaVideosClassroom = () => {
     const videosOrdenados = vids || [];
     setClases(videosOrdenados);
 
-    // 3. Obtener progreso del usuario
+    // 3. Obtener progreso del usuario DESDE LA TABLA CORRECTA
     if (currentUserId) {
       const { data: progreso } = await supabase
-        .from('progreso_videos_classroom')
-        .select('video_id')
+        .from('progreso_academico_usuario')
+        .select('videos_ids')
         .eq('usuario_id', currentUserId)
-        .eq('modulo_id', currentModuloId);
+        .single();
 
-      const completadosSet = new Set(progreso?.map(p => p.video_id) || []);
+      const completadosSet = new Set((progreso?.videos_ids as string[] | null) || []);
       setVideosCompletados(completadosSet);
     }
   };
@@ -214,21 +214,23 @@ const LineaVideosClassroom = () => {
       // Llamar al servicio con los argumentos correctos
       const resultado = await classroomGamificationService.actualizarProgresoVideo(
         videoActual.id,
-        userId,
-        0, // tiempo_visto (no relevante para videos completados)
-        100 // porcentaje_completado (100% = completado)
+        modulo_id,
+        userId
       );
 
       // Actualizar estado local
       setVideosCompletados(prev => new Set(prev).add(videoActual.id));
       
-      // Si el servicio devolvió recompensa, significa que el módulo se completó
+      // Si el servicio devolvió recompensa, mostrarla y pasar al siguiente video
       if (resultado.xpGanado > 0 || resultado.monedasGanadas > 0) {
-        console.log("¡Módulo completado! Recompensa otorgada:", resultado);
-        setRecompensaTotal({ xp: resultado.xpGanado, coins: resultado.monedasGanadas });
-        setShowModuloCompletadoModal(true);
+        console.log("Recompensa otorgada por video:", resultado);
+        // Aquí podrías mostrar un toast o una pequeña animación
+        // Por ahora, solo pasamos al siguiente video.
+        if (!esUltimoVideo) {
+          setTimeout(() => cambiarVideo(claseActual + 1), 1500); // Dar tiempo para ver el spinner
+        }
       } else {
-        // Si no hay recompensa, pasar al siguiente video
+        // Si no hay recompensa (p.ej. video ya visto), pasar al siguiente
         if (!esUltimoVideo) {
           cambiarVideo(claseActual + 1);
         }
@@ -236,9 +238,10 @@ const LineaVideosClassroom = () => {
     } catch (error) {
       console.error("Error al procesar la finalización del video:", error);
     } finally {
-      setIsSaving(false);
+      // No ocultar el spinner inmediatamente para que se vea
+      setTimeout(() => setIsSaving(false), 1200);
     }
-  }, [userId, videoActual.id, modulo_id, videosCompletados, esUltimoVideo, clasesOrdenadas, cambiarVideo, claseActual]);
+  }, [userId, videoActual.id, modulo_id, videosCompletados, esUltimoVideo, cambiarVideo, claseActual]);
 
   // Configurar el iframe para recibir eventos de Vimeo
   useEffect(() => {
