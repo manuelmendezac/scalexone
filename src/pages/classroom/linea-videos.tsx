@@ -22,7 +22,7 @@ const LineaVideosClassroom = () => {
   const [clases, setClases] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [claseActual, setClaseActual] = useState(0);
-
+  const [isTransitioning, setIsTransitioning] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [fullscreen, setFullscreen] = useState(false);
   const [completados, setCompletados] = useState<{[key:number]:boolean}>({});
@@ -163,17 +163,19 @@ const LineaVideosClassroom = () => {
     // Callback para cuando el componente de gamificación confirma que un video está completo
     const handleVideoCompleted = useCallback((videoId: string) => {
       // Verificamos que el video completado sea el actual
-      if (videoActual.id === videoId) {
+      if (videoActual.id === videoId && !isTransitioning) {
         setCompletados(prev => ({...prev, [claseActual]: true}));
         
         // Si no es el último video, pasar al siguiente automáticamente
         if (claseActual < clasesOrdenadas.length - 1) {
+          setIsTransitioning(true);
           setTimeout(() => {
             setClaseActual(prev => prev + 1);
-          }, 2000);
+            setIsTransitioning(false);
+          }, 1500); // Un tiempo de transición prudente
         }
       }
-    }, [claseActual, clasesOrdenadas, videoActual.id]);
+    }, [claseActual, clasesOrdenadas, videoActual.id, isTransitioning]);
 
   // Función para manejar el progreso del video
   const handleVideoProgress = (progress: number) => {
@@ -435,6 +437,7 @@ const LineaVideosClassroom = () => {
                 usuarioId={userId}
                 currentTime={currentTime}
                 duration={duration}
+                isTransitioning={isTransitioning}
                 onProgressUpdate={handleVideoProgress}
                 onVideoCompleted={handleVideoCompleted}
               />
