@@ -145,7 +145,10 @@ class ClassroomGamificationService {
 
     if (progresoError || videosCompletados === null) return null;
     
-    if (videosCompletados.length === videosDelModulo.length) {
+    const idVideosCompletados = new Set(videosCompletados.map(v => v.video_id));
+    idVideosCompletados.add(videoId);
+
+    if (idVideosCompletados.size === videosDelModulo.length) {
       const { data: progresoModulo } = await supabase
         .from('progreso_modulos_classroom')
         .select('recompensa_reclamada')
