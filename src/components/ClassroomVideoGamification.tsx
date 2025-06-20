@@ -58,7 +58,7 @@ export const ClassroomVideoGamification: React.FC<ClassroomVideoGamificationProp
       }
 
       // Si el video se ha completado, llama al servicio y a los callbacks
-      if (porcentajeCompletado >= 90) {
+      if (porcentajeCompletado >= 100) {
         setCompleted(true); // Evita llamadas múltiples
         setLoading(true);
 
