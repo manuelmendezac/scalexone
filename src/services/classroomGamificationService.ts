@@ -102,7 +102,7 @@ class ClassroomGamificationService {
     tiempoVisto: number,
     porcentajeCompletado: number
   ): Promise<{ xpGanado: number; monedasGanadas: number; mensaje: string }> {
-    const completado = porcentajeCompletado >= 90;
+    const completado = porcentajeCompletado >= 100;
     let xpGanado = 0;
     let monedasGanadas = 0;
     let mensaje = '';
@@ -350,8 +350,8 @@ class ClassroomGamificationService {
         totalVideosCompletados: videosCompletados?.length || 0,
         totalModulosCompletados: modulosCompletados?.length || 0,
         rachaActual,
-        xpTotal: this.neuro.userXP,
-        monedasTotal: this.neuro.userCoins
+        xpTotal: useNeuroState.getState().userXP,
+        monedasTotal: useNeuroState.getState().userCoins
       };
     } catch (error) {
       console.error('Error al obtener estadísticas:', error);
