@@ -601,7 +601,11 @@ const useNeuroState = create<NeuroState>()(
           if (user) {
             await supabase
               .from('progreso_usuario_xp')
-              .upsert({ usuario_id: user.id, xp_actual: newXP }, { onConflict: 'usuario_id' });
+              .upsert({ 
+                usuario_id: user.id, 
+                xp_actual: newXP,
+                monedas: get().userCoins
+              }, { onConflict: 'usuario_id' });
           }
         } catch (error) {
           console.error('Error al actualizar XP en Supabase:', error);
@@ -617,7 +621,11 @@ const useNeuroState = create<NeuroState>()(
           if (user) {
             await supabase
               .from('progreso_usuario_xp')
-              .upsert({ usuario_id: user.id, monedas: newCoins }, { onConflict: 'usuario_id' });
+              .upsert({ 
+                usuario_id: user.id, 
+                monedas: newCoins,
+                xp_actual: get().userXP
+              }, { onConflict: 'usuario_id' });
           }
         } catch (error) {
           console.error('Error al actualizar monedas en Supabase:', error);
