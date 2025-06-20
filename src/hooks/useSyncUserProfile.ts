@@ -10,22 +10,33 @@ export const useSyncUserProfile = () => {
       const { data: { user } } = await supabase.auth.getUser();
 
       if (user) {
-        const { data: profileData, error } = await supabase
+        const { data: profileData, error: profileError } = await supabase
           .from('usuarios')
-          .select('*, xp, monedas')
+          .select('*')
           .eq('id', user.id)
           .single();
 
-        if (error) {
-          console.error('Error al sincronizar perfil de usuario:', error);
-          return;
+        if (profileError) {
+          console.error('Error al sincronizar perfil de usuario (tabla usuarios):', profileError);
         }
 
         if (profileData) {
           setUserInfo(profileData);
-          setXP(profileData.xp || 0);
-          setCoins(profileData.monedas || 0);
         }
+
+        const { data: progressData, error: progressError } = await supabase
+          .from('progreso_usuario_xp')
+          .select('xp_actual, monedas')
+          .eq('usuario_id', user.id)
+          .single();
+        
+        if (progressError && progressError.code !== 'PGRST116') {
+          console.error('Error al sincronizar progreso de gamificación (tabla progreso_usuario_xp):', progressError);
+          return;
+        }
+        
+        setXP(progressData?.xp_actual || 0);
+        setCoins(progressData?.monedas || 0);
       }
     };
 

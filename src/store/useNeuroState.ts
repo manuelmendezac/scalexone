@@ -592,45 +592,35 @@ const useNeuroState = create<NeuroState>()(
         }));
       },
       addXP: async (amount) => {
-        set((state) => {
-          const newXP = state.userXP + amount;
-          const xpForNextLevel = state.userLevel * 1000;
-          
-          if (newXP >= xpForNextLevel) {
-            return {
-              userXP: newXP - xpForNextLevel,
-              userLevel: state.userLevel + 1
-            };
-          }
-          
-          return { userXP: newXP };
-        });
+        const currentXP = get().userXP;
+        const newXP = currentXP + amount;
+        set({ userXP: newXP });
+
         try {
           const { data: { user } } = await supabase.auth.getUser();
           if (user) {
             await supabase
-              .from('usuarios')
-              .update({ xp: get().userXP })
-              .eq('id', user.id);
+              .from('progreso_usuario_xp')
+              .upsert({ usuario_id: user.id, xp_actual: newXP }, { onConflict: 'usuario_id' });
           }
         } catch (error) {
-          console.error('Error al actualizar XP:', error);
+          console.error('Error al actualizar XP en Supabase:', error);
         }
       },
       addCoins: async (amount) => {
-        set((state) => ({
-          userCoins: state.userCoins + amount
-        }));
+        const currentCoins = get().userCoins;
+        const newCoins = currentCoins + amount;
+        set({ userCoins: newCoins });
+        
         try {
           const { data: { user } } = await supabase.auth.getUser();
           if (user) {
             await supabase
-              .from('usuarios')
-              .update({ monedas: get().userCoins })
-              .eq('id', user.id);
+              .from('progreso_usuario_xp')
+              .upsert({ usuario_id: user.id, monedas: newCoins }, { onConflict: 'usuario_id' });
           }
         } catch (error) {
-          console.error('Error al actualizar monedas:', error);
+          console.error('Error al actualizar monedas en Supabase:', error);
         }
       },
       setUserInfo: (info) => set({ userInfo: info }),
