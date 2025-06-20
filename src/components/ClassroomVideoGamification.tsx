@@ -38,7 +38,6 @@ export const ClassroomVideoGamification: React.FC<ClassroomVideoGamificationProp
   const [showReward, setShowReward] = useState<RewardNotification | null>(null);
   const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState(0);
-  const lastRewardRef = useRef<string>('');
   const [completed, setCompleted] = useState(false);
 
   useEffect(() => {
@@ -47,63 +46,60 @@ export const ClassroomVideoGamification: React.FC<ClassroomVideoGamificationProp
   }, [videoId]);
 
   useEffect(() => {
-    const updateProgress = async () => {
-      // Si la duración o el tiempo es 0, o si ya está cargando/completado, no hacer nada.
-      if (!duration || currentTime === 0 || loading || completed) return;
+    // No hacer nada si la duración no es válida, ya está cargando, o ya se completó en esta sesión.
+    if (!duration || loading || completed) return;
 
-      const porcentajeCompletado = Math.floor((currentTime / duration) * 100);
-      setProgress(porcentajeCompletado);
-      
-      if (onProgressUpdate) {
-        onProgressUpdate(porcentajeCompletado);
-      }
+    const porcentajeCompletado = Math.floor((currentTime / duration) * 100);
+    setProgress(porcentajeCompletado);
+    
+    if (onProgressUpdate) {
+      onProgressUpdate(porcentajeCompletado);
+    }
 
-      // Si el video se ha completado, llama al servicio y a los callbacks
-      if (porcentajeCompletado >= 100) {
-        setCompleted(true); // Evita llamadas múltiples
-        setLoading(true);
+    const handleCompletion = async () => {
+      setCompleted(true);
+      setLoading(true);
 
-        try {
-          const resultado = await classroomGamificationService.actualizarProgresoVideo(
-            videoId,
-            usuarioId,
-            Math.floor(currentTime),
-            porcentajeCompletado
-          );
+      try {
+        const resultado = await classroomGamificationService.actualizarProgresoVideo(
+          videoId,
+          usuarioId,
+          Math.floor(currentTime),
+          100 // Siempre 100 al completar
+        );
 
-          // Mostrar recompensa si se ganó algo
-          if (resultado.xpGanado > 0 || resultado.monedasGanadas > 0) {
-            const rewardId = `${videoId}-${Date.now()}`;
-            const notification: RewardNotification = {
-              id: rewardId,
-              type: 'video',
-              title: '¡Video Completado!',
-              message: resultado.mensaje,
-              xp: resultado.xpGanado,
-              coins: resultado.monedasGanadas,
-              icon: <Trophy className="w-8 h-8 text-yellow-400" />
-            };
-
-            setShowReward(notification);
-            setTimeout(() => setShowReward(null), 4000);
-          }
-          
-          // Informar al componente padre que el video está completo
-          if (onVideoCompleted) {
-            onVideoCompleted(videoId);
-          }
-
-        } catch (error) {
-          console.error('Error al actualizar progreso:', error);
-          setCompleted(false); // Permite reintentar si hubo un error
-        } finally {
-          setLoading(false);
+        // Si se recibió una recompensa (es decir, módulo completado), mostrarla.
+        if (resultado.xpGanado > 0 || resultado.monedasGanadas > 0) {
+          const rewardId = `${videoId}-module-reward`;
+          const notification: RewardNotification = {
+            id: rewardId,
+            type: 'module',
+            title: '¡Módulo Completado!',
+            message: resultado.mensaje,
+            xp: resultado.xpGanado,
+            coins: resultado.monedasGanadas,
+            icon: <Trophy className="w-8 h-8 text-yellow-400" />
+          };
+          setShowReward(notification);
+          setTimeout(() => setShowReward(null), 5000); // Un poco más de tiempo para leer
         }
+        
+        if (onVideoCompleted) {
+          onVideoCompleted(videoId);
+        }
+
+      } catch (error) {
+        console.error('Error al actualizar progreso:', error);
+        setCompleted(false);
+      } finally {
+        setLoading(false);
       }
     };
 
-    updateProgress();
-  }, [currentTime, duration, videoId, usuarioId, onVideoCompleted, completed, loading]);
+    if (porcentajeCompletado >= 100) {
+      handleCompletion();
+    }
+  }, [currentTime, duration, videoId, usuarioId, onVideoCompleted, completed, loading, onProgressUpdate]);
 
   // Mostrar progreso actual
   const renderProgress = () => (
