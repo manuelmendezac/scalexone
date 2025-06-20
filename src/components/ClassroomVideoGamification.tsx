@@ -10,7 +10,6 @@ interface ClassroomVideoGamificationProps {
   usuarioId: string;
   currentTime: number;
   duration: number;
-  isTransitioning: boolean;
   onProgressUpdate?: (progress: number) => void;
   onVideoCompleted?: (videoId: string) => void;
 }
@@ -31,7 +30,6 @@ export const ClassroomVideoGamification: React.FC<ClassroomVideoGamificationProp
   usuarioId,
   currentTime,
   duration,
-  isTransitioning,
   onProgressUpdate,
   onVideoCompleted
 }) => {
@@ -50,8 +48,8 @@ export const ClassroomVideoGamification: React.FC<ClassroomVideoGamificationProp
 
   useEffect(() => {
     const updateProgress = async () => {
-      // Si está en transición, la duración o el tiempo es 0, o si ya está cargando/completado, no hacer nada.
-      if (isTransitioning || !duration || currentTime === 0 || loading || completed) return;
+      // Si la duración o el tiempo es 0, o si ya está cargando/completado, no hacer nada.
+      if (!duration || currentTime === 0 || loading || completed) return;
 
       const porcentajeCompletado = Math.floor((currentTime / duration) * 100);
       setProgress(porcentajeCompletado);
@@ -105,7 +103,7 @@ export const ClassroomVideoGamification: React.FC<ClassroomVideoGamificationProp
     };
 
     updateProgress();
-  }, [currentTime, duration, videoId, usuarioId, onVideoCompleted, completed, loading, isTransitioning]);
+  }, [currentTime, duration, videoId, usuarioId, onVideoCompleted, completed, loading]);
 
   // Mostrar progreso actual
   const renderProgress = () => (
