@@ -59,4 +59,4 @@ export default tseslint.config({
 
 Plataforma de entrenamiento para Neuro-Clones de IA.
 
-<!-- Triggering deploy -->
+<!-- Triggering new deploy -->
