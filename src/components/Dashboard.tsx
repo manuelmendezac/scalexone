@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { FiPlusCircle, FiZap, FiUser } from 'react-icons/fi';
 import useNeuroState from '../store/useNeuroState';
@@ -9,12 +9,60 @@ import RankingVentasCompacto from './RankingVentasCompacto';
 import { supabase } from '../supabase';
 import LoadingScreen from '../components/LoadingScreen';
 
+interface TopCreator {
+  nombre: string;
+  email: string;
+  pais: string;
+  xp_total: number;
+  nivel_academico: string;
+  avatar: string;
+  puesto?: number;
+}
+
 const Dashboard: React.FC = () => {
+  const [topCreators, setTopCreators] = useState<TopCreator[]>([]);
+  const [loadingCreators, setLoadingCreators] = useState(true);
+
+  useEffect(() => {
+    const fetchTopCreators = async () => {
+      try {
+        setLoadingCreators(true);
+        const { data, error } = await supabase.rpc('get_top_creators').limit(10);
+
+        if (error) {
+          console.error("Error fetching top creators:", error);
+          throw error;
+        }
+
+        const formattedCreators = data.map((creator: any, index: number) => ({
+          nombre: creator.nombre,
+          email: creator.email,
+          pais: creator.pais || '🌎',
+          xp_total: creator.xp_actual,
+          nivel_academico: creator.nivel_nombre || 'Básico',
+          avatar: creator.avatar_url || '/images/silueta-perfil.svg',
+          puesto: index + 1,
+        }));
+        setTopCreators(formattedCreators);
+      } catch (error) {
+        console.error('Error al cargar top creators:', error);
+      } finally {
+        setLoadingCreators(false);
+      }
+    };
+
+    fetchTopCreators();
+  }, []);
+
   const accesos = [
     { icon: <FiPlusCircle />, texto: 'Crear agente', link: '/implementar-ia' },
     { icon: <FiZap />, texto: 'Alimentar fuentes', link: '/clasificacion/uploader' },
     { icon: <FiUser />, texto: 'Ver perfil', link: '/perfil' },
   ];
+
+  const primerLugarCreator = topCreators[0] || { avatar: '/images/silueta-perfil.svg', nombre: '...' };
+  const segundoLugarCreator = topCreators[1] || { avatar: '/images/silueta-perfil.svg', nombre: '...' };
+  const tercerLugarCreator = topCreators[2] || { avatar: '/images/silueta-perfil.svg', nombre: '...' };
 
   return (
     <div className="min-h-screen bg-black w-full p-6">
@@ -90,9 +138,9 @@ const Dashboard: React.FC = () => {
           </div>
         </div>
 
-        {/* Grid de Rankings de Creadores (CLONADO) */}
+        {/* Grid de Rankings de Creadores (Ahora con datos) */}
         <div className="bg-black/40 border border-[#00BFFF]/30 rounded-xl p-6 space-y-8">
-          {/* Título y subtitulo nuevo */}
+          {/* Título */}
           <div className="text-center mb-6">
             <h4 className="text-2xl font-semibold text-[#FFD700] mb-2">
               Esta tabla no mide notas, mide transformación. Mira quién está ascendiendo.
@@ -107,48 +155,41 @@ const Dashboard: React.FC = () => {
             </span>
           </div>
 
-          {/* Podio de ganadores de Creadores */}
-          <div className="flex justify-center items-end gap-8 mb-12 mt-4">
-            {/* Segundo lugar */}
-            <div className="flex flex-col items-center">
-              <img
-                src="/images/silueta-perfil.svg"
-                alt="Segundo lugar"
-                className="w-20 h-20 rounded-full border-4 border-[#C0C0C0] mb-2"
-              />
-              <div className="w-24 h-32 bg-[#C0C0C0]/20 rounded-t-lg flex items-center justify-center">
-                <span className="text-4xl">🥈</span>
+          {/* Podio de ganadores de Creadores con datos */}
+          {loadingCreators ? (
+            <div className="text-center text-white/80 py-10">Cargando podio de creadores...</div>
+          ) : (
+            <div className="flex justify-center items-end gap-8 mb-12 mt-4">
+              {/* Segundo lugar */}
+              <div className="flex flex-col items-center text-center">
+                <img src={segundoLugarCreator.avatar} alt="Segundo lugar" className="w-20 h-20 rounded-full border-4 border-[#C0C0C0] mb-2" />
+                <p className="text-white font-bold">{segundoLugarCreator.nombre}</p>
+                <div className="w-24 h-32 bg-[#C0C0C0]/20 rounded-t-lg flex items-center justify-center">
+                  <span className="text-4xl">🥈</span>
+                </div>
+              </div>
+              {/* Primer lugar */}
+              <div className="flex flex-col items-center text-center">
+                <img src={primerLugarCreator.avatar} alt="Primer lugar" className="w-24 h-24 rounded-full border-4 border-[#00BFFF] mb-2" />
+                <p className="text-white font-bold">{primerLugarCreator.nombre}</p>
+                <div className="w-24 h-40 bg-[#00BFFF]/20 rounded-t-lg flex items-center justify-center">
+                  <span className="text-4xl">🚀</span>
+                </div>
+              </div>
+              {/* Tercer lugar */}
+              <div className="flex flex-col items-center text-center">
+                <img src={tercerLugarCreator.avatar} alt="Tercer lugar" className="w-20 h-20 rounded-full border-4 border-[#CD7F32] mb-2" />
+                <p className="text-white font-bold">{tercerLugarCreator.nombre}</p>
+                <div className="w-24 h-24 bg-[#CD7F32]/20 rounded-t-lg flex items-center justify-center">
+                  <span className="text-4xl">🥉</span>
+                </div>
               </div>
             </div>
-
-            {/* Primer lugar */}
-            <div className="flex flex-col items-center">
-              <img
-                src="/images/silueta-perfil.svg"
-                alt="Primer lugar"
-                className="w-24 h-24 rounded-full border-4 border-[#00BFFF] mb-2"
-              />
-              <div className="w-24 h-40 bg-[#00BFFF]/20 rounded-t-lg flex items-center justify-center">
-                <span className="text-4xl">🚀</span>
-              </div>
-            </div>
-
-            {/* Tercer lugar */}
-            <div className="flex flex-col items-center">
-              <img
-                src="/images/silueta-perfil.svg"
-                alt="Tercer lugar"
-                className="w-20 h-20 rounded-full border-4 border-[#CD7F32] mb-2"
-              />
-              <div className="w-24 h-24 bg-[#CD7F32]/20 rounded-t-lg flex items-center justify-center">
-                <span className="text-4xl">🥉</span>
-              </div>
-            </div>
-          </div>
+          )}
 
           {/* Ranking de Creadores */}
           <div className="space-y-8">
-            <RankingTopCreators />
+            <RankingTopCreators creators={topCreators} loading={loadingCreators} />
           </div>
         </div>
       </motion.div>
