@@ -29,9 +29,9 @@ export const useSyncUserProfile = () => {
           .select('id, xp_actual, monedas')
           .eq('usuario_id', user.id)
           .limit(1)
-          .single();
+          .maybeSingle();
         
-        if (progressError && progressError.code !== 'PGRST116') {
+        if (progressError) {
           console.error('Error al sincronizar progreso de gamificación (tabla progreso_usuario_xp):', progressError);
           return;
         }
