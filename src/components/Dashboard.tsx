@@ -28,6 +28,12 @@ const Dashboard: React.FC = () => {
 
         {/* Grid de Rankings de Ventas */}
         <div className="bg-black/40 border border-[#FFD700]/30 rounded-xl p-6 space-y-8">
+          {/* Título nuevo para Ventas */}
+          <div className="text-center mb-6">
+            <h4 className="text-2xl font-semibold text-[#FFD700] mb-2">
+              Este ranking no es de likes, es de resultados. Revisa la tabla de Campeones.
+            </h4>
+          </div>
           {/* Título y actualización */}
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-2xl font-orbitron text-white/90 flex items-center gap-2">
@@ -88,7 +94,7 @@ const Dashboard: React.FC = () => {
         <div className="bg-black/40 border border-[#00BFFF]/30 rounded-xl p-6 space-y-8">
           {/* Título y subtitulo nuevo */}
           <div className="text-center mb-6">
-            <h4 className="text-xl font-semibold text-white/80 mb-2">
+            <h4 className="text-2xl font-semibold text-[#FFD700] mb-2">
               Esta tabla no mide notas, mide transformación. Mira quién está ascendiendo.
             </h4>
           </div>
