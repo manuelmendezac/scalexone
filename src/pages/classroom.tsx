@@ -90,6 +90,7 @@ const MODULOS_POR_PAGINA = 9;
 const Classroom = () => {
   const navigate = useNavigate();
   const [isAdmin, setIsAdmin] = React.useState(false);
+  const [hoveredModuleId, setHoveredModuleId] = React.useState<string | null>(null);
   const isHydrated = useHydration();
 
   const {
@@ -135,6 +136,15 @@ const Classroom = () => {
     const sourceIdx = result.source.index + (pagina - 1) * MODULOS_POR_PAGINA;
     const destIdx = result.destination.index + (pagina - 1) * MODULOS_POR_PAGINA;
     handleDragEndStore(sourceIdx, destIdx);
+  };
+
+  const handleCoverImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      const newCoverUrl = URL.createObjectURL(file);
+      // Aquí también guardaríamos el 'file' para la subida real
+      setEditModulo({ ...editModulo, imagen_url: newCoverUrl });
+    }
   };
 
   const totalPaginas = Math.ceil(modulos.length / MODULOS_POR_PAGINA);
@@ -188,107 +198,100 @@ const Classroom = () => {
                 {...provided.droppableProps}
                 className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-7xl mx-auto"
               >
-                {modulosPagina.map((mod, idx) => (
-                  <Draggable
-                    key={mod.id || idx}
-                    draggableId={mod.id || `temp-${idx}`}
-                    index={idx}
-                    isDragDisabled={!isAdmin}
-                  >
-                    {(provided) => (
-                      <div
-                        ref={provided.innerRef}
-                        {...provided.draggableProps}
-                        {...provided.dragHandleProps}
-                        className="w-full max-w-xs bg-white rounded-2xl shadow-xl border border-gray-200 flex flex-col cursor-pointer hover:scale-105 transition-transform relative group"
-                        style={{
-                          ...provided.draggableProps.style,
-                          background: mod.color || '#fff',
-                          cursor: isAdmin ? 'grab' : (mod.cover_type === 'video' ? 'default' : 'pointer')
-                        }}
-                        onClick={() => !isAdmin && mod.cover_type !== 'video' && navigate(`/classroom/videos/${mod.id}`)}
-                      >
-                        {/* Imagen o Video del módulo */}
-                        <div className="h-40 w-full rounded-t-2xl overflow-hidden flex items-center justify-center bg-neutral-800 relative">
-                           {mod.cover_type === 'video' && mod.cover_video_url ? (
-                            <>
-                              <video
-                                key={mod.id}
-                                src={mod.cover_video_url}
-                                muted
-                                playsInline
-                                poster={mod.imagen_url}
-                                className="object-cover w-full h-full"
+                {modulosPagina.map((mod, idx) => {
+                  const isEditingThisModule = editIdx === idx + (pagina - 1) * MODULOS_POR_PAGINA;
+                  const displayMod = isEditingThisModule ? editModulo : mod;
+
+                  return (
+                    <Draggable
+                      key={displayMod.id || idx}
+                      draggableId={displayMod.id || `temp-${idx}`}
+                      index={idx}
+                      isDragDisabled={!isAdmin}
+                    >
+                      {(provided) => (
+                        <div
+                          ref={provided.innerRef}
+                          {...provided.draggableProps}
+                          {...provided.dragHandleProps}
+                          className="w-full max-w-xs bg-white rounded-2xl shadow-xl border border-gray-200 flex flex-col transition-transform relative group"
+                          style={{
+                            ...provided.draggableProps.style,
+                            background: displayMod.color || '#fff',
+                            cursor: isAdmin ? 'grab' : (displayMod.cover_type === 'video' ? 'default' : 'pointer')
+                          }}
+                          onClick={() => !isAdmin && displayMod.cover_type !== 'video' && navigate(`/classroom/videos/${displayMod.id}`)}
+                          onMouseEnter={() => !isAdmin && setHoveredModuleId(displayMod.id || null)}
+                          onMouseLeave={() => !isAdmin && setHoveredModuleId(null)}
+                        >
+                          {/* Video o Imagen de Portada */}
+                          <div className="h-40 w-full rounded-t-2xl overflow-hidden flex items-center justify-center bg-neutral-800 relative">
+                            {displayMod.cover_type === 'video' && displayMod.cover_video_url ? (
+                              <ClassroomModuleVideo 
+                                videoUrl={displayMod.cover_video_url} 
+                                posterUrl={displayMod.imagen_url}
+                                isHovered={hoveredModuleId === displayMod.id}
+                                onClick={() => !isAdmin && navigate(`/classroom/videos/${displayMod.id}`)}
                               />
-                              <div 
-                                className="absolute inset-0 bg-black/40 flex items-center justify-center cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity"
-                                onClick={() => !isAdmin && navigate(`/classroom/videos/${mod.id}`)}
+                            ) : displayMod.imagen_url ? (
+                              <img src={displayMod.imagen_url} alt={displayMod.titulo} className="object-cover w-full h-full" />
+                            ) : (
+                              <span className="text-6xl text-neutral-600">{displayMod.icono || '📦'}</span>
+                            )}
+                          </div>
+                          
+                          {/* Badge si existe */}
+                          {getBadge(displayMod) && (
+                            <div className="absolute top-3 right-3 text-2xl z-10">
+                              {getBadge(displayMod)}
+                            </div>
+                          )}
+
+                          <div className="flex-1 flex flex-col p-6">
+                            <h3 className="text-xl font-bold text-gray-900 mb-2 text-center">{displayMod.titulo}</h3>
+                            <p className="text-gray-600 text-sm mb-4 text-center">{displayMod.descripcion}</p>
+                            <ProgresoFuturista porcentaje={getProgreso()} />
+                          </div>
+                          
+                          {/* Botones de admin */}
+                          {isAdmin && (
+                            <div className="absolute top-2 left-2 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition z-20">
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleEdit(idx + (pagina - 1) * MODULOS_POR_PAGINA);
+                                }}
+                                className="bg-yellow-400 text-black px-2 py-1 rounded text-xs font-bold hover:bg-yellow-500"
                               >
-                                  <div className="w-16 h-16 bg-black/50 rounded-full flex items-center justify-center backdrop-blur-sm border-2 border-white/50">
-                                      <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-white ml-1" viewBox="0 0 20 20" fill="currentColor">
-                                        <path d="M4 3.222v13.556c0 .445.54.667.895.39l11.556-6.778a.444.444 0 000-.78L4.895 2.832A.444.444 0 004 3.222z" />
-                                      </svg>
-                                  </div>
-                              </div>
-                            </>
-                          ) : mod.imagen_url ? (
-                            <img src={mod.imagen_url} alt={mod.titulo} className="object-cover w-full h-full" />
-                          ) : (
-                            <span className="text-6xl text-neutral-600">{mod.icono || '📦'}</span>
+                                Editar portada/color
+                              </button>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  navigate(`/classroom/editar-videos?modulo_id=${displayMod.id}`);
+                                }}
+                                className="bg-blue-500 text-white px-2 py-1 rounded text-xs font-bold hover:bg-blue-600"
+                              >
+                                Editar videos
+                              </button>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  if (window.confirm('¿Seguro que quieres eliminar este módulo?')) {
+                                    handleDelete(idx + (pagina - 1) * MODULOS_POR_PAGINA);
+                                  }
+                                }}
+                                className="bg-red-500 text-white px-2 py-1 rounded text-xs font-bold hover:bg-red-600"
+                              >
+                                Eliminar
+                              </button>
+                            </div>
                           )}
                         </div>
-                        
-                        {/* Badge si existe */}
-                        {getBadge(mod) && (
-                          <div className="absolute top-3 right-3 text-2xl z-10">
-                            {getBadge(mod)}
-                          </div>
-                        )}
-
-                        <div className="flex-1 flex flex-col p-6">
-                          <h3 className="text-xl font-bold text-gray-900 mb-2 text-center">{mod.titulo}</h3>
-                          <p className="text-gray-600 text-sm mb-4 text-center">{mod.descripcion}</p>
-                          <ProgresoFuturista porcentaje={getProgreso()} />
-                        </div>
-                        
-                        {/* Botones de admin */}
-                        {isAdmin && (
-                          <div className="absolute top-2 left-2 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition z-20">
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleEdit(idx + (pagina - 1) * MODULOS_POR_PAGINA);
-                              }}
-                              className="bg-yellow-400 text-black px-2 py-1 rounded text-xs font-bold hover:bg-yellow-500"
-                            >
-                              Editar portada/color
-                            </button>
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                navigate(`/classroom/editar-videos?modulo_id=${mod.id}`);
-                              }}
-                              className="bg-blue-500 text-white px-2 py-1 rounded text-xs font-bold hover:bg-blue-600"
-                            >
-                              Editar videos
-                            </button>
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                if (window.confirm('¿Seguro que quieres eliminar este módulo?')) {
-                                  handleDelete(idx + (pagina - 1) * MODULOS_POR_PAGINA);
-                                }
-                              }}
-                              className="bg-red-500 text-white px-2 py-1 rounded text-xs font-bold hover:bg-red-600"
-                            >
-                              Eliminar
-                            </button>
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </Draggable>
-                ))}
+                      )}
+                    </Draggable>
+                  )
+                })}
                 {provided.placeholder}
               </div>
             )}
@@ -355,15 +358,25 @@ const Classroom = () => {
                           {(!editModulo?.cover_type || editModulo?.cover_type === 'image') ? (
                             <div>
                               <label className="block text-sm font-medium text-neutral-300 mb-2">Portada</label>
-                              <div className="aspect-[4/3] w-full bg-neutral-800 rounded-lg border-2 border-dashed border-neutral-700 flex items-center justify-center relative group cursor-pointer">
-                                  {/* Lógica para mostrar imagen */}
-                                  <div className="text-neutral-500 text-center">
-                                      <svg xmlns="http://www.w3.org/2000/svg" className="mx-auto h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l-1.586-1.586a2 2 0 00-2.828 0L6 14m6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-                                  </div>
-                                  <button className="absolute bottom-2 right-2 bg-neutral-900/50 p-2 rounded-full text-white hover:bg-red-500/80 transition-colors opacity-0 group-hover:opacity-100">
+                              <div 
+                                onClick={() => document.getElementById('cover-image-upload')?.click()}
+                                className="aspect-[4/3] w-full bg-neutral-800 rounded-lg border-2 border-dashed border-neutral-700 flex items-center justify-center relative group cursor-pointer"
+                              >
+                                  {editModulo.imagen_url ? (
+                                    <img src={editModulo.imagen_url} alt="Portada" className="w-full h-full object-cover rounded-md" />
+                                  ) : (
+                                    <div className="text-neutral-500 text-center">
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="mx-auto h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l-1.586-1.586a2 2 0 00-2.828 0L6 14m6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                                    </div>
+                                  )}
+                                  <button 
+                                    onClick={(e) => { e.stopPropagation(); setEditModulo({ ...editModulo, imagen_url: '' })}}
+                                    className="absolute bottom-2 right-2 bg-neutral-900/50 p-2 rounded-full text-white hover:bg-red-500/80 transition-colors opacity-0 group-hover:opacity-100"
+                                  >
                                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                                   </button>
                               </div>
+                              <input id="cover-image-upload" type="file" className="hidden" accept="image/*" onChange={handleCoverImageUpload} />
                             </div>
                           ) : (
                             <div>
@@ -453,5 +466,44 @@ const Classroom = () => {
     </GlobalLoadingSpinner>
   );
 };
+
+// Componente para el video del módulo con lógica de hover
+const ClassroomModuleVideo = ({ videoUrl, posterUrl, isHovered, onClick }) => {
+  const videoRef = React.useRef<HTMLVideoElement>(null);
+
+  React.useEffect(() => {
+    if (videoRef.current) {
+      if (isHovered) {
+        videoRef.current.play().catch(error => console.error("Error playing video:", error));
+      } else {
+        videoRef.current.pause();
+        videoRef.current.currentTime = 0;
+      }
+    }
+  }, [isHovered]);
+
+  return (
+    <>
+      <video
+        ref={videoRef}
+        src={videoUrl}
+        muted
+        playsInline
+        poster={posterUrl}
+        className="object-cover w-full h-full"
+      />
+      <div 
+        className="absolute inset-0 bg-black/40 flex items-center justify-center cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity"
+        onClick={onClick}
+      >
+          <div className="w-16 h-16 bg-black/50 rounded-full flex items-center justify-center backdrop-blur-sm border-2 border-amber-400/50">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-amber-400 ml-1" viewBox="0 0 20 20" fill="currentColor">
+                <path d="M4 3.222v13.556c0 .445.54.667.895.39l11.556-6.778a.444.444 0 000-.78L4.895 2.832A.444.444 0 004 3.222z" />
+              </svg>
+          </div>
+      </div>
+    </>
+  )
+}
 
 export default Classroom; 
