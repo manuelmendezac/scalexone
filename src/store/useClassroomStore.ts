@@ -40,7 +40,7 @@ interface ClassroomStore {
   setEditModulo: (modulo: Partial<EditModulo>) => void;
   setSaveMsg: (msg: string | null) => void;
   setOrderMsg: (msg: string | null) => void;
-  handleSaveEdit: () => Promise<void>;
+  handleSaveEdit: (currentEditModulo?: Modulo) => Promise<void>;
   handleDragEnd: (sourceIdx: number, destIdx: number) => Promise<void>;
   handleDelete: (idx: number) => Promise<void>;
   marcarVideoCompletado: (videoId: string) => Promise<void>;
@@ -122,17 +122,16 @@ const useClassroomStore = create<ClassroomStore>((set, get) => ({
   setSaveMsg: (msg) => set({ saveMsg: msg }),
   setOrderMsg: (msg) => set({ orderMsg: msg }),
 
-  handleSaveEdit: async () => {
-    const { editIdx, editModulo, modulos } = get();
+  handleSaveEdit: async (currentEditModulo) => {
+    const { editIdx, modulos } = get();
+    const finalEditModulo = currentEditModulo || get().editModulo;
     set({ saveMsg: null });
 
     try {
       if (editIdx === null) {
         const { error } = await supabase.from('classroom_modulos').insert({
-          ...editModulo,
-          icono: '',
+          ...finalEditModulo,
           orden: modulos.length + 1,
-          badge_url: ''
         });
         if (error) throw error;
         set({ saveMsg: '¡Módulo creado con éxito!' });
@@ -141,7 +140,7 @@ const useClassroomStore = create<ClassroomStore>((set, get) => ({
         if (mod.id) {
           const { error } = await supabase
             .from('classroom_modulos')
-            .update(editModulo)
+            .update(finalEditModulo)
             .eq('id', mod.id);
           if (error) throw error;
           set({ saveMsg: '¡Módulo actualizado con éxito!' });
