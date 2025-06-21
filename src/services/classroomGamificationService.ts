@@ -168,6 +168,67 @@ class ClassroomGamificationService {
     };
   }
 
+  // NUEVA FUNCIÓN: Registrar la finalización de un módulo
+  async registrarModuloCompletado(
+    moduloId: string,
+    usuarioId: string
+  ): Promise<{ xpGanado: number; monedasGanadas: number; mensaje: string } | null> {
+    
+    // 1. Obtener el progreso académico actual del usuario
+    const { data: progreso, error: fetchError } = await supabase
+      .from('progreso_academico_usuario')
+      .select('modulos_ids, modulos_completados')
+      .eq('usuario_id', usuarioId)
+      .single();
+
+    if (fetchError && fetchError.code !== 'PGRST116') {
+      console.error('Error al obtener el progreso del usuario:', fetchError);
+      return null;
+    }
+    
+    // 2. Verificar si el módulo ya fue completado para evitar duplicados
+    const modulosCompletadosSet = new Set(progreso?.modulos_ids || []);
+    if (modulosCompletadosSet.has(moduloId)) {
+      console.log(`El módulo ${moduloId} ya fue completado anteriormente.`);
+      return null; // No hacer nada si ya está completado
+    }
+
+    // 3. Actualizar el progreso del módulo
+    const nuevosModulosIds = [...modulosCompletadosSet, moduloId];
+    const nuevosModulosCompletados = (progreso?.modulos_completados || 0) + 1;
+
+    const { error: updateError } = await supabase
+      .from('progreso_academico_usuario')
+      .upsert({
+        usuario_id: usuarioId,
+        modulos_ids: nuevosModulosIds,
+        modulos_completados: nuevosModulosCompletados,
+        ultima_actividad: new Date().toISOString(),
+      }, { onConflict: 'usuario_id' });
+
+    if (updateError) {
+      console.error('Error al actualizar el progreso del módulo:', updateError);
+      return null;
+    }
+    
+    // 4. Otorgar recompensa por el módulo
+    const { xp, monedas } = CLASSROOM_REWARDS.MODULO_COMPLETADO;
+    const neuro = useNeuroState.getState();
+    neuro.addXP(xp);
+    neuro.addCoins(monedas);
+
+    // 5. Verificar si el usuario sube de nivel después de completar el módulo
+    await actualizarNivelAcademico(usuarioId);
+
+    console.log(`Recompensa por módulo ${moduloId} otorgada: ${xp} XP, ${monedas} Monedas.`);
+
+    return {
+      xpGanado: xp,
+      monedasGanadas: monedas,
+      mensaje: `¡Módulo completado! +${xp} XP, +${monedas} Monedas.`,
+    };
+  }
+
   // Obtener progreso de un módulo
   async obtenerProgresoModulo(moduloId: string, usuarioId: string): Promise<ModuloProgress | null> {
     try {
