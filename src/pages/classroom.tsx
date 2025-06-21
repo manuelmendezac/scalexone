@@ -9,6 +9,7 @@ import LoadingScreen from '../components/LoadingScreen';
 import GlobalLoadingSpinner from '../components/GlobalLoadingSpinner';
 import ReactPlayer from 'react-player/lazy';
 import { supabase } from '../supabase';
+import { Star, LandPlot } from 'lucide-react';
 
 // Modelo de módulo con imagen de portada
 type Modulo = {
@@ -74,16 +75,15 @@ const MODULOS_MODELO: Modulo[] = [
 
 // Barra de progreso futurista
 const ProgresoFuturista = ({ porcentaje }: { porcentaje: number }) => (
-  <div className="w-full h-3 rounded-full bg-gray-200 relative overflow-hidden mt-2 mb-1">
+  <div className="w-full h-2 rounded-full bg-neutral-700 relative overflow-hidden mt-2 mb-1">
     <div
-      className="h-3 rounded-full transition-all duration-700"
+      className="h-2 rounded-full transition-all duration-700"
       style={{
         width: `${porcentaje}%`,
-        background: 'linear-gradient(90deg, #1976d2 0%, #00e676 100%)',
-        boxShadow: '0 0 12px 2px #00e67699, 0 0 4px 1px #1976d2cc',
+        background: 'linear-gradient(90deg, #FDB813 0%, #E8A317 100%)',
+        boxShadow: '0 0 10px 1px #FDB81399',
       }}
     />
-    <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-xs font-bold text-gray-700" style={{textShadow:'0 0 4px #fff'}}>{porcentaje}%</span>
   </div>
 );
 
@@ -234,10 +234,10 @@ const Classroom = () => {
                           ref={provided.innerRef}
                           {...provided.draggableProps}
                           {...provided.dragHandleProps}
-                          className="w-full max-w-xs bg-white rounded-2xl shadow-xl border border-gray-200 flex flex-col transition-transform relative group"
+                          className="w-full max-w-sm bg-neutral-900 rounded-2xl shadow-2xl border border-amber-400/30 flex flex-col transition-transform relative group backdrop-blur-sm"
                           style={{
                             ...provided.draggableProps.style,
-                            background: displayMod.color || '#fff',
+                            background: 'rgba(23, 23, 23, 0.8)',
                             cursor: isAdmin ? 'grab' : (displayMod.cover_type === 'video' ? 'default' : 'pointer')
                           }}
                           onClick={() => !isAdmin && displayMod.cover_type !== 'video' && navigate(`/classroom/videos/${displayMod.id}`)}
@@ -266,10 +266,20 @@ const Classroom = () => {
                             </div>
                           )}
 
-                          <div className="flex-1 flex flex-col p-6">
-                            <h3 className="text-xl font-bold text-gray-900 mb-2 text-center">{displayMod.titulo}</h3>
-                            <p className="text-gray-600 text-sm mb-4 text-center">{displayMod.descripcion}</p>
+                          <div className="flex-1 flex flex-col p-5">
+                            <h3 className="text-lg font-bold text-amber-400 mb-2 text-center">{displayMod.titulo}</h3>
+                            <p className="text-neutral-400 text-sm mb-3 text-center h-10">{displayMod.descripcion}</p>
                             <ProgresoFuturista porcentaje={getProgreso()} />
+                            <div className="flex justify-center items-center gap-4 mt-2">
+                              <div className="flex items-center gap-1.5">
+                                <img src="/images/modulos/xp.svg" alt="XP" className="w-4 h-4" />
+                                <span className="text-xs text-amber-400 font-medium">150</span>
+                              </div>
+                              <div className="flex items-center gap-1.5">
+                                <img src="/images/modulos/neurocoin.svg" alt="NeuroCoin" className="w-4 h-4" />
+                                <span className="text-xs text-amber-400 font-medium">10</span>
+                              </div>
+                            </div>
                           </div>
                           
                           {/* Botones de admin */}
