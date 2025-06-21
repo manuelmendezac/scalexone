@@ -9,6 +9,20 @@ import RankingTopCreators from './RankingTopCreators';
 import { supabase } from '../supabase';
 import LoadingScreen from '../components/LoadingScreen';
 
+// Helper para convertir país a bandera
+const getFlagEmoji = (countryName: string | null): string => {
+  if (!countryName) return '🌎';
+  const countryMap: { [key: string]: string } = {
+    'Perú': '🇵🇪',
+    'México': '🇲🇽',
+    'Colombia': '🇨🇴',
+    'Argentina': '🇦🇷',
+    'España': '🇪🇸',
+    // Añade más países según sea necesario
+  };
+  return countryMap[countryName] || '🌎';
+};
+
 interface TopCreator {
   nombre: string;
   avatar: string;
@@ -51,7 +65,7 @@ const Dashboard: React.FC = () => {
 
         const { data: usersData, error: usersError } = await supabase
             .from('usuarios')
-            .select('id, name, email, avatar_url')
+            .select('id, name, email, pais, avatar_url')
             .in('id', userIds);
 
         if (usersError) throw usersError;
@@ -66,7 +80,7 @@ const Dashboard: React.FC = () => {
                     puesto: index + 1,
                     nombre: user.name || 'Usuario Anónimo',
                     email: user.email || '',
-                    pais: '🌍',
+                    pais: getFlagEmoji(user.pais),
                     xp_total: progress.xp_actual,
                     nivel_academico: 'N/A',
                     avatar: user.avatar_url || '/images/silueta-perfil.svg',
