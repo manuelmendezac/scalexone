@@ -232,13 +232,18 @@ const LineaVideosClassroom = () => {
 
         if (recompensaModulo) {
            console.log("Recompensa otorgada por módulo:", recompensaModulo);
+           // Se usa la recompensa REAL del módulo para la modal final
+           setRecompensaTotal({ 
+             xp: recompensaModulo.xpGanado, 
+             coins: recompensaModulo.monedasGanadas
+           });
+        } else {
+          // Fallback por si el servicio no devuelve recompensa
+           setRecompensaTotal({ 
+             xp: CLASSROOM_REWARDS.MODULO_COMPLETADO.xp, 
+             coins: CLASSROOM_REWARDS.MODULO_COMPLETADO.monedas 
+           });
         }
-
-        // Se usa la recompensa del módulo para la modal final
-        setRecompensaTotal({ 
-          xp: CLASSROOM_REWARDS.MODULO_COMPLETADO.xp, 
-          coins: CLASSROOM_REWARDS.MODULO_COMPLETADO.monedas 
-        });
         setShowModuloCompletadoModal(true);
       } else if (!esUltimoVideo) {
         // Si no, pasar al siguiente video
