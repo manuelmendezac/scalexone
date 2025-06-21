@@ -294,111 +294,111 @@ const Classroom = () => {
         {/* Modal de edición */}
         {showEditModal && (
           <div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
             onClick={() => setShowEditModal(false)}
           >
             <div
-              className="bg-neutral-900 rounded-2xl shadow-2xl border border-neutral-700 w-full max-w-4xl flex gap-8 p-8 relative"
+              className="bg-neutral-900 rounded-lg shadow-2xl border border-neutral-800 w-full max-w-4xl max-h-[90vh] overflow-y-auto flex flex-col"
               onClick={(e) => e.stopPropagation()}
             >
-              {/* Columna Izquierda: Portada */}
-              <div className="w-1/3 flex flex-col items-center">
-                <h3 className="text-lg font-semibold text-neutral-300 mb-4">Portada del Módulo</h3>
-                <div className="w-full aspect-square bg-neutral-800 rounded-lg border-2 border-dashed border-neutral-600 flex items-center justify-center relative overflow-hidden group">
-                  {editModulo?.imagen_url ? (
-                    <>
-                      <img src={editModulo.imagen_url} alt="Portada" className="w-full h-full object-cover" />
-                      <div 
-                        className="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
-                        onClick={() => document.getElementById('file-upload')?.click()}
-                      >
-                        <span className="text-white font-semibold">Cambiar Imagen</span>
-                      </div>
-                    </>
-                  ) : (
-                    <div 
-                      className="text-neutral-500 text-center cursor-pointer"
-                      onClick={() => document.getElementById('file-upload')?.click()}
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" className="mx-auto h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l-1.586-1.586a2 2 0 00-2.828 0L6 14m6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-                      <span className="mt-2 block text-sm">Subir una imagen</span>
-                    </div>
-                  )}
-                </div>
-                <input 
-                  id="file-upload" 
-                  type="file" 
-                  className="hidden" 
-                  accept="image/*"
-                  onChange={(e) => {
-                    // Aquí iría la lógica de subida y actualización de `editModulo.imagen_url`
-                    // Por ahora, solo es visual.
-                  }} 
-                />
-                 <button 
-                  className="text-sm text-red-500 hover:text-red-400 mt-2"
-                  onClick={() => setEditModulo({ ...editModulo, imagen_url: '' })}
-                >
-                  Eliminar Imagen
-                </button>
+              {/* Header */}
+              <div className="p-6 border-b border-neutral-800 flex justify-between items-center">
+                  <h2 className="text-xl font-semibold text-white">
+                      {editIdx === null ? 'Nuevo Módulo' : 'Editar Módulo'}
+                  </h2>
+                  <button onClick={() => setShowEditModal(false)} className="text-neutral-500 hover:text-white">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                  </button>
               </div>
 
-              {/* Columna Derecha: Detalles */}
-              <div className="w-2/3 flex flex-col">
-                <h2 className="text-2xl font-bold text-white mb-6">{editIdx === null ? 'Nuevo Módulo' : 'Editar Módulo'}</h2>
-                
-                <label className="text-neutral-400 text-sm mb-1">Título</label>
-                <input
-                  type="text"
-                  value={editModulo?.titulo || ''}
-                  onChange={(e) => setEditModulo({ ...editModulo, titulo: e.target.value })}
-                  className="w-full p-2 rounded bg-neutral-800 border border-neutral-700 text-white mb-4"
-                />
-
-                <label className="text-neutral-400 text-sm mb-1">Descripción</label>
-                <textarea
-                  value={editModulo?.descripcion || ''}
-                  onChange={(e) => setEditModulo({ ...editModulo, descripcion: e.target.value })}
-                  className="w-full p-2 rounded bg-neutral-800 border border-neutral-700 text-white mb-4 h-24 resize-none"
-                />
-                
-                <div className="flex gap-4 items-center">
-                  <div className="flex-1">
-                    <label className="text-neutral-400 text-sm mb-1">Color de Fondo</label>
-                    <div className="w-full h-10 rounded bg-neutral-800 border border-neutral-700" style={{ backgroundColor: editModulo?.color || '#ffffff' }}></div>
-                  </div>
-                  <div className="relative">
-                    <HexColorPicker
-                      color={editModulo?.color || '#ffffff'}
-                      onChange={(color) => setEditModulo({ ...editModulo, color })}
-                    />
-                  </div>
-                </div>
-
-                {/* Gamificación y Progreso (Visual) */}
-                <div className="mt-6 border-t border-neutral-800 pt-4">
-                  <h4 className="text-md font-semibold text-neutral-300 mb-2">Gamificación y Progreso</h4>
-                  <div className="flex items-center gap-4 bg-neutral-800/50 p-3 rounded-lg">
-                      <div className="flex items-center gap-2 text-yellow-400">
-                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M5 2a1 1 0 00-1 1v1.586l-1.707 1.707A1 1 0 003 8v6a1 1 0 001 1h12a1 1 0 001-1V8a1 1 0 00-.293-.707L16 6.586V3a1 1 0 00-1-1H5zm4 5a1 1 0 10-2 0v1a1 1 0 102 0V7zm4 0a1 1 0 10-2 0v1a1 1 0 102 0V7z" clipRule="evenodd" /></svg>
-                          <span>500 XP</span>
+              {/* Body */}
+              <div className="p-6 flex-grow space-y-8">
+                  {/* Top Section: Portada & Detalles */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                      {/* Columna Izquierda: Portada */}
+                      <div className="md:col-span-1">
+                          <label className="block text-sm font-medium text-neutral-300 mb-2">Portada</label>
+                          <div className="aspect-[4/3] w-full bg-neutral-800 rounded-lg border-2 border-dashed border-neutral-700 flex items-center justify-center relative group cursor-pointer">
+                              <div className="text-neutral-500 text-center">
+                                  <svg xmlns="http://www.w3.org/2000/svg" className="mx-auto h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l-1.586-1.586a2 2 0 00-2.828 0L6 14m6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                              </div>
+                              <button className="absolute bottom-2 right-2 bg-neutral-900/50 p-2 rounded-full text-white hover:bg-red-500/80 transition-colors opacity-0 group-hover:opacity-100">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                              </button>
+                          </div>
                       </div>
-                      <div className="flex items-center gap-2 text-amber-400">
-                          <img src="/images/modulos/neurocoin.svg" alt="Coin" className="w-5 h-5" />
-                          <span>100 Monedas</span>
-                      </div>
-                      <div className="flex-grow">
-                          <ProgresoFuturista porcentaje={getProgreso()} />
+
+                      {/* Columna Derecha: Título, Desc, etc. */}
+                      <div className="md:col-span-2 space-y-4">
+                          <div>
+                              <label className="block text-sm font-medium text-neutral-300 mb-2">Título del Módulo</label>
+                              <input type="text" value={editModulo?.titulo || ''} onChange={(e) => setEditModulo({ ...editModulo, titulo: e.target.value })} className="w-full p-2 rounded bg-neutral-800 border border-neutral-700 text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
+                          </div>
+                          <div>
+                              <label className="block text-sm font-medium text-neutral-300 mb-2">Descripción Corta</label>
+                              <textarea value={editModulo?.descripcion || ''} onChange={(e) => setEditModulo({ ...editModulo, descripcion: e.target.value })} className="w-full p-2 rounded bg-neutral-800 border border-neutral-700 text-white h-20 resize-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
+                          </div>
+                          <div>
+                              <label className="block text-sm font-medium text-neutral-300 mb-2">Video Trailer</label>
+                              <input type="text" placeholder="https://youtube.com/watch?v=..." className="w-full p-2 rounded bg-neutral-800 border border-neutral-700 text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
+                          </div>
+                          <div>
+                              <label className="block text-sm font-medium text-neutral-300 mb-2">URL personalizada</label>
+                              <input type="text" placeholder="mi-modulo-increible" className="w-full p-2 rounded bg-neutral-800 border border-neutral-700 text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
+                              <p className="text-xs text-neutral-500 mt-1">La URL personalizada debe ser única</p>
+                          </div>
                       </div>
                   </div>
-                </div>
 
-                <div className="flex justify-end gap-4 mt-8">
-                  <button onClick={() => setShowEditModal(false)} className="px-4 py-2 rounded text-neutral-300 hover:bg-neutral-800">Cancelar</button>
-                  <button onClick={() => editIdx !== null && handleSaveEdit(editIdx)} className="px-6 py-2 rounded bg-blue-600 text-white font-semibold hover:bg-blue-700">
-                    {editIdx === null ? 'Crear Módulo' : 'Guardar Cambios'}
+                  {/* Middle Section: Promocionar */}
+                  <div className="border-t border-neutral-800 pt-6">
+                      <div className="flex items-start gap-4">
+                          <input type="radio" id="promocionar" name="promocion" className="mt-1 h-4 w-4 text-blue-500 bg-neutral-700 border-neutral-600 focus:ring-blue-600" />
+                          <div>
+                              <label htmlFor="promocionar" className="text-md font-semibold text-white">Promocionar</label>
+                              <p className="text-sm text-neutral-400">Permite a otras comunidades promover tu módulo en la sección de cursos.</p>
+                          </div>
+                      </div>
+                  </div>
+
+                  {/* Acceso Restringido */}
+                  <div className="border-t border-neutral-800 pt-6 space-y-6">
+                      <div>
+                          <h3 className="text-md font-semibold text-white">Acceso Restringido por pago</h3>
+                          <p className="text-sm text-neutral-400">Tus miembros deberán pagar una oferta para obtener acceso. <a href="#" className="text-blue-400 hover:underline">Crea una aquí</a></p>
+                          <input type="text" placeholder="Escribe el nombre de tu oferta" className="mt-2 w-full p-2 rounded bg-neutral-800 border border-neutral-700 text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
+                          <div className="mt-2 w-full p-4 h-24 rounded bg-neutral-800 border border-neutral-700">
+                              {/* Las ofertas seleccionadas irían aquí */}
+                          </div>
+                      </div>
+                       <div>
+                          <h3 className="text-md font-semibold text-white">Acceso Restringido por nivel</h3>
+                          <p className="text-sm text-neutral-400">¿Aún no asignas niveles de acceso a tu comunidad? <a href="#" className="text-blue-400 hover:underline">Puedes hacerlo dando clic aquí</a></p>
+                          <input type="text" placeholder="Escribe el nombre de tu nivel" className="mt-2 w-full p-2 rounded bg-neutral-800 border border-neutral-700 text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
+                      </div>
+                  </div>
+
+                  {/* Visualización */}
+                  <div className="border-t border-neutral-800 pt-6">
+                      <div className="flex items-center justify-between">
+                          <label className="text-md font-semibold text-white">Visualización</label>
+                          <label htmlFor="toggle" className="flex items-center cursor-pointer">
+                              <div className="relative">
+                                  <input type="checkbox" id="toggle" className="sr-only peer" />
+                                  <div className="block bg-neutral-600 w-14 h-8 rounded-full peer-checked:bg-blue-600 transition"></div>
+                                  <div className="dot absolute left-1 top-1 bg-white w-6 h-6 rounded-full transition-transform peer-checked:translate-x-full"></div>
+                              </div>
+                          </label>
+                      </div>
+                  </div>
+              </div>
+
+              {/* Footer */}
+              <div className="p-6 border-t border-neutral-800 flex justify-end gap-4 bg-neutral-900/50 sticky bottom-0">
+                  <button onClick={() => setShowEditModal(false)} className="px-4 py-2 rounded-lg text-neutral-300 hover:bg-neutral-800 transition">Cancelar</button>
+                  <button onClick={handleSaveEdit} className="px-6 py-2 rounded-lg bg-white text-black font-semibold hover:bg-neutral-200 transition">
+                      {editIdx === null ? 'Crear' : 'Guardar'}
                   </button>
-                </div>
               </div>
             </div>
           </div>
