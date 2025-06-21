@@ -20,6 +20,7 @@ const ClasificacionPage: React.FC = () => {
   const [creators, setCreators] = useState<TopCreator[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // Forzando un nuevo deploy para refrescar la caché
   useEffect(() => {
     const fetchTopCreators = async () => {
       setLoading(true);
