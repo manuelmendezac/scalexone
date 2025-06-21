@@ -8,6 +8,7 @@ import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 import useNeuroState from '../../store/useNeuroState';
 import classroomGamificationService from '../../services/classroomGamificationService';
+import { CLASSROOM_REWARDS } from '../../services/classroomGamificationService';
 
 // UUID especial para el portal de recursos de classroom (válido para campos tipo uuid)
 const MODULO_CURSO_ID_RECURSOS = "11111111-1111-1111-1111-111111111111";
@@ -223,10 +224,21 @@ const LineaVideosClassroom = () => {
 
       // Si el módulo está completo, mostrar la modal final
       if (resultado.moduloCompletado) {
-        // Calculamos la recompensa total para mostrarla
-        const totalXP = clasesOrdenadas.length * 10; // Asumiendo 10xp por video
-        const totalMonedas = clasesOrdenadas.length * 1; // Asumiendo 1 moneda por video
-        setRecompensaTotal({ xp: totalXP, coins: totalMonedas });
+        // Llamamos al servicio para registrar la finalización del módulo y obtener la recompensa
+        const recompensaModulo = await classroomGamificationService.registrarModuloCompletado(
+          modulo_id,
+          userId
+        );
+
+        if (recompensaModulo) {
+           console.log("Recompensa otorgada por módulo:", recompensaModulo);
+        }
+
+        // Se usa la recompensa del módulo para la modal final
+        setRecompensaTotal({ 
+          xp: CLASSROOM_REWARDS.MODULO_COMPLETADO.xp, 
+          coins: CLASSROOM_REWARDS.MODULO_COMPLETADO.monedas 
+        });
         setShowModuloCompletadoModal(true);
       } else if (!esUltimoVideo) {
         // Si no, pasar al siguiente video
