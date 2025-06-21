@@ -270,17 +270,22 @@ const Classroom = () => {
                           )}
 
                           <div className="flex-1 flex flex-col p-5">
-                            <h3 className="text-lg font-bold text-amber-400 mb-2 text-center">{displayMod.titulo}</h3>
-                            <p className="text-neutral-400 text-sm mb-3 text-center h-10">{displayMod.descripcion}</p>
-                            <ProgresoFuturista porcentaje={getProgreso()} />
-                            <div className="flex justify-center items-center gap-4 mt-2">
-                              <div className="flex items-center gap-1.5">
-                                <img src="/images/modulos/xp.svg" alt="XP" className="w-4 h-4" />
-                                <span className="text-xs text-amber-400 font-medium">150</span>
-                              </div>
-                              <div className="flex items-center gap-1.5">
-                                <img src="/images/modulos/neurocoin.svg" alt="NeuroCoin" className="w-4 h-4" />
-                                <span className="text-xs text-amber-400 font-medium">10</span>
+                            <div>
+                              <h3 className="text-lg font-bold text-amber-400 mb-2 text-center">{displayMod.titulo}</h3>
+                              <p className="text-neutral-400 text-sm text-center">{displayMod.descripcion}</p>
+                            </div>
+                            
+                            <div className="mt-auto pt-4">
+                              <ProgresoFuturista porcentaje={getProgreso()} />
+                              <div className="flex justify-center items-center gap-4 mt-2">
+                                <div className="flex items-center gap-1.5">
+                                  <img src="/images/modulos/xp.svg" alt="XP" className="w-4 h-4" />
+                                  <span className="text-xs text-amber-400 font-medium">150</span>
+                                </div>
+                                <div className="flex items-center gap-1.5">
+                                  <img src="/images/modulos/neurocoin.svg" alt="NeuroCoin" className="w-4 h-4" />
+                                  <span className="text-xs text-amber-400 font-medium">10</span>
+                                </div>
                               </div>
                             </div>
                           </div>
