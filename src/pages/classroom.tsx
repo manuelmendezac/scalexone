@@ -7,6 +7,7 @@ import useClassroomStore from '../store/useClassroomStore';
 import { useHydration } from '../store/useNeuroState';
 import LoadingScreen from '../components/LoadingScreen';
 import GlobalLoadingSpinner from '../components/GlobalLoadingSpinner';
+import ReactPlayer from 'react-player/lazy';
 
 // Modelo de módulo con imagen de portada
 type Modulo = {
@@ -225,11 +226,10 @@ const Classroom = () => {
                           onMouseLeave={() => !isAdmin && setHoveredModuleId(null)}
                         >
                           {/* Video o Imagen de Portada */}
-                          <div className="h-40 w-full rounded-t-2xl overflow-hidden flex items-center justify-center bg-neutral-800 relative">
+                          <div className="aspect-video w-full rounded-t-2xl overflow-hidden flex items-center justify-center bg-neutral-800 relative">
                             {displayMod.cover_type === 'video' && displayMod.cover_video_url ? (
                               <ClassroomModuleVideo 
                                 videoUrl={displayMod.cover_video_url} 
-                                posterUrl={displayMod.imagen_url}
                                 isHovered={hoveredModuleId === displayMod.id}
                                 onClick={() => !isAdmin && navigate(`/classroom/videos/${displayMod.id}`)}
                               />
@@ -468,32 +468,23 @@ const Classroom = () => {
 };
 
 // Componente para el video del módulo con lógica de hover
-const ClassroomModuleVideo = ({ videoUrl, posterUrl, isHovered, onClick }) => {
-  const videoRef = React.useRef<HTMLVideoElement>(null);
-
-  React.useEffect(() => {
-    if (videoRef.current) {
-      if (isHovered) {
-        videoRef.current.play().catch(error => console.error("Error playing video:", error));
-      } else {
-        videoRef.current.pause();
-        videoRef.current.currentTime = 0;
-      }
-    }
-  }, [isHovered]);
-
+const ClassroomModuleVideo = ({ videoUrl, isHovered, onClick }) => {
   return (
     <>
-      <video
-        ref={videoRef}
-        src={videoUrl}
-        muted
-        playsInline
-        poster={posterUrl}
-        className="object-cover w-full h-full"
-      />
+      <div className='absolute top-0 left-0 w-full h-full'>
+        <ReactPlayer
+          url={videoUrl}
+          playing={isHovered}
+          loop
+          muted
+          playsInline
+          width="100%"
+          height="100%"
+          className="react-player"
+        />
+      </div>
       <div 
-        className="absolute inset-0 bg-black/40 flex items-center justify-center cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity"
+        className="absolute inset-0 bg-black/20 flex items-center justify-center cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity"
         onClick={onClick}
       >
           <div className="w-16 h-16 bg-black/50 rounded-full flex items-center justify-center backdrop-blur-sm border-2 border-amber-400/50">
