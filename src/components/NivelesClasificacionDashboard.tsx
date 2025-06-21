@@ -1,5 +1,4 @@
-// Dashboard de niveles de clasificación - Sistema de niveles
-// Forzando nuevo deploy - 2024
+// Forzando nuevo deploy - 2024-v2
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../supabase';
 import useNeuroState from '../store/useNeuroState';
