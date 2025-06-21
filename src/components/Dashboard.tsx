@@ -29,6 +29,10 @@ const Dashboard: React.FC = () => {
         setLoadingCreators(true);
         const { data, error } = await supabase.rpc('get_top_creators').limit(10);
 
+        // --- INICIO DE DEPURACIÓN ---
+        console.log("Respuesta de get_top_creators:", { data, error });
+        // --- FIN DE DEPURACIÓN ---
+
         if (error) {
           console.error("Error fetching top creators:", error);
           throw error;
