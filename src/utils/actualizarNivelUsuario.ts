@@ -37,36 +37,51 @@ export async function actualizarNivelVentas(usuario_id: string) {
 
 // Actualiza el nivel académico del usuario según los requisitos configurados
 export async function actualizarNivelAcademico(usuario_id: string) {
-  const { data: progreso } = await supabase
+  // 1. Obtener progreso académico del usuario
+  const { data: progresoAcademico } = await supabase
     .from('progreso_academico_usuario')
-    .select('modulos_completados, videos_completados')
+    .select('modulos_completados, videos_completados, nivel_actual')
     .eq('usuario_id', usuario_id)
     .single();
 
-  if (!progreso) return;
+  if (!progresoAcademico) return;
 
+  // 2. Obtener progreso de XP del usuario
+  const { data: progresoXP } = await supabase
+    .from('progreso_usuario_xp')
+    .select('xp_actual')
+    .eq('usuario_id', usuario_id)
+    .single();
+
+  const xp_actual = progresoXP?.xp_actual || 0;
+
+  // 3. Obtener todos los niveles académicos, ordenados del más alto al más bajo
   const { data: niveles } = await supabase
     .from('niveles_academicos')
     .select('*')
-    .order('modulos_requeridos', { ascending: true });
+    .order('modulos_requeridos', { ascending: false })
+    .order('videos_requeridos', { ascending: false })
+    .order('xp_requerido', { ascending: false });
 
-  if (!niveles) return;
+  if (!niveles || niveles.length === 0) return;
 
-  // Buscar el nivel más alto que cumpla los requisitos
-  const nivel = niveles
-    .filter(
-      (n: any) =>
-        progreso.modulos_completados >= n.modulos_requeridos &&
-        progreso.videos_completados >= n.videos_requeridos
-    )
-    .pop();
+  // 4. Encontrar el nivel más alto que el usuario cumple
+  const nuevoNivel = niveles.find(
+    (n: any) =>
+      (progresoAcademico.modulos_completados || 0) >= n.modulos_requeridos &&
+      (progresoAcademico.videos_completados || 0) >= n.videos_requeridos &&
+      xp_actual >= (n.xp_requerido || 0)
+  );
 
-  if (!nivel) return;
+  // 5. Si se encontró un nivel y es diferente al actual, actualizar
+  if (nuevoNivel && nuevoNivel.id !== progresoAcademico.nivel_actual) {
+    await supabase
+      .from('progreso_academico_usuario')
+      .update({ nivel_actual: nuevoNivel.id })
+      .eq('usuario_id', usuario_id);
 
-  await supabase
-    .from('progreso_academico_usuario')
-    .update({ nivel_actual: nivel.id })
-    .eq('usuario_id', usuario_id);
+    console.log(`Usuario ${usuario_id} ha subido al nivel académico: ${nuevoNivel.nombre}`);
+  }
 }
 
 // NUEVO: Helper para actualizar progreso y nivel de ventas en un solo paso
