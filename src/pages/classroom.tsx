@@ -95,7 +95,6 @@ const MODULOS_POR_PAGINA = 9;
 const Classroom = () => {
   const navigate = useNavigate();
   const [isAdmin, setIsAdmin] = React.useState(false);
-  const [hoveredModuleId, setHoveredModuleId] = React.useState<string | null>(null);
   const [isUploading, setIsUploading] = React.useState(false);
   const isHydrated = useHydration();
 
@@ -244,15 +243,12 @@ const Classroom = () => {
                             cursor: isAdmin ? 'grab' : (displayMod.cover_type === 'video' ? 'default' : 'pointer')
                           }}
                           onClick={() => !isAdmin && displayMod.cover_type !== 'video' && navigate(`/classroom/videos/${displayMod.id}`)}
-                          onMouseEnter={() => !isAdmin && setHoveredModuleId(displayMod.id || null)}
-                          onMouseLeave={() => !isAdmin && setHoveredModuleId(null)}
                         >
                           {/* Video o Imagen de Portada */}
                           <div className="aspect-video w-full rounded-t-2xl overflow-hidden flex items-center justify-center bg-neutral-800 relative">
                             {displayMod.cover_type === 'video' && displayMod.cover_video_url ? (
                               <ClassroomModuleVideo 
                                 videoUrl={displayMod.cover_video_url} 
-                                isHovered={hoveredModuleId === displayMod.id}
                                 onClick={() => !isAdmin && navigate(`/classroom/videos/${displayMod.id}`)}
                               />
                             ) : displayMod.imagen_url ? (
@@ -512,13 +508,13 @@ const Classroom = () => {
 };
 
 // Componente para el video del módulo con lógica de hover
-const ClassroomModuleVideo = ({ videoUrl, isHovered, onClick }) => {
+const ClassroomModuleVideo = ({ videoUrl, onClick }) => {
   return (
     <>
       <div className='absolute top-0 left-0 w-full h-full'>
         <ReactPlayer
           url={videoUrl}
-          playing={isHovered}
+          playing={true}
           loop
           muted
           playsInline
