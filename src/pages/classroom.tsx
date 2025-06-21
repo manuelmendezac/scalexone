@@ -204,7 +204,7 @@ const Classroom = () => {
                         style={{
                           ...provided.draggableProps.style,
                           background: mod.color || '#fff',
-                          cursor: isAdmin ? 'grab' : 'pointer'
+                          cursor: isAdmin ? 'grab' : (mod.cover_type === 'video' ? 'default' : 'pointer')
                         }}
                         onClick={() => !isAdmin && mod.cover_type !== 'video' && navigate(`/classroom/videos/${mod.id}`)}
                       >
@@ -213,15 +213,23 @@ const Classroom = () => {
                            {mod.cover_type === 'video' && mod.cover_video_url ? (
                             <>
                               <video
-                                key={mod.id} // Forzar recarga si cambia el video
+                                key={mod.id}
                                 src={mod.cover_video_url}
-                                autoPlay
-                                loop
                                 muted
                                 playsInline
+                                poster={mod.imagen_url}
                                 className="object-cover w-full h-full"
                               />
-                              <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-black/20" />
+                              <div 
+                                className="absolute inset-0 bg-black/40 flex items-center justify-center cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity"
+                                onClick={() => !isAdmin && navigate(`/classroom/videos/${mod.id}`)}
+                              >
+                                  <div className="w-16 h-16 bg-black/50 rounded-full flex items-center justify-center backdrop-blur-sm border-2 border-white/50">
+                                      <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-white ml-1" viewBox="0 0 20 20" fill="currentColor">
+                                        <path d="M4 3.222v13.556c0 .445.54.667.895.39l11.556-6.778a.444.444 0 000-.78L4.895 2.832A.444.444 0 004 3.222z" />
+                                      </svg>
+                                  </div>
+                              </div>
                             </>
                           ) : mod.imagen_url ? (
                             <img src={mod.imagen_url} alt={mod.titulo} className="object-cover w-full h-full" />
@@ -240,16 +248,7 @@ const Classroom = () => {
                         <div className="flex-1 flex flex-col p-6">
                           <h3 className="text-xl font-bold text-gray-900 mb-2 text-center">{mod.titulo}</h3>
                           <p className="text-gray-600 text-sm mb-4 text-center">{mod.descripcion}</p>
-                          {mod.cover_type === 'video' ? (
-                            <button 
-                              onClick={() => !isAdmin && navigate(`/classroom/videos/${mod.id}`)}
-                              className="mt-auto w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-semibold"
-                            >
-                              Ingresar al Módulo
-                            </button>
-                          ) : (
-                            <ProgresoFuturista porcentaje={getProgreso()} />
-                          )}
+                          <ProgresoFuturista porcentaje={getProgreso()} />
                         </div>
                         
                         {/* Botones de admin */}
