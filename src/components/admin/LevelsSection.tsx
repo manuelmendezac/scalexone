@@ -17,6 +17,7 @@ interface NivelAcademico {
   modulos_requeridos: number;
   videos_requeridos: number;
   descripcion: string;
+  xp_requerido?: number;
 }
 
 type Tab = 'ventas' | 'educacion';
@@ -90,7 +91,8 @@ const LevelsSection: React.FC = () => {
           nombre: nivel.nombre,
           modulos_requeridos: nivel.modulos_requeridos,
           videos_requeridos: nivel.videos_requeridos,
-          descripcion: nivel.descripcion
+          descripcion: nivel.descripcion,
+          xp_requerido: nivel.xp_requerido
         });
 
       if (error) throw error;
@@ -138,6 +140,12 @@ const LevelsSection: React.FC = () => {
       descripcion: ''
     };
     setNivelesAcademicos([...nivelesAcademicos, nuevoNivel]);
+  }
+
+  function handleAcademicoChange(index: number, field: keyof NivelAcademico, value: string | number) {
+    const nuevos = [...nivelesAcademicos];
+    (nuevos[index] as any)[field] = value;
+    setNivelesAcademicos(nuevos);
   }
 
   if (loading) return <div className="text-center p-4">Cargando niveles...</div>;
@@ -329,59 +337,47 @@ const LevelsSection: React.FC = () => {
             {nivelesAcademicos.map((nivel, index) => (
               <div key={index} className="bg-[#2a2a2a] p-6 rounded-lg border border-gray-700">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">
-                      Nombre del Nivel
-                    </label>
-                    <input
-                      type="text"
-                      value={nivel.nombre}
-                      onChange={(e) => {
-                        const nuevos = [...nivelesAcademicos];
-                        nuevos[index].nombre = e.target.value;
-                        setNivelesAcademicos(nuevos);
-                      }}
-                      className="w-full bg-[#1a1a1a] text-white p-3 rounded border border-gray-700 focus:border-[#FFD700] focus:ring-1 focus:ring-[#FFD700]"
-                      placeholder="Ej: Estudiante, Experto..."
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">
-                      Módulos Requeridos
-                    </label>
-                    <input
-                      type="number"
-                      value={nivel.modulos_requeridos}
-                      onChange={(e) => {
-                        const nuevos = [...nivelesAcademicos];
-                        nuevos[index].modulos_requeridos = Number(e.target.value);
-                        setNivelesAcademicos(nuevos);
-                      }}
-                      className="w-full bg-[#1a1a1a] text-white p-3 rounded border border-gray-700 focus:border-[#FFD700] focus:ring-1 focus:ring-[#FFD700]"
-                      placeholder="Ej: 3, 5, 8..."
-                      min="0"
-                      step="1"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">
-                      Videos Requeridos
-                    </label>
-                    <input
-                      type="number"
-                      value={nivel.videos_requeridos}
-                      onChange={(e) => {
-                        const nuevos = [...nivelesAcademicos];
-                        nuevos[index].videos_requeridos = Number(e.target.value);
-                        setNivelesAcademicos(nuevos);
-                      }}
-                      className="w-full bg-[#1a1a1a] text-white p-3 rounded border border-gray-700 focus:border-[#FFD700] focus:ring-1 focus:ring-[#FFD700]"
-                      placeholder="Ej: 5, 10, 15..."
-                      min="0"
-                      step="1"
-                    />
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label htmlFor={`nombre-academico-${nivel.id}`} className="block text-sm font-medium text-gray-300 mb-1">Nombre del Nivel</label>
+                      <input
+                        type="text"
+                        id={`nombre-academico-${nivel.id}`}
+                        value={nivel.nombre}
+                        onChange={(e) => handleAcademicoChange(index, 'nombre', e.target.value)}
+                        className="w-full bg-gray-700 border border-gray-600 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-yellow-500 focus:border-yellow-500"
+                      />
+                    </div>
+                    <div>
+                      <label htmlFor={`modulos-requeridos-${nivel.id}`} className="block text-sm font-medium text-gray-300 mb-1">Módulos Requeridos</label>
+                      <input
+                        type="number"
+                        id={`modulos-requeridos-${nivel.id}`}
+                        value={nivel.modulos_requeridos}
+                        onChange={(e) => handleAcademicoChange(index, 'modulos_requeridos', parseInt(e.target.value, 10))}
+                        className="w-full bg-gray-700 border border-gray-600 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-yellow-500 focus:border-yellow-500"
+                      />
+                    </div>
+                    <div>
+                      <label htmlFor={`videos-requeridos-${nivel.id}`} className="block text-sm font-medium text-gray-300 mb-1">Videos Requeridos</label>
+                      <input
+                        type="number"
+                        id={`videos-requeridos-${nivel.id}`}
+                        value={nivel.videos_requeridos}
+                        onChange={(e) => handleAcademicoChange(index, 'videos_requeridos', parseInt(e.target.value, 10))}
+                        className="w-full bg-gray-700 border border-gray-600 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-yellow-500 focus:border-yellow-500"
+                      />
+                    </div>
+                    <div>
+                      <label htmlFor={`xp-requerido-${nivel.id}`} className="block text-sm font-medium text-gray-300 mb-1">XP Requeridos</label>
+                      <input
+                        type="number"
+                        id={`xp-requerido-${nivel.id}`}
+                        value={nivel.xp_requerido || ''}
+                        onChange={(e) => handleAcademicoChange(index, 'xp_requerido', parseInt(e.target.value, 10))}
+                        className="w-full bg-gray-700 border border-gray-600 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-yellow-500 focus:border-yellow-500"
+                      />
+                    </div>
                   </div>
 
                   <div className="col-span-2">
@@ -390,11 +386,7 @@ const LevelsSection: React.FC = () => {
                     </label>
                     <textarea
                       value={nivel.descripcion}
-                      onChange={(e) => {
-                        const nuevos = [...nivelesAcademicos];
-                        nuevos[index].descripcion = e.target.value;
-                        setNivelesAcademicos(nuevos);
-                      }}
+                      onChange={(e) => handleAcademicoChange(index, 'descripcion', e.target.value)}
                       className="w-full bg-[#1a1a1a] text-white p-3 rounded border border-gray-700 focus:border-[#FFD700] focus:ring-1 focus:ring-[#FFD700] h-24"
                       placeholder="Describe los beneficios y características de este nivel..."
                     />
