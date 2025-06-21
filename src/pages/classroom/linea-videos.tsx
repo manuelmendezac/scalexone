@@ -1,13 +1,13 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '../../supabase';
+import { useAuth } from '../../hooks/useAuth';
 import ModalFuturista from '../../components/ModalFuturista';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, CheckCircle, Award, Film, Download, Info } from 'lucide-react';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 import useNeuroState from '../../store/useNeuroState';
-import classroomGamificationService from '../../services/classroomGamificationService';
-import { CLASSROOM_REWARDS } from '../../services/classroomGamificationService';
+import classroomGamificationService, { CLASSROOM_REWARDS } from '../../services/classroomGamificationService';
 import ReactPlayer from 'react-player/lazy';
 
 const LineaVideosClassroom = () => {
@@ -15,6 +15,7 @@ const LineaVideosClassroom = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const neuro = useNeuroState();
+  const { user } = useAuth();
   const [modulo, setModulo] = useState<any>(null);
   const [clases, setClases] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -43,19 +44,17 @@ const LineaVideosClassroom = () => {
   useEffect(() => {
     const initialize = async () => {
       setLoading(true);
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        setUserId(user.id);
-        if (modulo_id) {
-          await fetchModuloYProgreso(modulo_id, user.id);
-        }
-      } else {
-        if (modulo_id) {
-           await fetchModuloYProgreso(modulo_id, null);
-        }
+      const session = await supabase.auth.getSession();
+      const currentUserId = session?.data?.session?.user?.id ?? null;
+      setUserId(currentUserId);
+      
+      const adminMode = localStorage.getItem('adminMode') === 'true';
+      setIsAdmin(adminMode);
+
+      if (modulo_id) {
+        await fetchModuloYProgreso(modulo_id, currentUserId);
+        await fetchRecursosGlobales();
       }
-      setIsAdmin(localStorage.getItem('adminMode') === 'true');
-      fetchRecursosGlobales();
       setLoading(false);
     };
     initialize();
@@ -183,16 +182,16 @@ const LineaVideosClassroom = () => {
     setVideoProgress(state.played * 100);
   }, [videosCompletados, videoActual.id]);
 
-  if (loading) return <div className="text-cyan-400 text-center py-10">Cargando módulo...</div>;
+  if (loading) return <div className="text-yellow-300 text-center py-10">Cargando módulo...</div>;
 
   return (
     <div className={`min-h-screen bg-black text-white flex flex-col ${fullscreen ? '' : 'md:flex-row'} px-1 sm:px-2`}>
       <div className={`flex-1 flex flex-col items-center justify-center ${fullscreen ? 'fixed inset-0 z-50 bg-black overflow-auto' : 'p-1 sm:p-2 md:p-8'} transition-all duration-300`}>
-        <div className={`w-full ${fullscreen ? '' : 'max-w-6xl'} bg-gradient-to-br from-neutral-950 to-black rounded-3xl shadow-2xl p-4 flex flex-col items-center border border-cyan-900/40`}>
+        <div className={`w-full ${fullscreen ? '' : 'max-w-6xl'} bg-gradient-to-br from-neutral-950 to-black rounded-3xl shadow-2xl p-4 flex flex-col items-center border border-yellow-800/40`}>
           <div className="w-full flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
             <div className="flex-1">
-              <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-cyan-300 mb-2">{modulo?.titulo || 'Módulo de Classroom'}</h1>
-              <p className="text-cyan-200 text-sm sm:text-base">{modulo?.descripcion || 'Descripción del módulo'}</p>
+              <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-yellow-400 mb-2">{modulo?.titulo || 'Módulo de Classroom'}</h1>
+              <p className="text-yellow-200 text-sm sm:text-base">{modulo?.descripcion || 'Descripción del módulo'}</p>
             </div>
             <div className="flex flex-col items-end gap-2">
               <div className="flex items-center gap-3">
@@ -205,15 +204,15 @@ const LineaVideosClassroom = () => {
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-cyan-300 text-sm">{videosCompletados.size} / {clasesOrdenadas.length} videos</span>
-                <div className="w-24 h-2 bg-cyan-900 rounded-full overflow-hidden">
-                  <div className="h-full bg-gradient-to-r from-cyan-500 to-blue-500 transition-all duration-300" style={{ width: `${(videosCompletados.size / Math.max(clasesOrdenadas.length, 1)) * 100}%` }} />
+                <span className="text-yellow-300 text-sm">{videosCompletados.size} / {clasesOrdenadas.length} videos</span>
+                <div className="w-24 h-2 bg-yellow-900/50 rounded-full overflow-hidden">
+                  <div className="h-full bg-gradient-to-r from-yellow-500 to-amber-500 transition-all duration-300" style={{ width: `${(videosCompletados.size / Math.max(clasesOrdenadas.length, 1)) * 100}%` }} />
                 </div>
               </div>
             </div>
           </div>
           <div className="w-full relative">
-            <div className="aspect-video w-full h-full bg-black rounded-xl overflow-hidden border-2 border-cyan-900/50">
+            <div className="aspect-video w-full h-full bg-black rounded-xl overflow-hidden border-2 border-yellow-800/50">
               {videoActual.embed_code ? (
                 <div className="w-full h-full [&>iframe]:w-full [&>iframe]:h-full" dangerouslySetInnerHTML={{ __html: videoActual.embed_code }} />
               ) : videoActual.url ? (
@@ -230,58 +229,91 @@ const LineaVideosClassroom = () => {
                 />
               ) : (
                 <div className="w-full h-full flex flex-col items-center justify-center bg-neutral-800 text-center p-4">
-                  <h3 className="text-xl font-bold text-cyan-300">Video no disponible</h3>
+                  <h3 className="text-xl font-bold text-yellow-400">Video no disponible</h3>
                   {isAdmin && <p className="text-yellow-400 mt-2">Administrador: Falta la URL o código embed.</p>}
                 </div>
               )}
             </div>
             {isSaving && (
               <div className="absolute inset-0 bg-black/70 flex flex-col items-center justify-center z-10 rounded-xl">
-                <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-blue-500"></div>
-                <p className="text-cyan-300 text-lg font-semibold mt-4">Guardando progreso...</p>
+                <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-yellow-500"></div>
+                <p className="text-yellow-300 text-lg font-semibold mt-4">Guardando progreso...</p>
               </div>
             )}
             <div className="absolute bottom-2 left-0 w-full h-1 bg-black/30 pointer-events-none rounded-b-xl overflow-hidden">
-              <div className="h-full bg-gradient-to-r from-cyan-500 to-blue-500" style={{ width: `${videoProgress}%`, transition: 'width 0.2s linear' }} />
+              <div className="h-full bg-gradient-to-r from-yellow-500 to-amber-500" style={{ width: `${videoProgress}%`, transition: 'width 0.2s linear' }} />
             </div>
           </div>
           <div className="mt-4 flex justify-between items-center w-full">
-            <h2 className="text-xl font-bold text-cyan-300">{videoActual.titulo || 'Sin título'}</h2>
+            <h2 className="text-xl font-bold text-yellow-400">{videoActual.titulo || 'Sin título'}</h2>
             <div className="flex items-center gap-2">
-              <button onClick={() => cambiarVideo(claseActual - 1)} disabled={claseActual === 0} className="px-3 py-2 rounded-lg transition-all duration-300 font-medium bg-cyan-900/50 hover:bg-cyan-800/50 disabled:opacity-50 flex items-center gap-2">
+              <button onClick={() => cambiarVideo(claseActual - 1)} disabled={claseActual === 0} className="px-3 py-2 rounded-lg transition-all duration-300 font-medium bg-yellow-900/50 hover:bg-yellow-800/70 disabled:opacity-50 flex items-center gap-2">
                 <ChevronLeft className="w-5 h-5" /> <span className="hidden sm:inline">Anterior</span>
               </button>
               {videoActual.embed_code && !videosCompletados.has(videoActual.id) ? (
-                <button onClick={handleVideoEnded} disabled={isSaving} className="px-6 py-2 rounded-lg font-bold bg-black text-yellow-400 border-2 border-yellow-500 hover:bg-yellow-500 hover:text-black transition-all duration-300 shadow-lg disabled:opacity-50">
-                  {isSaving ? 'Procesando...' : 'Recoger Recompensa'}
+                <button onClick={handleVideoEnded} disabled={isSaving} className="px-6 py-2 rounded-lg font-bold bg-yellow-500 text-black border-2 border-yellow-600 hover:bg-yellow-400 transition-all duration-300 shadow-lg disabled:opacity-50">
+                  {isSaving ? 'Procesando...' : 'Completar y Siguiente'}
                 </button>
               ) : (
                 esUltimoVideo ? (
-                  <button onClick={navegarSiguienteModulo} className="px-3 py-2 rounded-lg transition-all duration-300 font-medium bg-green-600 hover:bg-green-700 flex items-center gap-2">
+                  <button onClick={navegarSiguienteModulo} className="px-3 py-2 rounded-lg transition-all duration-300 font-medium bg-green-800/70 hover:bg-green-700/70 flex items-center gap-2">
                     <span className="hidden sm:inline">Siguiente Módulo</span> <ChevronRight className="w-5 h-5" />
                   </button>
                 ) : (
-                  <button onClick={() => cambiarVideo(claseActual + 1)} className="px-3 py-2 rounded-lg transition-all duration-300 font-medium bg-cyan-900/50 hover:bg-cyan-800/50 flex items-center gap-2">
+                  <button onClick={() => cambiarVideo(claseActual + 1)} className="px-3 py-2 rounded-lg transition-all duration-300 font-medium bg-yellow-900/50 hover:bg-yellow-800/70 flex items-center gap-2">
                     <span className="hidden sm:inline">Siguiente</span> <ChevronRight className="w-5 h-5" />
                   </button>
                 )
               )}
             </div>
           </div>
-          <p className="mt-1 text-gray-300 text-sm w-full text-left">{videoActual.descripcion || 'Sin descripción'}</p>
+          <p className="mt-1 text-yellow-200/80 text-sm w-full text-left">{videoActual.descripcion || 'Sin descripción'}</p>
+
+          <div className="w-full mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="bg-neutral-900/70 p-6 rounded-2xl border border-yellow-700/30">
+                <h3 className="text-xl font-bold text-yellow-400 mb-3 flex items-center gap-2">
+                  <Info className="w-6 h-6" />
+                  Sobre este módulo
+                </h3>
+                <div className="text-yellow-200/80 prose prose-invert max-w-none prose-p:my-2 prose-a:text-yellow-300 hover:prose-a:text-yellow-200" dangerouslySetInnerHTML={{ __html: descripcionHtml || '<p>No hay descripción disponible.</p>' }} />
+            </div>
+            <div className="bg-neutral-900/70 p-6 rounded-2xl border border-yellow-700/30">
+                <h3 className="text-xl font-bold text-yellow-400 mb-3 flex items-center gap-2">
+                  <Download className="w-6 h-6" />
+                  Material y herramientas
+                </h3>
+                <div className="space-y-3">
+                {materiales.length > 0 ? materiales.map((material) => (
+                    <a
+                      key={material.id}
+                      href={material.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="block p-3 rounded-lg bg-yellow-900/40 hover:bg-yellow-800/60 transition-colors text-yellow-300 font-medium"
+                    >
+                      {material.titulo}
+                    </a>
+                )) : <p className="text-yellow-200/80">No hay materiales disponibles.</p>}
+                </div>
+            </div>
+          </div>
+
         </div>
       </div>
       {!fullscreen && (
-        <div className="w-full md:w-[320px] bg-gradient-to-br from-neutral-950 to-black p-4 flex flex-col gap-4 rounded-3xl border-l-4 border-cyan-900/30 shadow-2xl min-h-[220px] md:min-h-screen">
-          {isAdmin && <button className="mb-4 px-4 py-2 rounded-full bg-cyan-700 hover:bg-cyan-500 text-white font-bold" onClick={() => navigate(`/classroom/editar-videos?modulo_id=${modulo_id}`)}>Editar videos</button>}
-          <h3 className="text-xl font-bold text-cyan-300 uppercase text-center">Clases del módulo</h3>
-          <div className="flex flex-col space-y-2">
+        <div className="w-full md:w-[380px] bg-gradient-to-br from-neutral-950 to-black p-4 flex flex-col gap-4 rounded-3xl border-l-4 border-yellow-900/50 shadow-2xl min-h-[220px] md:min-h-screen">
+          {isAdmin && <button className="mb-4 px-4 py-2 rounded-full bg-yellow-700 hover:bg-yellow-600 text-white font-bold" onClick={() => navigate(`/classroom/editar-videos?modulo_id=${modulo_id}`)}>Editar videos</button>}
+          <h3 className="text-xl font-bold text-yellow-400 uppercase text-center tracking-wider">Clases del módulo</h3>
+          <div className="flex flex-col space-y-2 overflow-y-auto">
             {clasesOrdenadas.map((clase, index) => (
-              <div key={clase.id} onClick={() => cambiarVideo(index)} className={`p-2 rounded-lg cursor-pointer flex items-center gap-4 transition-all ${claseActual === index ? 'bg-blue-900/80' : 'bg-gray-800 hover:bg-gray-700'}`}>
-                <img src={clase.thumbnail_url || thumbnailCache[clase.id] || '/images/modulos/document.svg'} alt={clase.titulo} className="w-24 h-16 object-cover rounded-md flex-shrink-0" />
-                <div className="flex-grow">
-                  <h3 className={`font-semibold ${claseActual === index ? 'text-white' : 'text-gray-300'}`}>{clase.titulo}</h3>
-                  <p className={`text-sm ${videosCompletados.has(clase.id) ? 'text-green-400' : 'text-gray-400'}`}>{videosCompletados.has(clase.id) ? 'Completado' : 'Pendiente'}</p>
+              <div key={clase.id} onClick={() => cambiarVideo(index)} className={`p-3 rounded-lg cursor-pointer flex items-center gap-4 transition-all duration-300 border-2 ${claseActual === index ? 'bg-yellow-600/30 border-yellow-500' : 'bg-neutral-800/50 border-transparent hover:bg-neutral-700/70'}`}>
+                <img src={thumbnailCache[clase.id] || clase.thumbnail_url || '/images/modulos/document.svg'} alt={clase.titulo} className="w-28 h-16 object-cover rounded-md flex-shrink-0 border border-yellow-800/50" />
+                <div className="flex-grow min-w-0">
+                  <h3 className={`font-semibold truncate ${claseActual === index ? 'text-white' : 'text-yellow-200'}`}>{clase.titulo}</h3>
+                  <div className={`text-sm flex items-center gap-1.5 ${videosCompletados.has(clase.id) ? 'text-green-400' : 'text-gray-400'}`}>
+                    {videosCompletados.has(clase.id) ? <CheckCircle className="w-4 h-4" /> : <Film className="w-4 h-4" />}
+                    <span>{videosCompletados.has(clase.id) ? 'Completado' : 'Pendiente'}</span>
+                  </div>
                 </div>
               </div>
             ))}
@@ -291,7 +323,7 @@ const LineaVideosClassroom = () => {
       {showModuloCompletadoModal && (
         <ModalFuturista open={showModuloCompletadoModal} onClose={() => setShowModuloCompletadoModal(false)}>
           <div className="flex flex-col items-center gap-4 text-center">
-            <h3 className="text-2xl font-bold text-cyan-300">¡Felicidades, módulo completado!</h3>
+            <h3 className="text-2xl font-bold text-yellow-400">¡Felicidades, módulo completado!</h3>
             <div className="flex gap-6 my-4">
               <div className="bg-yellow-500/20 px-4 py-2 rounded-lg"><span className="text-yellow-400 font-bold">{recompensaTotal.xp} XP</span></div>
               <div className="flex items-center gap-2 bg-yellow-500/20 px-4 py-2 rounded-lg">
