@@ -4,6 +4,8 @@ import React, { useEffect, useState } from 'react';
 import { supabase } from '../supabase';
 import useNeuroState from '../store/useNeuroState';
 import LoadingScreen from './LoadingScreen';
+import RankingTopSellers from './RankingTopSellers';
+import RankingTopCreators from './RankingTopCreators';
 
 interface NivelVentas {
   id: string;
@@ -324,6 +326,8 @@ const NivelesClasificacionDashboard: React.FC = () => {
             </div>
           </div>
         </div>
+
+        {tipoNivel === 'educacion' ? <RankingTopCreators /> : <RankingTopSellers />}
 
         {/* Sistema de XP y Monedas */}
         <div className="space-y-8">
