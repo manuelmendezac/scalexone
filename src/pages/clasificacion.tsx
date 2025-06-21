@@ -80,8 +80,8 @@ const ClasificacionPage: React.FC = () => {
   return (
     <div className="container mx-auto p-4 space-y-12">
       {/* --- Ranking de Vendedores (Afiliados) --- */}
-      {/* Este componente es autónomo y no se toca */}
-      <RankingTopSellers />
+      {/* Este componente se comenta temporalmente para depurar el de creadores */}
+      {/* <RankingTopSellers /> */}
 
       {/* --- Ranking de Creadores (Educación por XP) --- */}
       <div>
