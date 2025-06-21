@@ -19,38 +19,57 @@ const RankingTopSellers = () => {
   const fetchTopSellers = async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('usuarios')
-        .select(`
-          full_name,
-          email,
-          country,
-          avatar_url,
-          progreso_ventas_usuario (
-            ventas_acumuladas
-          )
-        `)
-        .order('ventas_acumuladas', { referencedTable: 'progreso_ventas_usuario', ascending: false, nullsFirst: false })
+      const { data: progressData, error: progressError } = await supabase
+        .from('progreso_ventas_usuario')
+        .select('usuario_id, ventas_acumuladas')
+        .order('ventas_acumuladas', { ascending: false, nullsFirst: false })
         .limit(10);
 
-      if (error) throw error;
+      if (progressError) throw progressError;
 
-      if (data) {
-        const formattedSellers = data
-          .filter(user => user.progreso_ventas_usuario && user.progreso_ventas_usuario.length > 0 && user.progreso_ventas_usuario[0].ventas_acumuladas !== null)
-          .map((user, index) => ({
-            puesto: index + 1,
-            nombre: user.full_name,
-            email: user.email,
-            pais: user.country || '🌎',
-            ventas_totales: user.progreso_ventas_usuario[0].ventas_acumuladas,
-            nivel_ventas: 'Starter',
-            avatar: user.avatar_url || '/images/silueta-perfil.svg',
-          }));
-        setTopSellers(formattedSellers);
+      if (!progressData || progressData.length === 0) {
+        setTopSellers([]);
+        setLoading(false);
+        return;
       }
+      
+      const userIds = progressData.map(p => p.usuario_id).filter(Boolean);
+      if (userIds.length === 0) {
+        setTopSellers([]);
+        setLoading(false);
+        return;
+      }
+
+      const { data: usersData, error: usersError } = await supabase
+        .from('usuarios')
+        .select('id, full_name, email, country, avatar_url')
+        .in('id', userIds);
+
+      if (usersError) throw usersError;
+
+      const usersById = usersData ? new Map(usersData.map(u => [u.id, u])) : new Map();
+
+      const formattedSellers: TopSeller[] = progressData
+        .map((progress, index) => {
+            const user = usersById.get(progress.usuario_id);
+            if (!user) return null;
+            return {
+                puesto: index + 1,
+                nombre: user.full_name || 'Vendedor Anónimo',
+                email: user.email || '',
+                pais: user.country || '🌎',
+                ventas_totales: progress.ventas_acumuladas || 0,
+                nivel_ventas: 'Starter',
+                avatar: user.avatar_url || '/images/silueta-perfil.svg',
+            };
+        })
+        .filter((s): s is TopSeller => s !== null);
+
+      setTopSellers(formattedSellers);
+
     } catch (err) {
       console.error('Error al cargar top sellers:', err);
+      setTopSellers([]);
     } finally {
       setLoading(false);
     }
