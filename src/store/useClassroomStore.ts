@@ -65,13 +65,14 @@ const useClassroomStore = create<ClassroomStore>((set, get) => ({
   orderMsg: null,
 
   fetchModulos: async () => {
-    const { user } = useAuth.getState();
-    const userId = user?.id;
-
     set({ loading: true, error: null });
 
     try {
-      // 1. Fetch todos los módulos y todos los videos en paralelo
+      // 1. Obtener la sesión del usuario de forma segura
+      const { data: { session } } = await supabase.auth.getSession();
+      const userId = session?.user?.id;
+      
+      // 2. Fetch todos los módulos y todos los videos en paralelo
       const [modulosRes, videosRes, progresoRes] = await Promise.all([
         supabase.from('classroom_modulos').select('*').order('orden', { ascending: true }),
         supabase.from('videos_classroom_modulo').select('id, modulo_id'),
@@ -86,7 +87,7 @@ const useClassroomStore = create<ClassroomStore>((set, get) => ({
       const todosLosVideos = videosRes.data || [];
       const videosCompletadosSet = new Set((progresoRes.data?.videos_ids as string[] | null) || []);
 
-      // 2. Procesar y enriquecer los datos
+      // 3. Procesar y enriquecer los datos
       const videosPorModulo = todosLosVideos.reduce((acc, video) => {
         if (!acc[video.modulo_id]) {
           acc[video.modulo_id] = [];
