@@ -38,32 +38,56 @@ const Clasificacion: React.FC = () => {
     const fetchTopCreators = async () => {
       setLoadingCreators(true);
       try {
-        const { data, error } = await supabase
+        const { data: progressData, error: progressError } = await supabase
           .from('progreso_usuario_xp')
-          .select(`
-            xp_actual,
-            users (id, full_name, country, avatar_url, email)
-          `)
+          .select('usuario_id, xp_actual')
           .order('xp_actual', { ascending: false })
           .limit(100);
 
-        if (error) throw error;
-        if (data) {
-          const formatted: TopCreator[] = data
-            .map((item: any, index: number) => item.users ? {
-              puesto: index + 1,
-              nombre: item.users.full_name || 'Usuario Anónimo',
-              email: item.users.email || '',
-              pais: item.users.country || '🌍',
-              xp_total: item.xp_actual,
-              nivel_academico: 'N/A',
-              avatar: item.users.avatar_url || '/images/silueta-perfil.svg',
-            } : null)
-            .filter((c): c is TopCreator => c !== null);
-          setCreators(formatted);
+        if (progressError) throw progressError;
+        if (!progressData || progressData.length === 0) {
+            setCreators([]);
+            return;
         }
+
+        const userIds = progressData.map(p => p.usuario_id).filter(Boolean);
+        if (userIds.length === 0) {
+            setCreators([]);
+            return;
+        }
+
+        const { data: usersData, error: usersError } = await supabase
+            .from('usuarios')
+            .select('id, full_name, country, avatar_url, email')
+            .in('id', userIds);
+
+        if (usersError) throw usersError;
+        if (!usersData) {
+            setCreators([]);
+            return;
+        }
+
+        const usersById = new Map(usersData.map(u => [u.id, u]));
+        const formattedCreators: TopCreator[] = progressData
+            .map((progress, index) => {
+                const user = usersById.get(progress.usuario_id);
+                if (!user) return null;
+                return {
+                    puesto: index + 1,
+                    nombre: user.full_name || 'Usuario Anónimo',
+                    email: user.email || '',
+                    pais: user.country || '🌍',
+                    xp_total: progress.xp_actual,
+                    nivel_academico: 'N/A',
+                    avatar: user.avatar_url || '/images/silueta-perfil.svg',
+                };
+            })
+            .filter((c): c is TopCreator => c !== null);
+
+        setCreators(formattedCreators);
       } catch (err) {
         console.error("Error fetching top creators:", err);
+        setCreators([]);
       } finally {
         setLoadingCreators(false);
       }
@@ -72,32 +96,56 @@ const Clasificacion: React.FC = () => {
     const fetchTopSellers = async () => {
         setLoadingSellers(true);
         try {
-            const { data, error } = await supabase
+            const { data: progressData, error: progressError } = await supabase
                 .from('progreso_ventas_usuario')
-                .select(`
-                    ventas_acumuladas,
-                    users (id, full_name, country, avatar_url, email)
-                `)
+                .select('usuario_id, ventas_acumuladas')
                 .order('ventas_acumuladas', { ascending: false, nullsFirst: false })
                 .limit(100);
-
-            if (error) throw error;
-            if (data) {
-                const formatted: TopSeller[] = data
-                    .map((item: any, index: number) => item.users ? {
-                        puesto: index + 1,
-                        nombre: item.users.full_name || 'Vendedor Anónimo',
-                        email: item.users.email || '',
-                        pais: item.users.country || '🌍',
-                        ventas_totales: item.ventas_acumuladas,
-                        nivel_ventas: 'N/A',
-                        avatar: item.users.avatar_url || '/images/silueta-perfil.svg',
-                    } : null)
-                    .filter((s): s is TopSeller => s !== null);
-                setSellers(formatted);
+            
+            if (progressError) throw progressError;
+            if (!progressData || progressData.length === 0) {
+                setSellers([]);
+                return;
             }
+    
+            const userIds = progressData.map(p => p.usuario_id).filter(Boolean);
+            if (userIds.length === 0) {
+                setSellers([]);
+                return;
+            }
+    
+            const { data: usersData, error: usersError } = await supabase
+                .from('usuarios')
+                .select('id, full_name, country, avatar_url, email')
+                .in('id', userIds);
+    
+            if (usersError) throw usersError;
+            if (!usersData) {
+                setSellers([]);
+                return;
+            }
+    
+            const usersById = new Map(usersData.map(u => [u.id, u]));
+            const formattedSellers: TopSeller[] = progressData
+                .map((progress, index) => {
+                    const user = usersById.get(progress.usuario_id);
+                    if (!user) return null;
+                    return {
+                        puesto: index + 1,
+                        nombre: user.full_name || 'Vendedor Anónimo',
+                        email: user.email || '',
+                        pais: user.country || '🌍',
+                        ventas_totales: progress.ventas_acumuladas || 0,
+                        nivel_ventas: 'N/A',
+                        avatar: user.avatar_url || '/images/silueta-perfil.svg',
+                    };
+                })
+                .filter((s): s is TopSeller => s !== null);
+            
+            setSellers(formattedSellers);
         } catch (err) {
             console.error("Error fetching top sellers:", err);
+            setSellers([]);
         } finally {
             setLoadingSellers(false);
         }

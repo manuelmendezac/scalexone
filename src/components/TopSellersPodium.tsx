@@ -6,6 +6,7 @@ interface PodiumEntity {
   avatar: string;
   puesto: number;
   ventas_totales?: number; // Opcional, para vendedores
+  xp_total?: number;      // Opcional, para creadores
 }
 
 // Props que recibe el componente del podio
