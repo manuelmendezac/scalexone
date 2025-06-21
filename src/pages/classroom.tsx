@@ -8,6 +8,7 @@ import { useHydration } from '../store/useNeuroState';
 import LoadingScreen from '../components/LoadingScreen';
 import GlobalLoadingSpinner from '../components/GlobalLoadingSpinner';
 import ReactPlayer from 'react-player/lazy';
+import { supabase } from '../lib/supabase';
 
 // Modelo de módulo con imagen de portada
 type Modulo = {
@@ -92,6 +93,7 @@ const Classroom = () => {
   const navigate = useNavigate();
   const [isAdmin, setIsAdmin] = React.useState(false);
   const [hoveredModuleId, setHoveredModuleId] = React.useState<string | null>(null);
+  const [isUploading, setIsUploading] = React.useState(false);
   const isHydrated = useHydration();
 
   const {
@@ -139,12 +141,29 @@ const Classroom = () => {
     handleDragEndStore(sourceIdx, destIdx);
   };
 
-  const handleCoverImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
-      const newCoverUrl = URL.createObjectURL(file);
-      // Aquí también guardaríamos el 'file' para la subida real
-      setEditModulo({ ...editModulo, imagen_url: newCoverUrl });
+  const handleCoverImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || e.target.files.length === 0) return;
+    const file = e.target.files[0];
+
+    setIsUploading(true);
+    try {
+      const fileName = `classroom-cover-${Date.now()}-${file.name}`;
+      const { error: uploadError } = await supabase.storage
+        .from('cursos') // Usamos el bucket 'cursos'
+        .upload(fileName, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: urlData } = supabase.storage
+        .from('cursos')
+        .getPublicUrl(fileName);
+
+      setEditModulo({ ...editModulo, imagen_url: urlData.publicUrl });
+    } catch (error) {
+      console.error('Error al subir la imagen:', error);
+      // Aquí podrías añadir un mensaje de error para el usuario
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -359,24 +378,31 @@ const Classroom = () => {
                             <div>
                               <label className="block text-sm font-medium text-neutral-300 mb-2">Portada</label>
                               <div 
-                                onClick={() => document.getElementById('cover-image-upload')?.click()}
+                                onClick={() => !isUploading && document.getElementById('cover-image-upload')?.click()}
                                 className="aspect-[4/3] w-full bg-neutral-800 rounded-lg border-2 border-dashed border-neutral-700 flex items-center justify-center relative group cursor-pointer"
                               >
-                                  {editModulo.imagen_url ? (
+                                  {isUploading ? (
+                                    <div className="flex flex-col items-center justify-center text-neutral-400">
+                                      <svg className="animate-spin h-8 w-8 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                                      <span className="mt-2 text-sm">Subiendo...</span>
+                                    </div>
+                                  ) : editModulo.imagen_url ? (
                                     <img src={editModulo.imagen_url} alt="Portada" className="w-full h-full object-cover rounded-md" />
                                   ) : (
                                     <div className="text-neutral-500 text-center">
                                         <svg xmlns="http://www.w3.org/2000/svg" className="mx-auto h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l-1.586-1.586a2 2 0 00-2.828 0L6 14m6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
                                     </div>
                                   )}
-                                  <button 
-                                    onClick={(e) => { e.stopPropagation(); setEditModulo({ ...editModulo, imagen_url: '' })}}
-                                    className="absolute bottom-2 right-2 bg-neutral-900/50 p-2 rounded-full text-white hover:bg-red-500/80 transition-colors opacity-0 group-hover:opacity-100"
-                                  >
-                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                                  </button>
+                                  {editModulo.imagen_url && !isUploading && (
+                                    <button 
+                                      onClick={(e) => { e.stopPropagation(); setEditModulo({ ...editModulo, imagen_url: '' })}}
+                                      className="absolute bottom-2 right-2 bg-neutral-900/50 p-2 rounded-full text-white hover:bg-red-500/80 transition-colors opacity-0 group-hover:opacity-100"
+                                    >
+                                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                                    </button>
+                                  )}
                               </div>
-                              <input id="cover-image-upload" type="file" className="hidden" accept="image/*" onChange={handleCoverImageUpload} />
+                              <input id="cover-image-upload" type="file" className="hidden" accept="image/*" onChange={handleCoverImageUpload} disabled={isUploading} />
                             </div>
                           ) : (
                             <div>
