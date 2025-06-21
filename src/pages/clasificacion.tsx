@@ -42,7 +42,7 @@ const Clasificacion: React.FC = () => {
           .from('progreso_usuario_xp')
           .select(`
             xp_actual,
-            usuarios (id, full_name, country, avatar_url, email)
+            users (id, full_name, country, avatar_url, email)
           `)
           .order('xp_actual', { ascending: false })
           .limit(100);
@@ -50,14 +50,14 @@ const Clasificacion: React.FC = () => {
         if (error) throw error;
         if (data) {
           const formatted: TopCreator[] = data
-            .map((item: any, index: number) => item.usuarios ? {
+            .map((item: any, index: number) => item.users ? {
               puesto: index + 1,
-              nombre: item.usuarios.full_name || 'Usuario Anónimo',
-              email: item.usuarios.email || '',
-              pais: item.usuarios.country || '🌍',
+              nombre: item.users.full_name || 'Usuario Anónimo',
+              email: item.users.email || '',
+              pais: item.users.country || '🌍',
               xp_total: item.xp_actual,
               nivel_academico: 'N/A',
-              avatar: item.usuarios.avatar_url || '/images/silueta-perfil.svg',
+              avatar: item.users.avatar_url || '/images/silueta-perfil.svg',
             } : null)
             .filter((c): c is TopCreator => c !== null);
           setCreators(formatted);
@@ -76,7 +76,7 @@ const Clasificacion: React.FC = () => {
                 .from('progreso_ventas_usuario')
                 .select(`
                     ventas_acumuladas,
-                    usuarios (id, full_name, country, avatar_url, email)
+                    users (id, full_name, country, avatar_url, email)
                 `)
                 .order('ventas_acumuladas', { ascending: false, nullsFirst: false })
                 .limit(100);
@@ -84,14 +84,14 @@ const Clasificacion: React.FC = () => {
             if (error) throw error;
             if (data) {
                 const formatted: TopSeller[] = data
-                    .map((item: any, index: number) => item.usuarios ? {
+                    .map((item: any, index: number) => item.users ? {
                         puesto: index + 1,
-                        nombre: item.usuarios.full_name || 'Vendedor Anónimo',
-                        email: item.usuarios.email || '',
-                        pais: item.usuarios.country || '🌍',
+                        nombre: item.users.full_name || 'Vendedor Anónimo',
+                        email: item.users.email || '',
+                        pais: item.users.country || '🌍',
                         ventas_totales: item.ventas_acumuladas,
                         nivel_ventas: 'N/A',
-                        avatar: item.usuarios.avatar_url || '/images/silueta-perfil.svg',
+                        avatar: item.users.avatar_url || '/images/silueta-perfil.svg',
                     } : null)
                     .filter((s): s is TopSeller => s !== null);
                 setSellers(formatted);
