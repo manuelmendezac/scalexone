@@ -27,6 +27,9 @@ const LineaVideosClassroom = () => {
   const [isAdmin, setIsAdmin] = useState(false);
   const [fullscreen, setFullscreen] = useState(false);
   
+  // Cache para miniaturas generadas dinámicamente
+  const [thumbnailCache, setThumbnailCache] = useState<Record<string, string>>({});
+
   // Nuevo estado para el seguimiento de videos completados
   const [videosCompletados, setVideosCompletados] = useState<Set<string>>(new Set());
   const [userId, setUserId] = useState<string | null>(null);
@@ -82,6 +85,45 @@ const LineaVideosClassroom = () => {
       }
     };
   }, [modulo_id]);
+
+  function getVideoThumbnail(url: string): string | null {
+    if (!url) return null;
+    // YouTube
+    const youtubeMatch = url.match(/(?:https?:\/\/)?(?:www\.)?(?:youtube\.com|youtu\.be)\/(?:watch\?v=)?(?:embed\/)?(?:v\/)?(?:shorts\/)?([\w-]{11})(?:\S+)?/);
+    if (youtubeMatch && youtubeMatch[1]) {
+      return `https://img.youtube.com/vi/${youtubeMatch[1]}/mqdefault.jpg`;
+    }
+    // Vimeo
+    const vimeoMatch = url.match(/vimeo\.com\/(?:video\/)?(\d+)/);
+    if (vimeoMatch && vimeoMatch[1]) {
+      // La API de oEmbed de Vimeo es una opción más robusta pero requiere una llamada asíncrona.
+      // Vumbnail es un servicio de terceros práctico para esto.
+      return `https://vumbnail.com/${vimeoMatch[1]}.jpg`;
+    }
+    return null;
+  }
+
+  // Efecto para buscar miniaturas faltantes
+  useEffect(() => {
+    const fetchThumbnails = async () => {
+        const newThumbnails: Record<string, string> = {};
+        for (const clase of clases) {
+           if (!clase.thumbnail_url && !thumbnailCache[clase.id] && clase.url) {
+                const thumb = getVideoThumbnail(clase.url);
+                if (thumb) {
+                   newThumbnails[clase.id] = thumb;
+                }
+           }
+        }
+        if (Object.keys(newThumbnails).length > 0) {
+            setThumbnailCache(prev => ({ ...prev, ...newThumbnails }));
+        }
+    };
+
+    if (clases.length > 0) {
+        fetchThumbnails();
+    }
+  }, [clases]);
 
   const fetchModuloYProgreso = async (currentModuloId: string, currentUserId: string | null) => {
     // 1. Obtener información del módulo
@@ -581,11 +623,6 @@ const LineaVideosClassroom = () => {
             <>
               <h3 className="text-xl sm:text-2xl md:text-3xl font-bold mb-4 sm:mb-6 text-cyan-300 tracking-tight uppercase text-center drop-shadow-glow">Clases del módulo</h3>
               {clasesOrdenadas.map((v, idx) => {
-                let thumb = v.miniatura_url;
-                if ((!thumb || thumb === 'null') && v.url) {
-                  const vimeoMatch = v.url.match(/vimeo\.com\/(\d+)/);
-                  if (vimeoMatch) thumb = `https://vumbnail.com/${vimeoMatch[1]}.jpg`;
-                }
                 return (
                   <div
                     key={v.id}
@@ -594,13 +631,17 @@ const LineaVideosClassroom = () => {
                     style={{ minHeight: 110 }}
                   >
                     <div className="flex-shrink-0 w-32 h-20 bg-black rounded-xl overflow-hidden flex items-center justify-center border-2 border-cyan-800 group-hover:border-cyan-400 transition">
-                      {thumb ? (
-                        <img src={thumb} alt={v.titulo} className="w-full h-full object-cover" />
-                      ) : v.url && (v.url.endsWith('.mp4') || v.url.endsWith('.webm')) ? (
-                        <video src={v.url} className="w-full h-full object-cover" muted playsInline preload="metadata" style={{pointerEvents:'none'}} />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center text-cyan-400">Sin video</div>
-                      )}
+                      { (v.thumbnail_url || thumbnailCache[v.id]) ? (
+                          <img
+                              src={v.thumbnail_url || thumbnailCache[v.id]}
+                              alt={`Miniatura de ${v.titulo}`}
+                              className="w-full h-full object-cover"
+                          />
+                        ) : v.url && (v.url.endsWith('.mp4') || v.url.endsWith('.webm')) ? (
+                         <video src={v.url} className="w-full h-full object-cover" muted playsInline preload="metadata" style={{pointerEvents:'none'}} />
+                       ) : (
+                         <div className="w-full h-full flex items-center justify-center text-cyan-400">Sin video</div>
+                       )}
                     </div>
                     <div className="flex-1 flex flex-col justify-center min-w-0">
                       <div className="font-bold text-cyan-200 text-base truncate mb-1" style={{fontSize:'1rem'}}>{v.titulo}</div>
