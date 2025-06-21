@@ -6,7 +6,6 @@ import NivelesClasificacionDashboard from './NivelesClasificacionDashboard';
 import RankingTopSellers from './RankingTopSellers';
 import TopCreatorsPodium from './TopCreatorsPodium';
 import RankingTopCreators from './RankingTopCreators';
-import RankingVentasCompacto from './RankingVentasCompacto';
 import { supabase } from '../supabase';
 import LoadingScreen from '../components/LoadingScreen';
 
@@ -52,7 +51,7 @@ const Dashboard: React.FC = () => {
 
         const { data: usersData, error: usersError } = await supabase
             .from('usuarios')
-            .select('id, full_name, email, country, avatar_url')
+            .select('id, nombre, email, country, avatar_url')
             .in('id', userIds);
 
         if (usersError) throw usersError;
@@ -65,7 +64,7 @@ const Dashboard: React.FC = () => {
                 if (!user) return null;
                 return {
                     puesto: index + 1,
-                    nombre: user.full_name || 'Usuario Anónimo',
+                    nombre: user.nombre || 'Usuario Anónimo',
                     email: user.email || '',
                     pais: user.country || '🌍',
                     xp_total: progress.xp_actual,
@@ -163,7 +162,6 @@ const Dashboard: React.FC = () => {
           {/* Rankings de Ventas */}
           <div className="space-y-8">
             <RankingTopSellers />
-            <RankingVentasCompacto />
           </div>
         </div>
 
