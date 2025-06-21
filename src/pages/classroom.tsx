@@ -75,15 +75,18 @@ const MODULOS_MODELO: Modulo[] = [
 
 // Barra de progreso futurista
 const ProgresoFuturista = ({ porcentaje }: { porcentaje: number }) => (
-  <div className="w-full h-2 rounded-full bg-neutral-700 relative overflow-hidden mt-2 mb-1">
+  <div className="w-full h-3 rounded-full bg-neutral-700 relative overflow-hidden mt-2 mb-1">
     <div
-      className="h-2 rounded-full transition-all duration-700"
+      className="h-3 rounded-full transition-all duration-700"
       style={{
         width: `${porcentaje}%`,
         background: 'linear-gradient(90deg, #FDB813 0%, #E8A317 100%)',
         boxShadow: '0 0 10px 1px #FDB81399',
       }}
     />
+    <span className="absolute inset-0 flex items-center justify-center text-xs font-bold text-white" style={{textShadow:'0 1px 1px rgba(0,0,0,0.7)'}}>
+      {porcentaje}%
+    </span>
   </div>
 );
 
@@ -125,7 +128,7 @@ const Classroom = () => {
   }, [isHydrated, fetchModulos]);
 
   // Progreso real: por ahora, siempre 0%
-  const getProgreso = () => 0;
+  const getProgreso = () => 50; // Temporal para visualización
   const getBadge = (mod: typeof modulos[0]) => mod.badge_url || (getProgreso() === 100 ? '🏆' : null);
 
   const handleEdit = (idx: number) => {
