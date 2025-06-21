@@ -4,8 +4,12 @@
       "TSC_COMPILE_ON_ERROR": "true"
     }
   },
-  "rewrites": [
-    { "source": "/(.*)", "destination": "/" }
+  "routes": [
+    {
+      "src": "/[^.]+",
+      "dest": "/",
+      "status": 200
+    }
   ],
   "headers": [
     {
