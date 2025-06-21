@@ -4,6 +4,7 @@ import { FiPlusCircle, FiZap, FiUser } from 'react-icons/fi';
 import useNeuroState from '../store/useNeuroState';
 import NivelesClasificacionDashboard from './NivelesClasificacionDashboard';
 import RankingTopSellers from './RankingTopSellers';
+import TopCreatorsPodium from './TopCreatorsPodium';
 import RankingTopCreators from './RankingTopCreators';
 import RankingVentasCompacto from './RankingVentasCompacto';
 import { supabase } from '../supabase';
@@ -11,47 +12,75 @@ import LoadingScreen from '../components/LoadingScreen';
 
 interface TopCreator {
   nombre: string;
+  avatar: string;
+  puesto: number;
+  xp_total: number;
   email: string;
   pais: string;
-  xp_total: number;
   nivel_academico: string;
-  avatar: string;
-  puesto?: number;
 }
 
 const Dashboard: React.FC = () => {
-  const [topCreators, setTopCreators] = useState<TopCreator[]>([]);
-  const [loadingCreators, setLoadingCreators] = useState(true);
+  const [creators, setCreators] = useState<TopCreator[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchTopCreators = async () => {
+      setLoading(true);
       try {
-        setLoadingCreators(true);
-        const { data, error } = await supabase.rpc('get_top_creators').limit(10);
+        // Lógica de dos pasos que sí funciona
+        const { data: progressData, error: progressError } = await supabase
+          .from('progreso_usuario_xp')
+          .select('usuario_id, xp_actual')
+          .order('xp_actual', { ascending: false })
+          .limit(100);
 
-        // --- INICIO DE DEPURACIÓN ---
-        console.log("Respuesta de get_top_creators:", { data, error });
-        // --- FIN DE DEPURACIÓN ---
+        if (progressError) throw progressError;
 
-        if (error) {
-          console.error("Error fetching top creators:", error);
-          throw error;
+        if (!progressData || progressData.length === 0) {
+            setCreators([]);
+            setLoading(false);
+            return;
         }
 
-        const formattedCreators = (data || []).map((creator: any, index: number) => ({
-          nombre: creator.nombre,
-          email: creator.email,
-          pais: creator.pais || '🌎',
-          xp_total: creator.xp_actual,
-          nivel_academico: creator.nivel_nombre || 'Básico',
-          avatar: creator.avatar_url || '/images/silueta-perfil.svg',
-          puesto: index + 1,
-        }));
-        setTopCreators(formattedCreators);
-      } catch (error) {
-        console.error('Error al cargar top creators:', error);
+        const userIds = progressData.map(p => p.usuario_id).filter(Boolean);
+        if (userIds.length === 0) {
+            setCreators([]);
+            setLoading(false);
+            return;
+        }
+
+        const { data: usersData, error: usersError } = await supabase
+            .from('usuarios')
+            .select('id, full_name, email, country, avatar_url')
+            .in('id', userIds);
+
+        if (usersError) throw usersError;
+
+        const usersById = usersData ? new Map(usersData.map(u => [u.id, u])) : new Map();
+        
+        const formattedCreators: TopCreator[] = progressData
+            .map((progress, index) => {
+                const user = usersById.get(progress.usuario_id);
+                if (!user) return null;
+                return {
+                    puesto: index + 1,
+                    nombre: user.full_name || 'Usuario Anónimo',
+                    email: user.email || '',
+                    pais: user.country || '🌍',
+                    xp_total: progress.xp_actual,
+                    nivel_academico: 'N/A',
+                    avatar: user.avatar_url || '/images/silueta-perfil.svg',
+                };
+            })
+            .filter((c): c is TopCreator => c !== null);
+
+        setCreators(formattedCreators);
+      } catch (err) {
+        console.error("Error fetching top creators:", err);
+        setCreators([]);
       } finally {
-        setLoadingCreators(false);
+        setLoading(false);
       }
     };
 
@@ -63,10 +92,6 @@ const Dashboard: React.FC = () => {
     { icon: <FiZap />, texto: 'Alimentar fuentes', link: '/clasificacion/uploader' },
     { icon: <FiUser />, texto: 'Ver perfil', link: '/perfil' },
   ];
-
-  const primerLugarCreator = topCreators[0] || { avatar: '/images/silueta-perfil.svg', nombre: '...' };
-  const segundoLugarCreator = topCreators[1] || { avatar: '/images/silueta-perfil.svg', nombre: '...' };
-  const tercerLugarCreator = topCreators[2] || { avatar: '/images/silueta-perfil.svg', nombre: '...' };
 
   return (
     <div className="min-h-screen bg-black w-full p-6">
@@ -159,41 +184,10 @@ const Dashboard: React.FC = () => {
             </span>
           </div>
 
-          {/* Podio de ganadores de Creadores con datos */}
-          {loadingCreators ? (
-            <div className="text-center text-white/80 py-10">Cargando podio de creadores...</div>
-          ) : (
-            <div className="flex justify-center items-end gap-8 mb-12 mt-4">
-              {/* Segundo lugar */}
-              <div className="flex flex-col items-center text-center">
-                <img src={segundoLugarCreator.avatar} alt="Segundo lugar" className="w-20 h-20 rounded-full border-4 border-[#C0C0C0] mb-2" />
-                <p className="text-white font-bold">{segundoLugarCreator.nombre}</p>
-                <div className="w-24 h-32 bg-[#C0C0C0]/20 rounded-t-lg flex items-center justify-center">
-                  <span className="text-4xl">🥈</span>
-                </div>
-              </div>
-              {/* Primer lugar */}
-              <div className="flex flex-col items-center text-center">
-                <img src={primerLugarCreator.avatar} alt="Primer lugar" className="w-24 h-24 rounded-full border-4 border-[#00BFFF] mb-2" />
-                <p className="text-white font-bold">{primerLugarCreator.nombre}</p>
-                <div className="w-24 h-40 bg-[#00BFFF]/20 rounded-t-lg flex items-center justify-center">
-                  <span className="text-4xl">🚀</span>
-                </div>
-              </div>
-              {/* Tercer lugar */}
-              <div className="flex flex-col items-center text-center">
-                <img src={tercerLugarCreator.avatar} alt="Tercer lugar" className="w-20 h-20 rounded-full border-4 border-[#CD7F32] mb-2" />
-                <p className="text-white font-bold">{tercerLugarCreator.nombre}</p>
-                <div className="w-24 h-24 bg-[#CD7F32]/20 rounded-t-lg flex items-center justify-center">
-                  <span className="text-4xl">🥉</span>
-                </div>
-              </div>
-            </div>
-          )}
+          <TopCreatorsPodium topThree={creators.slice(0, 3)} loading={loading} />
 
-          {/* Ranking de Creadores */}
-          <div className="space-y-8">
-            <RankingTopCreators creators={topCreators} loading={loadingCreators} />
+          <div className="mt-8">
+            <RankingTopCreators creators={creators} loading={loading} />
           </div>
         </div>
       </motion.div>
