@@ -54,39 +54,39 @@ const PodiumStand: React.FC<{ creator: PodiumCreator, positionClass: string, med
 // Componente principal del podio
 const TopCreatorsPodium: React.FC<TopCreatorsPodiumProps> = ({ topThree, loading }) => {
   if (loading) {
-    return (
-      <div className="flex justify-center items-end h-72 bg-black/20 rounded-xl">
-        <p className="text-white/80 mb-8">Cargando el podio de los campeones...</p>
-      </div>
-    );
-  }
-  
-  if (topThree.length < 3) {
-    return (
-       <div className="text-center text-white/80 py-4">No hay suficientes creadores para mostrar el podio.</div>
-    )
+    return <div className="text-center text-white/80 py-10">Cargando podio de creadores...</div>;
   }
 
-  const [first, second, third] = topThree;
+  const segundoLugar = topThree.find(c => c.puesto === 2) || { avatar: '/images/silueta-perfil.svg', nombre: '...' };
+  const primerLugar = topThree.find(c => c.puesto === 1) || { avatar: '/images/silueta-perfil.svg', nombre: '...' };
+  const tercerLugar = topThree.find(c => c.puesto === 3) || { avatar: '/images/silueta-perfil.svg', nombre: '...' };
 
   return (
-    <div className="bg-black/40 border border-[#FFD700]/30 rounded-2xl p-6 shadow-xl text-center">
-      <h2 className="text-2xl font-bold text-white mb-2 font-orbitron">
-        Esta tabla no mide notas, mide transformación.
-      </h2>
-      <p className="text-yellow-400 mb-8 text-lg">Mira quién está ascendiendo.</p>
-      
-      <div className="flex justify-around items-end max-w-3xl mx-auto px-4" style={{ minHeight: '300px' }}>
-        {/* Segundo Lugar */}
-        {second && <PodiumStand creator={second} positionClass="order-2" medal="🥈" />}
-        
-        {/* Primer Lugar */}
-        {first && <PodiumStand creator={first} positionClass="order-1" medal="🥇" />}
-        
-        {/* Tercer Lugar */}
-        {third && <PodiumStand creator={third} positionClass="order-3" medal="🥉" />}
+    <div className="flex justify-center items-end gap-8 mb-12 mt-4">
+      {/* Segundo lugar */}
+      <div className="flex flex-col items-center text-center">
+        <img src={segundoLugar.avatar} alt="Segundo lugar" className="w-20 h-20 rounded-full border-4 border-[#C0C0C0] mb-2" />
+        <p className="text-white font-bold">{segundoLugar.nombre}</p>
+        <div className="w-24 h-32 bg-[#C0C0C0]/20 rounded-t-lg flex items-center justify-center">
+          <span className="text-4xl">🥈</span>
+        </div>
       </div>
-       <p className="text-sm text-white/50 text-right mt-4">Actualizado en tiempo real</p>
+      {/* Primer lugar */}
+      <div className="flex flex-col items-center text-center">
+        <img src={primerLugar.avatar} alt="Primer lugar" className="w-24 h-24 rounded-full border-4 border-[#00BFFF] mb-2" />
+        <p className="text-white font-bold">{primerLugar.nombre}</p>
+        <div className="w-24 h-40 bg-[#00BFFF]/20 rounded-t-lg flex items-center justify-center">
+          <span className="text-4xl">🚀</span>
+        </div>
+      </div>
+      {/* Tercer lugar */}
+      <div className="flex flex-col items-center text-center">
+        <img src={tercerLugar.avatar} alt="Tercer lugar" className="w-20 h-20 rounded-full border-4 border-[#CD7F32] mb-2" />
+        <p className="text-white font-bold">{tercerLugar.nombre}</p>
+        <div className="w-24 h-24 bg-[#CD7F32]/20 rounded-t-lg flex items-center justify-center">
+          <span className="text-4xl">🥉</span>
+        </div>
+      </div>
     </div>
   );
 };
