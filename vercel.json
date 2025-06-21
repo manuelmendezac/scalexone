@@ -6,7 +6,8 @@
   },
   "rewrites": [
     {
-      "source": "/((?!api/|_next/|.*\\..*).*)"
+      "source": "/((?!api/|_next/|.*\\..*).*)",
+      "destination": "/"
     }
   ],
   "headers": [
