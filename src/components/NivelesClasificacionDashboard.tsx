@@ -326,8 +326,6 @@ const NivelesClasificacionDashboard: React.FC = () => {
           </div>
         </div>
 
-        {tipoNivel === 'educacion' ? <RankingTopCreators /> : <RankingTopSellers />}
-
         {/* Sistema de XP y Monedas */}
         <div className="space-y-8">
           {/* Cards de Nivel, XP y Monedas */}
