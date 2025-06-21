@@ -23,6 +23,10 @@ type Modulo = {
   badge_url?: string;
   cover_type?: string;
   cover_video_url?: string;
+  total_videos?: number;
+  videos_completados?: number;
+  recompensa_xp?: number;
+  recompensa_monedas?: number;
 };
 
 const MODULOS_MODELO: Modulo[] = [
@@ -113,8 +117,6 @@ const Classroom = () => {
     setEditIdx,
     setShowEditModal,
     setEditModulo,
-    setSaveMsg,
-    setOrderMsg,
     handleSaveEdit,
     handleDragEnd: handleDragEndStore,
     handleDelete
@@ -126,13 +128,15 @@ const Classroom = () => {
     fetchModulos();
   }, [isHydrated, fetchModulos]);
 
-  // Progreso real: por ahora, siempre 0%
-  const getProgreso = () => 50; // Temporal para visualización
-  const getBadge = (mod: typeof modulos[0]) => mod.badge_url || (getProgreso() === 100 ? '🏆' : null);
+  const getProgreso = (mod: Modulo) => {
+    if (!mod.total_videos || mod.total_videos === 0) return 0;
+    return Math.round(((mod.videos_completados || 0) / mod.total_videos) * 100);
+  };
+  
+  const getBadge = (mod: Modulo) => (getProgreso(mod) === 100 ? '🏆' : null);
 
   const handleEdit = (idx: number) => {
-    setEditIdx(idx);
-    setShowEditModal(true);
+    setEditIdx(idx + (pagina - 1) * MODULOS_POR_PAGINA);
   };
 
   // Función para manejar el drag & drop
@@ -272,15 +276,15 @@ const Classroom = () => {
                             </div>
                             
                             <div className="mt-auto pt-4">
-                              <ProgresoFuturista porcentaje={getProgreso()} />
+                              <ProgresoFuturista porcentaje={getProgreso(displayMod)} />
                               <div className="flex justify-center items-center gap-4 mt-2">
                                 <div className="flex items-center gap-1.5">
                                   <img src="/images/modulos/xp.svg" alt="XP" className="w-4 h-4" />
-                                  <span className="text-xs text-amber-400 font-medium">150</span>
+                                  <span className="text-xs text-amber-400 font-medium">+{displayMod.recompensa_xp || 0}</span>
                                 </div>
                                 <div className="flex items-center gap-1.5">
                                   <img src="/images/modulos/neurocoin.svg" alt="NeuroCoin" className="w-4 h-4" />
-                                  <span className="text-xs text-amber-400 font-medium">10</span>
+                                  <span className="text-xs text-amber-400 font-medium">{displayMod.recompensa_monedas || 0}</span>
                                 </div>
                               </div>
                             </div>
