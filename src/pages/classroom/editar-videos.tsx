@@ -1,6 +1,6 @@
 // Página de edición de videos para classroom
 import React, { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '../../supabase';
 import ModalFuturista from '../../components/ModalFuturista';
 import { HexColorPicker } from 'react-colorful';
@@ -8,8 +8,14 @@ import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import type { DropResult } from 'react-beautiful-dnd';
 
 const EditarVideosClassroom = () => {
-  const { modulo_id } = useParams();
+  const { modulo_id: paramId } = useParams();
+  const location = useLocation();
   const navigate = useNavigate();
+
+  const queryParams = new URLSearchParams(location.search);
+  const queryId = queryParams.get('modulo_id');
+  const modulo_id = paramId || queryId;
+
   const [modulo, setModulo] = useState<any>(null);
   const [videos, setVideos] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -22,7 +28,12 @@ const EditarVideosClassroom = () => {
 
   useEffect(() => {
     setIsAdmin(localStorage.getItem('adminMode') === 'true');
-    if (modulo_id) fetchModuloYVideos();
+    if (modulo_id) {
+      fetchModuloYVideos();
+    } else {
+      setLoading(false);
+      setEditorError("No se ha especificado un ID de módulo en la URL.");
+    }
   }, [modulo_id]);
 
   const fetchModuloYVideos = async () => {
