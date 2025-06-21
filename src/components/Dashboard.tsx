@@ -51,7 +51,7 @@ const Dashboard: React.FC = () => {
 
         const { data: usersData, error: usersError } = await supabase
             .from('usuarios')
-            .select('id, nombre, email, country, avatar_url')
+            .select('id, name, email, country, avatar_url')
             .in('id', userIds);
 
         if (usersError) throw usersError;
@@ -64,7 +64,7 @@ const Dashboard: React.FC = () => {
                 if (!user) return null;
                 return {
                     puesto: index + 1,
-                    nombre: user.nombre || 'Usuario Anónimo',
+                    nombre: user.name || 'Usuario Anónimo',
                     email: user.email || '',
                     pais: user.country || '🌍',
                     xp_total: progress.xp_actual,

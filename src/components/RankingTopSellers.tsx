@@ -42,7 +42,7 @@ const RankingTopSellers = () => {
 
       const { data: usersData, error: usersError } = await supabase
         .from('usuarios')
-        .select('id, nombre, email, country, avatar_url')
+        .select('id, name, email, country, avatar_url')
         .in('id', userIds);
 
       if (usersError) throw usersError;
@@ -55,7 +55,7 @@ const RankingTopSellers = () => {
             if (!user) return null;
             return {
                 puesto: index + 1,
-                nombre: user.nombre || 'Vendedor Anónimo',
+                nombre: user.name || 'Vendedor Anónimo',
                 email: user.email || '',
                 pais: user.country || '🌎',
                 ventas_totales: progress.ventas_acumuladas || 0,
