@@ -5,16 +5,12 @@ import { supabase } from '../supabase';
 import useNeuroState from '../store/useNeuroState';
 import LoadingScreen from './LoadingScreen';
 
-type TipoNivel = 'ventas' | 'academico';
-
 interface NivelVentas {
   id: string;
   nombre: string;
   min_ventas: number;
   max_ventas: number;
   descripcion: string;
-  icono: string;
-  color: string;
 }
 
 interface NivelAcademico {
@@ -24,8 +20,6 @@ interface NivelAcademico {
   videos_requeridos: number;
   xp_requerido?: number;
   descripcion: string;
-  icono: string;
-  color: string;
 }
 
 interface ProgresoUsuario {
@@ -37,9 +31,11 @@ interface ProgresoUsuario {
   xp_actual: number;
 }
 
+type TipoNivel = 'ventas' | 'educacion';
+
 const NivelesClasificacionDashboard: React.FC = () => {
-  const { userInfo } = useNeuroState();
-  const [tipoNivel, setTipoNivel] = useState<TipoNivel>('academico');
+  const { userInfo, userXP, userCoins } = useNeuroState();
+  const [tipoNivel, setTipoNivel] = useState<TipoNivel>('educacion');
   const [nivelesVentas, setNivelesVentas] = useState<NivelVentas[]>([]);
   const [nivelesAcademicos, setNivelesAcademicos] = useState<NivelAcademico[]>([]);
   const [progreso, setProgreso] = useState<ProgresoUsuario | null>(null);
@@ -86,8 +82,7 @@ const NivelesClasificacionDashboard: React.FC = () => {
         const { data: nivelesAcademicosData, error: nivelesAcademicosError } = await supabase
           .from('niveles_academicos')
           .select('*')
-          .order('modulos_requeridos', { ascending: true })
-          .order('videos_requeridos', { ascending: true });
+          .order('modulos_requeridos', { ascending: true });
 
         if (nivelesAcademicosError) throw nivelesAcademicosError;
         setNivelesAcademicos(nivelesAcademicosData || []);
@@ -132,6 +127,20 @@ const NivelesClasificacionDashboard: React.FC = () => {
   }, []);
 
   if (loading) return <LoadingScreen />;
+
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[400px] text-center p-4">
+        <div className="text-red-500 mb-4">⚠️ {error}</div>
+        <button
+          onClick={() => window.location.reload()}
+          className="bg-yellow-600 text-white px-4 py-2 rounded hover:bg-yellow-700"
+        >
+          Reintentar
+        </button>
+      </div>
+    );
+  }
   
   const nivelActual = tipoNivel === 'ventas'
     ? nivelesVentas.find(n => n.id === progreso?.nivel_actual_ventas)
@@ -149,179 +158,235 @@ const NivelesClasificacionDashboard: React.FC = () => {
       : (currentIndex < nivelesAcademicos.length - 1 ? nivelesAcademicos[currentIndex + 1] : null))
     : null;
 
-  if (error) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[400px] text-center p-4">
-        <div className="text-red-500 mb-4">⚠️ {error}</div>
-        <button
-          onClick={() => window.location.reload()}
-          className="bg-yellow-600 text-white px-4 py-2 rounded hover:bg-yellow-700"
-        >
-          Reintentar
-        </button>
-      </div>
-    );
-  }
-
-  const renderRequisitos = (nivel: NivelVentas | NivelAcademico) => {
-    if (tipoNivel === 'ventas') {
-      const n = nivel as NivelVentas;
-      return (
-        <div className="mt-4">
-          <h3 className="font-bold text-lg text-white mb-2">Requisitos del Nivel</h3>
-          <ul className="list-disc list-inside text-gray-300 space-y-1">
-            <li>{n.min_ventas} Ventas Mínimas</li>
-          </ul>
-        </div>
-      );
-    } else {
-      const n = nivel as NivelAcademico;
-      const requisitos = [
-        `${n.modulos_requeridos} Módulos Completados`,
-        `${n.videos_requeridos} Vídeos Vistos`
-      ];
-      if (n.xp_requerido && n.xp_requerido > 0) {
-        requisitos.push(`${n.xp_requerido} XP Obtenidos`);
-      }
-      return (
-        <div className="mt-4">
-          <h3 className="font-bold text-lg text-white mb-2">Requisitos del Nivel</h3>
-          <ul className="list-disc list-inside text-gray-300 space-y-1">
-            {requisitos.map((req, i) => <li key={i}>{req}</li>)}
-          </ul>
-        </div>
-      );
-    }
-  };
-
-  const renderProgressBar = () => {
-    if (!progreso || !siguienteNivel) return null;
-
-    if (tipoNivel === 'ventas') {
-      const nivelVentasActual = nivelActual as NivelVentas;
-      const siguienteNivelVentas = siguienteNivel as NivelVentas;
-      const minVentas = nivelVentasActual?.min_ventas ?? 0;
-      const meta = siguienteNivelVentas.min_ventas;
-      const progresoActual = progreso.ventas_actuales - minVentas;
-      const totalParaNivel = meta - minVentas;
-      const porcentaje = totalParaNivel > 0 ? (progresoActual / totalParaNivel) * 100 : 0;
-
-      return (
-        <div>
-          <span className="text-white text-sm">{`Progreso: ${progreso.ventas_actuales.toFixed(0)} / ${meta} ventas`}</span>
-          <div className="w-full bg-gray-700 rounded-full h-2.5 mt-1">
-            <div className="bg-green-500 h-2.5 rounded-full" style={{ width: `${Math.min(porcentaje, 100)}%` }}></div>
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-black to-[#1a1a1a] p-4 sm:p-8">
+      <div className="max-w-7xl mx-auto space-y-8">
+        {/* Sistema de Niveles */}
+        <div className="bg-black/40 border border-[#FFD700]/30 rounded-xl p-4 sm:p-8">
+          {/* Selector de tipo de nivel - Versión móvil mejorada */}
+          <div className="flex flex-col sm:flex-row justify-center gap-3 mb-8">
+            <button
+              onClick={() => setTipoNivel('ventas')}
+              className={`px-6 py-4 rounded-xl font-bold text-lg transition-all ${
+                tipoNivel === 'ventas'
+                  ? 'bg-[#FFD700] text-black shadow-lg shadow-[#FFD700]/20'
+                  : 'bg-black/40 text-[#FFD700] border border-[#FFD700]/30'
+              }`}
+            >
+              Niveles por Ventas
+            </button>
+            <button
+              onClick={() => setTipoNivel('educacion')}
+              className={`px-6 py-4 rounded-xl font-bold text-lg transition-all ${
+                tipoNivel === 'educacion'
+                  ? 'bg-[#FFD700] text-black shadow-lg shadow-[#FFD700]/20'
+                  : 'bg-black/40 text-[#FFD700] border border-[#FFD700]/30'
+              }`}
+            >
+              Niveles por Educación
+            </button>
           </div>
-        </div>
-      );
-    } else {
-      const siguienteNivelAcademico = siguienteNivel as NivelAcademico;
-      const progresoModulos = siguienteNivelAcademico.modulos_requeridos > 0 ? (progreso.modulos_completados / siguienteNivelAcademico.modulos_requeridos) * 100 : 0;
-      const progresoVideos = siguienteNivelAcademico.videos_requeridos > 0 ? (progreso.videos_completados / siguienteNivelAcademico.videos_requeridos) * 100 : 0;
-      const progresoXP = (siguienteNivelAcademico.xp_requerido ?? 0) > 0 ? (progreso.xp_actual / (siguienteNivelAcademico.xp_requerido ?? 1)) * 100 : 0;
 
-      return (
-        <div className="space-y-3">
-          <div>
-            <span className="text-white text-sm">{`Módulos: ${progreso.modulos_completados} / ${siguienteNivelAcademico.modulos_requeridos}`}</span>
-            <div className="w-full bg-gray-700 rounded-full h-2.5 mt-1">
-              <div className="bg-blue-500 h-2.5 rounded-full" style={{ width: `${Math.min(progresoModulos, 100)}%` }}></div>
-            </div>
-          </div>
-          <div>
-            <span className="text-white text-sm">{`Vídeos: ${progreso.videos_completados} / ${siguienteNivelAcademico.videos_requeridos}`}</span>
-            <div className="w-full bg-gray-700 rounded-full h-2.5 mt-1">
-              <div className="bg-purple-500 h-2.5 rounded-full" style={{ width: `${Math.min(progresoVideos, 100)}%` }}></div>
-            </div>
-          </div>
-          {(siguienteNivelAcademico.xp_requerido ?? 0) > 0 && (
-             <div>
-              <span className="text-white text-sm">{`XP: ${progreso.xp_actual} / ${siguienteNivelAcademico.xp_requerido}`}</span>
-              <div className="w-full bg-gray-700 rounded-full h-2.5 mt-1">
-                <div className="bg-yellow-400 h-2.5 rounded-full" style={{ width: `${Math.min(progresoXP, 100)}%` }}></div>
+          {/* Perfil y Progreso - Versión móvil mejorada */}
+          <div className="flex flex-col sm:flex-row items-center gap-6 mb-8">
+            {/* Círculo de Progreso y Perfil */}
+            <div className="relative w-32 sm:w-44 mb-4 sm:mb-0">
+              <div className="aspect-square rounded-full bg-[#2A2A2A] relative overflow-hidden border-4 border-[#FFD700]">
+                <img
+                  src={avatarUrl}
+                  alt="Perfil"
+                  className="absolute inset-0 w-full h-full object-cover rounded-full p-1"
+                />
+                <div className="absolute -bottom-2 -right-2 bg-[#FFD700] text-black rounded-full w-12 h-12 flex items-center justify-center font-bold text-xl border-2 border-[#1A1A1A] shadow-lg">
+                  {currentIndex + 1 > 0 ? currentIndex + 1 : '1'}
+                </div>
               </div>
             </div>
-          )}
-        </div>
-      );
-    }
-  };
-  
-  const niveles = tipoNivel === 'ventas' ? nivelesVentas : nivelesAcademicos;
 
-  return (
-    <div className="container mx-auto p-4 bg-gray-900 text-white rounded-lg">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">Clasificación y Niveles</h1>
-        <div className="flex items-center space-x-4">
-          <span className="text-lg font-semibold">{userInfo?.name || 'Usuario'}</span>
-          <img src={avatarUrl} alt="Avatar" className="w-12 h-12 rounded-full object-cover" />
-        </div>
-      </div>
-      
-      <div className="mb-6">
-        <div className="flex border-b border-gray-700">
-          <button 
-            onClick={() => setTipoNivel('academico')}
-            className={`py-2 px-4 text-lg font-semibold transition-colors duration-300 ${tipoNivel === 'academico' ? 'border-b-2 border-yellow-400 text-yellow-400' : 'text-gray-400 hover:text-white'}`}
-          >
-            Educación
-          </button>
-          <button 
-            onClick={() => setTipoNivel('ventas')}
-            className={`py-2 px-4 text-lg font-semibold transition-colors duration-300 ${tipoNivel === 'ventas' ? 'border-b-2 border-yellow-400 text-yellow-400' : 'text-gray-400 hover:text-white'}`}
-          >
-            Ventas
-          </button>
-        </div>
-      </div>
+            {/* Información del Usuario */}
+            <div className="flex-1 text-center sm:text-left">
+              <h2 className="text-2xl sm:text-3xl font-bold text-white mb-3">{userInfo?.name || 'Usuario'} - Investor Nomad</h2>
+              <div className="flex flex-col sm:flex-row items-center gap-4 mb-4">
+                <span className="bg-[#FFD700] text-black px-6 py-2 rounded-full font-semibold text-lg w-full sm:w-auto text-center">
+                  {nivelActual?.nombre || `Nivel 1`}
+                </span>
+                <span className="hidden sm:block text-gray-400">|</span>
+                {tipoNivel === 'ventas' ? (
+                  <span className="text-xl sm:text-2xl font-bold text-[#FFD700]">{progreso?.ventas_actuales || 0} Ventas</span>
+                ) : (
+                  <div className="flex flex-wrap justify-center sm:justify-start items-center gap-x-4 gap-y-2">
+                    <span className="text-lg sm:text-xl font-bold text-[#FFD700]">{progreso?.modulos_completados || 0} Módulos</span>
+                    <span className="hidden sm:block text-gray-400">|</span>
+                    <span className="text-lg sm:text-xl font-bold text-[#FFD700]">{progreso?.videos_completados || 0} Videos</span>
+                     <span className="hidden sm:block text-gray-400">|</span>
+                    <span className="text-lg sm:text-xl font-bold text-[#FFD700]">{progreso?.xp_actual || 0} XP</span>
+                  </div>
+                )}
+              </div>
+              <p className="text-gray-400 text-base sm:text-lg text-center sm:text-left">
+                {siguienteNivel ? (
+                  tipoNivel === 'ventas' ?
+                  `Faltan ${(siguienteNivel as NivelVentas).min_ventas - (progreso?.ventas_actuales || 0)} ventas para ${siguienteNivel.nombre}`
+                  :
+                  `Faltan ${(siguienteNivel as NivelAcademico).modulos_requeridos - (progreso?.modulos_completados || 0)} módulos, ${
+                    (siguienteNivel as NivelAcademico).videos_requeridos - (progreso?.videos_completados || 0)
+                  } videos y ${
+                    ((siguienteNivel as NivelAcademico).xp_requerido || 0) - (progreso?.xp_actual || 0)
+                  } XP para ${siguienteNivel.nombre}`
+                ) : (
+                  '¡Nivel máximo alcanzado!'
+                )}
+              </p>
+            </div>
+          </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-        <div className="md:col-span-2">
-          <h2 className="text-2xl font-bold mb-4">Niveles de {tipoNivel === 'ventas' ? 'Ventas' : 'Educación'}</h2>
-          <div className="space-y-4">
-            {niveles.map((nivel, index) => {
-              const esNivelActual = nivel.id === (tipoNivel === 'ventas' ? progreso?.nivel_actual_ventas : progreso?.nivel_actual_academico);
-              const esNivelBloqueado = currentIndex < index && !esNivelActual;
-
+          {/* Grid de Niveles - Versión móvil mejorada */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
+            {(tipoNivel === 'ventas' ? nivelesVentas : nivelesAcademicos).map((nivel, index) => {
+              const esDesbloqueado = currentIndex >= index;
               return (
-                <div key={nivel.id} className={`p-4 rounded-lg transition-all duration-300 ${esNivelActual ? 'bg-gray-700 border-2 border-yellow-400 shadow-lg' : 'bg-gray-800'} ${esNivelBloqueado ? 'opacity-50' : ''}`}>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-4">
-                      <span className="text-4xl">{nivel.icono}</span>
-                      <div>
-                        <h3 className="text-xl font-bold">{nivel.nombre}</h3>
-                        <p className="text-sm text-gray-400">{nivel.descripcion}</p>
-                      </div>
-                    </div>
-                    {esNivelActual && <span className="text-sm font-bold bg-yellow-400 text-gray-900 px-3 py-1 rounded-full">Nivel Actual</span>}
-                    {esNivelBloqueado && <span className="text-2xl">🔒</span>}
+              <div 
+                key={nivel.id}
+                className={`relative p-4 rounded-lg ${
+                  esDesbloqueado
+                    ? 'bg-[#2A2A2A] border border-[#FFD700] shadow-lg shadow-[#FFD700]/10'
+                    : 'bg-[#232323] opacity-80'
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
+                    esDesbloqueado
+                      ? 'bg-[#FFD700] text-black'
+                      : 'bg-[#333333] text-gray-500'
+                  }`}>
+                    {index + 1}
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-white text-lg">Nivel {index + 1}</h3>
+                    <h4 className="text-[#FFD700]">{nivel.nombre}</h4>
                   </div>
                 </div>
-              );
-            })}
+                <p className="text-gray-400 text-sm mt-2">{nivel.descripcion}</p>
+                {!esDesbloqueado && <div className="absolute top-2 right-2 text-2xl">🔒</div>}
+              </div>
+            )})}
+          </div>
+
+          {/* Tabla de Requisitos */}
+          <div>
+            <h3 className="text-2xl font-bold text-white mb-6 flex items-center">
+              <span className="text-[#FFD700] mr-2">⭐</span>
+              Requisitos por Nivel
+            </h3>
+            <div className="overflow-x-auto rounded-lg border border-[#FFD700]">
+              <table className="w-full text-left">
+                <thead>
+                  <tr className="bg-[#2A2A2A] border-b border-[#FFD700]">
+                    <th className="p-4 text-[#FFD700]">Nivel</th>
+                    <th className="p-4 text-[#FFD700]">Nombre</th>
+                    {tipoNivel === 'ventas' ? (
+                      <>
+                        <th className="p-4 text-[#FFD700]">Ventas Mínimas</th>
+                        <th className="p-4 text-[#FFD700]">Ventas Máximas</th>
+                      </>
+                    ) : (
+                      <>
+                        <th className="p-4 text-[#FFD700]">Módulos Requeridos</th>
+                        <th className="p-4 text-[#FFD700]">Videos Requeridos</th>
+                        <th className="p-4 text-[#FFD700]">XP Requerido</th>
+                      </>
+                    )}
+                    <th className="p-4 text-[#FFD700]">Descripción</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {(tipoNivel === 'ventas' ? nivelesVentas : nivelesAcademicos).map((nivel, index) => (
+                    <tr key={nivel.id} className="border-b border-[#333333] hover:bg-[#2A2A2A] transition-colors">
+                      <td className="p-4 text-white font-semibold">{index + 1}</td>
+                      <td className="p-4 text-[#FFD700]">{nivel.nombre}</td>
+                      {tipoNivel === 'ventas' ? (
+                        <>
+                          <td className="p-4 text-white">{(nivel as NivelVentas).min_ventas}</td>
+                          <td className="p-4 text-white">{(nivel as NivelVentas).max_ventas}</td>
+                        </>
+                      ) : (
+                        <>
+                          <td className="p-4 text-white">{(nivel as NivelAcademico).modulos_requeridos}</td>
+                          <td className="p-4 text-white">{(nivel as NivelAcademico).videos_requeridos}</td>
+                          <td className="p-4 text-white">{(nivel as NivelAcademico).xp_requerido || 0}</td>
+                        </>
+                      )}
+                      <td className="p-4 text-gray-300">{nivel.descripcion}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
 
-        <div className="bg-gray-800 p-6 rounded-lg">
-          <h2 className="text-2xl font-bold mb-4">Tu Progreso</h2>
-          {nivelActual ? (
-            <div>
-              <h3 className="text-xl font-semibold text-yellow-400">{nivelActual.nombre}</h3>
-              <p className="text-gray-400 mb-4">{nivelActual.descripcion}</p>
-              
-              {siguienteNivel && (
-                <div className="my-6">
-                  <h4 className="font-bold text-lg text-white mb-2">Próximo Nivel: {siguienteNivel.nombre}</h4>
-                  {renderProgressBar()}
-                </div>
-              )}
-
-              {renderRequisitos(nivelActual)}
+        {/* Sistema de XP y Monedas */}
+        <div className="space-y-8">
+          {/* Cards de Nivel, XP y Monedas */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* Card de Nivel */}
+            <div className="bg-black/40 border border-[#FFD700]/30 rounded-xl p-6 flex flex-col">
+              <div className="flex items-center gap-2 mb-4">
+                <span className="text-[#FFD700] text-2xl">🏆</span>
+                <span className="text-white font-bold">Nivel {currentIndex +1 > 0 ? currentIndex + 1 : '1' }</span>
+              </div>
+              <div className="text-sm text-white/70">
+                {progreso?.xp_actual || 0} / {siguienteNivel ? (siguienteNivel as NivelAcademico).xp_requerido || 1000 : '∞'} XP
+              </div>
             </div>
-          ) : (
-            <p className="text-gray-400">No has iniciado tu progreso en esta área.</p>
-          )}
+
+            {/* Card de Experiencia Total */}
+            <div className="bg-black/40 border border-[#FFD700]/30 rounded-xl p-6 flex flex-col">
+              <div className="flex items-center gap-2 mb-4">
+                <span className="text-[#FFD700] text-2xl">⭐</span>
+                <span className="text-white font-bold">Experiencia Total</span>
+              </div>
+              <div className="text-[#FFD700] text-2xl font-bold">
+                {userXP} XP
+              </div>
+            </div>
+
+            {/* Card de Monedas */}
+            <div className="bg-black/40 border border-[#FFD700]/30 rounded-xl p-6 flex flex-col">
+              <div className="flex items-center gap-2 mb-4">
+                <span className="text-[#FFD700] text-2xl">💰</span>
+                <span className="text-white font-bold">Monedas</span>
+              </div>
+              <div className="text-[#FFD700] text-2xl font-bold">
+                {userCoins}
+              </div>
+            </div>
+          </div>
+
+          {/* Barra de progreso del usuario */}
+          <div className="bg-black/40 border border-[#FFD700]/30 rounded-xl p-6">
+            <div className="flex items-center gap-4 mb-4">
+              <img 
+                src={avatarUrl}
+                alt="Avatar" 
+                className="w-12 h-12 rounded-full border-2 border-[#FFD700]"
+              />
+              <div>
+                <h3 className="text-white font-bold">{userInfo?.name || 'Usuario'}</h3>
+                <div className="text-sm text-white/70">Nivel {currentIndex + 1 > 0 ? currentIndex + 1 : '1'}</div>
+              </div>
+            </div>
+            <div className="w-full bg-black/60 rounded-full h-4 overflow-hidden">
+              <div 
+                className="bg-[#FFD700] h-full rounded-full transition-all duration-500"
+                style={{ width: `${siguienteNivel ? ((progreso?.xp_actual || 0) / ((siguienteNivel as NivelAcademico).xp_requerido || 1)) * 100 : 100}%` }}
+              />
+            </div>
+            <div className="flex justify-between mt-2 text-sm text-white/70">
+              <span>{progreso?.xp_actual || 0} XP</span>
+              <span>{siguienteNivel ? (siguienteNivel as NivelAcademico).xp_requerido || 1000 : '∞'} XP</span>
+            </div>
+          </div>
         </div>
       </div>
     </div>
