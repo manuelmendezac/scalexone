@@ -324,18 +324,17 @@ const LineaVideosClassroom = () => {
         <ModalFuturista 
           open={showModuloCompletadoModal} 
           onClose={() => setShowModuloCompletadoModal(false)}
-          recompensa={{
-            xp: recompensaTotal.xp > 0 ? recompensaTotal.xp : CLASSROOM_REWARDS.MODULO_COMPLETADO.xp,
-            coins: recompensaTotal.coins > 0 ? recompensaTotal.coins : CLASSROOM_REWARDS.MODULO_COMPLETADO.monedas
-          }}
+          progreso={100}
         >
           <div className="flex flex-col items-center gap-4 text-center">
             <h3 className="text-2xl font-bold text-yellow-400">¡Felicidades, módulo completado!</h3>
             <div className="flex gap-6 my-4">
-              <div className="bg-yellow-500/20 px-4 py-2 rounded-lg"><span className="text-yellow-400 font-bold">{recompensaTotal.xp} XP</span></div>
+              <div className="bg-yellow-500/20 px-4 py-2 rounded-lg">
+                <span className="text-yellow-400 font-bold">{CLASSROOM_REWARDS.MODULO_COMPLETADO.xp} XP</span>
+              </div>
               <div className="flex items-center gap-2 bg-yellow-500/20 px-4 py-2 rounded-lg">
                 <img src="/images/modulos/neurocoin.svg" alt="Coin" className="w-6 h-6" />
-                <span className="text-yellow-400 font-bold">{recompensaTotal.coins}</span>
+                <span className="text-yellow-400 font-bold">{CLASSROOM_REWARDS.MODULO_COMPLETADO.monedas}</span>
               </div>
             </div>
             <button onClick={() => { setShowModuloCompletadoModal(false); navegarSiguienteModulo(); }} className="mt-4 px-6 py-3 rounded-full bg-green-600 hover:bg-green-500 text-white font-bold">Ir al Siguiente Módulo</button>
