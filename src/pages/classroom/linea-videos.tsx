@@ -321,7 +321,14 @@ const LineaVideosClassroom = () => {
         </div>
       )}
       {showModuloCompletadoModal && (
-        <ModalFuturista open={showModuloCompletadoModal} onClose={() => setShowModuloCompletadoModal(false)}>
+        <ModalFuturista 
+          open={showModuloCompletadoModal} 
+          onClose={() => setShowModuloCompletadoModal(false)}
+          recompensa={{
+            xp: recompensaTotal.xp > 0 ? recompensaTotal.xp : CLASSROOM_REWARDS.MODULO_COMPLETADO.xp,
+            coins: recompensaTotal.coins > 0 ? recompensaTotal.coins : CLASSROOM_REWARDS.MODULO_COMPLETADO.monedas
+          }}
+        >
           <div className="flex flex-col items-center gap-4 text-center">
             <h3 className="text-2xl font-bold text-yellow-400">¡Felicidades, módulo completado!</h3>
             <div className="flex gap-6 my-4">

@@ -6,9 +6,13 @@ interface ModalFuturistaProps {
   avatarUrl?: string;
   progreso?: number;
   children: React.ReactNode;
+  recompensa?: {
+    xp: number;
+    coins: number;
+  };
 }
 
-const ModalFuturista: React.FC<ModalFuturistaProps> = ({ open, onClose, avatarUrl, progreso = 0, children }) => {
+const ModalFuturista: React.FC<ModalFuturistaProps> = ({ open, onClose, avatarUrl, progreso = 0, children, recompensa }) => {
   if (!open) return null;
   // Handler para cerrar al hacer clic fuera del modal
   const handleOverlayClick = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
@@ -73,6 +77,18 @@ const ModalFuturista: React.FC<ModalFuturistaProps> = ({ open, onClose, avatarUr
                 <text x="50%" y="54%" textAnchor="middle" fill="#aef1ff" fontSize="1.5em" fontWeight="bold">{progreso}%</text>
               </svg>
             )}
+          </div>
+        )}
+        {recompensa && (
+          <div className="flex flex-col items-center gap-4 text-center mb-4">
+            <h3 className="text-2xl font-bold text-yellow-400">¡Felicidades, módulo completado!</h3>
+            <div className="flex gap-6 my-4">
+              <div className="bg-yellow-500/20 px-4 py-2 rounded-lg"><span className="text-yellow-400 font-bold">{recompensa.xp} XP</span></div>
+              <div className="flex items-center gap-2 bg-yellow-500/20 px-4 py-2 rounded-lg">
+                <img src="/images/modulos/neurocoin.svg" alt="Coin" className="w-6 h-6" />
+                <span className="text-yellow-400 font-bold">{recompensa.coins}</span>
+              </div>
+            </div>
           </div>
         )}
         {children}
