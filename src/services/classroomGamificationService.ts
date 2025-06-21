@@ -1,15 +1,14 @@
 import { supabase } from '../supabase';
 import useNeuroState from '../store/useNeuroState';
+import { actualizarNivelAcademico } from '../utils/actualizarNivelUsuario';
 
 // ========================================================================
-// REGLAS DE RECOMPENSA SIMPLIFICADAS (Según solicitud)
+// CONSTANTES DE RECOMPENSAS
 // ========================================================================
+
 export const CLASSROOM_REWARDS = {
-  VIDEO_COMPLETADO: {
-    xp: 10,
-    monedas: 1
-  },
-  // Se eliminan los bonus para una lógica más clara
+  VIDEO_COMPLETADO: { xp: 150, monedas: 10 },
+  MODULO_COMPLETADO: { xp: 500, monedas: 50 },
 };
 
 export interface VideoProgress {
@@ -135,6 +134,9 @@ class ClassroomGamificationService {
       return { xpGanado: 0, monedasGanadas: 0, mensaje: 'Error al guardar progreso.', moduloCompletado: false };
     }
     
+    // Se ha actualizado el progreso, ahora verificamos si sube de nivel
+    await actualizarNivelAcademico(usuarioId);
+
     // 4. Otorgar recompensa por el video
     const { xp, monedas } = CLASSROOM_REWARDS.VIDEO_COMPLETADO;
     const neuro = useNeuroState.getState();
