@@ -42,7 +42,7 @@ const ClasificacionPage: React.FC = () => {
         }
 
         const { data: usersData, error: usersError } = await supabase
-            .from('usuarios')
+            .from('users')
             .select('id, full_name, email, country, avatar_url')
             .in('id', userIds);
 
@@ -79,9 +79,8 @@ const ClasificacionPage: React.FC = () => {
 
   return (
     <div className="container mx-auto p-4 space-y-12">
-      {/* --- Ranking de Vendedores (Afiliados) --- */}
-      {/* Este componente se comenta temporalmente para depurar el de creadores */}
-      {/* <RankingTopSellers /> */}
+      {/* Se descomenta el ranking de vendedores una vez corregido */}
+      <RankingTopSellers />
 
       {/* --- Ranking de Creadores (Educación por XP) --- */}
       <div>
