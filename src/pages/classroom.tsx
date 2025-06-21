@@ -293,65 +293,112 @@ const Classroom = () => {
 
         {/* Modal de edición */}
         {showEditModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
-            <div className="bg-neutral-800 rounded-xl p-6 max-w-lg w-full">
-              <h2 className="text-2xl font-bold mb-4">
-                {editIdx === null ? 'Nuevo Módulo' : 'Editar Módulo'}
-              </h2>
-              
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium mb-1">Título</label>
-                  <input
-                    type="text"
-                    value={editModulo.titulo}
-                    onChange={(e) => setEditModulo({ titulo: e.target.value })}
-                    className="w-full px-3 py-2 bg-neutral-700 rounded"
-                  />
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm"
+            onClick={() => setShowEditModal(false)}
+          >
+            <div
+              className="bg-neutral-900 rounded-2xl shadow-2xl border border-neutral-700 w-full max-w-4xl flex gap-8 p-8 relative"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Columna Izquierda: Portada */}
+              <div className="w-1/3 flex flex-col items-center">
+                <h3 className="text-lg font-semibold text-neutral-300 mb-4">Portada del Módulo</h3>
+                <div className="w-full aspect-square bg-neutral-800 rounded-lg border-2 border-dashed border-neutral-600 flex items-center justify-center relative overflow-hidden group">
+                  {editModulo?.imagen_url ? (
+                    <>
+                      <img src={editModulo.imagen_url} alt="Portada" className="w-full h-full object-cover" />
+                      <div 
+                        className="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                        onClick={() => document.getElementById('file-upload')?.click()}
+                      >
+                        <span className="text-white font-semibold">Cambiar Imagen</span>
+                      </div>
+                    </>
+                  ) : (
+                    <div 
+                      className="text-neutral-500 text-center cursor-pointer"
+                      onClick={() => document.getElementById('file-upload')?.click()}
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" className="mx-auto h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l-1.586-1.586a2 2 0 00-2.828 0L6 14m6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                      <span className="mt-2 block text-sm">Subir una imagen</span>
+                    </div>
+                  )}
                 </div>
-                
-                <div>
-                  <label className="block text-sm font-medium mb-1">Descripción</label>
-                  <textarea
-                    value={editModulo.descripcion}
-                    onChange={(e) => setEditModulo({ descripcion: e.target.value })}
-                    className="w-full px-3 py-2 bg-neutral-700 rounded"
-                    rows={3}
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium mb-1">URL de Imagen</label>
-                  <input
-                    type="text"
-                    value={editModulo.imagen_url}
-                    onChange={(e) => setEditModulo({ imagen_url: e.target.value })}
-                    className="w-full px-3 py-2 bg-neutral-700 rounded"
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium mb-1">Color</label>
-                  <HexColorPicker
-                    color={editModulo.color}
-                    onChange={(color) => setEditModulo({ color })}
-                  />
-                </div>
+                <input 
+                  id="file-upload" 
+                  type="file" 
+                  className="hidden" 
+                  accept="image/*"
+                  onChange={(e) => {
+                    // Aquí iría la lógica de subida y actualización de `editModulo.imagen_url`
+                    // Por ahora, solo es visual.
+                  }} 
+                />
+                 <button 
+                  className="text-sm text-red-500 hover:text-red-400 mt-2"
+                  onClick={() => setEditModulo({ ...editModulo, imagen_url: '' })}
+                >
+                  Eliminar Imagen
+                </button>
               </div>
-              
-              <div className="flex justify-end gap-2 mt-6">
-                <button
-                  onClick={() => setShowEditModal(false)}
-                  className="px-4 py-2 bg-neutral-700 rounded hover:bg-neutral-600"
-                >
-                  Cancelar
-                </button>
-                <button
-                  onClick={handleSaveEdit}
-                  className="px-4 py-2 bg-blue-500 rounded hover:bg-blue-600"
-                >
-                  Guardar
-                </button>
+
+              {/* Columna Derecha: Detalles */}
+              <div className="w-2/3 flex flex-col">
+                <h2 className="text-2xl font-bold text-white mb-6">{editIdx === null ? 'Nuevo Módulo' : 'Editar Módulo'}</h2>
+                
+                <label className="text-neutral-400 text-sm mb-1">Título</label>
+                <input
+                  type="text"
+                  value={editModulo?.titulo || ''}
+                  onChange={(e) => setEditModulo({ ...editModulo, titulo: e.target.value })}
+                  className="w-full p-2 rounded bg-neutral-800 border border-neutral-700 text-white mb-4"
+                />
+
+                <label className="text-neutral-400 text-sm mb-1">Descripción</label>
+                <textarea
+                  value={editModulo?.descripcion || ''}
+                  onChange={(e) => setEditModulo({ ...editModulo, descripcion: e.target.value })}
+                  className="w-full p-2 rounded bg-neutral-800 border border-neutral-700 text-white mb-4 h-24 resize-none"
+                />
+                
+                <div className="flex gap-4 items-center">
+                  <div className="flex-1">
+                    <label className="text-neutral-400 text-sm mb-1">Color de Fondo</label>
+                    <div className="w-full h-10 rounded bg-neutral-800 border border-neutral-700" style={{ backgroundColor: editModulo?.color || '#ffffff' }}></div>
+                  </div>
+                  <div className="relative">
+                    <HexColorPicker
+                      color={editModulo?.color || '#ffffff'}
+                      onChange={(color) => setEditModulo({ ...editModulo, color })}
+                    />
+                  </div>
+                </div>
+
+                {/* Gamificación y Progreso (Visual) */}
+                <div className="mt-6 border-t border-neutral-800 pt-4">
+                  <h4 className="text-md font-semibold text-neutral-300 mb-2">Gamificación y Progreso</h4>
+                  <div className="flex items-center gap-4 bg-neutral-800/50 p-3 rounded-lg">
+                      <div className="flex items-center gap-2 text-yellow-400">
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M5 2a1 1 0 00-1 1v1.586l-1.707 1.707A1 1 0 003 8v6a1 1 0 001 1h12a1 1 0 001-1V8a1 1 0 00-.293-.707L16 6.586V3a1 1 0 00-1-1H5zm4 5a1 1 0 10-2 0v1a1 1 0 102 0V7zm4 0a1 1 0 10-2 0v1a1 1 0 102 0V7z" clipRule="evenodd" /></svg>
+                          <span>500 XP</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-amber-400">
+                          <img src="/images/modulos/neurocoin.svg" alt="Coin" className="w-5 h-5" />
+                          <span>100 Monedas</span>
+                      </div>
+                      <div className="flex-grow">
+                          <ProgresoFuturista porcentaje={getProgreso()} />
+                      </div>
+                  </div>
+                </div>
+
+                <div className="flex justify-end gap-4 mt-8">
+                  <button onClick={() => setShowEditModal(false)} className="px-4 py-2 rounded text-neutral-300 hover:bg-neutral-800">Cancelar</button>
+                  <button onClick={() => editIdx !== null && handleSaveEdit(editIdx)} className="px-6 py-2 rounded bg-blue-600 text-white font-semibold hover:bg-blue-700">
+                    {editIdx === null ? 'Crear Módulo' : 'Guardar Cambios'}
+                  </button>
+                </div>
               </div>
             </div>
           </div>
