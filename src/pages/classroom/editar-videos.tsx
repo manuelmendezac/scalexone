@@ -27,13 +27,38 @@ const EditarVideosClassroom = () => {
 
   const fetchModuloYVideos = async () => {
     setLoading(true);
-    // Traer datos del módulo
-    const { data: mod } = await supabase.from('classroom_modulos').select('*').eq('id', modulo_id).single();
-    setModulo(mod);
-    // Traer videos asociados
-    const { data: vids } = await supabase.from('videos_classroom_modulo').select('*').eq('modulo_id', modulo_id).order('orden', { ascending: true });
-    setVideos(vids || []);
-    setLoading(false);
+    try {
+      const { data: mod, error: modError } = await supabase
+        .from('classroom_modulos')
+        .select('*')
+        .eq('id', modulo_id)
+        .maybeSingle();
+
+      if (modError) throw modError;
+
+      if (!mod) {
+        setEditorError(`No se encontró ningún módulo con el ID: ${modulo_id}`);
+        setLoading(false);
+        return;
+      }
+      
+      setModulo(mod);
+      
+      const { data: vids, error: vidsError } = await supabase
+        .from('videos_classroom_modulo')
+        .select('*')
+        .eq('modulo_id', modulo_id)
+        .order('orden', { ascending: true });
+
+      if (vidsError) throw vidsError;
+
+      setVideos(vids || []);
+    } catch (err: any) {
+      console.error("Error al cargar datos del módulo:", err);
+      setEditorError(err.message || "Ocurrió un error inesperado.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   // Utilidad para transformar links normales a embed
@@ -145,6 +170,16 @@ const EditarVideosClassroom = () => {
   };
 
   if (loading) return <div className="text-cyan-400 text-center py-10">Cargando módulo y videos...</div>;
+
+  if (editorError) {
+    return (
+      <div className="min-h-screen w-full py-12 px-2 flex flex-col items-center justify-center text-center" style={{ background: '#10192b' }}>
+        <h1 className="text-2xl font-bold text-red-500 mb-4">Error al cargar</h1>
+        <p className="text-red-400 mb-6">{editorError}</p>
+        <button className="px-4 py-2 rounded bg-cyan-700 text-white font-bold shadow hover:bg-cyan-500 transition" onClick={() => navigate(-1)}>Volver</button>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen w-full py-12 px-2" style={{ background: '#10192b' }}>
