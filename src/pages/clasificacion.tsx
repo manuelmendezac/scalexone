@@ -17,55 +17,45 @@ interface TopCreator {
 }
 
 const ClasificacionPage: React.FC = () => {
-  // Estado únicamente para los creadores
   const [creators, setCreators] = useState<TopCreator[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Lógica para obtener los datos de los creadores por XP
   useEffect(() => {
     const fetchTopCreators = async () => {
       setLoading(true);
       try {
-        const { data: progressData, error: progressError } = await supabase
-          .from('progreso_usuario_xp')
-          .select('usuario_id, xp_actual')
-          .order('xp_actual', { ascending: false })
+        // La corrección clave está aquí: volvemos a 'usuarios' y simplificamos la consulta
+        const { data, error } = await supabase
+          .from('usuarios')
+          .select(`
+            full_name,
+            email,
+            country,
+            avatar_url,
+            progreso_usuario_xp (
+              xp_actual
+            )
+          `)
+          .order('xp_actual', { referencedTable: 'progreso_usuario_xp', ascending: false })
           .limit(100);
 
-        if (progressError) throw progressError;
-
-        const userIds = progressData.map(p => p.usuario_id).filter(Boolean);
-        if (userIds.length === 0) {
-            setCreators([]);
-            setLoading(false);
-            return;
+        if (error) throw error;
+        
+        if (data) {
+          const formattedCreators: TopCreator[] = data
+            .filter(user => user.progreso_usuario_xp && user.progreso_usuario_xp.length > 0)
+            .map((user, index) => ({
+              puesto: index + 1,
+              nombre: user.full_name || 'Usuario Anónimo',
+              email: user.email || '',
+              pais: user.country || '🌍',
+              xp_total: user.progreso_usuario_xp[0].xp_actual,
+              nivel_academico: 'N/A',
+              avatar: user.avatar_url || '/images/silueta-perfil.svg',
+            }));
+          setCreators(formattedCreators);
         }
 
-        const { data: usersData, error: usersError } = await supabase
-            .from('users')
-            .select('id, full_name, email, country, avatar_url')
-            .in('id', userIds);
-
-        if (usersError) throw usersError;
-
-        const usersById = new Map(usersData.map(u => [u.id, u]));
-        const formattedCreators: TopCreator[] = progressData
-            .map((progress, index) => {
-                const user = usersById.get(progress.usuario_id);
-                if (!user) return null;
-                return {
-                    puesto: index + 1,
-                    nombre: user.full_name || 'Usuario Anónimo',
-                    email: user.email || '',
-                    pais: user.country || '🌍',
-                    xp_total: progress.xp_actual,
-                    nivel_academico: 'N/A',
-                    avatar: user.avatar_url || '/images/silueta-perfil.svg',
-                };
-            })
-            .filter((c): c is TopCreator => c !== null);
-
-        setCreators(formattedCreators);
       } catch (err) {
         console.error("Error fetching top creators:", err);
         setCreators([]);

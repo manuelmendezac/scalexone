@@ -14,48 +14,43 @@ interface TopSeller {
 
 const RankingTopSellers = () => {
   const [topSellers, setTopSellers] = useState<TopSeller[]>([]);
-  const [userRank, setUserRank] = useState<TopSeller | null>(null);
   const [loading, setLoading] = useState(true);
 
   const fetchTopSellers = async () => {
+    setLoading(true);
     try {
-      setLoading(true);
-      
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      const { data: sellers, error } = await supabase
-        .from('users')
+      const { data, error } = await supabase
+        .from('usuarios')
         .select(`
           full_name,
           email,
           country,
           avatar_url,
           progreso_ventas_usuario (
-            ventas_acumuladas,
-            nivel_actual
+            ventas_acumuladas
           )
         `)
-        .order('ventas_acumuladas', { ascending: false, referencedTable: 'progreso_ventas_usuario' })
+        .order('ventas_acumuladas', { referencedTable: 'progreso_ventas_usuario', ascending: false })
         .limit(10);
 
       if (error) throw error;
-      
-      const formattedSellers = sellers.map((seller, index) => ({
-        nombre: seller.full_name,
-        email: seller.email,
-        pais: seller.country || '🌎',
-        ventas_totales: seller.progreso_ventas_usuario?.[0]?.ventas_acumuladas || 0,
-        nivel_ventas: 'Starter',
-        avatar: seller.avatar_url || '/images/silueta-perfil.svg',
-        puesto: index + 1
-      }));
-      setTopSellers(formattedSellers);
-      
-      if (user && !formattedSellers.find(s => s.email === user.email)) {
-        // ... (esta parte puede necesitar una función RPC corregida o una lógica similar)
+
+      if (data) {
+        const formattedSellers = data
+          .filter(user => user.progreso_ventas_usuario && user.progreso_ventas_usuario.length > 0)
+          .map((user, index) => ({
+            puesto: index + 1,
+            nombre: user.full_name,
+            email: user.email,
+            pais: user.country || '🌎',
+            ventas_totales: user.progreso_ventas_usuario[0].ventas_acumuladas || 0,
+            nivel_ventas: 'Starter',
+            avatar: user.avatar_url || '/images/silueta-perfil.svg',
+          }));
+        setTopSellers(formattedSellers);
       }
-    } catch (error) {
-      console.error('Error al cargar top sellers:', error);
+    } catch (err) {
+      console.error('Error al cargar top sellers:', err);
     } finally {
       setLoading(false);
     }
@@ -89,7 +84,7 @@ const RankingTopSellers = () => {
             </thead>
             <tbody>
               {topSellers.map((seller, i) => (
-                <tr key={seller.email} className={`border-b border-[#FFD700]/10 ${userRank?.email === seller.email ? 'bg-[#FFD700]/10' : ''}`}>
+                <tr key={seller.email} className={`border-b border-[#FFD700]/10`}>
                   <td className="py-2 pr-4 font-bold">
                     {i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : i + 1}
                   </td>
@@ -106,22 +101,6 @@ const RankingTopSellers = () => {
                   <td className="py-2 pr-4 text-[#FFD700] font-bold">${seller.ventas_totales.toLocaleString()}</td>
                 </tr>
               ))}
-              {userRank && !topSellers.find(s => s.email === userRank.email) && (
-                <tr className="bg-[#FFD700]/10">
-                  <td className="py-2 pr-4 font-bold">{userRank.puesto}</td>
-                  <td className="py-2 pr-4">
-                    <img 
-                      src={userRank.avatar} 
-                      alt="avatar" 
-                      className="w-10 h-10 rounded-full border-2 border-[#FFD700] shadow" 
-                    />
-                  </td>
-                  <td className="py-2 pr-4 text-white">{userRank.nombre} (Tú)</td>
-                  <td className="py-2 pr-4 text-2xl">{userRank.pais}</td>
-                  <td className="py-2 pr-4 text-white">{userRank.nivel_ventas}</td>
-                  <td className="py-2 pr-4 text-[#FFD700] font-bold">${userRank.ventas_totales.toLocaleString()}</td>
-                </tr>
-              )}
             </tbody>
           </table>
         </div>
