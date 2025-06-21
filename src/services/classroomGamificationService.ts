@@ -7,8 +7,8 @@ import { actualizarNivelAcademico } from '../utils/actualizarNivelUsuario';
 // ========================================================================
 
 export const CLASSROOM_REWARDS = {
-  VIDEO_COMPLETADO: { xp: 150, monedas: 10 },
-  MODULO_COMPLETADO: { xp: 500, monedas: 50 },
+  VIDEO_COMPLETADO: { xp: 10, monedas: 1 },
+  MODULO_COMPLETADO: { xp: 0, monedas: 0 },
 };
 
 export interface VideoProgress {
