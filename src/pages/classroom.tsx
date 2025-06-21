@@ -481,7 +481,7 @@ const Classroom = () => {
               {/* Footer */}
               <div className="p-6 border-t border-neutral-800 flex justify-end gap-4 bg-neutral-900/50 sticky bottom-0">
                   <button onClick={() => setShowEditModal(false)} className="px-4 py-2 rounded-lg text-neutral-300 hover:bg-neutral-800 transition">Cancelar</button>
-                  <button onClick={handleSaveEdit} className="px-6 py-2 rounded-lg bg-white text-black font-semibold hover:bg-neutral-200 transition">
+                  <button onClick={() => handleSaveEdit(editModulo)} className="px-6 py-2 rounded-lg bg-white text-black font-semibold hover:bg-neutral-200 transition">
                       {editIdx === null ? 'Crear' : 'Guardar'}
                   </button>
               </div>
