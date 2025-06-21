@@ -8,7 +8,7 @@ import { useHydration } from '../store/useNeuroState';
 import LoadingScreen from '../components/LoadingScreen';
 import GlobalLoadingSpinner from '../components/GlobalLoadingSpinner';
 import ReactPlayer from 'react-player/lazy';
-import { supabase } from '../lib/supabase';
+import { supabase } from '../supabase';
 
 // Modelo de módulo con imagen de portada
 type Modulo = {
