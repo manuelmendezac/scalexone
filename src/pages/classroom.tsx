@@ -18,6 +18,8 @@ type Modulo = {
   orden?: number;
   color?: string;
   badge_url?: string;
+  cover_type?: string;
+  cover_video_url?: string;
 };
 
 const MODULOS_MODELO: Modulo[] = [
@@ -208,7 +210,16 @@ const Classroom = () => {
                       >
                         {/* Imagen del módulo */}
                         <div className="h-40 w-full rounded-t-2xl overflow-hidden flex items-center justify-center bg-gray-100">
-                          {mod.imagen_url ? (
+                          {mod.cover_type === 'video' && mod.cover_video_url ? (
+                            <video
+                              src={mod.cover_video_url}
+                              autoPlay
+                              loop
+                              muted
+                              playsInline
+                              className="object-cover w-full h-full"
+                            />
+                          ) : mod.imagen_url ? (
                             <img src={mod.imagen_url} alt={mod.titulo} className="object-cover w-full h-full" />
                           ) : (
                             <span className="text-6xl">{mod.icono || '📦'}</span>
@@ -317,15 +328,38 @@ const Classroom = () => {
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                       {/* Columna Izquierda: Portada */}
                       <div className="md:col-span-1">
-                          <label className="block text-sm font-medium text-neutral-300 mb-2">Portada</label>
-                          <div className="aspect-[4/3] w-full bg-neutral-800 rounded-lg border-2 border-dashed border-neutral-700 flex items-center justify-center relative group cursor-pointer">
-                              <div className="text-neutral-500 text-center">
-                                  <svg xmlns="http://www.w3.org/2000/svg" className="mx-auto h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l-1.586-1.586a2 2 0 00-2.828 0L6 14m6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-                              </div>
-                              <button className="absolute bottom-2 right-2 bg-neutral-900/50 p-2 rounded-full text-white hover:bg-red-500/80 transition-colors opacity-0 group-hover:opacity-100">
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                              </button>
+                          <label className="block text-sm font-medium text-neutral-300 mb-2">Tipo de Portada</label>
+                          <div className="flex items-center gap-4 mb-4">
+                            <label className="flex items-center gap-2 text-neutral-300 cursor-pointer">
+                              <input type="radio" name="coverType" value="image" checked={editModulo?.cover_type === 'image' || !editModulo?.cover_type} onChange={(e) => setEditModulo({ ...editModulo, cover_type: 'image' })} className="h-4 w-4 text-blue-500 bg-neutral-700 border-neutral-600 focus:ring-blue-600" />
+                              Imagen
+                            </label>
+                            <label className="flex items-center gap-2 text-neutral-300 cursor-pointer">
+                              <input type="radio" name="coverType" value="video" checked={editModulo?.cover_type === 'video'} onChange={(e) => setEditModulo({ ...editModulo, cover_type: 'video' })} className="h-4 w-4 text-blue-500 bg-neutral-700 border-neutral-600 focus:ring-blue-600"/>
+                              Video
+                            </label>
                           </div>
+
+                          {(!editModulo?.cover_type || editModulo?.cover_type === 'image') ? (
+                            <div>
+                              <label className="block text-sm font-medium text-neutral-300 mb-2">Portada</label>
+                              <div className="aspect-[4/3] w-full bg-neutral-800 rounded-lg border-2 border-dashed border-neutral-700 flex items-center justify-center relative group cursor-pointer">
+                                  {/* Lógica para mostrar imagen */}
+                                  <div className="text-neutral-500 text-center">
+                                      <svg xmlns="http://www.w3.org/2000/svg" className="mx-auto h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l-1.586-1.586a2 2 0 00-2.828 0L6 14m6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                                  </div>
+                                  <button className="absolute bottom-2 right-2 bg-neutral-900/50 p-2 rounded-full text-white hover:bg-red-500/80 transition-colors opacity-0 group-hover:opacity-100">
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                                  </button>
+                              </div>
+                            </div>
+                          ) : (
+                            <div>
+                              <label className="block text-sm font-medium text-neutral-300 mb-2">URL del Video de Portada</label>
+                              <input type="text" placeholder="https://ejemplo.com/video.mp4" value={editModulo?.cover_video_url || ''} onChange={(e) => setEditModulo({ ...editModulo, cover_video_url: e.target.value })} className="w-full p-2 rounded bg-neutral-800 border border-neutral-700 text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
+                              <p className="text-xs text-neutral-500 mt-1">Se reproducirá en bucle y sin sonido.</p>
+                            </div>
+                          )}
                       </div>
 
                       {/* Columna Derecha: Título, Desc, etc. */}
