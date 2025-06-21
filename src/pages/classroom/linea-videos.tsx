@@ -9,6 +9,7 @@ import 'react-quill/dist/quill.snow.css';
 import useNeuroState from '../../store/useNeuroState';
 import classroomGamificationService from '../../services/classroomGamificationService';
 import { CLASSROOM_REWARDS } from '../../services/classroomGamificationService';
+import ReactPlayer from 'react-player/lazy';
 
 // UUID especial para el portal de recursos de classroom (válido para campos tipo uuid)
 const MODULO_CURSO_ID_RECURSOS = "11111111-1111-1111-1111-111111111111";
@@ -127,19 +128,8 @@ const LineaVideosClassroom = () => {
     setMateriales(mats || []);
   };
 
-  // Utilidad para transformar links normales a embed de Vimeo
-  function toEmbedUrl(url: string): string {
-    if (!url) return '';
-    const vimeoMatch = url.match(/vimeo\.com\/(\d+)/);
-    if (vimeoMatch) {
-      return `https://player.vimeo.com/video/${vimeoMatch[1]}?api=1&player_id=vimeo-player`;
-    }
-    return url;
-  }
-
   const clasesOrdenadas = [...clases].sort((a, b) => (a.orden || 0) - (b.orden || 0));
   const videoActual = clasesOrdenadas[claseActual] || {};
-  const embedUrl = toEmbedUrl(videoActual.url);
   const esUltimoVideo = claseActual === clasesOrdenadas.length - 1;
 
   // Verificar si todos los videos están completados
@@ -257,36 +247,10 @@ const LineaVideosClassroom = () => {
     }
   }, [userId, videoActual.id, modulo_id, videosCompletados, esUltimoVideo, cambiarVideo, claseActual]);
 
-  // Configurar el iframe para recibir eventos de Vimeo
-  useEffect(() => {
-    if (!embedUrl || !videoRef.current || !(window as any).Vimeo) {
-      return;
-    }
-
-    const player = new (window as any).Vimeo.Player(videoRef.current);
-    playerRef.current = player;
-  
-    player.on('play', () => {
-      // Ya no es necesario reiniciar aquí, se controla con cambiarVideo
-    });
-  
-    player.on('timeupdate', (data: any) => {
-      if (data.duration > 0) {
-        const progress = Math.floor((data.seconds / data.duration) * 100);
-        setVideoProgress(progress);
-      }
-    });
-  
-    player.on('ended', handleVideoEnded);
-  
-    // Función de limpieza: se ejecuta cuando embedUrl cambia (antes del siguiente efecto)
-    // o cuando el componente se desmonta. Esto es crucial.
-    return () => {
-      player.unload().catch((err: any) => console.error("Error unloading Vimeo player:", err));
-      playerRef.current = null;
-    };
-  
-  }, [embedUrl, handleVideoEnded]);
+  const handleProgress = useCallback((state: { playedSeconds: number, loadedSeconds: number, played: number, loaded: number }) => {
+    setVideoProgress(state.played * 100);
+    // Podríamos añadir lógica de guardado de progreso aquí en el futuro si es necesario
+  }, []);
 
   // Guardar descripción global
   async function handleSaveDescripcion() {
@@ -370,12 +334,6 @@ const LineaVideosClassroom = () => {
     setMateriales(materiales.filter(m => m.id !== id));
   }
 
-  // Función para mostrar recompensas
-  const mostrarRecompensa = (xp: number, monedas: number, mensaje: string) => {
-    // Esta función ya no se usa, pero la mantengo por si acaso
-    console.log(`Recompensa: ${xp} XP, ${monedas} monedas - ${mensaje}`);
-  };
-
   if (loading) return <div className="text-cyan-400 text-center py-10">Cargando módulo...</div>;
 
   return (
@@ -451,14 +409,18 @@ const LineaVideosClassroom = () => {
 
             <div className="relative">
               <div className="aspect-video bg-black rounded-xl overflow-hidden relative">
-                {embedUrl ? (
-                  <iframe
+                {videoActual.url ? (
+                  <ReactPlayer
                     key={videoActual.id}
-                    ref={videoRef}
-                    src={embedUrl}
-                    className="w-full h-full"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowFullScreen
+                    ref={playerRef}
+                    url={videoActual.url}
+                    className="absolute top-0 left-0"
+                    width="100%"
+                    height="100%"
+                    controls
+                    playing
+                    onEnded={handleVideoEnded}
+                    onProgress={handleProgress}
                   />
                 ) : (
                   <div className="w-full h-full flex flex-col items-center justify-center bg-neutral-800 text-center p-4">
@@ -466,7 +428,7 @@ const LineaVideosClassroom = () => {
                     <h3 className="text-xl font-bold text-cyan-300">Video no disponible</h3>
                     {isAdmin && (
                        <p className="text-yellow-400 mt-2">
-                         Administrador: Falta la URL de este video. Por favor, edita el módulo para añadir una URL de Vimeo válida.
+                         Administrador: Falta la URL de este video. Por favor, edita el módulo para añadir una URL válida.
                        </p>
                     )}
                   </div>
