@@ -9,7 +9,7 @@ interface TopSeller {
   ventas_totales: number;
   nivel_ventas: string;
   avatar: string;
-  puesto?: number;
+  puesto: number;
 }
 
 const RankingTopSellers = () => {
@@ -30,20 +30,20 @@ const RankingTopSellers = () => {
             ventas_acumuladas
           )
         `)
-        .order('ventas_acumuladas', { referencedTable: 'progreso_ventas_usuario', ascending: false })
+        .order('ventas_acumuladas', { referencedTable: 'progreso_ventas_usuario', ascending: false, nullsFirst: false })
         .limit(10);
 
       if (error) throw error;
 
       if (data) {
         const formattedSellers = data
-          .filter(user => user.progreso_ventas_usuario && user.progreso_ventas_usuario.length > 0)
+          .filter(user => user.progreso_ventas_usuario && user.progreso_ventas_usuario.length > 0 && user.progreso_ventas_usuario[0].ventas_acumuladas !== null)
           .map((user, index) => ({
             puesto: index + 1,
             nombre: user.full_name,
             email: user.email,
             pais: user.country || '🌎',
-            ventas_totales: user.progreso_ventas_usuario[0].ventas_acumuladas || 0,
+            ventas_totales: user.progreso_ventas_usuario[0].ventas_acumuladas,
             nivel_ventas: 'Starter',
             avatar: user.avatar_url || '/images/silueta-perfil.svg',
           }));
