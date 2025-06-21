@@ -206,23 +206,27 @@ const Classroom = () => {
                           background: mod.color || '#fff',
                           cursor: isAdmin ? 'grab' : 'pointer'
                         }}
-                        onClick={() => !isAdmin && navigate(`/classroom/videos/${mod.id}`)}
+                        onClick={() => !isAdmin && mod.cover_type !== 'video' && navigate(`/classroom/videos/${mod.id}`)}
                       >
-                        {/* Imagen del módulo */}
-                        <div className="h-40 w-full rounded-t-2xl overflow-hidden flex items-center justify-center bg-gray-100">
-                          {mod.cover_type === 'video' && mod.cover_video_url ? (
-                            <video
-                              src={mod.cover_video_url}
-                              autoPlay
-                              loop
-                              muted
-                              playsInline
-                              className="object-cover w-full h-full"
-                            />
+                        {/* Imagen o Video del módulo */}
+                        <div className="h-40 w-full rounded-t-2xl overflow-hidden flex items-center justify-center bg-neutral-800 relative">
+                           {mod.cover_type === 'video' && mod.cover_video_url ? (
+                            <>
+                              <video
+                                key={mod.id} // Forzar recarga si cambia el video
+                                src={mod.cover_video_url}
+                                autoPlay
+                                loop
+                                muted
+                                playsInline
+                                className="object-cover w-full h-full"
+                              />
+                              <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-black/20" />
+                            </>
                           ) : mod.imagen_url ? (
                             <img src={mod.imagen_url} alt={mod.titulo} className="object-cover w-full h-full" />
                           ) : (
-                            <span className="text-6xl">{mod.icono || '📦'}</span>
+                            <span className="text-6xl text-neutral-600">{mod.icono || '📦'}</span>
                           )}
                         </div>
                         
@@ -236,7 +240,16 @@ const Classroom = () => {
                         <div className="flex-1 flex flex-col p-6">
                           <h3 className="text-xl font-bold text-gray-900 mb-2 text-center">{mod.titulo}</h3>
                           <p className="text-gray-600 text-sm mb-4 text-center">{mod.descripcion}</p>
-                          <ProgresoFuturista porcentaje={getProgreso()} />
+                          {mod.cover_type === 'video' ? (
+                            <button 
+                              onClick={() => !isAdmin && navigate(`/classroom/videos/${mod.id}`)}
+                              className="mt-auto w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-semibold"
+                            >
+                              Ingresar al Módulo
+                            </button>
+                          ) : (
+                            <ProgresoFuturista porcentaje={getProgreso()} />
+                          )}
                         </div>
                         
                         {/* Botones de admin */}
