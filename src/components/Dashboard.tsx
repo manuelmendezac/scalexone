@@ -34,7 +34,7 @@ const Dashboard: React.FC = () => {
           throw error;
         }
 
-        const formattedCreators = data.map((creator: any, index: number) => ({
+        const formattedCreators = (data || []).map((creator: any, index: number) => ({
           nombre: creator.nombre,
           email: creator.email,
           pais: creator.pais || '🌎',
