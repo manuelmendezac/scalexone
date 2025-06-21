@@ -26,8 +26,9 @@ export const useSyncUserProfile = () => {
 
         const { data: progressData, error: progressError } = await supabase
           .from('progreso_usuario_xp')
-          .select('xp_actual, monedas')
+          .select('id, xp_actual, monedas')
           .eq('usuario_id', user.id)
+          .limit(1)
           .single();
         
         if (progressError && progressError.code !== 'PGRST116') {
