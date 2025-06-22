@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useMenuSecundarioConfig } from '../hooks/useMenuSecundarioConfig';
 import useNeuroState from '../store/useNeuroState';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { Home, Users, GraduationCap, BookOpen, Rocket, BarChart2, Settings } from 'lucide-react';
 
 const isMobile = () => typeof window !== 'undefined' && window.innerWidth < 768;
 
@@ -32,17 +33,17 @@ const ScrollNavbar: React.FC = () => {
   // Fallback a un menú fijo si no hay config
   if (!menu || menu.length === 0) {
     menu = [
-      { key: 'inicio', nombre: 'Inicio', ruta: '/home', icon: '🏠', visible: true },
-      { key: 'clasificacion', nombre: 'Clasificación', ruta: '/clasificacion', icon: '📊', visible: true },
-      { key: 'classroom', nombre: 'Classroom', ruta: '/classroom', icon: '🎓', visible: true },
-      { key: 'cursos', nombre: 'Cursos', ruta: '/cursos', icon: '📚', visible: true },
-      { key: 'launchpad', nombre: 'Launchpad', ruta: '/launchpad', icon: '🚀', visible: true },
-      { key: 'comunidad', nombre: 'Comunidad', ruta: '/comunidad', icon: '👥', visible: true },
+      { key: 'inicio', nombre: 'Inicio', ruta: '/home', icon: <Home size={16} />, visible: true },
+      { key: 'clasificacion', nombre: 'Clasificación', ruta: '/clasificacion', icon: <BarChart2 size={16} />, visible: true },
+      { key: 'classroom', nombre: 'Classroom', ruta: '/classroom', icon: <GraduationCap size={16} />, visible: true },
+      { key: 'cursos', nombre: 'Cursos', ruta: '/cursos', icon: <BookOpen size={16} />, visible: true },
+      { key: 'launchpad', nombre: 'Launchpad', ruta: '/launchpad', icon: <Rocket size={16} />, visible: true },
+      { key: 'comunidad', nombre: 'Comunidad', ruta: '/comunidad', icon: <Users size={16} />, visible: true },
       { key: 'embudos', nombre: 'Embudos', ruta: '/funnels', icon: '🫧', visible: true },
       { key: 'ia', nombre: 'IA', ruta: '/ia', icon: '🤖', visible: true },
       { key: 'automatizaciones', nombre: 'Automatizaciones', ruta: '/automatizaciones', icon: '⚙️', visible: true },
       { key: 'whatsappcrm', nombre: 'WhatsApp CRM', ruta: '/whatsapp-crm', icon: '💬', visible: true },
-      { key: 'configuracion', nombre: 'Configuración', ruta: '/configuracion-admin', icon: '🔧', visible: true },
+      { key: 'configuracion', nombre: 'Configuración', ruta: '/configuracion-admin', icon: <Settings size={16} />, visible: true },
     ];
   }
 
