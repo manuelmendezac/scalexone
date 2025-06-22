@@ -18,6 +18,11 @@ export default function AdminSettingsPage() {
     }
   }, [isHydrated]);
 
+  // UseEffect para depuración
+  useEffect(() => {
+    console.log('El panel seleccionado es:', selectedItem);
+  }, [selectedItem]);
+
   if (loading) {
     return <LoadingScreen message="Cargando panel de administración..." />;
   }
