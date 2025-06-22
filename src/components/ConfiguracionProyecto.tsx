@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import AdminSidebar from './admin/AdminSidebar';
 import AdminConfigPanel from './admin/AdminConfigPanel';
 import './ConfiguracionProyecto.css';
 import NeonSpinner from './NeonSpinner';
@@ -32,7 +31,7 @@ const PROYECTO_DEFAULT = {
 };
 
 const ConfiguracionProyecto: React.FC = () => {
-  const [selected, setSelected] = useState('welcome');
+  const [selected, setSelected] = useState('mainMenu');
   const [loading, setLoading] = useState(false);
 
   if (loading) {
@@ -43,12 +42,7 @@ const ConfiguracionProyecto: React.FC = () => {
     );
   }
 
-  return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: '#000' }}>
-      <AdminSidebar selected={selected} onSelect={setSelected} />
-      <AdminConfigPanel selected={selected} />
-    </div>
-  );
+  return <AdminConfigPanel selected={selected} />;
 };
 
 export default ConfiguracionProyecto; 
