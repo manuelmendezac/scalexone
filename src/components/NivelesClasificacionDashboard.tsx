@@ -206,7 +206,7 @@ const NivelesClasificacionDashboard: React.FC = () => {
 
             {/* Información del Usuario */}
             <div className="flex-1 text-center sm:text-left">
-              <h2 className="text-2xl sm:text-3xl font-bold text-white mb-3">{userInfo?.name || 'Usuario'} - Investor Nomad</h2>
+              <h2 className="text-2xl sm:text-3xl font-bold text-white mb-3">{userInfo?.name || 'Usuario'}</h2>
               <div className="flex flex-col sm:flex-row items-center gap-4 mb-4">
                 <span className="bg-[#FFD700] text-black px-6 py-2 rounded-full font-semibold text-lg w-full sm:w-auto text-center">
                   {nivelActual?.nombre || `Nivel 1`}
