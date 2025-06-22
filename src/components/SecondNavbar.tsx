@@ -22,7 +22,7 @@ const SecondNavbar: React.FC = () => {
     { key: 'ia', label: 'IA', to: '/ia', visible: true },
     { key: 'automatizaciones', label: 'Automatizaciones', to: '/automatizaciones', visible: true },
     { key: 'whatsappcrm', label: 'WhatsApp CRM', to: '/whatsapp-crm', visible: true },
-    { key: 'configuracion', label: 'Configuración', to: '/configuracion', visible: true },
+    { key: 'configuracion', label: 'Configuración', to: '/configuracion-admin', visible: true },
   ];
 
   // Usar la barra inferior móvil de la config, o default si no existe
