@@ -178,6 +178,7 @@ const AdminConfigPanel: React.FC<AdminConfigPanelProps> = ({ selected }) => {
       }
       
       // Actualizar también los metadatos de autenticación del usuario
+      // Esto es crucial para que el avatar y otros datos se reflejen globalmente
       const { data: updatedUser, error: updateUserError } = await supabase.auth.updateUser({
         data: { 
           avatar_url: perfil.avatar,
