@@ -20,7 +20,7 @@ const MICRORRETOS = [
   'Comparte una idea creativa con tu mentor IA'
 ];
 
-export const AutonomousTrainingHub: React.FC = () => {
+const AutonomousTrainingHub: React.FC = () => {
   const [inputUsuario, setInputUsuario] = useState('');
   const [historial, setHistorial] = useState<string[]>([]);
   const [patrones, setPatrones] = useState<string[]>(['Repetición: "procrastinación"', 'Mención frecuente: "falta de foco"']);
@@ -250,4 +250,6 @@ export const AutonomousTrainingHub: React.FC = () => {
       </motion.div>
     </div>
   );
-}; 
+};
+
+export default AutonomousTrainingHub; 

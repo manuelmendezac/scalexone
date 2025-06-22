@@ -22,7 +22,7 @@ const APRENDIZAJE_EJEMPLO = [
   { fecha: '2024-05-12 09:30', tipo: 'Reverso', detalle: 'El clon ajustó su tono a motivador.' }
 ];
 
-export const NeuroFeedbackEngine: React.FC = () => {
+const NeuroFeedbackEngine: React.FC = () => {
   const [emocion, setEmocion] = useState<string>('feliz');
   const [intensidad, setIntensidad] = useState(7);
   const [comentario, setComentario] = useState('');
@@ -197,4 +197,6 @@ export const NeuroFeedbackEngine: React.FC = () => {
       </motion.div>
     </div>
   );
-}; 
+};
+
+export default NeuroFeedbackEngine; 

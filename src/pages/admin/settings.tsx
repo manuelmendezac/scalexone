@@ -8,6 +8,7 @@ import LoadingScreen from '../../components/LoadingScreen';
 import { useHydration } from '../../store/useNeuroState';
 import { Menu, X } from 'lucide-react';
 import useNeuroState from '../../store/useNeuroState';
+import ConfiguracionProyecto from '../../components/ConfiguracionProyecto';
 
 export default function AdminSettingsPage() {
   const [selectedItem, setSelectedItem] = useState('welcome');
@@ -120,7 +121,7 @@ export default function AdminSettingsPage() {
           
           {/* El resto de paneles son solo para admins */}
           {isAdmin && selectedItem === 'community' && <CommunitySettingsPanel />}
-          {isAdmin && selectedItem === 'mainMenu' && <div>Contenido de Menú Principal</div>}
+          {isAdmin && selectedItem === 'mainMenu' && <ConfiguracionProyecto />}
           {isAdmin && selectedItem === 'levels' && <AdminConfigPanel selected='levels' />}
           {isAdmin && selectedItem === 'channels' && <AdminConfigPanel selected='channels' />}
         </div>
