@@ -3,6 +3,7 @@ import LevelsSection from './LevelsSection';
 import AvatarUploader from '../AvatarUploader';
 import { supabase } from '../../supabase';
 import { useMenuSecundarioConfig } from '../../hooks/useMenuSecundarioConfig';
+import { syncUserProfile } from '../../hooks/useSyncUserProfile';
 import useNeuroState from '../../store/useNeuroState';
 import SecondNavbar from '../SecondNavbar';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
@@ -63,7 +64,7 @@ const AdminConfigPanel: React.FC<AdminConfigPanelProps> = ({ selected }) => {
   const { userConfig, loading: configLoading, fetchUserConfig } = useConfigStore();
   const [perfil, setPerfil] = useState(perfilDefault);
   const [guardando, setGuardando] = useState(false);
-  const [mensaje, setMensaje] = useState('');
+  const [saved, setSaved] = useState(false);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [newPassword, setNewPassword] = useState('');
   const [passwordMsg, setPasswordMsg] = useState('');
@@ -173,8 +174,9 @@ const AdminConfigPanel: React.FC<AdminConfigPanelProps> = ({ selected }) => {
         cursos: perfil.cursos,
         servicios: perfil.servicios,
       }).eq('id', user.id);
-      setMensaje('¡Perfil actualizado correctamente!');
-      setTimeout(() => setMensaje(''), 2000);
+      setSaved(true);
+      syncUserProfile();
+      setTimeout(() => setSaved(false), 2000);
     }
     setGuardando(false);
   };
@@ -258,7 +260,16 @@ const AdminConfigPanel: React.FC<AdminConfigPanelProps> = ({ selected }) => {
                       <input style={{ background: '#000', color: '#FFD700', border: '2px solid #FFD700', borderRadius: 8, padding: 12, minWidth: 0 }} value={perfil.cursos.join(', ')} onChange={e => handleArrayInput(e, 'cursos')} />
                       <input style={{ background: '#000', color: '#FFD700', border: '2px solid #FFD700', borderRadius: 8, padding: 12, minWidth: 0 }} value={perfil.servicios.join(', ')} onChange={e => handleArrayInput(e, 'servicios')} />
                     </div>
-                    <button style={botonGuardarEstilo} onClick={handleGuardar} disabled={guardando}>{guardando ? 'Guardando...' : 'Guardar cambios'}</button>
+                    <div className="flex items-center mt-4">
+                        <button style={botonEstilo} onClick={handleGuardar} disabled={guardando}>
+                            {guardando ? 'Guardando...' : 'Guardar cambios'}
+                        </button>
+                        {saved && (
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 ml-2 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                            </svg>
+                        )}
+                    </div>
                   </div>
                 </div>
               )}
