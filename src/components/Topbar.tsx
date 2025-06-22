@@ -255,7 +255,7 @@ const Topbar: React.FC<TopbarProps> = ({
                     className="w-7 h-7 sm:w-9 sm:h-9 rounded-full object-cover border-2 border-cyan-400 shadow bg-transparent"
                   />
                 ) : (
-                  <div className="w-7 h-7 sm:w-9 sm:h-9 rounded-full bg-cyan-900 flex items-center justify-center border-2 border-cyan-400">
+                  <div className="w-7 h-7 sm:w-9 sm:h-9 rounded-full flex items-center justify-center border-2 border-cyan-400">
                     <FiUser className="w-5 h-5 text-cyan-300" />
                   </div>
                 )}
