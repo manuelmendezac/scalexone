@@ -233,7 +233,7 @@ const Topbar: React.FC<TopbarProps> = ({
                 size="md"
               />
               <button
-                className="flex items-center focus:outline-none"
+                className="flex items-center focus:outline-none bg-transparent"
                 onClick={() => setOpenMenu((v) => !v)}
                 title="Menú de usuario"
                 aria-label="Menú de usuario"
