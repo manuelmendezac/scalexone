@@ -21,6 +21,8 @@ export default function AdminSettingsPage() {
       setLoading(false);
     }
   }, [isHydrated]);
+  
+  const isAdmin = userInfo?.rol === 'admin' || userInfo?.rol === 'superadmin';
 
   if (loading) {
     return <LoadingScreen message="Cargando panel de administración..." />;
@@ -30,12 +32,10 @@ export default function AdminSettingsPage() {
     setSelectedItem(key);
     setIsMobileMenuOpen(false); // Cierra el menú móvil al seleccionar
   };
-  
-  const isAdmin = userInfo?.rol === 'admin' || userInfo?.rol === 'superadmin';
 
   return (
     <div className="bg-black min-h-screen text-white">
-      {/* Botón de Menú Flotante y Arrastrable para Móvil (Solo Admins) */}
+      {/* Botón de Menú Flotante para Móvil (Solo Admins) */}
       {isAdmin && (
         <motion.div
           drag
@@ -57,7 +57,7 @@ export default function AdminSettingsPage() {
         </motion.div>
       )}
 
-      {/* Menú Deslizante para Móvil */}
+      {/* Menú Deslizante para Móvil (Solo se puede abrir si el botón es visible) */}
       <AnimatePresence>
         {isMobileMenuOpen && (
           <>
@@ -105,19 +105,24 @@ export default function AdminSettingsPage() {
       </AnimatePresence>
 
       <div className="flex flex-row space-x-0 lg:space-x-8 p-4 lg:p-8">
-        {/* Sidebar para Escritorio */}
-        <AdminSidebar 
-          selected={selectedItem} 
-          onSelect={setSelectedItem} 
-        />
+        {/* Sidebar para Escritorio (Solo Admins) */}
+        {isAdmin && (
+          <AdminSidebar 
+            selected={selectedItem} 
+            onSelect={setSelectedItem} 
+          />
+        )}
         
         {/* Contenido Principal */}
         <div className="flex-1 w-full">
+          {/* El perfil es visible para todos */}
           {selectedItem === 'welcome' && <AdminConfigPanel selected='welcome' />}
-          {selectedItem === 'community' && <CommunitySettingsPanel />}
-          {selectedItem === 'mainMenu' && <div>Contenido de Menú Principal</div>}
-          {selectedItem === 'levels' && <AdminConfigPanel selected='levels' />}
-          {selectedItem === 'channels' && <AdminConfigPanel selected='channels' />}
+          
+          {/* El resto de paneles son solo para admins */}
+          {isAdmin && selectedItem === 'community' && <CommunitySettingsPanel />}
+          {isAdmin && selectedItem === 'mainMenu' && <div>Contenido de Menú Principal</div>}
+          {isAdmin && selectedItem === 'levels' && <AdminConfigPanel selected='levels' />}
+          {isAdmin && selectedItem === 'channels' && <AdminConfigPanel selected='channels' />}
         </div>
       </div>
     </div>
