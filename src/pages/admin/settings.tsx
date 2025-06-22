@@ -1,29 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import AdminSidebar from '../../components/admin/AdminSidebar';
+import AdminSidebar, { menuItems } from '../../components/admin/AdminSidebar';
 import AdminConfigPanel from '../../components/admin/AdminConfigPanel';
 import CommunitySettingsPanel from '../../components/admin/CommunitySettingsPanel';
 import CursosAdminPanel from '../../components/CursosAdminPanel';
 import LoadingScreen from '../../components/LoadingScreen';
 import { useHydration } from '../../store/useNeuroState';
-import { Menu, X, Home, Settings, BarChart2, Tv, Users, Calendar, MessageSquare, Briefcase, DollarSign, List, CreditCard, Activity } from 'lucide-react';
+import { Menu, X } from 'lucide-react';
 import useNeuroState from '../../store/useNeuroState';
-
-const menuItems = [
-    { key: 'welcome', label: 'Bienvenida', icon: <Home size={20} /> },
-    { key: 'community', label: 'Comunidad', icon: <Users size={20} /> },
-    { key: 'mainMenu', label: 'Menú Principal', icon: <Settings size={20} /> },
-    { key: 'levels', label: 'Niveles', icon: <BarChart2 size={20} /> },
-    { key: 'channels', label: 'Canales', icon: <Tv size={20} /> },
-    { key: 'members', label: 'Miembros', icon: <Users size={20} /> },
-    { key: 'events', label: 'Eventos', icon: <Calendar size={20} /> },
-    { key: 'chats', label: 'Chats', icon: <MessageSquare size={20} /> },
-    { key: 'affiliates', label: 'Afiliados', icon: <Briefcase size={20} /> },
-    { key: 'payments', label: 'Métodos de Cobro', icon: <DollarSign size={20} /> },
-    { key: 'salesHistory', label: 'Historial de Ventas', icon: <List size={20} /> },
-    { key: 'transactions', label: 'Transacciones', icon: <CreditCard size={20} /> },
-    { key: 'cryptoTransactions', label: 'Transacciones Crypto', icon: <Activity size={20} /> },
-];
 
 export default function AdminSettingsPage() {
   const [selectedItem, setSelectedItem] = useState('welcome');
