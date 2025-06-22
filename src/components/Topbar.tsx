@@ -8,6 +8,8 @@ import useNeuroState from '../store/useNeuroState';
 import { supabase } from '../supabase';
 import SwitchClienteIB from './SwitchClienteIB';
 import { FaRobot, FaWhatsapp } from 'react-icons/fa';
+import { NavLink } from 'react-router-dom';
+import { BarChart2, Settings } from 'lucide-react';
 
 interface TopbarProps {
   userAvatar?: string;
@@ -18,6 +20,11 @@ interface TopbarProps {
 }
 
 const AFFILIATE_LINK = 'https://neurolink.app/afiliado/tu-codigo';
+
+const navLinks = [
+  { name: 'Clasificación', href: '/clasificacion', icon: <BarChart2 size={16} /> },
+  { name: 'Configuración', href: '/admin/settings', icon: <Settings size={16} /> },
+];
 
 const Topbar: React.FC<TopbarProps> = ({
   userAvatar,
@@ -273,26 +280,29 @@ const Topbar: React.FC<TopbarProps> = ({
                 animate={{ opacity: 1, y: 8 }}
                 exit={{ opacity: 0, y: 0 }}
                 transition={{ duration: 0.18 }}
-                className="absolute right-0 top-12 w-40 bg-black border border-cyan-400 rounded-xl shadow-xl z-50"
-                style={{ minWidth: 160 }}
+                className="absolute right-0 top-12 w-64 bg-black border border-cyan-800 rounded-lg shadow-lg z-50 overflow-hidden"
               >
+                <div className="p-4 border-b border-cyan-800">
+                  <div className="font-bold text-white text-lg">{t('bienvenido') || 'Bienvenido'}</div>
+                  <div className="text-sm text-gray-400">{useNeuroState.getState().userInfo?.email}</div>
+                </div>
                 <button
-                  className="w-full flex items-center gap-2 px-4 py-2 hover:bg-cyan-900 text-left text-white font-orbitron text-base transition rounded-t-xl bg-black"
+                  className="w-full flex items-center gap-2 px-4 py-2 hover:bg-cyan-900 text-left text-white font-orbitron text-base transition bg-black"
                   onClick={() => navigate('/perfil')}
                 >
-                  <FiUser className="w-5 h-5" /> {t('Mi Perfil') || 'Mi Perfil'}
+                  <FiUser className="w-5 h-5" /> {t('perfil') || 'Mi Perfil'}
+                </button>
+                <button
+                  className="w-full flex items-center gap-2 px-4 py-2 hover:bg-cyan-900 text-left text-white font-orbitron text-base transition bg-black"
+                  onClick={() => navigate('/admin/settings')}
+                >
+                  <FiSettings className="w-5 h-5" /> {t('configuracion') || 'Configuración'}
                 </button>
                 <button
                   className="w-full flex items-center gap-2 px-4 py-2 hover:bg-cyan-900 text-left text-white font-orbitron text-base transition bg-black"
                   onClick={handleAdminModeToggle}
                 >
                   <FiSettings className="w-5 h-5" /> {isAdminMode ? 'Modo Afiliado' : 'Modo Admin'}
-                </button>
-                <button
-                  className="w-full flex items-center gap-2 px-4 py-2 hover:bg-cyan-900 text-left text-white font-orbitron text-base transition bg-black"
-                  onClick={() => navigate('/configuracion-admin')}
-                >
-                  <FiSettings className="w-5 h-5" /> Configuración
                 </button>
                 <button
                   className="w-full flex items-center gap-2 px-4 py-2 hover:bg-red-700 text-left text-white font-orbitron text-base transition rounded-b-xl bg-black"

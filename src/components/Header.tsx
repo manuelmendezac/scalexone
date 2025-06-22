@@ -1,10 +1,16 @@
 import { useState } from 'react';
 import CognitiveProfile from './CognitiveProfile';
 import useNeuroState from '../store/useNeuroState';
+import { BarChart2, Settings } from 'lucide-react';
 
 const Header = () => {
   const [showProfile, setShowProfile] = useState(false);
   const { userName, avatarUrl } = useNeuroState();
+
+  const navLinks = [
+    { name: 'Clasificación', href: '/clasificacion', icon: <BarChart2 size={16} /> },
+    { name: 'Configuración', href: '/admin/settings', icon: <Settings size={16} /> },
+  ];
 
   return (
     <>
