@@ -25,6 +25,7 @@ const menuItems = [
 const AdminSidebar: React.FC<AdminSidebarProps> = ({ selected, onSelect }) => {
   return (
     <aside className="hidden lg:flex flex-col w-64 self-start top-8">
+      {/* Panel de Administración */}
       <div className="bg-gray-900/50 rounded-lg p-4">
         <div className="flex items-center justify-between pb-4 mb-4 border-b border-gray-800">
           <h1 className="text-xl font-bold text-yellow-500">Panel Admin</h1>
