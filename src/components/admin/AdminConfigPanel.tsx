@@ -145,19 +145,14 @@ const AdminConfigPanel: React.FC<AdminConfigPanelProps> = ({ selected }) => {
   const handleArrayInput = (e: React.ChangeEvent<HTMLInputElement>, key: 'cursos' | 'servicios') => {
     setPerfil({ ...perfil, [key]: e.target.value.split(',').map(s => s.trim()) });
   };
-  const handleAvatar = async (url: string) => {
+  const handleAvatar = (url: string) => {
     setPerfil({ ...perfil, avatar: url });
-    // Guardar avatar en Supabase
-    const { data: { user } } = await supabase.auth.getUser();
-    if (user) {
-      await supabase.from('usuarios').update({ avatar_url: url }).eq('id', user.id);
-    }
   };
   const handleGuardar = async () => {
     setGuardando(true);
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {
-      await supabase.from('usuarios').update({
+      const { error } = await supabase.from('usuarios').update({
         avatar_url: perfil.avatar,
         nombres: perfil.nombres,
         apellidos: perfil.apellidos,
@@ -174,6 +169,14 @@ const AdminConfigPanel: React.FC<AdminConfigPanelProps> = ({ selected }) => {
         cursos: perfil.cursos,
         servicios: perfil.servicios,
       }).eq('id', user.id);
+
+      if (error) {
+        setGuardando(false);
+        console.error('Error al guardar el perfil:', error);
+        alert(`Error al guardar el perfil: ${error.message}`);
+        return;
+      }
+      
       setSaved(true);
       syncUserProfile();
       setTimeout(() => setSaved(false), 2000);
