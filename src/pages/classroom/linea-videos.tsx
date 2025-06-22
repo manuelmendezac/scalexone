@@ -157,12 +157,11 @@ const LineaVideosClassroom = () => {
       setVideosCompletados(prev => new Set(prev).add(videoActual.id));
 
       if (resultado.moduloCompletado) {
-        const recompensaModulo = await classroomGamificationService.registrarModuloCompletado(modulo_id, userId);
-        if (recompensaModulo) {
-           setRecompensaTotal({ xp: recompensaModulo.xpGanado, coins: recompensaModulo.monedasGanadas });
-        } else {
-           setRecompensaTotal({ xp: CLASSROOM_REWARDS.MODULO_COMPLETADO.xp, coins: CLASSROOM_REWARDS.MODULO_COMPLETADO.monedas });
-        }
+        const totalXP = (clases.length || 0) * CLASSROOM_REWARDS.VIDEO_COMPLETADO.xp;
+        const totalCoins = (clases.length || 0) * CLASSROOM_REWARDS.VIDEO_COMPLETADO.monedas;
+        
+        setRecompensaTotal({ xp: totalXP, coins: totalCoins });
+        
         setShowModuloCompletadoModal(true);
       } else if (!esUltimoVideo) {
         setTimeout(() => cambiarVideo(claseActual + 1), 1500);
@@ -172,7 +171,7 @@ const LineaVideosClassroom = () => {
     } finally {
       setTimeout(() => setIsSaving(false), 1200);
     }
-  }, [userId, videoActual.id, modulo_id, videosCompletados, esUltimoVideo, cambiarVideo, claseActual]);
+  }, [userId, videoActual.id, modulo_id, videosCompletados, esUltimoVideo, cambiarVideo, claseActual, clases.length]);
 
   const handleProgress = useCallback((state: { played: number }) => {
     if (videosCompletados.has(videoActual.id)) {
@@ -330,11 +329,11 @@ const LineaVideosClassroom = () => {
             <h3 className="text-2xl font-bold text-yellow-400">¡Felicidades, módulo completado!</h3>
             <div className="flex gap-6 my-4">
               <div className="bg-yellow-500/20 px-4 py-2 rounded-lg">
-                <span className="text-yellow-400 font-bold">{CLASSROOM_REWARDS.MODULO_COMPLETADO.xp} XP</span>
+                <span className="text-yellow-400 font-bold">{recompensaTotal.xp} XP</span>
               </div>
               <div className="flex items-center gap-2 bg-yellow-500/20 px-4 py-2 rounded-lg">
                 <img src="/images/modulos/neurocoin.svg" alt="Coin" className="w-6 h-6" />
-                <span className="text-yellow-400 font-bold">{CLASSROOM_REWARDS.MODULO_COMPLETADO.monedas}</span>
+                <span className="text-yellow-400 font-bold">{recompensaTotal.coins}</span>
               </div>
             </div>
             <button onClick={() => { setShowModuloCompletadoModal(false); navegarSiguienteModulo(); }} className="mt-4 px-6 py-3 rounded-full bg-green-600 hover:bg-green-500 text-white font-bold">Ir al Siguiente Módulo</button>
