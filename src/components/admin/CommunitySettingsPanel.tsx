@@ -42,7 +42,7 @@ const CommunitySettingsPanel: React.FC = () => {
       <div className="w-full bg-gray-900/50 rounded-lg p-6 md:p-8">
         <h2 className="text-2xl font-bold mb-6">Comunidad</h2>
 
-        <div className="space-y-10">
+        <div className="space-y-10 max-w-none">
           {/* Banner */}
           <UploaderComponent 
             title="Banner"
