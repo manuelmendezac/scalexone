@@ -8,7 +8,14 @@ import {
   X,
   Moon,
   LogOut,
-  LayoutDashboard
+  LayoutDashboard,
+  Home,
+  Users,
+  GraduationCap,
+  BookOpen,
+  Rocket,
+  BarChart2,
+  Settings
 } from 'lucide-react';
 import { useTheme } from '../context/themeContext';
 import { FaChartBar, FaCog, FaBook, FaRocket, FaUsers, FaChalkboardTeacher, FaHome } from 'react-icons/fa';
