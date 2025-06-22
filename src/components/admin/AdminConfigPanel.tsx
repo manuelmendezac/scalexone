@@ -177,6 +177,22 @@ const AdminConfigPanel: React.FC<AdminConfigPanelProps> = ({ selected }) => {
         return;
       }
       
+      // Actualizar también los metadatos de autenticación del usuario
+      const { data: updatedUser, error: updateUserError } = await supabase.auth.updateUser({
+        data: { 
+          avatar_url: perfil.avatar,
+          nombres: perfil.nombres,
+          apellidos: perfil.apellidos
+        }
+      });
+
+      if (updateUserError) {
+        setGuardando(false);
+        console.error('Error al actualizar metadatos del usuario:', updateUserError);
+        alert(`Error al actualizar metadatos: ${updateUserError.message}`);
+        return;
+      }
+      
       setSaved(true);
       syncUserProfile();
       setTimeout(() => setSaved(false), 2000);
