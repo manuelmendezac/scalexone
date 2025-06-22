@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import AdminSidebar from '../../components/admin/AdminSidebar';
 import AdminConfigPanel from '../../components/admin/AdminConfigPanel';
+import AdminHeader from '../../components/admin/AdminHeader';
 import LoadingScreen from '../../components/LoadingScreen';
 import { useHydration } from '../../store/useNeuroState';
 import { useMediaQuery } from 'react-responsive';
@@ -8,14 +9,17 @@ import { useMediaQuery } from 'react-responsive';
 export default function AdminSettingsPage() {
   const [selected, setSelected] = useState('welcome');
   const [loading, setLoading] = useState(true);
+  const [isSidebarOpen, setSidebarOpen] = useState(false);
   const isHydrated = useHydration();
-
-  const isMobile = useMediaQuery({ query: '(max-width: 768px)' });
-  const [isCollapsed, setIsCollapsed] = useState(isMobile);
+  const isDesktop = useMediaQuery({ query: '(min-width: 1024px)' });
 
   useEffect(() => {
-    setIsCollapsed(isMobile);
-  }, [isMobile]);
+    if (isDesktop) {
+      setSidebarOpen(true);
+    } else {
+      setSidebarOpen(false);
+    }
+  }, [isDesktop]);
   
   useEffect(() => {
     if (isHydrated) {
@@ -28,15 +32,18 @@ export default function AdminSettingsPage() {
   }
 
   return (
-    <div className="flex min-h-screen bg-black">
+    <div className="flex min-h-screen bg-black text-white">
       <AdminSidebar 
+        isOpen={isSidebarOpen}
+        onClose={() => setSidebarOpen(false)}
         selected={selected} 
         onSelect={setSelected} 
-        isCollapsed={isCollapsed}
-        setIsCollapsed={setIsCollapsed}
       />
-      <div className={`flex-1 transition-all duration-300 ${isCollapsed ? 'lg:ml-20' : 'lg:ml-64'}`}>
-        <AdminConfigPanel selected={selected} />
+      <div className="flex-1 lg:ml-64">
+        <AdminHeader toggleSidebar={() => setSidebarOpen(true)} />
+        <main className="pt-16 lg:pt-0">
+          <AdminConfigPanel selected={selected} />
+        </main>
       </div>
     </div>
   );
