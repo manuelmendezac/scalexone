@@ -8,6 +8,7 @@ interface AdminSidebarProps {
 
 const menuItems = [
     { key: 'welcome', label: 'Bienvenida', icon: <Home size={20} /> },
+    { key: 'community', label: 'Comunidad', icon: <Users size={20} /> },
     { key: 'mainMenu', label: 'Menú Principal', icon: <Settings size={20} /> },
     { key: 'levels', label: 'Niveles', icon: <BarChart2 size={20} /> },
     { key: 'channels', label: 'Canales', icon: <Tv size={20} /> },
