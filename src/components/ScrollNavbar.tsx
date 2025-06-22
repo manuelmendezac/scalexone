@@ -42,7 +42,7 @@ const ScrollNavbar: React.FC = () => {
       { key: 'ia', nombre: 'IA', ruta: '/ia', icon: '🤖', visible: true },
       { key: 'automatizaciones', nombre: 'Automatizaciones', ruta: '/automatizaciones', icon: '⚙️', visible: true },
       { key: 'whatsappcrm', nombre: 'WhatsApp CRM', ruta: '/whatsapp-crm', icon: '💬', visible: true },
-      { key: 'configuracion', nombre: 'Configuración', ruta: '/configuracion', icon: '🔧', visible: true },
+      { key: 'configuracion', nombre: 'Configuración', ruta: '/configuracion-admin', icon: '🔧', visible: true },
     ];
   }
 
