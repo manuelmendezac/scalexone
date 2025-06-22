@@ -132,7 +132,7 @@ const Topbar: React.FC<TopbarProps> = ({
       <div className="flex items-center gap-2 sm:gap-4">
         {/* Botón de soporte */}
         <button
-          className="flex items-center gap-2 px-2 sm:px-3 py-1 rounded-lg bg-gray-800 hover:bg-gray-700 text-white font-semibold transition"
+          className="flex items-center gap-2 px-2 py-1 rounded-lg bg-gray-800 hover:bg-gray-700 text-white font-semibold transition text-sm"
           aria-label="Soporte"
           onClick={() => navigate('/soporte')}
         >
@@ -222,16 +222,6 @@ const Topbar: React.FC<TopbarProps> = ({
             )}
           </AnimatePresence>
         </div>
-        {/* Selector de idioma funcional */}
-        <button
-          className="flex items-center gap-2 px-3 py-1 rounded-lg bg-gray-800 hover:bg-gray-700 text-white font-semibold transition border border-gray-700"
-          onClick={() => handleLanguageChange(language === 'es' ? 'en' : 'es')}
-          title={language === 'es' ? 'Cambiar a inglés' : 'Cambiar a español'}
-          aria-label="Cambiar idioma"
-        >
-          <FiGlobe className="w-5 h-5" />
-          <span className="text-base font-bold">{language === 'es' ? 'ES' : 'EN'}</span>
-        </button>
         {/* Avatar y menú de usuario */}
         <div className="relative flex items-center gap-1 sm:gap-3">
           {isLoggedIn ? (
