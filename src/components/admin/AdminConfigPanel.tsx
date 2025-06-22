@@ -216,11 +216,11 @@ const AdminConfigPanel: React.FC<AdminConfigPanelProps> = ({ selected }) => {
   }
 
   return (
-    <div className="flex-1 p-8 bg-black">
-      <div className="max-w-4xl mx-auto">
+    <div className="flex-1 sm:p-8 p-4 bg-black">
+      <div className="mx-auto">
         {selected === 'welcome' && (
-          <div className="w-full py-10">
-            <div className="w-full max-w-4xl mx-auto bg-black rounded-lg shadow-lg p-6 md:p-10 border-2 border-yellow-500 flex flex-col gap-8">
+          <div className="w-full">
+            <div className="w-full bg-black rounded-lg shadow-lg md:p-10 p-6 border-2 border-yellow-500 flex flex-col gap-8">
               <h2 className="text-yellow-500 font-bold text-3xl mb-4">Mi Perfil</h2>
               {loadingPerfil ? <div className="text-yellow-500 font-semibold">Cargando...</div> : (
                 <div className="grid grid-cols-1 lg:grid-cols-[300px_1fr] gap-8 items-start">

@@ -47,11 +47,14 @@ export default function AdminSettingsPage() {
 
   return (
     <div className="bg-black min-h-screen text-white">
-      {/* Botón de Menú y Header para Móvil */}
-      <div className="lg:hidden flex items-center justify-between p-4 sticky top-0 bg-black/80 backdrop-blur-sm z-20 border-b border-gray-800">
-        <h2 className="text-lg font-bold text-white">Panel Admin</h2>
-        <button onClick={() => setIsMobileMenuOpen(true)} className="text-white">
-          <Menu size={28} />
+      {/* Botón de Menú Flotante para Móvil */}
+      <div className="lg:hidden fixed bottom-6 right-6 z-50">
+        <button
+          onClick={() => setIsMobileMenuOpen(true)}
+          className="bg-yellow-500 text-black w-16 h-16 rounded-full flex items-center justify-center shadow-lg transform hover:scale-110 transition-transform"
+          aria-label="Abrir menú"
+        >
+          <Menu size={32} />
         </button>
       </div>
 
