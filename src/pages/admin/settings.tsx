@@ -7,6 +7,7 @@ import CursosAdminPanel from '../../components/CursosAdminPanel';
 import LoadingScreen from '../../components/LoadingScreen';
 import { useHydration } from '../../store/useNeuroState';
 import { Menu, X, Home, Settings, BarChart2, Tv, Users, Calendar, MessageSquare, Briefcase, DollarSign, List, CreditCard, Activity } from 'lucide-react';
+import useNeuroState from '../../store/useNeuroState';
 
 const menuItems = [
     { key: 'welcome', label: 'Bienvenida', icon: <Home size={20} /> },
@@ -29,6 +30,7 @@ export default function AdminSettingsPage() {
   const [loading, setLoading] = useState(true);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const isHydrated = useHydration();
+  const { userInfo } = useNeuroState();
 
   useEffect(() => {
     if (isHydrated) {
@@ -44,19 +46,32 @@ export default function AdminSettingsPage() {
     setSelectedItem(key);
     setIsMobileMenuOpen(false); // Cierra el menú móvil al seleccionar
   };
+  
+  const isAdmin = userInfo?.rol === 'admin' || userInfo?.rol === 'superadmin';
 
   return (
     <div className="bg-black min-h-screen text-white">
-      {/* Botón de Menú Flotante para Móvil */}
-      <div className="lg:hidden fixed bottom-6 right-6 z-50">
-        <button
-          onClick={() => setIsMobileMenuOpen(true)}
-          className="bg-yellow-500 text-black w-16 h-16 rounded-full flex items-center justify-center shadow-lg transform hover:scale-110 transition-transform"
-          aria-label="Abrir menú"
+      {/* Botón de Menú Flotante y Arrastrable para Móvil (Solo Admins) */}
+      {isAdmin && (
+        <motion.div
+          drag
+          dragConstraints={{
+            top: -250,
+            left: -250,
+            right: 250,
+            bottom: 250,
+          }}
+          className="lg:hidden fixed bottom-6 right-6 z-50 cursor-grab active:cursor-grabbing"
         >
-          <Menu size={32} />
-        </button>
-      </div>
+          <button
+            onClick={() => setIsMobileMenuOpen(true)}
+            className="bg-yellow-500 text-black w-16 h-16 rounded-full flex items-center justify-center shadow-lg transform hover:scale-110 transition-transform"
+            aria-label="Abrir menú"
+          >
+            <Menu size={32} />
+          </button>
+        </motion.div>
+      )}
 
       {/* Menú Deslizante para Móvil */}
       <AnimatePresence>
