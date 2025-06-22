@@ -18,20 +18,18 @@ export default function AdminSettingsPage() {
     }
   }, [isHydrated]);
 
-  if (!isHydrated || loading) {
-    return <LoadingScreen message="Cargando configuración..." />;
+  if (loading) {
+    return <LoadingScreen message="Cargando panel de administración..." />;
   }
 
   return (
-    <div className="bg-black text-white min-h-screen p-4 sm:p-6 lg:p-8">
-      <div className="flex flex-col lg:flex-row max-w-7xl mx-auto gap-8">
-        {/* Sidebar: hidden on mobile, flex column on desktop */}
+    <div className="bg-black min-h-screen text-white">
+      <div className="flex flex-col lg:flex-row lg:space-x-8 p-4 lg:p-8">
         <AdminSidebar 
           selected={selectedItem} 
           onSelect={setSelectedItem} 
         />
         
-        {/* Main Content */}
         <div className="flex-1 w-full">
           {selectedItem === 'welcome' && <AdminConfigPanel selected='welcome' />}
           {selectedItem === 'community' && <CommunitySettingsPanel />}
