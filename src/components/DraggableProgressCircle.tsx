@@ -3,9 +3,10 @@ import Draggable from 'react-draggable';
 
 interface DraggableProgressCircleProps {
   progress: number;
+  children?: React.ReactNode;
 }
 
-const DraggableProgressCircle: React.FC<DraggableProgressCircleProps> = ({ progress }) => {
+const DraggableProgressCircle: React.FC<DraggableProgressCircleProps> = ({ progress, children }) => {
   const size = 80;
   const strokeWidth = 8;
   const center = size / 2;
@@ -19,6 +20,7 @@ const DraggableProgressCircle: React.FC<DraggableProgressCircleProps> = ({ progr
         className="fixed bottom-10 right-10 z-50 cursor-move"
         style={{ width: size, height: size }}
       >
+        {children}
         <svg
           className="w-full h-full transform -rotate-90"
           viewBox={`0 0 ${size} ${size}`}

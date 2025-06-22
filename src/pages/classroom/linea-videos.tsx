@@ -11,6 +11,7 @@ import classroomGamificationService, { CLASSROOM_REWARDS } from '../../services/
 import ReactPlayer from 'react-player/lazy';
 import Confetti from 'react-confetti';
 import DraggableProgressCircle from '../../components/DraggableProgressCircle';
+import RewardToast from '../../components/RewardToast';
 
 const LineaVideosClassroom = () => {
   const { modulo_id } = useParams();
@@ -42,6 +43,7 @@ const LineaVideosClassroom = () => {
   const [recompensaTotal, setRecompensaTotal] = useState({ xp: 0, coins: 0 });
   const [isSaving, setIsSaving] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
+  const [showReward, setShowReward] = useState(false);
   const playerRef = useRef<any>(null);
 
   useEffect(() => {
@@ -160,9 +162,9 @@ const LineaVideosClassroom = () => {
       setVideosCompletados(prev => new Set(prev).add(videoActual.id));
 
       setShowConfetti(true);
-      const rewardText = `+${CLASSROOM_REWARDS.VIDEO_COMPLETADO.xp} XP y +${CLASSROOM_REWARDS.VIDEO_COMPLETADO.monedas} Monedas`;
-      alert(`¡Video completado! Has ganado: ${rewardText}`);
+      setShowReward(true);
       setTimeout(() => setShowConfetti(false), 4000);
+      setTimeout(() => setShowReward(false), 3000);
 
       if (!esUltimoVideo) {
         setTimeout(() => cambiarVideo(claseActual + 1), 1500);
@@ -188,7 +190,13 @@ const LineaVideosClassroom = () => {
   return (
     <div className={`min-h-screen bg-black text-white flex flex-col ${fullscreen ? '' : 'md:flex-row'} px-1 sm:px-2`}>
       {showConfetti && <Confetti recycle={false} numberOfPieces={250} />}
-      <DraggableProgressCircle progress={videoProgress} />
+      <DraggableProgressCircle progress={videoProgress}>
+        <RewardToast 
+          xp={CLASSROOM_REWARDS.VIDEO_COMPLETADO.xp}
+          coins={CLASSROOM_REWARDS.VIDEO_COMPLETADO.monedas}
+          show={showReward}
+        />
+      </DraggableProgressCircle>
 
       <div className={`flex-1 flex flex-col items-center justify-center ${fullscreen ? 'fixed inset-0 z-50 bg-black overflow-auto' : 'p-1 sm:p-2 md:p-8'} transition-all duration-300`}>
         <div className={`w-full ${fullscreen ? '' : 'max-w-6xl'} bg-gradient-to-br from-neutral-950 to-black rounded-3xl shadow-2xl p-4 flex flex-col items-center border border-yellow-800/40`}>
@@ -212,8 +220,8 @@ const LineaVideosClassroom = () => {
               </div>
             </div>
           </div>
-          <div className="w-full relative">
-            <div className="aspect-video w-full h-full bg-black rounded-xl overflow-hidden border-2 border-yellow-800/50">
+          <div className="w-full aspect-video">
+            <div className="w-full h-full bg-black rounded-xl overflow-hidden border-2 border-yellow-800/50">
               {videoActual.embed_code ? (
                 <div className="w-full h-full [&>iframe]:w-full [&>iframe]:h-full" dangerouslySetInnerHTML={{ __html: videoActual.embed_code }} />
               ) : videoActual.url ? (
@@ -235,61 +243,61 @@ const LineaVideosClassroom = () => {
                 </div>
               )}
             </div>
-            <div className="mt-4 flex justify-between items-center w-full">
-              <h2 className="text-xl font-bold text-yellow-400">{videoActual.titulo || 'Sin título'}</h2>
-              <div className="flex items-center gap-2">
-                <button onClick={() => cambiarVideo(claseActual - 1)} disabled={claseActual === 0} className="px-3 py-2 rounded-lg transition-all duration-300 font-medium bg-yellow-900/50 hover:bg-yellow-800/70 disabled:opacity-50 flex items-center gap-2">
-                  <ChevronLeft className="w-5 h-5" /> <span className="hidden sm:inline">Anterior</span>
+          </div>
+          <div className="mt-4 flex justify-between items-center w-full">
+            <h2 className="text-xl font-bold text-yellow-400">{videoActual.titulo || 'Sin título'}</h2>
+            <div className="flex items-center gap-2">
+              <button onClick={() => cambiarVideo(claseActual - 1)} disabled={claseActual === 0} className="px-3 py-2 rounded-lg transition-all duration-300 font-medium bg-yellow-900/50 hover:bg-yellow-800/70 disabled:opacity-50 flex items-center gap-2">
+                <ChevronLeft className="w-5 h-5" /> <span className="hidden sm:inline">Anterior</span>
+              </button>
+              {videoActual.embed_code && !videosCompletados.has(videoActual.id) ? (
+                <button onClick={handleVideoEnded} disabled={isSaving} className="px-6 py-2 rounded-lg font-bold bg-yellow-500 text-black border-2 border-yellow-600 hover:bg-yellow-400 transition-all duration-300 shadow-lg disabled:opacity-50">
+                  {isSaving ? 'Procesando...' : 'Completar y Siguiente'}
                 </button>
-                {videoActual.embed_code && !videosCompletados.has(videoActual.id) ? (
-                  <button onClick={handleVideoEnded} disabled={isSaving} className="px-6 py-2 rounded-lg font-bold bg-yellow-500 text-black border-2 border-yellow-600 hover:bg-yellow-400 transition-all duration-300 shadow-lg disabled:opacity-50">
-                    {isSaving ? 'Procesando...' : 'Completar y Siguiente'}
+              ) : (
+                esUltimoVideo ? (
+                  <button onClick={navegarSiguienteModulo} className="px-3 py-2 rounded-lg transition-all duration-300 font-medium bg-green-800/70 hover:bg-green-700/70 flex items-center gap-2">
+                    <span className="hidden sm:inline">Siguiente Módulo</span> <ChevronRight className="w-5 h-5" />
                   </button>
                 ) : (
-                  esUltimoVideo ? (
-                    <button onClick={navegarSiguienteModulo} className="px-3 py-2 rounded-lg transition-all duration-300 font-medium bg-green-800/70 hover:bg-green-700/70 flex items-center gap-2">
-                      <span className="hidden sm:inline">Siguiente Módulo</span> <ChevronRight className="w-5 h-5" />
-                    </button>
-                  ) : (
-                    <button onClick={() => cambiarVideo(claseActual + 1)} className="px-3 py-2 rounded-lg transition-all duration-300 font-medium bg-yellow-900/50 hover:bg-yellow-800/70 flex items-center gap-2">
-                      <span className="hidden sm:inline">Siguiente</span> <ChevronRight className="w-5 h-5" />
-                    </button>
-                  )
-                )}
-              </div>
+                  <button onClick={() => cambiarVideo(claseActual + 1)} className="px-3 py-2 rounded-lg transition-all duration-300 font-medium bg-yellow-900/50 hover:bg-yellow-800/70 flex items-center gap-2">
+                    <span className="hidden sm:inline">Siguiente</span> <ChevronRight className="w-5 h-5" />
+                  </button>
+                )
+              )}
             </div>
-            <p className="mt-1 text-yellow-200/80 text-sm w-full text-left">{videoActual.descripcion || 'Sin descripción'}</p>
-
-            <div className="w-full mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="bg-neutral-900/70 p-6 rounded-2xl border border-yellow-700/30">
-                  <h3 className="text-xl font-bold text-yellow-400 mb-3 flex items-center gap-2">
-                    <Info className="w-6 h-6" />
-                    Sobre este módulo
-                  </h3>
-                  <div className="text-yellow-200/80 prose prose-invert max-w-none prose-p:my-2 prose-a:text-yellow-300 hover:prose-a:text-yellow-200" dangerouslySetInnerHTML={{ __html: descripcionHtml || '<p>No hay descripción disponible.</p>' }} />
-              </div>
-              <div className="bg-neutral-900/70 p-6 rounded-2xl border border-yellow-700/30">
-                  <h3 className="text-xl font-bold text-yellow-400 mb-3 flex items-center gap-2">
-                    <Download className="w-6 h-6" />
-                    Material y herramientas
-                  </h3>
-                  <div className="space-y-3">
-                  {materiales.length > 0 ? materiales.map((material) => (
-                      <a
-                        key={material.id}
-                        href={material.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="block p-3 rounded-lg bg-yellow-900/40 hover:bg-yellow-800/60 transition-colors text-yellow-300 font-medium"
-                      >
-                        {material.titulo}
-                      </a>
-                  )) : <p className="text-yellow-200/80">No hay materiales disponibles.</p>}
-                  </div>
-              </div>
-            </div>
-
           </div>
+          <p className="mt-1 text-yellow-200/80 text-sm w-full text-left">{videoActual.descripcion || 'Sin descripción'}</p>
+
+          <div className="w-full mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="bg-neutral-900/70 p-6 rounded-2xl border border-yellow-700/30">
+                <h3 className="text-xl font-bold text-yellow-400 mb-3 flex items-center gap-2">
+                  <Info className="w-6 h-6" />
+                  Sobre este módulo
+                </h3>
+                <div className="text-yellow-200/80 prose prose-invert max-w-none prose-p:my-2 prose-a:text-yellow-300 hover:prose-a:text-yellow-200" dangerouslySetInnerHTML={{ __html: descripcionHtml || '<p>No hay descripción disponible.</p>' }} />
+            </div>
+            <div className="bg-neutral-900/70 p-6 rounded-2xl border border-yellow-700/30">
+                <h3 className="text-xl font-bold text-yellow-400 mb-3 flex items-center gap-2">
+                  <Download className="w-6 h-6" />
+                  Material y herramientas
+                </h3>
+                <div className="space-y-3">
+                {materiales.length > 0 ? materiales.map((material) => (
+                    <a
+                      key={material.id}
+                      href={material.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="block p-3 rounded-lg bg-yellow-900/40 hover:bg-yellow-800/60 transition-colors text-yellow-300 font-medium"
+                    >
+                      {material.titulo}
+                    </a>
+                )) : <p className="text-yellow-200/80">No hay materiales disponibles.</p>}
+                </div>
+            </div>
+          </div>
+
         </div>
       </div>
       {!fullscreen && (
