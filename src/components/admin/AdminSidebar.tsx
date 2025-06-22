@@ -36,7 +36,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ selected, onSelect }) => {
               className={`w-full flex items-center p-3 rounded-md transition-colors text-left
                 ${selected === item.key 
                   ? 'bg-yellow-500 text-black font-bold' 
-                  : 'text-gray-300 hover:bg-gray-800 hover:text-white'
+                  : 'bg-gray-800 text-white hover:bg-gray-700'
                 }`
               }
             >
