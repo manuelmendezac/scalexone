@@ -14,13 +14,13 @@ const sizeClasses = {
 
 const SwitchClienteIB: React.FC<SwitchClienteIBProps> = ({ mode, onChange, size = 'md' }) => {
   return (
-    <div className={`flex items-center bg-white rounded-full border border-blue-300 shadow-sm px-1 ${sizeClasses[size]} w-fit`}
+    <div className={`flex items-center bg-black rounded-full border border-gray-700 shadow-sm p-1 ${sizeClasses[size]} w-fit`}
       style={{ minWidth: size === 'sm' ? 90 : size === 'lg' ? 160 : 120 }}
       role="group"
       aria-label="Switch Cliente/IB"
     >
       <button
-        className={`px-3 py-1 rounded-full font-bold transition-all focus:outline-none ${mode === 'Client' ? 'bg-blue-700 text-white shadow' : 'text-blue-700 hover:bg-blue-50'}`}
+        className={`px-3 py-1 rounded-full font-bold transition-all focus:outline-none ${mode === 'Client' ? 'bg-yellow-500 text-black shadow' : 'text-gray-400 hover:bg-gray-800'}`}
         onClick={() => onChange('Client')}
         aria-pressed={mode === 'Client'}
         tabIndex={0}
@@ -29,7 +29,7 @@ const SwitchClienteIB: React.FC<SwitchClienteIBProps> = ({ mode, onChange, size 
         Cliente
       </button>
       <button
-        className={`px-3 py-1 rounded-full font-bold transition-all focus:outline-none ml-1 ${mode === 'IB' ? 'bg-blue-700 text-white shadow' : 'text-blue-700 hover:bg-blue-50'}`}
+        className={`px-3 py-1 rounded-full font-bold transition-all focus:outline-none ml-1 ${mode === 'IB' ? 'bg-yellow-500 text-black shadow' : 'text-gray-400 hover:bg-gray-800'}`}
         onClick={() => onChange('IB')}
         aria-pressed={mode === 'IB'}
         tabIndex={0}
