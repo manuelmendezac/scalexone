@@ -40,10 +40,18 @@ const SecondNavbar: React.FC = () => {
 
   if (loading) return null;
 
+  // Forzar la ruta correcta para Configuración antes de renderizar
+  const finalMenu = menu.map(item => {
+    if (item.key === 'configuracion') {
+      return { ...item, to: '/configuracion-admin', ruta: '/configuracion-admin' };
+    }
+    return item;
+  });
+
   return (
     <nav className="fixed bottom-0 left-0 w-full z-50 border-t border-cyan-900 flex md:hidden" style={{ background: '#000' }}>
       <ul className="flex justify-between items-center w-full px-1 py-1">
-        {menu.filter(item => item && item.visible !== false).map((item: any) => (
+        {finalMenu.filter(item => item && item.visible !== false).map((item: any) => (
           <li key={item.key} className="flex-1 flex flex-col items-center">
             <NavLink
               to={item.to || item.ruta}

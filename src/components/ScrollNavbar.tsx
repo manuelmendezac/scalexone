@@ -49,10 +49,18 @@ const ScrollNavbar: React.FC = () => {
 
   if (loading) return null;
 
+  // Forzar la ruta correcta para Configuración antes de renderizar
+  const finalMenu = menu.map(item => {
+    if (item.key === 'configuracion') {
+      return { ...item, ruta: '/configuracion-admin' };
+    }
+    return item;
+  });
+
   return (
     <nav className="w-full px-2 py-2 bg-transparent border-b border-[#23283a] overflow-x-auto whitespace-nowrap" style={{ zIndex: 49 }}>
       <div className="flex justify-center min-w-full w-fit mx-auto gap-2">
-        {menu.filter(item => item && item.visible !== false).map((item: any) => (
+        {finalMenu.filter(item => item && item.visible !== false).map((item: any) => (
           <button
             key={item.key}
             onClick={() => navigate(item.ruta || item.to)}
