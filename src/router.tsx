@@ -81,7 +81,6 @@ export const router = createBrowserRouter([
       },
       { path: 'launchpad', element: <SuspenseWrapper><Launchpad /></SuspenseWrapper> },
       { path: 'comunidad', element: <SuspenseWrapper><ComunidadPage /></SuspenseWrapper> },
-      { path: 'configuracion', element: <SuspenseWrapper><ConfiguracionProyecto /></SuspenseWrapper> },
       { path: 'configuracion-admin', element: <SuspenseWrapper><AdminSettingsPage /></SuspenseWrapper> },
       { path: 'console', element: <div style={{color: 'white', fontSize: 32, textAlign: 'center', marginTop: 40}}>Test Console</div> },
       { path: 'focus', element: <SuspenseWrapper><FocusMode /></SuspenseWrapper> },
