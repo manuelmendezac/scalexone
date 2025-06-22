@@ -162,7 +162,11 @@ const LineaVideosClassroom = () => {
       setVideosCompletados(prev => new Set(prev).add(videoActual.id));
 
       setShowConfetti(true);
-      setShowReward(true);
+      setShowReward(false);
+      requestAnimationFrame(() => {
+        setShowReward(true);
+      });
+
       setTimeout(() => setShowConfetti(false), 4000);
       setTimeout(() => setShowReward(false), 3000);
 
