@@ -157,6 +157,7 @@ const AdminConfigPanel: React.FC<AdminConfigPanelProps> = ({ selected }) => {
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {
       await supabase.from('usuarios').update({
+        avatar_url: perfil.avatar,
         nombres: perfil.nombres,
         apellidos: perfil.apellidos,
         celular: perfil.celular,
