@@ -105,7 +105,6 @@ export const router = createBrowserRouter([
       { path: 'reseller/dashboard', element: <SuspenseWrapper><ResellerDashboard /></SuspenseWrapper> },
       { path: 'referrals', element: <SuspenseWrapper><ReferralDashboard /></SuspenseWrapper> },
       { path: 'funnels', element: <SuspenseWrapper><FunnelHub /></SuspenseWrapper> },
-      { path: 'afiliados', element: <SuspenseWrapper><AfiliadosPage /></SuspenseWrapper> },
       { path: 'affiliates', element: <SuspenseWrapper><AffiliateDashboard /></SuspenseWrapper> },
       { path: 'automation', element: <SuspenseWrapper><EmailAutomationCenter /></SuspenseWrapper> },
       { path: 'export', element: <SuspenseWrapper><ExportCenter /></SuspenseWrapper> },
