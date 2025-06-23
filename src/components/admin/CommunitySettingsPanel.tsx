@@ -127,6 +127,8 @@ const CommunitySettingsPanel: React.FC = () => {
         owner_id: userInfo.id
       };
 
+      console.log('Objeto a guardar:', updates);
+
       // Si no hay ID, es una comunidad nueva. La creamos primero.
       if (!currentCommunityId) {
         const { data: newCommunityData, error: insertError } = await supabase
