@@ -6,7 +6,7 @@ import useNeuroState from '../../store/useNeuroState';
 interface Community {
   id: string;
   name: string;
-  description: string;
+  descripcion: string;
   logo_url: string;
   banner_url: string;
   is_public: boolean;
@@ -122,7 +122,7 @@ const CommunitySettingsPanel: React.FC = () => {
       let currentCommunityId = community.id;
       let updates: Partial<Community> = {
         name: community.name,
-        description: community.description,
+        descripcion: community.descripcion,
         is_public: community.is_public,
         owner_id: userInfo.id
       };
@@ -131,7 +131,7 @@ const CommunitySettingsPanel: React.FC = () => {
       if (!currentCommunityId) {
         const { data: newCommunityData, error: insertError } = await supabase
           .from('comunidades')
-          .insert({ owner_id: userInfo.id, name: community.name, description: community.description, is_public: community.is_public })
+          .insert({ owner_id: userInfo.id, name: community.name, descripcion: community.descripcion, is_public: community.is_public })
           .select()
           .single();
         
@@ -253,8 +253,8 @@ const CommunitySettingsPanel: React.FC = () => {
                 <textarea
                   id="communityDescription"
                   rows={5}
-                  value={community.description || ''}
-                  onChange={(e) => setCommunity({ ...community, description: e.target.value })}
+                  value={community.descripcion || ''}
+                  onChange={(e) => setCommunity({ ...community, descripcion: e.target.value })}
                   placeholder="Describe el propósito y las reglas de tu comunidad."
                   className="w-full bg-gray-800 border border-gray-600 rounded-md px-4 py-2 placeholder-gray-500 focus:ring-yellow-500 focus:border-yellow-500"
                 />
