@@ -1,3 +1,4 @@
+// Trigger deploy: cambio menor realizado el 2024-06-22
 import React, { useState, useRef, useEffect } from 'react';
 import { FiBell, FiMail, FiUserPlus, FiChevronDown, FiUser, FiLogOut, FiCopy, FiHelpCircle, FiGlobe, FiSettings, FiZap } from 'react-icons/fi';
 import { MdDarkMode, MdLightMode, MdFilterAlt } from 'react-icons/md';
