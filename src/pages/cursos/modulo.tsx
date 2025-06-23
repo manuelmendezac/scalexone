@@ -634,7 +634,7 @@ const ModuloDetalle = () => {
       <ModalFuturista open={showEditor} onClose={() => setShowEditor(false)}>
         <div className="p-2 w-full">
           <h3 className="text-xl font-bold text-cyan-400 mb-4 text-center">Editor de videos del módulo</h3>
-          {editorLoading && <div className="text-cyan-300 mb-2">Cargando...</div>}
+          {/* {editorLoading && <div className="text-cyan-300 mb-2">Cargando...</div>} */}
           {editorError && <div className="text-red-400 mb-2">{editorError}</div>}
           {successMsg && <div className="text-green-400 mb-2">{successMsg}</div>}
           {/* Listado y edición de videos existentes */}

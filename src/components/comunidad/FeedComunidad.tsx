@@ -259,10 +259,6 @@ const FeedComunidad = () => {
     await reaccionar(postId, tipo);
   };
 
-  if (loading) {
-    return <LoadingScreen message="Cargando comunidad..." />;
-  }
-
   return (
     <div className="max-w-2xl mx-auto flex flex-col gap-8">
       {/* Caja para crear nueva publicación */}

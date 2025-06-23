@@ -93,10 +93,6 @@ const RankingTopSellers = () => {
     fetchTopSellers();
   }, []);
 
-  if (loading) {
-    return <LoadingScreen message="Cargando ranking de ventas..." />;
-  }
-
   return (
     <section className="w-full max-w-4xl mx-auto mb-8">
       <div className="bg-black/40 border border-[#FFD700]/30 rounded-2xl p-6 shadow-xl">

@@ -174,7 +174,6 @@ const EditarVideosClassroom = () => {
         }
     };
 
-    if (loading) return <div className="text-cyan-400 p-8 text-center">Cargando editor...</div>;
     if (error) return <div className="text-red-400 p-8 text-center">{error}</div>;
 
     return (

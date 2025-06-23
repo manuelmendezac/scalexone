@@ -56,7 +56,6 @@ const CursosPage: React.FC = () => {
       });
   }, [isHydrated, userInfo, updateUserInfo]);
 
-  if (loading) return <LoadingScreen message="Cargando cursos..." />;
   if (error) return <div className="min-h-screen flex items-center justify-center text-red-400">{error}</div>;
 
   return (

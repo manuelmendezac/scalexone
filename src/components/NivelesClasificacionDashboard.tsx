@@ -127,8 +127,6 @@ const NivelesClasificacionDashboard: React.FC = () => {
     fetchData();
   }, []);
 
-  if (loading) return <LoadingScreen />;
-
   if (error) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[400px] text-center p-4">

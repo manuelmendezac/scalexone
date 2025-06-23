@@ -160,8 +160,6 @@ const ModulosCurso = () => {
     setModalInfoOpen(true);
   };
 
-  if (loading) return <div className="text-cyan-400 text-center py-10">Cargando módulos...</div>;
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#0a0a0a] via-[#1a1a2e] to-[#16213e] text-white">
       <div className="max-w-6xl mx-auto py-10 px-4">
