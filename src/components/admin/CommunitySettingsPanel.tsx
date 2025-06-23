@@ -8,6 +8,7 @@ interface Community {
   nombre: string;
   descripcion: string;
   logo_url: string;
+  logo_horizontal_url: string;
   banner_url: string;
   is_public: boolean;
   owner_id: string;
@@ -62,6 +63,8 @@ const CommunitySettingsPanel: React.FC = () => {
   const [bannerFile, setBannerFile] = useState<File | null>(null);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [bannerPreview, setBannerPreview] = useState<string | null>(null);
+  const [logoHorizontalFile, setLogoHorizontalFile] = useState<File | null>(null);
+  const [logoHorizontalPreview, setLogoHorizontalPreview] = useState<string | null>(null);
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -76,6 +79,11 @@ const CommunitySettingsPanel: React.FC = () => {
   const handleBannerSelect = (file: File) => {
     setBannerFile(file);
     setBannerPreview(URL.createObjectURL(file));
+  };
+
+  const handleLogoHorizontalSelect = (file: File) => {
+    setLogoHorizontalFile(file);
+    setLogoHorizontalPreview(URL.createObjectURL(file));
   };
 
   const fetchCommunityData = useCallback(async () => {
@@ -163,6 +171,14 @@ const CommunitySettingsPanel: React.FC = () => {
         const { data: { publicUrl } } = supabase.storage.from('community-banners').getPublicUrl(filePath);
         updates.banner_url = publicUrl;
       }
+
+      if (logoHorizontalFile) {
+        const filePath = `${currentCommunityId}/horizontal/${Date.now()}_${logoHorizontalFile.name}`;
+        const { error: uploadError } = await supabase.storage.from('community-logos').upload(filePath, logoHorizontalFile, { upsert: true });
+        if (uploadError) throw uploadError;
+        const { data: { publicUrl } } = supabase.storage.from('community-logos').getPublicUrl(filePath);
+        updates.logo_horizontal_url = publicUrl;
+      }
       
       // Actualizar la tabla con toda la información
       const { data: updatedData, error: updateError } = await supabase
@@ -179,6 +195,8 @@ const CommunitySettingsPanel: React.FC = () => {
       setBannerFile(null);
       setLogoPreview(null);
       setBannerPreview(null);
+      setLogoHorizontalFile(null);
+      setLogoHorizontalPreview(null);
 
       setSuccess('¡Cambios guardados con éxito!');
       setTimeout(() => setSuccess(null), 3000);
@@ -236,6 +254,17 @@ const CommunitySettingsPanel: React.FC = () => {
               currentImageUrl={community.logo_url || null}
               onFileSelect={handleLogoSelect}
               previewUrl={logoPreview}
+            />
+            
+            {/* Logo horizontal */}
+            <ImageUploader 
+              title="Logo horizontal de la Comunidad"
+              description="Este logo se mostrará en la barra superior. Usa un formato horizontal (ej: 300x80px)."
+              recommendation="PNG, JPG, GIF. 300x80px recomendado, 4MB o menos."
+              inputId="logo-horizontal-upload"
+              currentImageUrl={community.logo_horizontal_url || null}
+              onFileSelect={handleLogoHorizontalSelect}
+              previewUrl={logoHorizontalPreview}
             />
             
             {/* Nombre y Descripción */}
