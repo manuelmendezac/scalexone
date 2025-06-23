@@ -14,7 +14,7 @@ import {
 import SwitchClienteIB from '../SwitchClienteIB';
 
 interface AfiliadosLayoutProps {
-  children: React.ReactNode;
+  children?: React.ReactNode;
 }
 
 const AfiliadosLayout: React.FC<AfiliadosLayoutProps> = ({ children }) => {

@@ -119,7 +119,7 @@ export const router = createBrowserRouter([
   },
   {
     path: '/afiliados',
-    element: <AfiliadosLayout><AfiliadosDashboard /></AfiliadosLayout>,
+    element: <AfiliadosLayout />,
     children: [
       { index: true, element: <AfiliadosDashboard /> },
       { path: 'ib-marca-blanca', element: <InformeIBMarcaBlanca /> },
