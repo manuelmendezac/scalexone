@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Upload, ImageIcon, Save, AlertCircle, Loader2 } from 'lucide-react';
+import { Upload, ImageIcon, Save, AlertCircle, Loader2, CheckCircle } from 'lucide-react';
 import { supabase } from '../../supabase';
 import useNeuroState from '../../store/useNeuroState';
 
@@ -210,7 +210,7 @@ const CommunitySettingsPanel: React.FC = () => {
           </div>
 
           {error && <div className="mb-4 p-3 bg-red-900/50 border border-red-700 text-red-300 rounded-md flex items-center"><AlertCircle className="mr-2"/>{error}</div>}
-          {success && <div className="mb-4 p-3 bg-green-900/50 border border-green-700 text-green-300 rounded-md">{success}</div>}
+          {success && <div className="mb-4 p-3 bg-green-900/50 border border-green-700 text-green-300 rounded-md flex items-center"><CheckCircle className="mr-2"/>{success}</div>}
 
 
           <div className="grid grid-cols-1 gap-y-10">
