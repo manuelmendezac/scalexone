@@ -153,6 +153,7 @@ interface NeuroState {
   cognitiveProfile: CognitiveProfile;
   knowledge: Knowledge;
   userInfo: {
+    id: string;
     name: string;
     email: string;
     rol: string;
@@ -180,7 +181,7 @@ interface NeuroState {
   updateCognitiveProfile: (profile: Partial<CognitiveProfile>) => void;
   updateKnowledge: (knowledge: Partial<Knowledge>) => void;
   addFile: (file: { name: string; type: string; content: string }) => void;
-  updateUserInfo: (info: { name: string; email: string; rol?: string; community_id?: string }) => void;
+  updateUserInfo: (info: { name: string; email: string; rol?: string; community_id?: string, id?: string }) => void;
   selectKnowledgeProfile: (profileId: string) => void;
   removeKnowledgeProfile: (profileId: string) => void;
   addCustomKnowledge: (knowledge: {
@@ -321,6 +322,7 @@ const useNeuroState = create<NeuroState>()(
         selectedProfile: ''
       },
       userInfo: {
+        id: '',
         name: '',
         email: '',
         rol: '',
@@ -415,7 +417,7 @@ const useNeuroState = create<NeuroState>()(
         }
       })),
 
-      updateUserInfo: (info: { name: string; email: string; rol?: string; community_id?: string }) => set((state) => ({
+      updateUserInfo: (info: { name: string; email: string; rol?: string; community_id?: string, id?: string }) => set((state) => ({
         userInfo: {
           ...state.userInfo,
           ...info,
