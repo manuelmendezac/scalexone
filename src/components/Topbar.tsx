@@ -33,6 +33,7 @@ interface Community {
   logo_url: string;
   banner_url: string;
   is_public: boolean;
+  logo_horizontal_url?: string;
 }
 
 const Topbar: React.FC<TopbarProps> = ({
@@ -174,7 +175,9 @@ const Topbar: React.FC<TopbarProps> = ({
       {/* Logo solo imagen */}
       <div className="flex items-center">
         <Link to="/comunidad">
-          {community?.logo_url ? (
+          {community?.logo_horizontal_url ? (
+            <img src={community.logo_horizontal_url} alt="Logo Horizontal Comunidad" className="h-8 sm:h-10 w-auto object-contain" />
+          ) : community?.logo_url ? (
             <img src={community.logo_url} alt="Logo Comunidad" className="h-10 w-10 rounded-full object-cover" />
           ) : (
             <img src="/images/logoneurohorizontal.svg" alt="NeuroLink Logo" className="h-8 sm:h-10 w-auto object-contain" />
