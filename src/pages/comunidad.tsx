@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import FeedComunidad from '../components/comunidad/FeedComunidad';
 import BarraLateralComunidad from '../components/comunidad/BarraLateralComunidad';
 import LoadingScreen from '../components/LoadingScreen';
-import { useHydration } from '../store/useNeuroState';
+import useNeuroState, { useHydration } from '../store/useNeuroState';
+import { supabase } from '../supabase';
 
 const ComunidadPage = () => {
   const [menuAbierto, setMenuAbierto] = useState(false);
@@ -10,15 +11,39 @@ const ComunidadPage = () => {
   const esMovil = typeof window !== 'undefined' && window.innerWidth < 768;
   const [loading, setLoading] = useState(true);
   const isHydrated = useHydration();
+  const { userInfo } = useNeuroState();
+  const [communityName, setCommunityName] = useState<string | undefined>();
 
   useEffect(() => {
-    if (isHydrated) {
-      setLoading(false);
-    }
-  }, [isHydrated]);
+    const fetchCommunityName = async () => {
+      if (!userInfo.id) {
+        setLoading(false);
+        return;
+      }
+      try {
+        const { data, error } = await supabase
+          .from('comunidades')
+          .select('nombre')
+          .eq('owner_id', userInfo.id)
+          .single();
+        if (error && error.code !== 'PGRST116') throw error;
+        if (data) {
+          setCommunityName(data.nombre);
+        }
+      } catch (err) {
+        console.error("Error fetching community name for loader:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  if (!isHydrated || loading) {
-    return <LoadingScreen message="Cargando comunidad..." />;
+    if (isHydrated) {
+      fetchCommunityName();
+    }
+  }, [isHydrated, userInfo.id]);
+
+  if (loading) {
+    return <LoadingScreen communityName={communityName} message="Cargando comunidad..." />;
   }
 
   return (

@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import BannerSlider from '../components/BannerSlider';
 import KPIDashboard from '../components/KPIDashboard';
 import QuickAccess from '../components/QuickAccess';
@@ -9,11 +9,14 @@ import { FaUserAstronaut } from 'react-icons/fa';
 import { WaveSurfer, WaveForm } from "wavesurfer-react";
 import OnboardingMentor from '../components/OnboardingMentor';
 import { useNavigate } from 'react-router-dom';
+import { supabase } from '../supabase';
 
 const Inicio: React.FC = () => {
-  const { userName } = useNeuroState();
+  const { userName, userInfo } = useNeuroState();
   const isHydrated = useHydration();
   const navigate = useNavigate();
+  const [communityName, setCommunityName] = useState<string | undefined>();
+  const [loading, setLoading] = useState(true);
   // Simulación de datos
   const kpis = {
     microtasks: 82,
@@ -31,10 +34,34 @@ const Inicio: React.FC = () => {
   const dateStr = today.toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 
   useEffect(() => {
-    // Eliminar reproducción automática de audio remoto
-  }, [userName]);
+    const fetchCommunityName = async () => {
+      if (!userInfo.id) {
+        setLoading(false);
+        return;
+      }
+      try {
+        const { data, error } = await supabase
+          .from('comunidades')
+          .select('nombre')
+          .eq('owner_id', userInfo.id)
+          .single();
+        if (error && error.code !== 'PGRST116') throw error;
+        if (data) {
+          setCommunityName(data.nombre);
+        }
+      } catch (err) {
+        console.error("Error fetching community name for loader:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  if (!isHydrated) return <LoadingScreen message="Cargando inicio..." />;
+    if (isHydrated) {
+      fetchCommunityName();
+    }
+  }, [isHydrated, userInfo.id]);
+
+  if (loading) return <LoadingScreen communityName={communityName} message="Cargando inicio..." />;
 
   return (
     <div className="w-full min-h-screen" style={{ background: '#000' }}>
@@ -57,20 +84,27 @@ const Inicio: React.FC = () => {
 export default Inicio;
 
 export function VoiceVisualizer({ audioUrl }: { audioUrl: string }) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  
   return (
-    <div style={{ width: "100%", height: 80 }}>
-      <WaveSurfer
-        height={80}
-        waveColor="#00FFE0"
-        progressColor="#7F00FF"
-        barWidth={4}
-        barRadius={4}
-        url={audioUrl}
-        interact={false}
-        cursorWidth={0}
-      >
-        <WaveForm id="onboarding-voice-waveform" />
-      </WaveSurfer>
+    <div ref={containerRef} style={{ width: "100%", height: 80 }}>
+      {containerRef.current && (
+        <WaveSurfer
+          plugins={[]}
+          onMount={() => {}}
+          container={containerRef.current}
+          height={80}
+          waveColor="#00FFE0"
+          progressColor="#7F00FF"
+          barWidth={4}
+          barRadius={4}
+          url={audioUrl}
+          interact={false}
+          cursorWidth={0}
+        >
+          <WaveForm id="onboarding-voice-waveform" />
+        </WaveSurfer>
+      )}
     </div>
   );
 } 
