@@ -3,6 +3,16 @@ import React, { Suspense, lazy } from 'react';
 import App from './App';
 import Error404 from './components/Error404';
 import GlobalLoadingSpinner from './components/GlobalLoadingSpinner';
+import AfiliadosLayout from './components/afiliados/AfiliadosLayout';
+import AfiliadosDashboard from './components/afiliados/AfiliadosDashboard';
+import InformeIBMarcaBlanca from './components/afiliados/InformeIBMarcaBlanca';
+import InformeIBScalexOne from './components/afiliados/InformeIBScalexOne';
+import MultinivelIBPage from './pages/afiliados/multinivel';
+import CuentasIBPage from './pages/afiliados/cuentas';
+import HistorialTransaccionesPage from './pages/afiliados/historial';
+import PerfilIBPage from './pages/afiliados/perfil';
+import EnlacesAfiliadosPage from './pages/afiliados/enlaces';
+import ContactoIBPage from './pages/afiliados/contacto';
 
 // Implementación de Lazy Loading para todos los componentes de página
 const Hero = lazy(() => import('./components/Hero'));
@@ -20,7 +30,6 @@ const AffiliateDashboard = lazy(() => import('./components/pages/AffiliateDashbo
 const FunnelBuilder = lazy(() => import('./components/pages/FunnelBuilder'));
 const EmailAutomationCenter = lazy(() => import('./components/pages/EmailAutomationCenter'));
 const ExportCenter = lazy(() => import('./components/pages/ExportCenter'));
-const LeadMonetizationCenter = lazy(() => import('./components/pages/LeadMonetizationCenter'));
 const NeuroCloneStore = lazy(() => import('./components/pages/NeuroCloneStore'));
 const AdminSettingsPage = lazy(() => import('./pages/admin/settings'));
 const FocusMode = lazy(() => import('./components/dashboard/FocusMode'));
@@ -106,6 +115,21 @@ export const router = createBrowserRouter([
       { path: 'reset-password', element: <SuspenseWrapper><ResetPassword /></SuspenseWrapper> },
       { path: 'registro', element: <SuspenseWrapper><Register /></SuspenseWrapper> },
       { path: '*', element: <Error404 /> }
+    ]
+  },
+  {
+    path: '/afiliados',
+    element: <AfiliadosLayout><AfiliadosDashboard /></AfiliadosLayout>,
+    children: [
+      { index: true, element: <AfiliadosDashboard /> },
+      { path: 'ib-marca-blanca', element: <InformeIBMarcaBlanca /> },
+      { path: 'ib-scalexone', element: <InformeIBScalexOne /> },
+      { path: 'multinivel', element: <MultinivelIBPage /> },
+      { path: 'cuentas', element: <CuentasIBPage /> },
+      { path: 'historial', element: <HistorialTransaccionesPage /> },
+      { path: 'perfil', element: <PerfilIBPage /> },
+      { path: 'enlaces', element: <EnlacesAfiliadosPage /> },
+      { path: 'contacto', element: <ContactoIBPage /> },
     ]
   }
 ]); 
