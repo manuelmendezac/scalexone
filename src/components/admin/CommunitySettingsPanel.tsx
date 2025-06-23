@@ -5,7 +5,7 @@ import useNeuroState from '../../store/useNeuroState';
 
 interface Community {
   id: string;
-  name: string;
+  nombre: string;
   descripcion: string;
   logo_url: string;
   banner_url: string;
@@ -121,7 +121,7 @@ const CommunitySettingsPanel: React.FC = () => {
     try {
       let currentCommunityId = community.id;
       let updates: Partial<Community> = {
-        name: community.name,
+        nombre: community.nombre,
         descripcion: community.descripcion,
         is_public: community.is_public,
         owner_id: userInfo.id
@@ -133,7 +133,7 @@ const CommunitySettingsPanel: React.FC = () => {
       if (!currentCommunityId) {
         const { data: newCommunityData, error: insertError } = await supabase
           .from('comunidades')
-          .insert({ owner_id: userInfo.id, name: community.name, descripcion: community.descripcion, is_public: community.is_public })
+          .insert({ owner_id: userInfo.id, nombre: community.nombre, descripcion: community.descripcion, is_public: community.is_public })
           .select()
           .single();
         
@@ -245,8 +245,8 @@ const CommunitySettingsPanel: React.FC = () => {
                 <input
                   type="text"
                   id="communityName"
-                  value={community.name || ''}
-                  onChange={(e) => setCommunity({ ...community, name: e.target.value })}
+                  value={community.nombre || ''}
+                  onChange={(e) => setCommunity({ ...community, nombre: e.target.value })}
                   className="w-full bg-gray-800 border border-gray-600 rounded-md px-4 py-2 placeholder-gray-500 focus:ring-yellow-500 focus:border-yellow-500"
                 />
               </div>
