@@ -136,15 +136,15 @@ function App() {
     navigate('/clasificacion/console');
   };
 
-  if (!isHydrated) {
-    return (
-      <div className="min-h-screen w-full bg-[#0a1a2f] flex items-center justify-center">
-        <div className="text-gray-800 dark:text-neurolink-coldWhite font-futuristic text-xl">
-          {t('loading')}
-        </div>
-      </div>
-    );
-  }
+  // if (!isHydrated) {
+  //   return (
+  //     <div className="min-h-screen w-full bg-[#0a1a2f] flex items-center justify-center">
+  //       <div className="text-gray-800 dark:text-neurolink-coldWhite font-futuristic text-xl">
+  //         {t('loading')}
+  //       </div>
+  //     </div>
+  //   );
+  // }
 
   return (
     <BibliotecaProvider>

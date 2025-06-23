@@ -25,10 +25,6 @@ export default function AdminSettingsPage() {
   
   const isAdmin = userInfo?.rol === 'admin' || userInfo?.rol === 'superadmin';
 
-  if (loading) {
-    return <LoadingScreen message="Cargando panel de administración..." />;
-  }
-
   const handleSelect = (key: string) => {
     setSelectedItem(key);
     setIsMobileMenuOpen(false); // Cierra el menú móvil al seleccionar

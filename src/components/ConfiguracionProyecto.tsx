@@ -34,14 +34,6 @@ const ConfiguracionProyecto: React.FC = () => {
   const [selected, setSelected] = useState('mainMenu');
   const [loading, setLoading] = useState(false);
 
-  if (loading) {
-    return (
-      <div style={{ minHeight: '100vh', background: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <NeonSpinner size={64} />
-      </div>
-    );
-  }
-
   return <AdminConfigPanel selected={selected} />;
 };
 
