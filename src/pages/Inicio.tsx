@@ -61,8 +61,6 @@ const Inicio: React.FC = () => {
     }
   }, [isHydrated, userInfo.id]);
 
-  if (loading) return <LoadingScreen communityName={communityName} message="Cargando inicio..." />;
-
   return (
     <div className="w-full min-h-screen" style={{ background: '#000' }}>
       <div className="max-w-7xl w-full mx-auto px-4 md:px-8">

@@ -42,10 +42,6 @@ const ComunidadPage = () => {
     }
   }, [isHydrated, userInfo.id]);
 
-  if (loading) {
-    return <LoadingScreen communityName={communityName} message="Cargando comunidad..." />;
-  }
-
   return (
     <div className="flex flex-row min-h-screen bg-neutral-950 justify-center">
       <main className="flex-1 p-2 max-w-7xl xl:max-w-[1600px] mx-auto">

@@ -554,14 +554,6 @@ const Launchpad: React.FC = () => {
   // Determinar si está cargando datos principales
   const loadingMain = loadingFeatured || loadingLinks || loadingSettings || loadingVideos;
 
-  if (!isHydrated) {
-    return <LoadingScreen message="Cargando launchpad..." />;
-  }
-
-  if (loadingMain) {
-    return <LoadingScreen message="Cargando launchpad..." />;
-  }
-
   return (
     <div className="w-full min-h-screen" style={{ background: '#000' }}>
       {/* Botón flotante para abrir el panel de edición solo para admin */}
