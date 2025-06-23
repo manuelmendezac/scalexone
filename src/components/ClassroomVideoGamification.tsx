@@ -183,14 +183,12 @@ export const ClassroomVideoGamification: React.FC<ClassroomVideoGamificationProp
       </AnimatePresence>
 
       {/* Indicador de carga */}
-      {loading && (
-        <div className="fixed bottom-4 right-4 bg-black/80 backdrop-blur-sm rounded-lg p-2 border border-cyan-500/30">
-          <div className="flex items-center gap-2 text-cyan-400 text-xs">
-            <div className="w-3 h-3 border border-cyan-500 border-t-transparent rounded-full animate-spin" />
-            <span>Guardando progreso...</span>
-          </div>
+      {/* {loading && (
+        <div className="flex flex-col items-center justify-center min-h-[200px]">
+          <div className="animate-spin rounded-full border-4 border-yellow-400 border-t-transparent h-12 w-12 mb-4" />
+          <span className="text-yellow-400 font-bold">Cargando gamificación...</span>
         </div>
-      )}
+      )} */}
     </>
   );
 };

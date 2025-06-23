@@ -189,8 +189,6 @@ const LineaVideosClassroom = () => {
     setVideoProgress(state.played * 100);
   }, [videosCompletados, videoActual.id]);
 
-  if (loading) return <div className="text-yellow-300 text-center py-10">Cargando módulo...</div>;
-
   return (
     <div className={`min-h-screen bg-black text-white flex flex-col ${fullscreen ? '' : 'md:flex-row'} px-1 sm:px-2`}>
       {showConfetti && <Confetti recycle={false} numberOfPieces={250} />}

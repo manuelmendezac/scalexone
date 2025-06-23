@@ -108,14 +108,6 @@ const EstadisticasXP: React.FC<EstadisticasXPProps> = ({
     return `${horas}h ${minutos}m`;
   };
 
-  if (loading) {
-    return (
-      <div className="animate-pulse">
-        <div className="h-48 bg-gray-200 rounded-lg"></div>
-      </div>
-    );
-  }
-
   return (
     <div className="bg-white rounded-lg shadow-lg p-6">
       <h2 className="text-2xl font-bold text-gray-800 mb-6">

@@ -182,7 +182,6 @@ const Classroom = () => {
     </GlobalLoadingSpinner>
   );
   
-  if (loading) return <LoadingScreen message="Cargando classroom..." />;
   if (error) return <div className="min-h-screen flex items-center justify-center text-red-400">{error}</div>;
 
   return (
