@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate, Outlet } from 'react-router-dom';
 import {
   HomeIcon,
   ChartBarIcon,
@@ -142,7 +142,7 @@ const AfiliadosLayout: React.FC<AfiliadosLayoutProps> = ({ children }) => {
 
         {/* Main Content Area */}
         <main className="flex-1 overflow-x-hidden overflow-y-auto bg-[#f7f9fb] p-3 md:p-8">
-          {children}
+          <Outlet />
         </main>
 
         {/* Menú inferior móvil */}
