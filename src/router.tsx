@@ -44,7 +44,7 @@ const ModuloDetalle = lazy(() => import('./pages/cursos/modulo'));
 const ModulosCurso = lazy(() => import('./pages/cursos/modulos'));
 
 const SuspenseWrapper = ({ children }: { children: React.ReactNode }) => (
-  <Suspense fallback={<GlobalLoadingSpinner loading={true}><div/></GlobalLoadingSpinner>}>
+  <Suspense fallback={<div />}>
     {children}
   </Suspense>
 );
