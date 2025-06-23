@@ -176,11 +176,11 @@ const Topbar: React.FC<TopbarProps> = ({
       <div className="flex items-center">
         <Link to="/comunidad">
           {community?.logo_horizontal_url ? (
-            <img src={community.logo_horizontal_url} alt="Logo Horizontal Comunidad" className="h-8 sm:h-10 w-auto object-contain" />
+            <img src={community.logo_horizontal_url} alt="Logo Horizontal Comunidad" className="w-36 h-auto object-contain" />
           ) : community?.logo_url ? (
             <img src={community.logo_url} alt="Logo Comunidad" className="h-10 w-10 rounded-full object-cover" />
           ) : (
-            <img src="/images/logoneurohorizontal.svg" alt="NeuroLink Logo" className="h-8 sm:h-10 w-auto object-contain" />
+            <img src="/images/logoneurohorizontal.svg" alt="NeuroLink Logo" className="w-36 h-auto object-contain" />
           )}
         </Link>
       </div>
