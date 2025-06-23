@@ -3,7 +3,7 @@ import { FiBell, FiMail, FiUserPlus, FiChevronDown, FiUser, FiLogOut, FiCopy, Fi
 import { MdDarkMode, MdLightMode, MdFilterAlt } from 'react-icons/md';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import useNeuroState from '../store/useNeuroState';
 import { supabase } from '../supabase';
 import SwitchClienteIB from './SwitchClienteIB';
@@ -26,6 +26,15 @@ const navLinks = [
   { name: 'Configuración', href: '/admin/settings', icon: <Settings size={16} /> },
 ];
 
+interface Community {
+  id: string;
+  nombre: string;
+  descripcion: string;
+  logo_url: string;
+  banner_url: string;
+  is_public: boolean;
+}
+
 const Topbar: React.FC<TopbarProps> = ({
   userAvatar,
   notificationsCount = 0,
@@ -42,13 +51,15 @@ const Topbar: React.FC<TopbarProps> = ({
   const { i18n, t } = useTranslation();
   const language = i18n.language === 'en' ? 'en' : 'es';
   const navigate = useNavigate();
-  const { notifications, avatarUrl, setUserName, updateUserInfo } = useNeuroState();
+  const { notifications, avatarUrl, setUserName, updateUserInfo, userInfo } = useNeuroState();
   const [affiliateMode, setAffiliateMode] = useState(() => {
     // Persistencia en localStorage
     const saved = localStorage.getItem('affiliateMode');
     return saved === 'IB' ? 'IB' : 'Client';
   });
   const [isAdminMode, setIsAdminMode] = useState(localStorage.getItem('adminMode') === 'true');
+  const location = useLocation();
+  const [community, setCommunity] = useState<Community | null>(null);
 
   // Cerrar el dropdown de afiliado al hacer clic fuera
   useEffect(() => {
@@ -128,11 +139,47 @@ const Topbar: React.FC<TopbarProps> = ({
     window.location.reload();
   };
 
+  useEffect(() => {
+    const fetchCommunityData = async () => {
+      if (!userInfo.id) {
+        return;
+      }
+
+      try {
+        const { data, error } = await supabase
+          .from('comunidades')
+          .select('*')
+          .eq('owner_id', userInfo.id)
+          .single();
+
+        if (error && error.code !== 'PGRST116') {
+          throw error;
+        }
+
+        if (data) {
+          setCommunity(data);
+        }
+      } catch (error) {
+        console.error('Error fetching community logo for topbar:', error);
+      }
+    };
+
+    if (userInfo.id) {
+        fetchCommunityData();
+    }
+  }, [userInfo.id]);
+
   return (
     <header className="w-full text-white font-orbitron px-2 sm:px-4 py-1 sm:py-2 flex items-center justify-between shadow-lg z-50 border-b border-cyan-900 min-h-[44px]" style={{ background: '#000' }}>
       {/* Logo solo imagen */}
       <div className="flex items-center">
-        <img src="/images/logoneurohorizontal.svg" alt="NeuroLink Logo" className="h-8 sm:h-10 w-auto object-contain" />
+        <Link to="/comunidad">
+          {community?.logo_url ? (
+            <img src={community.logo_url} alt="Logo Comunidad" className="h-10 w-10 rounded-full object-cover" />
+          ) : (
+            <img src="/images/logoneurohorizontal.svg" alt="NeuroLink Logo" className="h-8 sm:h-10 w-auto object-contain" />
+          )}
+        </Link>
       </div>
 
       {/* Iconos a la derecha */}
