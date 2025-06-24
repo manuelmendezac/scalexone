@@ -184,6 +184,15 @@ const EditModuleModal = lazy(() => Promise.resolve({
                     loading="lazy"
                   />
                 )}
+                <div className="mt-2 p-2 bg-neutral-800 rounded text-xs text-amber-300 border border-amber-400/30">
+                  <b>Tips para una portada óptima:</b><br/>
+                  • Formato recomendado: <b>WebP</b> (se convierte automáticamente).<br/>
+                  • Tamaño recomendado: <b>800x450px</b> (relación 16:9).<br/>
+                  • Peso máximo: <b>300 KB</b>.<br/>
+                  • Evita imágenes borrosas o con mucho texto.<br/>
+                  • La imagen se recortará si no es 16:9.<br/>
+                  • Usa imágenes claras y sin bordes para mejor resultado.<br/>
+                </div>
               </div>
               <label className="text-sm font-semibold text-amber-400">Tipo de portada</label>
               <select
