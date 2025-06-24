@@ -1,5 +1,5 @@
 import React from 'react';
-import { Home, Settings, BarChart2, Tv, Users, Calendar, MessageSquare, Briefcase, DollarSign, List, CreditCard, Activity, Menu } from 'lucide-react';
+import { Home, Settings, BarChart2, Tv, Users, Calendar, MessageSquare, Briefcase, DollarSign, List, CreditCard, Activity, Menu, Image } from 'lucide-react';
 
 interface AdminSidebarProps {
   selected: string;
@@ -8,6 +8,7 @@ interface AdminSidebarProps {
 
 export const menuItems = [
     { key: 'welcome', label: 'Bienvenida', icon: <Home size={20} /> },
+    { key: 'banners', label: 'Banners', icon: <Image size={20} /> },
     { key: 'community', label: 'Comunidad', icon: <Users size={20} /> },
     { key: 'mainMenu', label: 'Menú Principal', icon: <Menu size={20} /> },
     { key: 'levels', label: 'Niveles', icon: <BarChart2 size={20} /> },
