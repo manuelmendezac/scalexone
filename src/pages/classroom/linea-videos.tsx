@@ -193,6 +193,10 @@ const LineaVideosClassroom = () => {
     setVideoProgress(state.played * 100);
   }, [videosCompletados, videoActual.id]);
 
+  useEffect(() => {
+    setShowPlayer(false);
+  }, [claseActual]);
+
   return (
     <div className={`min-h-screen bg-black text-white flex flex-col ${fullscreen ? '' : 'md:flex-row'} px-1 sm:px-2`}>
       {showConfetti && <Confetti recycle={false} numberOfPieces={250} />}
@@ -263,7 +267,10 @@ const LineaVideosClassroom = () => {
                   controls
                   playing
                   onProgress={handleProgress}
-                  onEnded={handleVideoEnded}
+                  onEnded={() => {
+                    handleVideoEnded();
+                    setTimeout(() => setShowPlayer(false), 1000);
+                  }}
                   config={{ youtube: { playerVars: { showinfo: 0, rel: 0, autoplay: 1 } }, vimeo: { playerOptions: { dnt: true, autoplay: true } } }}
                 />
               ) : (
