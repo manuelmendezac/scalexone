@@ -57,7 +57,11 @@ function TarjetaResumen({ titulo, valor, subvalor, icono, color }: any) {
   );
 }
 
-const AdminConfigPanel: React.FC = () => {
+interface AdminConfigPanelProps {
+  selected: string;
+}
+
+const AdminConfigPanel: React.FC<AdminConfigPanelProps> = ({ selected }) => {
   const { userConfig, loading: configLoading, fetchUserConfig } = useConfigStore();
   const [perfil, setPerfil] = useState(perfilDefault);
   const [guardando, setGuardando] = useState(false);
@@ -72,8 +76,6 @@ const AdminConfigPanel: React.FC = () => {
   const community_id = userInfo?.community_id || null;
   const isAdmin = userInfo?.rol === 'admin' || userInfo?.rol === 'superadmin';
   const { menuConfig, loading: menuLoading, error, saveMenuConfig } = useMenuSecundarioConfig(community_id);
-  const [selected, setSelected] = useState('welcome');
-  const sidebarItems = menuItems;
 
   useEffect(() => {
     fetchUserConfig();
@@ -210,57 +212,159 @@ const AdminConfigPanel: React.FC = () => {
     else setPasswordMsg('¡Contraseña actualizada!');
   };
 
-  function renderComponent() {
-    switch (selected) {
-      case 'welcome':
-        // Aquí va el contenido del perfil/restaurado
-        return (
-          <div className="w-full bg-black rounded-lg shadow-lg md:p-10 p-6 border-2 border-yellow-500 flex flex-col gap-8">
-            <h2 className="text-yellow-500 font-bold text-3xl mb-4">Mi Perfil</h2>
-            {/* Aquí puedes poner el formulario de perfil, avatar, etc. */}
-            {/* ... reutiliza el contenido anterior de welcome ... */}
-          </div>
-        );
-      case 'levels':
-        return <LevelsSection />;
-      case 'mainMenu':
-        return <MenuSecundarioTresBarras />;
-      // Agrega más casos según las opciones del menú
-      default:
-        return <div className="text-white">Selecciona una opción del menú.</div>;
-    }
-  }
-
   if (configLoading || loadingPerfil) {
     return <LoadingScreen message="Cargando configuración..." />;
   }
 
-  return (
-    <div className="w-full min-h-screen flex bg-[#0a0a12]">
-      {/* Sidebar */}
-      <aside className="w-64 min-h-screen bg-[#181824] text-yellow-400 flex flex-col shadow-lg">
-        <div className="p-6 border-b border-yellow-900">
-          <h2 className="text-2xl font-bold font-orbitron tracking-wide">Panel Admin</h2>
+  // Renderizar contenido según la opción seleccionada
+  if (selected === 'welcome') {
+    return (
+      <div className="w-full">
+        <div className="w-full bg-black rounded-lg shadow-lg md:p-10 p-6 border-2 border-yellow-500 flex flex-col gap-8">
+          <h2 className="text-yellow-500 font-bold text-3xl mb-4">Mi Perfil</h2>
+          {loadingPerfil ? <div className="text-yellow-500 font-semibold">Cargando...</div> : (
+            <div className="grid grid-cols-1 lg:grid-cols-[300px_1fr] gap-8 items-start">
+              {/* Columna Izquierda: Avatar y Contraseña */}
+              <div className="flex flex-col items-center gap-4">
+                <AvatarUploader onUpload={handleAvatar} initialUrl={perfil.avatar} label="Foto de perfil" />
+                <button
+                  className="bg-yellow-500 text-black font-bold py-2 px-4 rounded-lg hover:bg-yellow-600 transition-colors w-full"
+                  onClick={() => setShowPasswordModal(true)}
+                >
+                  Cambiar contraseña
+                </button>
+              </div>
+              
+              {/* Columna Derecha: Formulario */}
+              <div className="flex flex-col gap-4 min-w-0">
+                {/* Campos de Nombre y Apellido */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <input className="input-perfil" placeholder="Nombres" value={perfil.nombres} onChange={e => setPerfil({ ...perfil, nombres: e.target.value })} />
+                  <input className="input-perfil" placeholder="Apellidos" value={perfil.apellidos} onChange={e => setPerfil({ ...perfil, apellidos: e.target.value })} />
+                </div>
+                {/* Campos de Contacto */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <input className="input-perfil" placeholder="Correo" value={perfil.correo} readOnly />
+                  <input className="input-perfil" placeholder="Celular" value={perfil.celular} onChange={e => setPerfil({ ...perfil, celular: e.target.value })} />
+                </div>
+                {/* Selectores */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <select className="input-perfil" value={perfil.pais} onChange={e => setPerfil({ ...perfil, pais: e.target.value })}>
+                    <option>Perú</option>
+                    <option>México</option>
+                    <option>Colombia</option>
+                    <option>Argentina</option>
+                    <option>España</option>
+                    <option>Otro</option>
+                  </select>
+                  <select className="input-perfil" value={perfil.idioma} onChange={e => setPerfil({ ...perfil, idioma: e.target.value })}>
+                    <option>Español</option>
+                    <option>Inglés</option>
+                  </select>
+                  <select className="input-perfil" value={perfil.zona_horaria} onChange={e => setPerfil({ ...perfil, zona_horaria: e.target.value })}>
+                    <option>GMT-5</option>
+                    <option>GMT-6</option>
+                    <option>GMT-3</option>
+                    <option>GMT-8</option>
+                  </select>
+                </div>
+                {/* Wallet */}
+                <input className="input-perfil" placeholder="Wallet (opcional)" value={perfil.wallet} onChange={e => setPerfil({ ...perfil, wallet: e.target.value })} />
+                {/* Redes Sociales */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+                  <input className="input-perfil" placeholder="Facebook" value={perfil.facebook} onChange={e => setPerfil({ ...perfil, facebook: e.target.value })} />
+                  <input className="input-perfil" placeholder="Twitter" value={perfil.twitter} onChange={e => setPerfil({ ...perfil, twitter: e.target.value })} />
+                  <input className="input-perfil" placeholder="Instagram" value={perfil.instagram} onChange={e => setPerfil({ ...perfil, instagram: e.target.value })} />
+                  <input className="input-perfil" placeholder="TikTok" value={perfil.tiktok} onChange={e => setPerfil({ ...perfil, tiktok: e.target.value })} />
+                </div>
+                 {/* Campos de Admin (solo lectura) */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <select className="input-perfil" value={perfil.membresia} onChange={e => setPerfil({ ...perfil, membresia: e.target.value })}>
+                     <option>Afiliado</option>
+                     <option>Premium</option>
+                     <option>Free</option>
+                  </select>
+                  <input className="input-perfil" value={perfil.rol} readOnly />
+                  <input className="input-perfil" value={perfil.creditos} readOnly />
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <input className="input-perfil" value={perfil.nivel} readOnly placeholder="Nivel" />
+                  <input className="input-perfil" placeholder="Cursos (IDs separados por coma)" value={perfil.cursos.join(', ')} onChange={e => handleArrayInput(e, 'cursos')} />
+                  <input className="input-perfil" placeholder="Servicios (IDs separados por coma)" value={perfil.servicios.join(', ')} onChange={e => handleArrayInput(e, 'servicios')} />
+                </div>
+                {/* Botón Guardar */}
+                <div className="flex items-center mt-4">
+                  <button className="bg-yellow-500 text-black font-bold py-2 px-4 rounded-lg hover:bg-yellow-600 transition-colors" onClick={handleGuardar} disabled={guardando}>
+                    {guardando ? 'Guardando...' : 'Guardar cambios'}
+                  </button>
+                  {saved && (
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 ml-2 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+          <div style={{ marginTop: 32 }}>
+            <h3 style={{ color: '#FFD700', fontWeight: 600, fontSize: 22, marginBottom: 16 }}>Cursos Activos</h3>
+            {cursosActivos.length === 0 ? (
+              <div style={{ color: '#fff' }}>No tienes cursos activos.</div>
+            ) : (
+              <div style={{ display: 'flex', gap: 24, flexWrap: 'wrap' }}>
+                {cursosActivos.map((curso, idx) => (
+                  <div key={idx} style={{ background: '#23232b', border: '1.5px solid #FFD700', borderRadius: 12, padding: 18, minWidth: 260, maxWidth: 320 }}>
+                    {curso.imagen && <img src={curso.imagen} alt={curso.nombre} style={{ width: '100%', borderRadius: 8, marginBottom: 10 }} />}
+                    <div style={{ color: '#FFD700', fontWeight: 700, fontSize: 18 }}>{curso.nombre}</div>
+                    <div style={{ color: '#fff', fontSize: 15 }}>{curso.descripcion}</div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+          <div style={{ marginTop: 32 }}>
+            <h3 style={{ color: '#FFD700', fontWeight: 600, fontSize: 22, marginBottom: 16 }}>Servicios Activos</h3>
+            {serviciosActivos.length === 0 ? (
+              <div style={{ color: '#fff' }}>No tienes servicios activos.</div>
+            ) : (
+              <div style={{ display: 'flex', gap: 24, flexWrap: 'wrap' }}>
+                {serviciosActivos.map((servicio, idx) => (
+                  <div key={idx} style={{ background: '#23232b', border: '1.5px solid #FFD700', borderRadius: 12, padding: 18, minWidth: 220, maxWidth: 320, color: '#FFD700', fontWeight: 600 }}>{servicio}</div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
-        <nav className="mt-4 flex-1">
-          {sidebarItems.map((item) => (
-            <button
-              key={item.key}
-              onClick={() => setSelected(item.key)}
-              className={`flex items-center w-full px-5 py-3 my-1 rounded-lg font-semibold transition-all text-lg
-                ${selected === item.key ? 'bg-yellow-400 text-[#181824]' : 'hover:bg-yellow-900 text-yellow-200'}`}
-              style={{ fontFamily: 'Orbitron, Inter, Arial, sans-serif' }}
-            >
-              {item.icon}
-              <span className="ml-3">{item.label}</span>
-            </button>
-          ))}
-        </nav>
-      </aside>
-      {/* Contenido principal */}
-      <main className="flex-1 flex flex-col items-center justify-start p-8 bg-[#0a0a12] min-h-screen overflow-x-auto">
-        {renderComponent()}
-      </main>
+        {showPasswordModal && (
+          <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: '#000a', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ background: '#23232b', borderRadius: 16, padding: 32, minWidth: 340, boxShadow: '0 2px 12px #0008', color: '#fff' }}>
+              <h3 style={{ color: '#FFD700', fontWeight: 700, fontSize: 22, marginBottom: 18 }}>Cambiar contraseña</h3>
+              <input type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)} placeholder="Nueva contraseña" style={inputEstilo} />
+              <button style={{ ...botonEstilo, width: '100%', marginTop: 16 }} onClick={handlePasswordChange}>Actualizar</button>
+              {passwordMsg && <div style={{ color: passwordMsg.includes('¡Contraseña') ? '#FFD700' : 'red', marginTop: 10 }}>{passwordMsg}</div>}
+              <button style={{ ...botonEstilo, background: '#23232b', color: '#FFD700', border: '1.5px solid #FFD700', marginTop: 18 }} onClick={() => setShowPasswordModal(false)}>Cerrar</button>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  if (selected === 'levels') {
+    return <LevelsSection />;
+  }
+
+  if (selected === 'mainMenu') {
+    return <MenuSecundarioTresBarras />;
+  }
+
+  // Para otras opciones, mostrar contenido básico
+  return (
+    <div className="w-full">
+      <div className="w-full bg-black rounded-lg shadow-lg md:p-10 p-6 border-2 border-yellow-500">
+        <h2 className="text-yellow-500 font-bold text-3xl mb-4">{selected}</h2>
+        <div className="text-white">Contenido para {selected} (en desarrollo)</div>
+      </div>
     </div>
   );
 };
