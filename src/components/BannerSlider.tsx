@@ -11,7 +11,7 @@ interface Banner {
   id: string;
   image: string;
   title: string;
-  desc: string;
+  description: string;
   link: string;
   cta: string;
   order_index: number;
@@ -21,7 +21,7 @@ const initialBanner: Banner = {
   id: 'initial',
   image: '/images/modulos/modulo2.png',
   title: '¡Nuevo módulo IA disponible!',
-  desc: 'Descubre DynamicExpertProfile y lleva tu clon al siguiente nivel.',
+  description: 'Descubre DynamicExpertProfile y lleva tu clon al siguiente nivel.',
   link: '/modules/dynamic-expert-profile',
   cta: 'Ver más',
   order_index: 0,
@@ -219,7 +219,7 @@ const BannerSlider: React.FC = () => {
                   className="mb-6 text-lg md:text-xl"
                   style={{ color: '#FDB813' }}
                 >
-                  {banner.desc}
+                  {banner.description}
                 </p>
                 <a
                   href={banner.link}
