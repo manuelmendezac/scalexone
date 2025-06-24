@@ -6,10 +6,11 @@ import type { DropResult } from 'react-beautiful-dnd';
 import useClassroomStore from '../store/useClassroomStore';
 import { useHydration } from '../store/useNeuroState';
 import LoadingScreen from '../components/LoadingScreen';
-import GlobalLoadingSpinner from '../components/GlobalLoadingSpinner';
+import GlobalLoader from '../components/GlobalLoader';
 import ReactPlayer from 'react-player/lazy';
 import { supabase } from '../supabase';
 import { Star, LandPlot } from 'lucide-react';
+import GlobalLoadingSpinner from '../components/GlobalLoadingSpinner';
 
 // Modelo de módulo con imagen de portada
 type Modulo = {
@@ -176,11 +177,7 @@ const Classroom = () => {
   const totalPaginas = Math.ceil(modulos.length / MODULOS_POR_PAGINA);
   const modulosPagina = modulos.slice((pagina-1)*MODULOS_POR_PAGINA, pagina*MODULOS_POR_PAGINA);
 
-  if (!isHydrated) return (
-    <GlobalLoadingSpinner loading={true}>
-      <div />
-    </GlobalLoadingSpinner>
-  );
+  if (!isHydrated) return <GlobalLoader pageName="Classroom" />;
   
   if (error) return <div className="min-h-screen flex items-center justify-center text-red-400">{error}</div>;
 
