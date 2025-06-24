@@ -1,6 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
 import BannerSlider from '../components/BannerSlider';
-import KPIDashboard from '../components/KPIDashboard';
 import QuickAccess from '../components/QuickAccess';
 import TipsCarousel from '../components/TipsCarousel';
 import useNeuroState, { useHydration } from '../store/useNeuroState';
@@ -17,13 +16,7 @@ const Inicio: React.FC = () => {
   const navigate = useNavigate();
   const [communityName, setCommunityName] = useState<string | undefined>();
   const [loading, setLoading] = useState(true);
-  // Simulación de datos
-  const kpis = {
-    microtasks: 82,
-    focusTime: 3.5,
-    lastAIMessage: '¡Recuerda tu meta semanal!',
-    emotion: '😃',
-  };
+  
   const news = [
     'Nuevo módulo disponible: DynamicExpertProfile',
     'Mejora en el sistema de hábitos y rutinas',
@@ -71,7 +64,6 @@ const Inicio: React.FC = () => {
             <OnboardingMentor />
           </div>
         </div>
-        <KPIDashboard kpis={kpis} />
         <QuickAccess />
         <TipsCarousel news={news} />
       </div>
