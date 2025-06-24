@@ -7,7 +7,6 @@ import useClassroomStore from '../store/useClassroomStore';
 import { useHydration } from '../store/useNeuroState';
 import LoadingScreen from '../components/LoadingScreen';
 import GlobalLoader from '../components/GlobalLoader';
-import ReactPlayer from 'react-player/lazy';
 import { supabase } from '../supabase';
 import { Star, LandPlot } from 'lucide-react';
 import GlobalLoadingSpinner from '../components/GlobalLoadingSpinner';
@@ -131,7 +130,7 @@ const Classroom = () => {
 
   const getProgreso = (mod: Modulo) => {
     if (!mod.total_videos || mod.total_videos === 0) return 0;
-    return Math.round(((mod.videos_completados || 0) / mod.total_videos) * 100);
+    return Math.round(((mod.videos_completados ?? 0) / mod.total_videos) * 100);
   };
   
   const getBadge = (mod: Modulo) => (getProgreso(mod) === 100 ? '🏆' : null);
@@ -222,7 +221,11 @@ const Classroom = () => {
               >
                 {modulosPagina.map((mod, idx) => {
                   const isEditingThisModule = editIdx === idx + (pagina - 1) * MODULOS_POR_PAGINA;
-                  const displayMod = isEditingThisModule ? editModulo : mod;
+                  const displayMod = {
+                    ...((isEditingThisModule ? editModulo : mod) as Modulo),
+                    titulo: (isEditingThisModule ? editModulo.titulo : mod.titulo) || '',
+                    descripcion: (isEditingThisModule ? editModulo.descripcion : mod.descripcion) || ''
+                  };
 
                   return (
                     <Draggable
@@ -495,7 +498,7 @@ const Classroom = () => {
               {/* Footer */}
               <div className="p-6 border-t border-neutral-800 flex justify-end gap-4 bg-neutral-900/50 sticky bottom-0">
                   <button onClick={() => setShowEditModal(false)} className="px-4 py-2 rounded-lg text-neutral-300 hover:bg-neutral-800 transition">Cancelar</button>
-                  <button onClick={() => handleSaveEdit(editModulo)} className="px-6 py-2 rounded-lg bg-white text-black font-semibold hover:bg-neutral-200 transition">
+                  <button onClick={() => handleSaveEdit({ ...editModulo, titulo: editModulo?.titulo || '', descripcion: editModulo?.descripcion || '' })} className="px-6 py-2 rounded-lg bg-white text-black font-semibold hover:bg-neutral-200 transition">
                       {editIdx === null ? 'Crear' : 'Guardar'}
                   </button>
               </div>
@@ -507,34 +510,83 @@ const Classroom = () => {
   );
 };
 
-// Componente para el video del módulo con lógica de hover
-const ClassroomModuleVideo = ({ videoUrl, onClick }) => {
+// Reemplazar ClassroomModuleVideo:
+const getVideoThumbnail = (url: string): string | null => {
+  if (!url) return null;
+  const youtubeMatch = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([\w-]{11})/);
+  if (youtubeMatch) return `https://img.youtube.com/vi/${youtubeMatch[1]}/hqdefault.jpg`;
+  const vimeoMatch = url.match(/vimeo\.com\/(\d+)/);
+  if (vimeoMatch) return `https://vumbnail.com/${vimeoMatch[1]}.jpg`;
+  return null;
+};
+
+interface ClassroomModuleVideoProps {
+  videoUrl: string;
+  onClick: () => void;
+}
+const ClassroomModuleVideo: React.FC<ClassroomModuleVideoProps> = ({ videoUrl, onClick }) => {
+  const [showPlayer, setShowPlayer] = React.useState(false);
+  const [ReactPlayer, setReactPlayer] = React.useState<any>(null);
+  React.useEffect(() => {
+    if (showPlayer && !ReactPlayer) {
+      import('react-player').then((mod) => setReactPlayer(() => mod.default));
+    }
+  }, [showPlayer, ReactPlayer]);
+  const thumbnail = getVideoThumbnail(videoUrl);
   return (
-    <>
-      <div className='absolute top-0 left-0 w-full h-full'>
-        <ReactPlayer
-          url={videoUrl}
-          playing={true}
-          loop
-          muted
-          playsInline
-          width="100%"
-          height="100%"
-          className="react-player"
+    <div className="w-full h-full relative">
+      {!showPlayer && thumbnail && (
+        <img
+          src={thumbnail}
+          alt="Video preview"
+          className="absolute inset-0 w-full h-full object-cover cursor-pointer"
+          style={{ zIndex: 1 }}
+          width="400"
+          height="225"
+          loading="lazy"
+          onClick={() => setShowPlayer(true)}
         />
-      </div>
+      )}
+      {!showPlayer && (
+        <div
+          className="absolute inset-0 flex items-center justify-center cursor-pointer bg-black/30 z-10"
+          onClick={() => setShowPlayer(true)}
+        >
+          <div className="w-16 h-16 bg-black/50 rounded-full flex items-center justify-center backdrop-blur-sm border-2 border-amber-400/50">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-amber-400 ml-1" viewBox="0 0 20 20" fill="currentColor">
+              <path d="M4 3.222v13.556c0 .445.54.667.895.39l11.556-6.778a.444.444 0 000-.78L4.895 2.832A.444.444 0 004 3.222z" />
+            </svg>
+          </div>
+        </div>
+      )}
+      {showPlayer && ReactPlayer && (
+        <div className="absolute top-0 left-0 w-full h-full">
+          <ReactPlayer
+            url={videoUrl}
+            playing={true}
+            loop
+            muted
+            playsinline
+            width="100%"
+            height="100%"
+            className="react-player"
+          />
+        </div>
+      )}
+      {/* Overlay para navegación */}
       <div 
         className="absolute inset-0 bg-black/20 flex items-center justify-center cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity"
         onClick={onClick}
+        style={{ zIndex: 20 }}
       >
-          <div className="w-16 h-16 bg-black/50 rounded-full flex items-center justify-center backdrop-blur-sm border-2 border-amber-400/50">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-amber-400 ml-1" viewBox="0 0 20 20" fill="currentColor">
-                <path d="M4 3.222v13.556c0 .445.54.667.895.39l11.556-6.778a.444.444 0 000-.78L4.895 2.832A.444.444 0 004 3.222z" />
-              </svg>
-          </div>
+        <div className="w-16 h-16 bg-black/50 rounded-full flex items-center justify-center backdrop-blur-sm border-2 border-amber-400/50">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-amber-400 ml-1" viewBox="0 0 20 20" fill="currentColor">
+            <path d="M4 3.222v13.556c0 .445.54.667.895.39l11.556-6.778a.444.444 0 000-.78L4.895 2.832A.444.444 0 004 3.222z" />
+          </svg>
+        </div>
       </div>
-    </>
-  )
-}
+    </div>
+  );
+};
 
 export default Classroom; 
