@@ -4,6 +4,7 @@ import BarraLateralComunidad from '../components/comunidad/BarraLateralComunidad
 import LoadingScreen from '../components/LoadingScreen';
 import useNeuroState, { useHydration } from '../store/useNeuroState';
 import { supabase } from '../supabase';
+import GlobalLoader from '../components/GlobalLoader';
 
 const ComunidadPage = () => {
   const [menuAbierto, setMenuAbierto] = useState(false);
@@ -41,6 +42,10 @@ const ComunidadPage = () => {
       fetchCommunityName();
     }
   }, [isHydrated, userInfo.id]);
+
+  if (!isHydrated || loading) {
+    return <GlobalLoader pageName="Comunidad" />;
+  }
 
   return (
     <div className="flex flex-row min-h-screen bg-neutral-950 justify-center">
