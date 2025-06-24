@@ -236,10 +236,12 @@ const BannerEditModal: React.FC<Props> = ({ open, onClose, banners: initialBanne
       setError(null);
 
       // Validar todos los banners
-      for (const banner of banners) {
+      const bannersToSave = banners.filter(banner => banner.id !== 'initial');
+      for (const banner of bannersToSave) {
         if (!banner.image) throw new Error('Todos los banners deben tener una imagen');
         if (!banner.title.trim()) throw new Error('Todos los banners deben tener un título');
         if (!banner.desc.trim()) throw new Error('Todos los banners deben tener una descripción');
+        if (!banner.link.trim()) throw new Error('Todos los banners deben tener un enlace');
         if (!banner.cta.trim()) throw new Error('Todos los banners deben tener un texto de botón');
       }
 
