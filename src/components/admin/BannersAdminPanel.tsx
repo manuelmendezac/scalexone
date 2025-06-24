@@ -188,12 +188,11 @@ const BannerPreview: React.FC<{ banner: Banner; onClose: () => void }> = ({ bann
   );
 };
 
-const BannersAdminPanel: React.FC = () => {
+const BannersAdminPanel = () => {
   const [banners, setBanners] = useState<Banner[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [editingBanner, setEditingBanner] = useState<Banner | null>(null);
-  const [previewBanner, setPreviewBanner] = useState<Banner | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -203,19 +202,23 @@ const BannersAdminPanel: React.FC = () => {
   );
 
   useEffect(() => {
-    fetchBanners();
+    loadBanners();
   }, []);
 
-  const fetchBanners = async () => {
+  const loadBanners = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
+      setError(null);
+
+      const { data, error: fetchError } = await supabase
         .from('banners')
         .select('*')
-        .order('order_index', { ascending: true });
+        .order('order_index');
 
-      if (error) throw error;
+      if (fetchError) throw fetchError;
+
       setBanners(data || []);
+
     } catch (err: any) {
       console.error('Error cargando banners:', err);
       setError(err.message);
@@ -224,77 +227,36 @@ const BannersAdminPanel: React.FC = () => {
     }
   };
 
-  const handleDragEnd = async (event: DragEndEvent) => {
-    const { active, over } = event;
-    if (!over || active.id === over.id) return;
-
-    setBanners((items) => {
-      const oldIndex = items.findIndex((item) => item.id === active.id);
-      const newIndex = items.findIndex((item) => item.id === over.id);
-      const newItems = arrayMove(items, oldIndex, newIndex);
-
-      // Actualizar order_index en Supabase
-      newItems.forEach(async (item, index) => {
-        await supabase
-          .from('banners')
-          .update({ order_index: index })
-          .eq('id', item.id);
-      });
-
-      return newItems;
-    });
-  };
-
-  const handleSave = async (banner: Banner) => {
+  const handleSave = async (updatedBanners: Banner[]) => {
     try {
       setLoading(true);
-      const { error } = await supabase
-        .from('banners')
-        .upsert({
-          id: banner.id,
-          image: banner.image,
-          title: banner.title,
-          description: banner.desc,
-          link: banner.link,
-          cta: banner.cta,
-          order_index: banner.order_index
-        });
+      setError(null);
 
-      if (error) throw error;
+      // Eliminar banners que ya no existen
+      const bannersToDelete = banners.filter(
+        oldBanner => !updatedBanners.find(newBanner => newBanner.id === oldBanner.id)
+      );
 
-      await fetchBanners();
-      setEditingBanner(null);
-    } catch (err: any) {
-      console.error('Error guardando banner:', err);
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleDelete = async (banner: Banner) => {
-    if (!confirm('¿Estás seguro de que quieres eliminar este banner?')) return;
-
-    try {
-      setLoading(true);
-      const { error } = await supabase
-        .from('banners')
-        .delete()
-        .eq('id', banner.id);
-
-      if (error) throw error;
-
-      // Eliminar la imagen del storage
-      const fileName = banner.image.split('/').pop();
-      if (fileName) {
-        await supabase.storage
+      if (bannersToDelete.length > 0) {
+        const { error: deleteError } = await supabase
           .from('banners')
-          .remove([fileName]);
+          .delete()
+          .in('id', bannersToDelete.map(b => b.id));
+
+        if (deleteError) throw deleteError;
       }
 
-      await fetchBanners();
+      // Actualizar o insertar banners
+      const { error: upsertError } = await supabase
+        .from('banners')
+        .upsert(updatedBanners);
+
+      if (upsertError) throw upsertError;
+
+      await loadBanners();
+
     } catch (err: any) {
-      console.error('Error eliminando banner:', err);
+      console.error('Error guardando banners:', err);
       setError(err.message);
     } finally {
       setLoading(false);
@@ -303,30 +265,22 @@ const BannersAdminPanel: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="w-full h-64 flex items-center justify-center">
+      <div className="flex items-center justify-center h-64">
         <Loader2 className="w-8 h-8 animate-spin text-[#FFD700]" />
       </div>
     );
   }
 
   return (
-    <div className="p-6 max-w-4xl mx-auto">
-      <div className="flex items-center justify-between mb-8">
-        <h2 className="text-2xl font-bold text-[#FFD700]">Gestionar Banners</h2>
+    <div className="p-6">
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-2xl font-bold text-[#FFD700]">Banners</h2>
         <button
-          onClick={() => setEditingBanner({
-            id: crypto.randomUUID(),
-            image: '',
-            title: '',
-            desc: '',
-            link: '',
-            cta: '',
-            order_index: banners.length
-          })}
+          onClick={() => setIsModalOpen(true)}
           className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#FFD700] text-black font-bold hover:bg-[#FDB813] transition-colors"
         >
           <Plus size={20} />
-          Nuevo Banner
+          Gestionar Banners
         </button>
       </div>
 
@@ -336,48 +290,45 @@ const BannersAdminPanel: React.FC = () => {
         </div>
       )}
 
-      <DndContext
-        sensors={sensors}
-        collisionDetection={closestCenter}
-        onDragEnd={handleDragEnd}
-      >
-        <SortableContext
-          items={banners}
-          strategy={verticalListSortingStrategy}
-        >
-          <div className="space-y-4">
-            <AnimatePresence>
-              {banners.map((banner) => (
-                <SortableBannerItem
-                  key={banner.id}
-                  banner={banner}
-                  onPreview={setPreviewBanner}
-                  onEdit={setEditingBanner}
-                  onDelete={handleDelete}
-                />
-              ))}
-            </AnimatePresence>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {banners.map((banner) => (
+          <div
+            key={banner.id}
+            className="bg-[#0A0A0F] rounded-xl overflow-hidden border border-[#FFD700]/20"
+          >
+            <div className="aspect-video relative">
+              <img
+                src={banner.image}
+                alt={banner.title}
+                className="w-full h-full object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent flex items-end p-4">
+                <div>
+                  <h3 className="text-lg font-bold text-white mb-1">{banner.title}</h3>
+                  <p className="text-sm text-gray-300 line-clamp-2">{banner.desc}</p>
+                </div>
+              </div>
+            </div>
+            <div className="p-4 border-t border-[#FFD700]/20">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-400">
+                  Orden: {banner.order_index + 1}
+                </span>
+                <span className="text-sm font-medium text-[#FFD700]">
+                  {banner.cta}
+                </span>
+              </div>
+            </div>
           </div>
-        </SortableContext>
-      </DndContext>
+        ))}
+      </div>
 
-      <AnimatePresence>
-        {editingBanner && (
-          <BannerEditModal
-            open={true}
-            onClose={() => setEditingBanner(null)}
-            banner={editingBanner}
-            onSave={handleSave}
-          />
-        )}
-
-        {previewBanner && (
-          <BannerPreview
-            banner={previewBanner}
-            onClose={() => setPreviewBanner(null)}
-          />
-        )}
-      </AnimatePresence>
+      <BannerEditModal
+        open={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        banners={banners}
+        onSave={handleSave}
+      />
     </div>
   );
 };
