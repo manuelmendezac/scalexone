@@ -10,6 +10,7 @@ import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import useConfigStore from '../../store/useConfigStore';
 import LoadingScreen from '../LoadingScreen';
 import { menuItems } from './AdminSidebar';
+import BannersAdminPanel from './BannersAdminPanel';
 
 const perfilDefault = {
   avatar: '',
@@ -350,6 +351,10 @@ const AdminConfigPanel: React.FC<AdminConfigPanelProps> = ({ selected }) => {
 
   if (selected === 'mainMenu') {
     return <MenuSecundarioTresBarras />;
+  }
+
+  if (selected === 'banners') {
+    return <BannersAdminPanel />;
   }
 
   // Para otras opciones, mostrar contenido básico
