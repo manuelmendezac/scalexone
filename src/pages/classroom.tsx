@@ -169,23 +169,32 @@ const EditModuleModal = lazy(() => Promise.resolve({
               <div className="flex flex-col gap-2">
                 <input
                   type="file"
-                  accept="image/*"
+                  accept="image/webp,image/*"
                   onChange={handleCoverImageUpload}
                   disabled={isUploading}
                   className="text-white"
                 />
                 {isUploading && <span className="text-xs text-amber-400">Subiendo imagen...</span>}
                 {editModulo.imagen_url && (
-                  <img
-                    src={editModulo.imagen_url}
-                    srcSet={editModulo.imagen_url_mobile ? `${editModulo.imagen_url_mobile} 800w, ${editModulo.imagen_url} 1280w` : undefined}
-                    sizes="(max-width: 600px) 800px, 1280px"
-                    alt="Portada"
-                    className="rounded-lg mt-2 max-h-40 object-cover border border-amber-400"
-                    width="320"
-                    height="180"
-                    loading="lazy"
-                  />
+                  <>
+                    <img
+                      src={editModulo.imagen_url}
+                      srcSet={editModulo.imagen_url_mobile ? `${editModulo.imagen_url_mobile} 800w, ${editModulo.imagen_url} 1280w` : undefined}
+                      sizes="(max-width: 600px) 800px, 1280px"
+                      alt="Portada"
+                      className="rounded-lg mt-2 max-h-40 object-cover border border-amber-400"
+                      width="320"
+                      height="180"
+                      loading="lazy"
+                    />
+                    <button
+                      type="button"
+                      className="mt-2 px-4 py-1 rounded bg-red-600 text-white text-xs font-bold hover:bg-red-700 transition"
+                      onClick={() => setEditModulo({ ...editModulo, imagen_url: '', imagen_url_mobile: '' })}
+                    >
+                      Eliminar portada
+                    </button>
+                  </>
                 )}
                 <div className="mt-2 p-2 bg-neutral-800 rounded text-xs text-amber-300 border border-amber-400/30">
                   <b>Tips para una portada óptima:</b><br/>
