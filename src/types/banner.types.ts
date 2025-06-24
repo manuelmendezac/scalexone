@@ -1,7 +1,6 @@
 export interface Banner {
   id: string;
   image: string;
-  backgroundImage?: string;
   title: string;
   description: string;
   link: string;
@@ -14,10 +13,9 @@ export interface Banner {
 export const initialBanner: Banner = {
   id: 'initial',
   image: '/images/modulos/modulo2.png',
-  backgroundImage: '/images/banners/city-background.jpg',
-  title: 'Conecta con TU SER',
-  description: 'Desbloquea el poder que te llevará a la vida que mereces',
+  title: 'IA AUTOMATIZADA',
+  description: 'CONCENTRA TU NEGOCIO DIGITAL 24/7',
   link: '/inicio',
-  cta: 'Comenzar',
+  cta: 'INGRESAR',
   order_index: 0
 }; 
