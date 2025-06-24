@@ -139,10 +139,12 @@ const LineaVideosClassroom = () => {
     }
   };
 
-  const cambiarVideo = useCallback((index: number) => {
+  const cambiarVideo = useCallback(async (index: number) => {
     if (index >= 0 && index < clasesOrdenadas.length) {
+      setLoading(true);
       setVideoProgress(0);
       setClaseActual(index);
+      setTimeout(() => setLoading(false), 500);
     }
   }, [clasesOrdenadas.length]);
 
