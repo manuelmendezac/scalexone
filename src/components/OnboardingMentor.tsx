@@ -191,7 +191,7 @@ const OnboardingMentor: React.FC = () => {
   }
 
   return (
-    <div className="w-full max-w-xl mx-auto flex flex-col items-center justify-center bg-gradient-to-b from-[#0a0a0a] to-[#111827] rounded-2xl p-8 shadow-xl border border-cyan-700 animate-fade-in">
+    <div className="w-full max-w-xl mx-auto flex flex-col items-center justify-center bg-gradient-to-b from-[#0a0a0a] to-[#111827] rounded-2xl p-8 shadow-xl border" style={{ borderColor: '#FFD700', boxShadow: '0 2px 24px #FFD70044' }}>
       {/* Avatar IA con halo y visualizador de voz */}
       <div className="flex flex-col items-center justify-center mb-6">
         <div className="relative mb-4 flex flex-col items-center">
@@ -201,22 +201,22 @@ const OnboardingMentor: React.FC = () => {
             style={{
               left: '-32px',
               top: '-32px',
-              background: 'radial-gradient(circle, #22d3ee33 60%, transparent 100%)',
+              background: 'radial-gradient(circle, #FFD70033 60%, transparent 100%)',
               filter: 'blur(18px)',
             }}
           />
           {/* Ondas de voz parlante (efecto realidad aumentada) */}
           <span
-            className="absolute w-64 h-64 rounded-full border-2 border-cyan-400 voz-parlante-onda"
-            style={{ left: '-48px', top: '-48px' }}
+            className="absolute w-64 h-64 rounded-full border-2 voz-parlante-onda"
+            style={{ left: '-48px', top: '-48px', borderColor: '#FFD700' }}
           />
           <span
-            className="absolute w-72 h-72 rounded-full border-2 border-purple-400 voz-parlante-onda voz-parlante-onda-2"
-            style={{ left: '-80px', top: '-80px' }}
+            className="absolute w-72 h-72 rounded-full border-2 voz-parlante-onda voz-parlante-onda-2"
+            style={{ left: '-80px', top: '-80px', borderColor: '#E8A317' }}
           />
           <span
-            className="absolute w-80 h-80 rounded-full border-2 border-cyan-300 voz-parlante-onda voz-parlante-onda-3"
-            style={{ left: '-112px', top: '-112px' }}
+            className="absolute w-80 h-80 rounded-full border-2 voz-parlante-onda voz-parlante-onda-3"
+            style={{ left: '-112px', top: '-112px', borderColor: '#FDB813' }}
           />
           <img
             src={avatarInput || defaultAvatar}
@@ -229,8 +229,8 @@ const OnboardingMentor: React.FC = () => {
               objectFit: 'cover',
               display: 'block',
               margin: '0 auto',
-              boxShadow: '0 0 32px #0ff4',
-              border: '4px solid #22d3ee',
+              boxShadow: '0 0 32px #FFD70088',
+              border: '4px solid #FFD700',
               background: '#e5e7eb',
               position: 'relative',
               zIndex: 2
@@ -250,8 +250,8 @@ const OnboardingMentor: React.FC = () => {
         {audioUrl && <VoiceVisualizer audioUrl={audioUrl} />}
         {audioUrl && (
           <button
-            className="mt-2 px-2 py-1 rounded bg-cyan-600 text-white font-bold text-sm flex items-center justify-center"
-            style={{ minWidth: 32, minHeight: 32, borderRadius: '50%', width: 36, height: 36, padding: 0 }}
+            className="mt-2 px-2 py-1 rounded font-bold text-sm flex items-center justify-center"
+            style={{ minWidth: 32, minHeight: 32, borderRadius: '50%', width: 36, height: 36, padding: 0, background: 'linear-gradient(90deg, #FFD700 0%, #E8A317 100%)', color: '#18181b', boxShadow: '0 2px 8px #FFD70055' }}
             onClick={() => {
               if (audioInstance.current) {
                 audioInstance.current.currentTime = 0;
@@ -267,19 +267,22 @@ const OnboardingMentor: React.FC = () => {
         )}
       </div>
       <button
-        className="mt-2 px-4 py-2 rounded bg-cyan-600 text-white font-bold text-base shadow hover:bg-cyan-400 transition"
+        className="mt-2 px-4 py-2 rounded font-bold text-base shadow transition"
+        style={{ background: 'linear-gradient(90deg, #FFD700 0%, #E8A317 100%)', color: '#18181b', boxShadow: '0 2px 8px #FFD70055' }}
         onClick={() => {
           setNameInput(userName);
           setAvatarInput(avatarUrl);
           setShowEditModal(true);
         }}
       >Editar perfil</button>
-      <div className="text-2xl md:text-3xl font-orbitron text-cyan-300 mb-1 text-center">
+      <div className="text-2xl md:text-3xl font-orbitron mb-1 text-center" style={{ color: '#FFD700', textShadow: '0 2px 8px #E8A31799' }}>
         {nameInput || 'Invitado'} AI
       </div>
-      <div className="text-cyan-200 text-lg font-light italic mb-1 text-center">"Hoy es un gran día para crear lo imposible 🚀"</div>
-      <div className="text-cyan-400 text-base font-medium mb-2 text-center">{dateStr}</div>
-      <div className="text-cyan-200 text-lg md:text-xl font-light mb-6 animate-pulse text-center">Bienvenido a tu portal de inteligencia aumentada</div>
+      <div className="text-lg font-light italic mb-1 text-center" style={{ color: '#FDB813' }}>
+        "Hoy es un gran día para crear lo imposible 🚀"
+      </div>
+      <div className="text-base font-medium mb-2 text-center" style={{ color: '#E8A317' }}>{dateStr}</div>
+      <div className="text-lg md:text-xl font-light mb-6 animate-pulse text-center" style={{ color: '#FFD700' }}>Bienvenido a tu portal de inteligencia aumentada</div>
       {/* Bloque de pasos onboarding */}
       <div className="w-full max-w-md mx-auto mb-6">
         <ul className="flex flex-col gap-4">
@@ -288,15 +291,15 @@ const OnboardingMentor: React.FC = () => {
               key={i}
               className={`flex items-center gap-3 px-4 py-4 rounded-xl border font-orbitron text-base md:text-lg transition-all shadow-xl ${
                 i < currentStep
-                  ? 'bg-[#0d1c30] border-cyan-400 text-cyan-200 shadow-cyan-400/30'
-                  : 'bg-[#0d1c30] border-gray-700 text-cyan-100 opacity-60'
+                  ? 'bg-[#18181b] border-yellow-400 text-yellow-200 shadow-yellow-400/30'
+                  : 'bg-[#18181b] border-gray-700 text-yellow-100 opacity-60'
               }`}
             >
               <span>
                 {i < currentStep ? (
-                  <FaCheckCircle className="text-cyan-400 animate-pulse" />
+                  <FaCheckCircle className="text-yellow-400 animate-pulse" />
                 ) : (
-                  <span className="w-5 h-5 inline-block rounded-full border border-cyan-700" />
+                  <span className="w-5 h-5 inline-block rounded-full border" style={{ borderColor: '#FFD700' }} />
                 )}
               </span>
               <span>{step}</span>
@@ -311,9 +314,10 @@ const OnboardingMentor: React.FC = () => {
           animate={{ opacity: 1, y: 0 }}
           className="flex flex-col items-center gap-4 mt-4"
         >
-          <div className="text-cyan-300 text-xl font-bold font-orbitron">¡Estás listo para comenzar!</div>
+          <div className="text-xl font-bold font-orbitron" style={{ color: '#FFD700', textShadow: '0 2px 8px #E8A31799' }}>¡Estás listo para comenzar!</div>
           <button
-            className="px-6 py-2 rounded-lg bg-cyan-600 hover:bg-cyan-400 text-white font-bold shadow transition text-lg"
+            className="px-6 py-2 rounded-lg font-bold shadow transition text-lg"
+            style={{ background: 'linear-gradient(90deg, #FFD700 0%, #E8A317 100%)', color: '#18181b', boxShadow: '0 2px 12px #FFD70055' }}
             onClick={() => navigate('/crear-clon')}
           >
             Crear mi clon IA
@@ -323,9 +327,9 @@ const OnboardingMentor: React.FC = () => {
       {/* Modal de edición de perfil */}
       {showEditModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70">
-          <div className="bg-[#181a2f] rounded-2xl p-8 shadow-2xl flex flex-col items-center w-full max-w-md relative">
-            <button className="absolute top-2 right-2 text-cyan-400 text-2xl" onClick={() => setShowEditModal(false)}>&times;</button>
-            <h2 className="text-2xl font-orbitron text-cyan-300 mb-4">Nombre de tu clon</h2>
+          <div className="rounded-2xl p-8 shadow-2xl flex flex-col items-center w-full max-w-md relative" style={{ background: '#181a2f', border: '2px solid #FFD700', boxShadow: '0 2px 24px #FFD70044' }}>
+            <button className="absolute top-2 right-2 text-2xl" style={{ color: '#FFD700' }} onClick={() => setShowEditModal(false)}>&times;</button>
+            <h2 className="text-2xl font-orbitron mb-4" style={{ color: '#FFD700', textShadow: '0 2px 8px #E8A31799' }}>Nombre de tu clon</h2>
             <AvatarUploader
               onUpload={async url => {
                 setAvatarInput(url);
@@ -365,11 +369,13 @@ const OnboardingMentor: React.FC = () => {
               type="text"
               value={nameInput}
               onChange={e => setNameInput(e.target.value)}
-              className="mt-4 px-4 py-2 rounded border border-cyan-400 bg-black text-cyan-200 text-lg font-bold text-center w-full"
+              className="mt-4 px-4 py-2 rounded border bg-black text-lg font-bold text-center w-full"
+              style={{ borderColor: '#FFD700', color: '#FFD700' }}
               placeholder="Tu nombre"
             />
             <button
-              className="mt-6 px-6 py-2 rounded bg-cyan-600 text-white font-bold text-lg shadow hover:bg-cyan-400 transition"
+              className="mt-6 px-6 py-2 rounded font-bold text-lg shadow transition"
+              style={{ background: 'linear-gradient(90deg, #FFD700 0%, #E8A317 100%)', color: '#18181b', boxShadow: '0 2px 8px #FFD70055' }}
               onClick={() => {
                 setUserName(nameInput.trim() || 'Invitado');
                 setAvatarUrl(avatarInput);
