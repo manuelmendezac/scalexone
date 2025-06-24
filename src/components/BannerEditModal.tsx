@@ -50,8 +50,8 @@ const SortableBannerForm: React.FC<SortableBannerFormProps> = ({ banner, onChang
   };
 
   return (
-    <div ref={setNodeRef} style={style} className="bg-[#0A0A0F] rounded-xl p-6 border border-[#FFD700]/20 mb-4">
-      <div className="flex items-center justify-between mb-4">
+    <div ref={setNodeRef} style={style} className="bg-[#0A0A0F] rounded-xl p-8 border border-[#FFD700]/20 mb-6">
+      <div className="flex items-center justify-between mb-6">
         <div {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing p-2 hover:bg-[#FFD700]/10 rounded-lg">
           <GripVertical className="text-[#FFD700]" />
         </div>
@@ -63,46 +63,44 @@ const SortableBannerForm: React.FC<SortableBannerFormProps> = ({ banner, onChang
         </button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] gap-6">
-        {/* Columna de imagen */}
-        <div className="flex flex-col gap-4">
-          <div className="relative">
-            {(preview || banner.image) && (
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        {/* Columna izquierda - Imagen */}
+        <div className="space-y-4">
+          <div 
+            onClick={() => fileInputRef.current?.click()}
+            className="aspect-video relative rounded-lg overflow-hidden cursor-pointer group border-2 border-dashed border-[#FFD700]/30 hover:border-[#FFD700]/60 transition-colors"
+          >
+            {(preview || banner.image) ? (
               <img
                 src={preview || banner.image}
                 alt="Preview"
-                className="w-full h-40 object-cover rounded-lg border border-[#FFD700]/30"
+                className="w-full h-full object-cover"
               />
+            ) : (
+              <div className="absolute inset-0 flex flex-col items-center justify-center text-[#FFD700]/60 group-hover:text-[#FFD700]">
+                <Plus size={40} />
+                <span className="mt-2 font-medium">Seleccionar Imagen</span>
+              </div>
             )}
-            <input
-              type="file"
-              ref={fileInputRef}
-              onChange={(e) => {
-                const file = e.target.files?.[0];
-                if (file) onImageChange(file);
-              }}
-              accept="image/*"
-              className="hidden"
-            />
-            <button
-              type="button"
-              onClick={() => fileInputRef.current?.click()}
-              className="mt-2 w-full px-4 py-2 rounded-lg bg-[#FFD700]/10 text-[#FFD700] hover:bg-[#FFD700]/20 transition-colors text-sm font-medium"
-            >
-              Seleccionar Imagen
-            </button>
           </div>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            onChange={(e) => e.target.files?.[0] && onImageChange(e.target.files[0])}
+            className="hidden"
+          />
         </div>
 
-        {/* Columna de formulario */}
-        <div className="space-y-4">
+        {/* Columna derecha - Formulario */}
+        <div className="space-y-6">
           <div>
             <label className="block text-[#FFD700] mb-2 text-sm font-medium">Título</label>
             <input
               type="text"
               value={banner.title}
               onChange={(e) => onChange({ ...banner, title: e.target.value })}
-              className="w-full px-4 py-2 rounded-lg bg-black/50 border border-[#FFD700]/30 text-white focus:border-[#FFD700] transition-colors"
+              className="w-full px-4 py-3 rounded-lg bg-black/50 border border-[#FFD700]/30 text-white focus:border-[#FFD700] transition-colors"
               placeholder="Ingresa el título del banner"
             />
           </div>
@@ -112,21 +110,21 @@ const SortableBannerForm: React.FC<SortableBannerFormProps> = ({ banner, onChang
             <textarea
               value={banner.desc}
               onChange={(e) => onChange({ ...banner, desc: e.target.value })}
-              className="w-full px-4 py-2 rounded-lg bg-black/50 border border-[#FFD700]/30 text-white focus:border-[#FFD700] transition-colors"
+              className="w-full px-4 py-3 rounded-lg bg-black/50 border border-[#FFD700]/30 text-white focus:border-[#FFD700] transition-colors"
               placeholder="Ingresa la descripción del banner"
-              rows={3}
+              rows={4}
             />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-[#FFD700] mb-2 text-sm font-medium">Enlace</label>
               <input
                 type="text"
                 value={banner.link}
                 onChange={(e) => onChange({ ...banner, link: e.target.value })}
-                className="w-full px-4 py-2 rounded-lg bg-black/50 border border-[#FFD700]/30 text-white focus:border-[#FFD700] transition-colors"
-                placeholder="Ingresa el enlace del botón"
+                className="w-full px-4 py-3 rounded-lg bg-black/50 border border-[#FFD700]/30 text-white focus:border-[#FFD700] transition-colors"
+                placeholder="URL del enlace"
               />
             </div>
             <div>
@@ -135,8 +133,8 @@ const SortableBannerForm: React.FC<SortableBannerFormProps> = ({ banner, onChang
                 type="text"
                 value={banner.cta}
                 onChange={(e) => onChange({ ...banner, cta: e.target.value })}
-                className="w-full px-4 py-2 rounded-lg bg-black/50 border border-[#FFD700]/30 text-white focus:border-[#FFD700] transition-colors"
-                placeholder="Ingresa el texto del botón"
+                className="w-full px-4 py-3 rounded-lg bg-black/50 border border-[#FFD700]/30 text-white focus:border-[#FFD700] transition-colors"
+                placeholder="Ej: Ver más"
               />
             </div>
           </div>
@@ -258,25 +256,25 @@ const BannerEditModal: React.FC<Props> = ({ open, onClose, banners: initialBanne
 
   return (
     <ModalFuturista open={open} onClose={onClose}>
-      <div className="max-w-5xl mx-auto">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold text-[#FFD700]">Editar Banners</h2>
+      <div className="max-w-7xl mx-auto">
+        <div className="flex items-center justify-between mb-8">
+          <h2 className="text-3xl font-bold text-[#FFD700]">Editar Banners</h2>
           <button
             onClick={handleAddBanner}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#FFD700] text-black font-bold hover:bg-[#FDB813] transition-colors"
+            className="flex items-center gap-3 px-6 py-3 rounded-lg bg-[#FFD700] text-black font-bold hover:bg-[#FDB813] transition-colors"
           >
-            <Plus size={20} />
+            <Plus size={24} />
             Agregar Banner
           </button>
         </div>
 
         {error && (
-          <div className="mb-6 p-4 rounded-lg bg-red-500/10 border border-red-500 text-red-500">
+          <div className="mb-8 p-4 rounded-lg bg-red-500/10 border border-red-500 text-red-500">
             {error}
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-8">
           <DndContext
             sensors={sensors}
             collisionDetection={closestCenter}
@@ -309,21 +307,17 @@ const BannerEditModal: React.FC<Props> = ({ open, onClose, banners: initialBanne
             <button
               type="button"
               onClick={onClose}
-              className="px-6 py-2 rounded-lg bg-gray-800 text-gray-200 hover:bg-gray-700 transition-colors"
-              disabled={loading}
+              className="px-6 py-3 rounded-lg bg-gray-800 text-white hover:bg-gray-700 transition-colors"
             >
               Cancelar
             </button>
             <button
               type="submit"
-              className="px-6 py-2 rounded-lg bg-[#FFD700] text-black font-bold hover:bg-[#FDB813] transition-colors disabled:opacity-50"
               disabled={loading}
+              className="flex items-center gap-2 px-6 py-3 rounded-lg bg-[#FFD700] text-black font-bold hover:bg-[#FDB813] transition-colors disabled:opacity-50"
             >
-              {loading ? (
-                <Loader2 className="w-5 h-5 animate-spin" />
-              ) : (
-                'Guardar'
-              )}
+              {loading && <Loader2 className="animate-spin" size={20} />}
+              Guardar Cambios
             </button>
           </div>
         </form>
