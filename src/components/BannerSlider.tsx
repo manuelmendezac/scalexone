@@ -4,7 +4,8 @@ import 'swiper/css';
 import 'swiper/css/pagination';
 import { Pagination, Autoplay } from 'swiper/modules';
 import { supabase } from '../supabase';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Edit2 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 interface Banner {
   id: string;
@@ -16,8 +17,19 @@ interface Banner {
   order_index: number;
 }
 
+const initialBanner: Banner = {
+  id: 'initial',
+  image: '/images/modulos/modulo2.png',
+  title: '¡Nuevo módulo IA disponible!',
+  desc: 'Descubre DynamicExpertProfile y lleva tu clon al siguiente nivel.',
+  link: '/modules/dynamic-expert-profile',
+  cta: 'Ver más',
+  order_index: 0,
+};
+
 const BannerSlider: React.FC = () => {
-  const [banners, setBanners] = useState<Banner[]>([]);
+  const navigate = useNavigate();
+  const [banners, setBanners] = useState<Banner[]>([initialBanner]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -36,7 +48,11 @@ const BannerSlider: React.FC = () => {
         .order('order_index');
 
       if (fetchError) throw fetchError;
-      setBanners(data || []);
+      
+      // Si hay banners en la base de datos, usarlos. Si no, mantener el inicial
+      if (data && data.length > 0) {
+        setBanners(data);
+      }
 
     } catch (err: any) {
       console.error('Error cargando banners:', err);
@@ -44,6 +60,10 @@ const BannerSlider: React.FC = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleEditClick = () => {
+    navigate('/admin?section=banners');
   };
 
   if (loading) {
@@ -60,10 +80,6 @@ const BannerSlider: React.FC = () => {
         Error cargando banners: {error}
       </div>
     );
-  }
-
-  if (banners.length === 0) {
-    return null;
   }
 
   return (
@@ -85,6 +101,14 @@ const BannerSlider: React.FC = () => {
                 boxShadow: '0 4px 60px 0 rgba(255,215,0,0.15), inset 0 0 0 1px rgba(255,215,0,0.1)'
               }}
             >
+              {/* Botón de editar */}
+              <button
+                onClick={handleEditClick}
+                className="absolute top-4 right-4 p-2 rounded-full bg-black/50 border border-[#FFD700] text-[#FFD700] hover:bg-[#FFD700]/10 transition-colors z-10"
+              >
+                <Edit2 size={20} />
+              </button>
+
               {/* Efectos de luz dorados */}
               <div 
                 className="absolute top-0 left-0 w-full h-full pointer-events-none"
