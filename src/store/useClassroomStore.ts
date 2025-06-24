@@ -1,7 +1,6 @@
 import { create } from 'zustand';
 import { supabase } from '../supabase';
 import { CLASSROOM_REWARDS } from '../services/classroomGamificationService';
-import { useAuth } from '../hooks/useAuth';
 import { registrarProgresoAcademico } from '../utils/actualizarNivelUsuario';
 
 export type Modulo = {
@@ -29,7 +28,6 @@ interface ClassroomStore {
   loading: boolean;
   error: string | null;
   lastFetch: number | null;
-  pagina: number;
   editIdx: number | null;
   showEditModal: boolean;
   editModulo: EditModulo;
@@ -37,7 +35,6 @@ interface ClassroomStore {
   orderMsg: string | null;
   
   fetchModulos: () => Promise<void>;
-  setPagina: (pagina: number) => void;
   setEditIdx: (idx: number | null) => void;
   setShowEditModal: (show: boolean) => void;
   setEditModulo: (modulo: EditModulo) => void;
@@ -57,7 +54,6 @@ const useClassroomStore = create<ClassroomStore>((set, get) => ({
   loading: false,
   error: null,
   lastFetch: null,
-  pagina: 1,
   editIdx: null,
   showEditModal: false,
   editModulo: {},
@@ -121,8 +117,6 @@ const useClassroomStore = create<ClassroomStore>((set, get) => ({
     }
   },
 
-  setPagina: (pagina) => set({ pagina }),
-  
   setEditIdx: (idx) => {
     if (idx !== null) {
       const modulo = get().modulos[idx];
