@@ -169,7 +169,7 @@ const EditModuleModal = lazy(() => Promise.resolve({
               <div className="flex flex-col gap-2">
                 <input
                   type="file"
-                  accept="image/webp,image/*"
+                  accept="image/*"
                   onChange={handleCoverImageUpload}
                   disabled={isUploading}
                   className="text-white"
@@ -190,7 +190,7 @@ const EditModuleModal = lazy(() => Promise.resolve({
                     <button
                       type="button"
                       className="mt-2 px-4 py-1 rounded bg-red-600 text-white text-xs font-bold hover:bg-red-700 transition"
-                      onClick={() => setEditModulo({ ...editModulo, imagen_url: '', imagen_url_mobile: '' })}
+                      onClick={() => { setEditModulo({ ...editModulo, imagen_url: '', imagen_url_mobile: '' }); setPreviewImage(null); }}
                     >
                       Eliminar portada
                     </button>
@@ -255,6 +255,7 @@ const Classroom = () => {
   const [isAdmin, setIsAdmin] = React.useState(false);
   const [isUploading, setIsUploading] = React.useState(false);
   const isHydrated = useHydration();
+  const [previewImage, setPreviewImage] = React.useState<string | null>(null);
 
   const {
     modulos,
