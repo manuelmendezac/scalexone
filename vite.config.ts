@@ -1,6 +1,8 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
+import viteCompression from 'vite-plugin-compression'
+import viteImagemin from 'vite-plugin-imagemin'
 
 // https://vite.dev/config/
 export default defineConfig({
@@ -55,6 +57,24 @@ export default defineConfig({
       },
       devOptions: {
         enabled: true
+      }
+    }),
+    viteCompression({
+      algorithm: 'gzip',
+      ext: '.gz',
+      threshold: 10240,
+      deleteOriginFile: false
+    }),
+    viteImagemin({
+      gifsicle: { optimizationLevel: 7, interlaced: false },
+      optipng: { optimizationLevel: 7 },
+      mozjpeg: { quality: 75 },
+      pngquant: { quality: [0.7, 0.9], speed: 3 },
+      svgo: {
+        plugins: [
+          { name: 'removeViewBox' },
+          { name: 'removeEmptyAttrs', active: false }
+        ]
       }
     })
   ],
