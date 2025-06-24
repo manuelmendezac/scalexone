@@ -12,7 +12,7 @@ interface Banner {
   id: string;
   image: string;
   title: string;
-  desc: string;
+  description: string;
   link: string;
   cta: string;
   order_index: number;
@@ -108,8 +108,8 @@ const SortableBannerForm: React.FC<SortableBannerFormProps> = ({ banner, onChang
           <div>
             <label className="block text-[#FFD700] mb-2 text-sm font-medium">Descripción</label>
             <textarea
-              value={banner.desc}
-              onChange={(e) => onChange({ ...banner, desc: e.target.value })}
+              value={banner.description}
+              onChange={(e) => onChange({ ...banner, description: e.target.value })}
               className="w-full px-4 py-3 rounded-lg bg-black/50 border border-[#FFD700]/30 text-white focus:border-[#FFD700] transition-colors"
               placeholder="Ingresa la descripción del banner"
               rows={4}
@@ -221,7 +221,7 @@ const BannerEditModal: React.FC<Props> = ({ open, onClose, banners: initialBanne
       id: crypto.randomUUID(),
       image: '',
       title: '',
-      desc: '',
+      description: '',
       link: '',
       cta: '',
       order_index: banners.length
@@ -240,7 +240,7 @@ const BannerEditModal: React.FC<Props> = ({ open, onClose, banners: initialBanne
       for (const banner of bannersToSave) {
         if (!banner.image) throw new Error('Todos los banners deben tener una imagen');
         if (!banner.title.trim()) throw new Error('Todos los banners deben tener un título');
-        if (!banner.desc.trim()) throw new Error('Todos los banners deben tener una descripción');
+        if (!banner.description.trim()) throw new Error('Todos los banners deben tener una descripción');
         if (!banner.link.trim()) throw new Error('Todos los banners deben tener un enlace');
         if (!banner.cta.trim()) throw new Error('Todos los banners deben tener un texto de botón');
       }
