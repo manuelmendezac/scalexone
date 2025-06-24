@@ -7,16 +7,7 @@ import type { DragEndEvent } from '@dnd-kit/core';
 import { SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable';
 import { arrayMove } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-
-interface Banner {
-  id: string;
-  image: string;
-  title: string;
-  description: string;
-  link: string;
-  cta: string;
-  order_index: number;
-}
+import type { Banner } from '../types/banner.types';
 
 interface Props {
   open: boolean;

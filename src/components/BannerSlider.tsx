@@ -6,16 +6,7 @@ import { Pagination, Autoplay } from 'swiper/modules';
 import { supabase } from '../supabase';
 import { Loader2, Edit2 } from 'lucide-react';
 import BannerEditModal from './BannerEditModal';
-
-interface Banner {
-  id: string;
-  image: string;
-  title: string;
-  description: string;
-  link: string;
-  cta: string;
-  order_index: number;
-}
+import type { Banner } from '../types/banner.types';
 
 const initialBanner: Banner = {
   id: 'initial',
