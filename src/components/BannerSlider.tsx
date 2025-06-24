@@ -91,17 +91,19 @@ const BannerSlider: React.FC = () => {
       }
 
       // Filtrar el banner inicial y actualizar o insertar los demás
-      const bannersToSave = updatedBanners.filter(b => b.id !== 'initial');
+      const bannersToSave = updatedBanners
+        .filter(b => b.id !== 'initial')
+        .map((banner, index) => ({
+          ...banner,
+          order_index: index,
+          created_at: banner.created_at || new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        }));
       
       if (bannersToSave.length > 0) {
         const { error: upsertError } = await supabase
           .from('banners')
-          .upsert(
-            bannersToSave.map((banner, index) => ({
-              ...banner,
-              order_index: index
-            }))
-          );
+          .upsert(bannersToSave);
 
         if (upsertError) throw upsertError;
       }
