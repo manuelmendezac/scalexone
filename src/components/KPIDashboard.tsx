@@ -13,25 +13,25 @@ interface KPIDashboardProps {
 
 const KPIDashboard: React.FC<KPIDashboardProps> = ({ kpis }) => (
   <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-    <div className="bg-gray-800 rounded-xl p-4 flex flex-col items-center shadow hover:shadow-cyan-400/30 transition group">
-      <FiZap className="w-7 h-7 text-cyan-400 mb-2 group-hover:scale-110 transition" />
-      <div className="text-2xl font-bold text-white">{kpis.microtasks}%</div>
-      <div className="text-cyan-200 text-sm">Microtareas completadas</div>
+    <div className="bg-gray-800 rounded-xl p-4 flex flex-col items-center shadow transition group" style={{ border: '1.5px solid #FFD700', boxShadow: '0 2px 12px #FFD70044' }}>
+      <FiZap className="w-7 h-7 mb-2 group-hover:scale-110 transition" style={{ color: '#FFD700', textShadow: '0 2px 8px #E8A31799' }} />
+      <div className="text-2xl font-bold text-yellow-200">{kpis.microtasks}%</div>
+      <div className="text-yellow-400 text-sm">Microtareas completadas</div>
     </div>
-    <div className="bg-gray-800 rounded-xl p-4 flex flex-col items-center shadow hover:shadow-cyan-400/30 transition group">
-      <FaBrain className="w-7 h-7 text-cyan-400 mb-2 group-hover:scale-110 transition" />
-      <div className="text-2xl font-bold text-white">{kpis.focusTime}h</div>
-      <div className="text-cyan-200 text-sm">Tiempo de enfoque</div>
+    <div className="bg-gray-800 rounded-xl p-4 flex flex-col items-center shadow transition group" style={{ border: '1.5px solid #FFD700', boxShadow: '0 2px 12px #FFD70044' }}>
+      <FaBrain className="w-7 h-7 mb-2 group-hover:scale-110 transition" style={{ color: '#FFD700', textShadow: '0 2px 8px #E8A31799' }} />
+      <div className="text-2xl font-bold text-yellow-200">{kpis.focusTime}h</div>
+      <div className="text-yellow-400 text-sm">Tiempo de enfoque</div>
     </div>
-    <div className="bg-gray-800 rounded-xl p-4 flex flex-col items-center shadow hover:shadow-cyan-400/30 transition group">
-      <FiMessageCircle className="w-7 h-7 text-cyan-400 mb-2 group-hover:scale-110 transition" />
-      <div className="text-2xl font-bold text-white truncate max-w-[120px]">{kpis.lastAIMessage}</div>
-      <div className="text-cyan-200 text-sm">Última conversación IA</div>
+    <div className="bg-gray-800 rounded-xl p-4 flex flex-col items-center shadow transition group" style={{ border: '1.5px solid #FFD700', boxShadow: '0 2px 12px #FFD70044' }}>
+      <FiMessageCircle className="w-7 h-7 mb-2 group-hover:scale-110 transition" style={{ color: '#FFD700', textShadow: '0 2px 8px #E8A31799' }} />
+      <div className="text-2xl font-bold text-yellow-200 truncate max-w-[120px]">{kpis.lastAIMessage}</div>
+      <div className="text-yellow-400 text-sm">Última conversación IA</div>
     </div>
-    <div className="bg-gray-800 rounded-xl p-4 flex flex-col items-center shadow hover:shadow-cyan-400/30 transition group">
-      <FiSmile className="w-7 h-7 text-cyan-400 mb-2 group-hover:scale-110 transition" />
-      <div className="text-2xl font-bold text-white">{kpis.emotion || '🙂'}</div>
-      <div className="text-cyan-200 text-sm">Estado emocional</div>
+    <div className="bg-gray-800 rounded-xl p-4 flex flex-col items-center shadow transition group" style={{ border: '1.5px solid #FFD700', boxShadow: '0 2px 12px #FFD70044' }}>
+      <FiSmile className="w-7 h-7 mb-2 group-hover:scale-110 transition" style={{ color: '#FFD700', textShadow: '0 2px 8px #E8A31799' }} />
+      <div className="text-2xl font-bold text-yellow-200">{kpis.emotion || '🙂'}</div>
+      <div className="text-yellow-400 text-sm">Estado emocional</div>
     </div>
   </div>
 );

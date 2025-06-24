@@ -40,12 +40,12 @@ const BannerSlider: React.FC = () => (
     >
       {banners.map((b, i) => (
         <SwiperSlide key={i}>
-          <div className="flex flex-col md:flex-row items-center bg-gradient-to-r from-cyan-900/80 to-purple-900/80 p-10 md:p-14 rounded-2xl gap-8" style={{ boxShadow: '0 4px 32px 0 #22d3ee22' }}>
-            <img src={b.image} alt={b.title} className="w-36 h-36 md:w-48 md:h-48 object-cover rounded-xl shadow-cyan-500/30" />
+          <div className="flex flex-col md:flex-row items-center bg-gradient-to-r from-yellow-900/80 to-yellow-700/80 p-10 md:p-14 rounded-2xl gap-8" style={{ boxShadow: '0 4px 32px 0 #FFD70055, 0 0 0 4px #FFD70033' }}>
+            <img src={b.image} alt={b.title} className="w-36 h-36 md:w-48 md:h-48 object-cover rounded-xl shadow" style={{ boxShadow: '0 0 24px 0 #FFD70088, 0 0 0 4px #FFD70044' }} />
             <div className="flex-1">
-              <h2 className="text-3xl md:text-4xl font-orbitron text-cyan-300 mb-2">{b.title}</h2>
-              <p className="text-cyan-100 mb-4 text-lg md:text-xl">{b.desc}</p>
-              <a href={b.link} className="inline-block px-7 py-3 rounded-lg bg-cyan-600 hover:bg-cyan-400 text-white font-bold shadow transition text-lg md:text-xl">{b.cta}</a>
+              <h2 className="text-3xl md:text-4xl font-orbitron mb-2" style={{ color: '#FFD700', textShadow: '0 2px 12px #E8A31799' }}>{b.title}</h2>
+              <p className="mb-4 text-lg md:text-xl" style={{ color: '#FDB813' }}>{b.desc}</p>
+              <a href={b.link} className="inline-block px-7 py-3 rounded-lg font-bold shadow transition text-lg md:text-xl" style={{ background: 'linear-gradient(90deg, #FFD700 0%, #E8A317 100%)', color: '#18181b', boxShadow: '0 2px 12px #FFD70055' }}>{b.cta}</a>
             </div>
           </div>
         </SwiperSlide>
