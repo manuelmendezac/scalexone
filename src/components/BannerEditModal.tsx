@@ -63,17 +63,17 @@ const BannerEditModal: React.FC<Props> = ({ open, onClose, banner, onSave }) => 
       // Subir a Supabase Storage
       const fileExt = file.name.split('.').pop();
       const fileName = `${crypto.randomUUID()}.${fileExt}`;
-      const filePath = `banners/${fileName}`;
+      const filePath = `${fileName}`;
 
       const { error: uploadError, data } = await supabase.storage
-        .from('public')
+        .from('banners')
         .upload(filePath, file);
 
       if (uploadError) throw uploadError;
 
       // Obtener URL pública
       const { data: { publicUrl } } = supabase.storage
-        .from('public')
+        .from('banners')
         .getPublicUrl(filePath);
 
       setForm({ ...form, image: publicUrl });
