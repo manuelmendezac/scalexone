@@ -1,3 +1,115 @@
+.banner-container {
+  width: 100%;
+  height: 100vh;
+  max-height: 600px;
+  position: relative;
+  overflow: hidden;
+}
+
+.banner-swiper {
+  width: 100%;
+  height: 100%;
+}
+
+.banner-slide {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+.banner-background {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.banner-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    45deg,
+    rgba(0, 0, 0, 0.7) 0%,
+    rgba(0, 0, 0, 0.5) 100%
+  );
+}
+
+.banner-content {
+  position: relative;
+  z-index: 2;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  padding: 2rem;
+}
+
+.banner-text {
+  max-width: 800px;
+  margin: 0 auto;
+  text-align: center;
+  color: white;
+}
+
+.banner-title {
+  font-size: 3.5rem;
+  font-weight: bold;
+  margin-bottom: 1rem;
+  background: linear-gradient(90deg, #FFD700 0%, #FDB813 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: 0 2px 20px rgba(255,215,0,0.2);
+}
+
+.banner-description {
+  font-size: 1.5rem;
+  margin-bottom: 2rem;
+  color: #FDB813;
+}
+
+.banner-cta {
+  display: inline-block;
+  padding: 1rem 2rem;
+  font-size: 1.25rem;
+  font-weight: bold;
+  color: #000000;
+  background: linear-gradient(90deg, #FFD700 0%, #FDB813 100%);
+  border-radius: 0.5rem;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  box-shadow: 0 4px 20px rgba(255,215,0,0.3);
+  border: 1px solid rgba(255,215,0,0.3);
+}
+
+.banner-cta:hover {
+  transform: scale(1.05);
+  box-shadow: 0 6px 25px rgba(255,215,0,0.4);
+}
+
+.admin-edit-button {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  padding: 0.5rem;
+  border-radius: 9999px;
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid #FFD700;
+  color: #FFD700;
+  transition: all 0.3s ease;
+  z-index: 10;
+}
+
+.admin-edit-button:hover {
+  background: rgba(255, 215, 0, 0.1);
+}
+
+/* Estilos para los controles del Swiper */
 .swiper-button-next,
 .swiper-button-prev {
   color: #FFD700 !important;
@@ -26,4 +138,38 @@
 
 .swiper-pagination-bullet-active {
   opacity: 1;
+}
+
+/* Estilos responsivos */
+@media (max-width: 768px) {
+  .banner-container {
+    max-height: 500px;
+  }
+
+  .banner-title {
+    font-size: 2.5rem;
+  }
+
+  .banner-description {
+    font-size: 1.25rem;
+  }
+
+  .banner-cta {
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .banner-container {
+    max-height: 400px;
+  }
+
+  .banner-title {
+    font-size: 2rem;
+  }
+
+  .banner-description {
+    font-size: 1rem;
+  }
 } 
