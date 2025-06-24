@@ -296,6 +296,7 @@ const Classroom = () => {
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   handleEdit(idx + (pagina - 1) * MODULOS_POR_PAGINA);
+                                  setShowEditModal(true);
                                 }}
                                 className="bg-yellow-400 text-black px-2 py-1 rounded text-xs font-bold hover:bg-yellow-500"
                               >
