@@ -106,7 +106,7 @@ const FeedComunidad = () => {
       for (const file of validFiles) {
         if (typeof window !== 'undefined') {
           try {
-            const imageCompression = (await import('browser-image-compression')).default;
+            const imageCompression = (await eval("import('browser-image-compression')")).default;
             const compressed = await imageCompression(file, {
               maxWidthOrHeight: 1280,
               maxSizeMB: 1,
