@@ -17,7 +17,6 @@ import {
   LinkedinIcon,
   TelegramIcon
 } from 'react-share';
-import { optimizeImage } from '../../utils/optimizeImage';
 
 interface Post {
   id: string;
@@ -103,16 +102,32 @@ const FeedComunidad = () => {
     if (!files || files.length === 0) return;
     if (tipo === 'imagen') {
       const validFiles = Array.from(files).filter(file => file.type.startsWith('image/'));
-      // Optimizar imágenes antes de subirlas
       const optimizedFiles: File[] = [];
       for (const file of validFiles) {
-        optimizedFiles.push(await optimizeImage(file));
+        if (typeof window !== 'undefined') {
+          try {
+            const imageCompression = (await import('browser-image-compression')).default;
+            const compressed = await imageCompression(file, {
+              maxWidthOrHeight: 1280,
+              maxSizeMB: 1,
+              useWebWorker: true,
+              fileType: 'image/webp',
+              initialQuality: 0.7
+            });
+            optimizedFiles.push(new File([compressed], file.name.replace(/\.[^.]+$/, '.webp'), { type: 'image/webp' }));
+          } catch (err) {
+            optimizedFiles.push(file);
+          }
+        } else {
+          optimizedFiles.push(file);
+        }
       }
       setImagenesSeleccionadas(optimizedFiles);
       setImagenesPreview(optimizedFiles.map(file => URL.createObjectURL(file)));
       setArchivoSeleccionado(null);
       setPreviewUrl(null);
       setOrientacion(undefined);
+      return;
     } else if (tipo === 'video') {
       const file = files[0];
       if (!file.type.startsWith('video/')) {
