@@ -3,11 +3,14 @@ import React, { useState, useEffect } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import 'swiper/css';
 import 'swiper/css/pagination';
-import { Pagination, Autoplay } from 'swiper/modules';
+import 'swiper/css/navigation';
+import 'swiper/css/effect-fade';
+import { Pagination, Autoplay, Navigation, EffectFade } from 'swiper/modules';
 import { supabase } from '../supabase';
 import { Loader2, Edit2 } from 'lucide-react';
 import BannerEditModal from './BannerEditModal';
 import type { Banner } from '../types/banner.types';
+import './BannerSlider.css';
 
 const initialBanner: Banner = {
   id: 'initial',
@@ -136,11 +139,17 @@ const BannerSlider: React.FC = () => {
   }
 
   return (
-    <div className="w-full mb-12">
+    <div className="w-full mb-12 relative">
       <Swiper
-        modules={[Pagination, Autoplay]}
+        modules={[Pagination, Autoplay, Navigation, EffectFade]}
         pagination={{ clickable: true }}
-        autoplay={{ delay: 5000 }}
+        navigation={true}
+        autoplay={{ 
+          delay: 5000,
+          disableOnInteraction: false
+        }}
+        effect="fade"
+        fadeEffect={{ crossFade: true }}
         loop
         className="rounded-2xl shadow-lg"
         style={{ background: '#000000' }}
@@ -239,6 +248,39 @@ const BannerSlider: React.FC = () => {
         banners={banners}
         onSave={handleSave}
       />
+
+      {/* Estilos personalizados para las flechas de navegación */}
+      <style jsx>{`
+        :global(.swiper-button-next),
+        :global(.swiper-button-prev) {
+          color: #FFD700;
+          background: rgba(0, 0, 0, 0.5);
+          width: 40px;
+          height: 40px;
+          border-radius: 50%;
+          transition: all 0.3s ease;
+        }
+
+        :global(.swiper-button-next:hover),
+        :global(.swiper-button-prev:hover) {
+          background: rgba(0, 0, 0, 0.8);
+          transform: scale(1.1);
+        }
+
+        :global(.swiper-button-next::after),
+        :global(.swiper-button-prev::after) {
+          font-size: 20px;
+        }
+
+        :global(.swiper-pagination-bullet) {
+          background: #FFD700;
+          opacity: 0.5;
+        }
+
+        :global(.swiper-pagination-bullet-active) {
+          opacity: 1;
+        }
+      `}</style>
     </div>
   );
 };
