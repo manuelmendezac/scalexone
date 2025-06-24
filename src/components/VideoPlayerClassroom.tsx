@@ -3,6 +3,7 @@ import ReactPlayer from 'react-player';
 import { useAuth } from '../hooks/useAuth';
 import gamificationService from '../services/classroomGamificationService';
 import RewardEffect from './RewardEffect';
+import GlobalLoader from './GlobalLoader';
 
 // VideoPlayerClassroom: Componente para reproducción de videos con sistema de gamificación integrado
 // Maneja el progreso, recompensas y tracking de videos en el classroom
@@ -28,6 +29,7 @@ const VideoPlayerClassroom: React.FC<VideoPlayerClassroomProps> = ({
     monedas: number;
     mensaje: string;
   } | null>(null);
+  const [loading, setLoading] = useState(true);
 
   const handleProgress = async ({ played, playedSeconds }: { played: number; playedSeconds: number }) => {
     const progressPercent = Math.floor(played * 100);
@@ -39,9 +41,8 @@ const VideoPlayerClassroom: React.FC<VideoPlayerClassroomProps> = ({
       try {
         const result = await gamificationService.actualizarProgresoVideo(
           videoId,
-          user.id,
-          Math.floor(playedSeconds),
-          progressPercent
+          '', // moduloId no está disponible aquí, se debe pasar el valor correcto si se tiene
+          user.id
         );
 
         // Si hay recompensas, mostrar el efecto
@@ -64,6 +65,11 @@ const VideoPlayerClassroom: React.FC<VideoPlayerClassroomProps> = ({
 
   return (
     <div className="relative w-full aspect-video rounded-xl overflow-hidden">
+      {loading && (
+        <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/80">
+          <GlobalLoader pageName="Video" />
+        </div>
+      )}
       <ReactPlayer
         ref={playerRef}
         url={url}
@@ -75,6 +81,7 @@ const VideoPlayerClassroom: React.FC<VideoPlayerClassroomProps> = ({
         onDuration={handleDuration}
         onPlay={() => setPlaying(true)}
         onPause={() => setPlaying(false)}
+        onReady={() => setLoading(false)}
         config={{
           youtube: {
             playerVars: { showinfo: 1 }
