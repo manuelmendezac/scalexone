@@ -1,13 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import ModalFuturista from './ModalFuturista';
 import { supabase } from '../supabase';
+import { Loader2 } from 'lucide-react';
 
 interface Banner {
+  id: string;
   image: string;
   title: string;
   desc: string;
   link: string;
   cta: string;
+  order_index: number;
 }
 
 interface Props {
@@ -19,167 +22,220 @@ interface Props {
 
 const BannerEditModal: React.FC<Props> = ({ open, onClose, banner, onSave }) => {
   const [form, setForm] = useState<Banner>(banner || {
+    id: crypto.randomUUID(),
     image: '',
     title: '',
     desc: '',
     link: '',
-    cta: ''
+    cta: '',
+    order_index: 0
   });
+  
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(banner?.image || null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!e.target.files || !e.target.files[0]) return;
-    
-    const file = e.target.files[0];
-    setLoading(true);
-    setError(null);
-    
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
     try {
+      setLoading(true);
+      setError(null);
+
+      // Validar tipo y tamaño
+      if (!file.type.startsWith('image/')) {
+        throw new Error('Por favor selecciona una imagen válida');
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        throw new Error('La imagen debe ser menor a 5MB');
+      }
+
+      // Crear preview
+      const preview = URL.createObjectURL(file);
+      setImagePreview(preview);
+
+      // Subir a Supabase Storage
       const fileExt = file.name.split('.').pop();
-      const fileName = `banner_${Date.now()}.${fileExt}`;
-      const { error: uploadError } = await supabase.storage
-        .from('banners')
-        .upload(fileName, file, { upsert: true });
-      
+      const fileName = `${crypto.randomUUID()}.${fileExt}`;
+      const filePath = `banners/${fileName}`;
+
+      const { error: uploadError, data } = await supabase.storage
+        .from('public')
+        .upload(filePath, file);
+
       if (uploadError) throw uploadError;
-      
+
+      // Obtener URL pública
       const { data: { publicUrl } } = supabase.storage
-        .from('banners')
-        .getPublicUrl(fileName);
-      
+        .from('public')
+        .getPublicUrl(filePath);
+
       setForm({ ...form, image: publicUrl });
+
     } catch (err: any) {
-      setError('Error al subir la imagen: ' + err.message);
+      console.error('Error subiendo imagen:', err);
+      setError(err.message);
+      setImagePreview(null);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.image || !form.title || !form.desc || !form.cta) {
-      setError('Por favor completa todos los campos obligatorios');
-      return;
+    
+    try {
+      setLoading(true);
+      setError(null);
+
+      // Validaciones
+      if (!form.image) throw new Error('La imagen es requerida');
+      if (!form.title.trim()) throw new Error('El título es requerido');
+      if (!form.desc.trim()) throw new Error('La descripción es requerida');
+      if (!form.cta.trim()) throw new Error('El texto del botón es requerido');
+
+      await onSave(form);
+      onClose();
+
+    } catch (err: any) {
+      console.error('Error guardando banner:', err);
+      setError(err.message);
+    } finally {
+      setLoading(false);
     }
-    onSave(form);
-    onClose();
   };
 
   return (
     <ModalFuturista open={open} onClose={onClose}>
-      <div className="w-full max-w-xl mx-auto">
-        <h2 className="text-2xl font-bold text-[#FFD700] mb-6">Editar Banner</h2>
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+      <div className="p-6">
+        <h2 className="text-2xl font-bold mb-6 text-[#FFD700]">
+          {banner ? 'Editar Banner' : 'Nuevo Banner'}
+        </h2>
+
+        {error && (
+          <div className="mb-4 p-3 rounded bg-red-500/10 border border-red-500 text-red-500">
+            {error}
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} className="space-y-6">
           {/* Imagen */}
-          <div className="flex flex-col gap-2">
-            <label className="text-[#FFD700] font-semibold">
-              Imagen del banner
-            </label>
-            <input
-              type="file"
-              accept="image/*"
-              onChange={handleImageUpload}
-              className="text-white"
-            />
-            {form.image && (
-              <img
-                src={form.image}
-                alt="Preview"
-                className="w-full h-40 object-cover rounded-xl mt-2"
-                style={{
-                  boxShadow: '0 0 20px rgba(255,215,0,0.2)'
-                }}
-              />
-            )}
+          <div>
+            <label className="block mb-2 text-[#FFD700]">Imagen</label>
+            <div className="flex items-center gap-4">
+              {imagePreview && (
+                <img 
+                  src={imagePreview} 
+                  alt="Preview" 
+                  className="w-24 h-24 object-cover rounded-lg border border-[#FFD700]/30"
+                />
+              )}
+              <div>
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={handleImageChange}
+                  accept="image/*"
+                  className="hidden"
+                />
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="px-4 py-2 rounded bg-[#FFD700]/10 border border-[#FFD700]/30 text-[#FFD700] hover:bg-[#FFD700]/20 transition-colors"
+                  disabled={loading}
+                >
+                  {loading ? (
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                  ) : (
+                    'Seleccionar Imagen'
+                  )}
+                </button>
+              </div>
+            </div>
           </div>
 
           {/* Título */}
-          <div className="flex flex-col gap-2">
-            <label className="text-[#FFD700] font-semibold">
-              Título
-            </label>
+          <div>
+            <label htmlFor="title" className="block mb-2 text-[#FFD700]">Título</label>
             <input
               type="text"
+              id="title"
               name="title"
               value={form.title}
               onChange={handleChange}
+              className="w-full px-4 py-2 rounded bg-black/50 border border-[#FFD700]/30 text-white focus:border-[#FFD700] transition-colors"
               placeholder="Ingresa el título del banner"
-              className="w-full px-4 py-2 rounded-xl bg-black/50 border border-[#FFD700] text-white placeholder-gray-400"
-              required
             />
           </div>
 
           {/* Descripción */}
-          <div className="flex flex-col gap-2">
-            <label className="text-[#FFD700] font-semibold">
-              Descripción
-            </label>
+          <div>
+            <label htmlFor="desc" className="block mb-2 text-[#FFD700]">Descripción</label>
             <textarea
+              id="desc"
               name="desc"
               value={form.desc}
               onChange={handleChange}
+              className="w-full px-4 py-2 rounded bg-black/50 border border-[#FFD700]/30 text-white focus:border-[#FFD700] transition-colors"
               placeholder="Ingresa la descripción del banner"
-              className="w-full px-4 py-2 rounded-xl bg-black/50 border border-[#FFD700] text-white placeholder-gray-400 min-h-[100px]"
-              required
+              rows={3}
             />
           </div>
 
-          {/* Link y CTA */}
-          <div className="grid grid-cols-2 gap-4">
-            <div className="flex flex-col gap-2">
-              <label className="text-[#FFD700] font-semibold">
-                Enlace
-              </label>
-              <input
-                type="text"
-                name="link"
-                value={form.link}
-                onChange={handleChange}
-                placeholder="URL del enlace"
-                className="w-full px-4 py-2 rounded-xl bg-black/50 border border-[#FFD700] text-white placeholder-gray-400"
-              />
-            </div>
-            <div className="flex flex-col gap-2">
-              <label className="text-[#FFD700] font-semibold">
-                Texto del botón
-              </label>
-              <input
-                type="text"
-                name="cta"
-                value={form.cta}
-                onChange={handleChange}
-                placeholder="Ej: Ver más"
-                className="w-full px-4 py-2 rounded-xl bg-black/50 border border-[#FFD700] text-white placeholder-gray-400"
-                required
-              />
-            </div>
+          {/* Link */}
+          <div>
+            <label htmlFor="link" className="block mb-2 text-[#FFD700]">Enlace</label>
+            <input
+              type="text"
+              id="link"
+              name="link"
+              value={form.link}
+              onChange={handleChange}
+              className="w-full px-4 py-2 rounded bg-black/50 border border-[#FFD700]/30 text-white focus:border-[#FFD700] transition-colors"
+              placeholder="Ingresa el enlace del botón"
+            />
           </div>
 
-          {error && (
-            <div className="text-red-500 font-semibold text-center">
-              {error}
-            </div>
-          )}
+          {/* CTA */}
+          <div>
+            <label htmlFor="cta" className="block mb-2 text-[#FFD700]">Texto del Botón</label>
+            <input
+              type="text"
+              id="cta"
+              name="cta"
+              value={form.cta}
+              onChange={handleChange}
+              className="w-full px-4 py-2 rounded bg-black/50 border border-[#FFD700]/30 text-white focus:border-[#FFD700] transition-colors"
+              placeholder="Ingresa el texto del botón"
+            />
+          </div>
 
-          <div className="flex justify-end gap-4 mt-4">
+          {/* Botones */}
+          <div className="flex justify-end gap-4 pt-4">
             <button
               type="button"
               onClick={onClose}
-              className="px-6 py-2 rounded-xl border border-[#FFD700] text-[#FFD700] hover:bg-[#FFD700]/10 transition-colors"
+              className="px-6 py-2 rounded bg-gray-800 text-gray-200 hover:bg-gray-700 transition-colors"
+              disabled={loading}
             >
               Cancelar
             </button>
             <button
               type="submit"
+              className="px-6 py-2 rounded bg-[#FFD700] text-black font-bold hover:bg-[#FDB813] transition-colors disabled:opacity-50"
               disabled={loading}
-              className="px-6 py-2 rounded-xl bg-gradient-to-r from-[#FFD700] to-[#FDB813] text-black font-bold hover:opacity-90 transition-opacity disabled:opacity-50"
             >
-              {loading ? 'Guardando...' : 'Guardar'}
+              {loading ? (
+                <Loader2 className="w-5 h-5 animate-spin" />
+              ) : (
+                'Guardar'
+              )}
             </button>
           </div>
         </form>
