@@ -195,7 +195,7 @@ const Classroom = () => {
   if (error) return <div className="min-h-screen flex items-center justify-center text-red-400">{error}</div>;
 
   return (
-    <GlobalLoadingSpinner loading={false}>
+    <GlobalLoadingSpinner loading={loading}>
       <div className="min-h-screen bg-black text-white p-4">
         {/* Mensajes de estado */}
         {saveMsg && (
