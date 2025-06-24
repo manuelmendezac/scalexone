@@ -101,6 +101,15 @@ interface ClassroomModuleVideoProps {
   onClick: () => void;
 }
 
+const getVideoThumbnail = (url: string): string | null => {
+  if (!url) return null;
+  const youtubeMatch = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([\w-]{11})/);
+  if (youtubeMatch) return `https://img.youtube.com/vi/${youtubeMatch[1]}/hqdefault.jpg`;
+  const vimeoMatch = url.match(/vimeo\.com\/(\d+)/);
+  if (vimeoMatch) return `https://vumbnail.com/${vimeoMatch[1]}.jpg`;
+  return null;
+};
+
 const Classroom = () => {
   const navigate = useNavigate();
   const [isAdmin, setIsAdmin] = React.useState(false);
@@ -518,15 +527,32 @@ const Classroom = () => {
 
 // Reemplazar ClassroomModuleVideo para que ReactPlayer se cargue y reproduzca siempre
 const ClassroomModuleVideo: React.FC<ClassroomModuleVideoProps> = ({ videoUrl, onClick }) => {
+  const [showPlayer, setShowPlayer] = React.useState(false);
   const [ReactPlayer, setReactPlayer] = React.useState<any>(null);
   React.useEffect(() => {
-    if (!ReactPlayer) {
+    const timer = setTimeout(() => setShowPlayer(true), 1000);
+    return () => clearTimeout(timer);
+  }, []);
+  React.useEffect(() => {
+    if (showPlayer && !ReactPlayer) {
       import('react-player').then((mod) => setReactPlayer(() => mod.default));
     }
-  }, [ReactPlayer]);
+  }, [showPlayer, ReactPlayer]);
+  const thumbnail = getVideoThumbnail(videoUrl);
   return (
     <div className="w-full h-full relative">
-      {ReactPlayer && (
+      {!showPlayer && thumbnail && (
+        <img
+          src={thumbnail}
+          alt="Video preview"
+          className="absolute inset-0 w-full h-full object-cover"
+          style={{ zIndex: 1 }}
+          width="400"
+          height="225"
+          loading="lazy"
+        />
+      )}
+      {showPlayer && ReactPlayer && (
         <div className="absolute top-0 left-0 w-full h-full">
           <ReactPlayer
             url={videoUrl}
