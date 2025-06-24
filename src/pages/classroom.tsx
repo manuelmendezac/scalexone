@@ -174,15 +174,23 @@ const EditModuleModal = lazy(() => Promise.resolve({
                   disabled={isUploading}
                   className="text-white"
                 />
-                {isUploading && <span className="text-xs text-amber-400">Subiendo imagen...</span>}
-                {editModulo.imagen_url && (
+                {previewImage ? (
+                  <img
+                    src={previewImage}
+                    alt="Preview"
+                    className="rounded-lg mt-2 max-h-40 object-cover border-2 border-blue-400"
+                    width="320"
+                    height="180"
+                    loading="lazy"
+                  />
+                ) : editModulo.imagen_url ? (
                   <>
                     <img
                       src={editModulo.imagen_url}
                       srcSet={editModulo.imagen_url_mobile ? `${editModulo.imagen_url_mobile} 800w, ${editModulo.imagen_url} 1280w` : undefined}
                       sizes="(max-width: 600px) 800px, 1280px"
                       alt="Portada"
-                      className="rounded-lg mt-2 max-h-40 object-cover border border-amber-400"
+                      className="rounded-lg mt-2 max-h-40 object-cover border-2 border-amber-400"
                       width="320"
                       height="180"
                       loading="lazy"
@@ -195,12 +203,16 @@ const EditModuleModal = lazy(() => Promise.resolve({
                       Eliminar portada
                     </button>
                   </>
+                ) : (
+                  <div className="rounded-lg mt-2 max-h-40 flex items-center justify-center border-2 border-dashed border-blue-400 bg-neutral-900 text-blue-300" style={{ width: 320, height: 180 }}>
+                    Sube o arrastra una imagen aquí
+                  </div>
                 )}
                 <div className="mt-2 p-2 bg-neutral-800 rounded text-xs text-amber-300 border border-amber-400/30">
                   <b>Tips para una portada óptima:</b><br/>
                   • Formato recomendado: <b>WebP</b> (se convierte automáticamente).<br/>
                   • Tamaño recomendado: <b>800x450px</b> (relación 16:9).<br/>
-                  • Peso máximo: <b>300 KB</b>.<br/>
+                  • Peso máximo: <b>2 MB</b>.<br/>
                   • Evita imágenes borrosas o con mucho texto.<br/>
                   • La imagen se recortará si no es 16:9.<br/>
                   • Usa imágenes claras y sin bordes para mejor resultado.<br/>
