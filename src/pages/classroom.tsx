@@ -134,7 +134,96 @@ const EditModuleModal = lazy(() => Promise.resolve({
             </button>
         </div>
         {/* Body */}
-        {/* ...copia aquí el contenido del modal de edición original... */}
+        <form className="flex flex-col gap-6 p-6" onSubmit={e => { e.preventDefault(); handleSaveEdit(editModulo); }}>
+          <div className="flex flex-col md:flex-row gap-6">
+            <div className="flex-1 flex flex-col gap-4">
+              <label className="text-sm font-semibold text-amber-400">Título</label>
+              <input
+                type="text"
+                className="bg-neutral-800 rounded px-4 py-2 text-white border border-neutral-700 focus:border-amber-400 outline-none"
+                value={editModulo.titulo || ''}
+                onChange={e => setEditModulo({ ...editModulo, titulo: e.target.value })}
+                required
+              />
+              <label className="text-sm font-semibold text-amber-400">Descripción</label>
+              <textarea
+                className="bg-neutral-800 rounded px-4 py-2 text-white border border-neutral-700 focus:border-amber-400 outline-none min-h-[80px]"
+                value={editModulo.descripcion || ''}
+                onChange={e => setEditModulo({ ...editModulo, descripcion: e.target.value })}
+                required
+              />
+              <label className="text-sm font-semibold text-amber-400">Color de fondo</label>
+              <div className="flex items-center gap-4">
+                <input
+                  type="color"
+                  className="w-10 h-10 p-0 border-none bg-transparent"
+                  value={editModulo.color || '#18181b'}
+                  onChange={e => setEditModulo({ ...editModulo, color: e.target.value })}
+                />
+                <span className="text-white">{editModulo.color || '#18181b'}</span>
+              </div>
+            </div>
+            <div className="flex-1 flex flex-col gap-4">
+              <label className="text-sm font-semibold text-amber-400">Portada (imagen o video)</label>
+              <div className="flex flex-col gap-2">
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleCoverImageUpload}
+                  disabled={isUploading}
+                  className="text-white"
+                />
+                {isUploading && <span className="text-xs text-amber-400">Subiendo imagen...</span>}
+                {editModulo.imagen_url && (
+                  <img
+                    src={editModulo.imagen_url}
+                    alt="Portada"
+                    className="rounded-lg mt-2 max-h-40 object-cover border border-amber-400"
+                    width="320"
+                    height="180"
+                    loading="lazy"
+                  />
+                )}
+              </div>
+              <label className="text-sm font-semibold text-amber-400">Tipo de portada</label>
+              <select
+                className="bg-neutral-800 rounded px-4 py-2 text-white border border-neutral-700 focus:border-amber-400 outline-none"
+                value={editModulo.cover_type || 'imagen'}
+                onChange={e => setEditModulo({ ...editModulo, cover_type: e.target.value })}
+              >
+                <option value="imagen">Imagen</option>
+                <option value="video">Video</option>
+              </select>
+              {editModulo.cover_type === 'video' && (
+                <>
+                  <label className="text-sm font-semibold text-amber-400">URL del video (YouTube o Vimeo)</label>
+                  <input
+                    type="text"
+                    className="bg-neutral-800 rounded px-4 py-2 text-white border border-neutral-700 focus:border-amber-400 outline-none"
+                    value={editModulo.cover_video_url || ''}
+                    onChange={e => setEditModulo({ ...editModulo, cover_video_url: e.target.value })}
+                    placeholder="https://www.youtube.com/watch?v=..."
+                  />
+                </>
+              )}
+            </div>
+          </div>
+          <div className="flex justify-end gap-4 mt-6">
+            <button
+              type="button"
+              className="px-6 py-2 rounded-lg bg-neutral-700 text-white font-semibold hover:bg-neutral-600 transition"
+              onClick={() => setShowEditModal(false)}
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              className="px-6 py-2 rounded-lg bg-white text-black font-semibold hover:bg-neutral-200 transition"
+            >
+              {editIdx === null ? 'Crear' : 'Guardar'}
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   )
