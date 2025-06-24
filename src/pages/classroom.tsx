@@ -328,57 +328,77 @@ const Classroom = () => {
       }
       // Optimización: convertir a WebP y redimensionar
       if (file.type.startsWith('image/')) {
-        try {
-          const imageCompression = (await eval("import('browser-image-compression')")).default;
-          // Redimensionar a 800px para móvil, 1280px para escritorio
-          const compressedMobile = await imageCompression(file, {
-            maxWidthOrHeight: 800,
-            maxSizeMB: 2,
-            useWebWorker: true,
-            fileType: 'image/webp',
-            initialQuality: 0.7
-          });
-          const compressedDesktop = await imageCompression(file, {
-            maxWidthOrHeight: 1280,
-            maxSizeMB: 2,
-            useWebWorker: true,
-            fileType: 'image/webp',
-            initialQuality: 0.7
-          });
-          // Subir ambas versiones
-          const fileNameMobile = `classroom-cover-mobile-${Date.now()}-${file.name.replace(/\.[^.]+$/, '.webp')}`;
-          const fileNameDesktop = `classroom-cover-desktop-${Date.now()}-${file.name.replace(/\.[^.]+$/, '.webp')}`;
-          const { error: uploadErrorMobile } = await supabase.storage
-            .from('cursos')
-            .upload(fileNameMobile, compressedMobile);
-          const { error: uploadErrorDesktop } = await supabase.storage
-            .from('cursos')
-            .upload(fileNameDesktop, compressedDesktop);
-          if (uploadErrorMobile || uploadErrorDesktop) throw uploadErrorMobile || uploadErrorDesktop;
-          const { data: urlDataMobile } = supabase.storage.from('cursos').getPublicUrl(fileNameMobile);
-          const { data: urlDataDesktop } = supabase.storage.from('cursos').getPublicUrl(fileNameDesktop);
-          setEditModulo({
-            ...(editModulo as Modulo),
-            imagen_url: urlDataDesktop.publicUrl,
-            imagen_url_mobile: urlDataMobile.publicUrl
-          });
-        } catch (err) {
-          // Si falla la compresión, sube el archivo original
+        if (file.type === 'image/webp') {
+          // Subir WebP directamente
           try {
-            const fileNameOriginal = `classroom-cover-original-${Date.now()}-${file.name}`;
-            const { error: uploadErrorOriginal } = await supabase.storage
+            const fileNameWebp = `classroom-cover-webp-${Date.now()}-${file.name}`;
+            const { error: uploadErrorWebp } = await supabase.storage
               .from('cursos')
-              .upload(fileNameOriginal, file);
-            if (uploadErrorOriginal) throw uploadErrorOriginal;
-            const { data: urlDataOriginal } = supabase.storage.from('cursos').getPublicUrl(fileNameOriginal);
+              .upload(fileNameWebp, file);
+            if (uploadErrorWebp) throw uploadErrorWebp;
+            const { data: urlDataWebp } = supabase.storage.from('cursos').getPublicUrl(fileNameWebp);
             setEditModulo({
               ...(editModulo as Modulo),
-              imagen_url: urlDataOriginal.publicUrl,
-              imagen_url_mobile: urlDataOriginal.publicUrl
+              imagen_url: urlDataWebp.publicUrl,
+              imagen_url_mobile: urlDataWebp.publicUrl
             });
-            alert('La imagen se subió sin optimizar porque el proceso de compresión falló.');
-          } catch (err2) {
-            alert('No se pudo subir la imagen. Asegúrate de que el archivo sea una imagen válida.');
+          } catch (err) {
+            alert('No se pudo subir la imagen WebP.');
+          }
+        } else {
+          // Comprimir y subir para otros formatos
+          try {
+            const imageCompression = (await eval("import('browser-image-compression')")).default;
+            // Redimensionar a 800px para móvil, 1280px para escritorio
+            const compressedMobile = await imageCompression(file, {
+              maxWidthOrHeight: 800,
+              maxSizeMB: 2,
+              useWebWorker: true,
+              fileType: 'image/webp',
+              initialQuality: 0.7
+            });
+            const compressedDesktop = await imageCompression(file, {
+              maxWidthOrHeight: 1280,
+              maxSizeMB: 2,
+              useWebWorker: true,
+              fileType: 'image/webp',
+              initialQuality: 0.7
+            });
+            // Subir ambas versiones
+            const fileNameMobile = `classroom-cover-mobile-${Date.now()}-${file.name.replace(/\.[^.]+$/, '.webp')}`;
+            const fileNameDesktop = `classroom-cover-desktop-${Date.now()}-${file.name.replace(/\.[^.]+$/, '.webp')}`;
+            const { error: uploadErrorMobile } = await supabase.storage
+              .from('cursos')
+              .upload(fileNameMobile, compressedMobile);
+            const { error: uploadErrorDesktop } = await supabase.storage
+              .from('cursos')
+              .upload(fileNameDesktop, compressedDesktop);
+            if (uploadErrorMobile || uploadErrorDesktop) throw uploadErrorMobile || uploadErrorDesktop;
+            const { data: urlDataMobile } = supabase.storage.from('cursos').getPublicUrl(fileNameMobile);
+            const { data: urlDataDesktop } = supabase.storage.from('cursos').getPublicUrl(fileNameDesktop);
+            setEditModulo({
+              ...(editModulo as Modulo),
+              imagen_url: urlDataDesktop.publicUrl,
+              imagen_url_mobile: urlDataMobile.publicUrl
+            });
+          } catch (err) {
+            // Si falla la compresión, sube el archivo original
+            try {
+              const fileNameOriginal = `classroom-cover-original-${Date.now()}-${file.name}`;
+              const { error: uploadErrorOriginal } = await supabase.storage
+                .from('cursos')
+                .upload(fileNameOriginal, file);
+              if (uploadErrorOriginal) throw uploadErrorOriginal;
+              const { data: urlDataOriginal } = supabase.storage.from('cursos').getPublicUrl(fileNameOriginal);
+              setEditModulo({
+                ...(editModulo as Modulo),
+                imagen_url: urlDataOriginal.publicUrl,
+                imagen_url_mobile: urlDataOriginal.publicUrl
+              });
+              alert('La imagen se subió sin optimizar porque el proceso de compresión falló.');
+            } catch (err2) {
+              alert('No se pudo subir la imagen. Asegúrate de que el archivo sea una imagen válida.');
+            }
           }
         }
       } else {
