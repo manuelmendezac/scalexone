@@ -212,100 +212,94 @@ const AdminConfigPanel: React.FC<AdminConfigPanelProps> = ({ selected }) => {
     else setPasswordMsg('¡Contraseña actualizada!');
   };
 
-  if (configLoading || loadingPerfil) {
-    return <LoadingScreen message="Cargando configuración..." />;
-  }
-
   // Renderizar contenido según la opción seleccionada
   if (selected === 'welcome') {
     return (
       <div className="w-full">
         <div className="w-full bg-black rounded-lg shadow-lg md:p-10 p-6 border-2 border-yellow-500 flex flex-col gap-8">
           <h2 className="text-yellow-500 font-bold text-3xl mb-4">Mi Perfil</h2>
-          {loadingPerfil ? <div className="text-yellow-500 font-semibold">Cargando...</div> : (
-            <div className="grid grid-cols-1 lg:grid-cols-[300px_1fr] gap-8 items-start">
-              {/* Columna Izquierda: Avatar y Contraseña */}
-              <div className="flex flex-col items-center gap-4">
-                <AvatarUploader onUpload={handleAvatar} initialUrl={perfil.avatar} label="Foto de perfil" />
-                <button
-                  className="bg-yellow-500 text-black font-bold py-2 px-4 rounded-lg hover:bg-yellow-600 transition-colors w-full"
-                  onClick={() => setShowPasswordModal(true)}
-                >
-                  Cambiar contraseña
-                </button>
+          <div className="grid grid-cols-1 lg:grid-cols-[300px_1fr] gap-8 items-start">
+            {/* Columna Izquierda: Avatar y Contraseña */}
+            <div className="flex flex-col items-center gap-4">
+              <AvatarUploader onUpload={handleAvatar} initialUrl={perfil.avatar} label="Foto de perfil" />
+              <button
+                className="bg-yellow-500 text-black font-bold py-2 px-4 rounded-lg hover:bg-yellow-600 transition-colors w-full"
+                onClick={() => setShowPasswordModal(true)}
+              >
+                Cambiar contraseña
+              </button>
+            </div>
+            
+            {/* Columna Derecha: Formulario */}
+            <div className="flex flex-col gap-4 min-w-0">
+              {/* Campos de Nombre y Apellido */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <input className="input-perfil" placeholder="Nombres" value={perfil.nombres} onChange={e => setPerfil({ ...perfil, nombres: e.target.value })} />
+                <input className="input-perfil" placeholder="Apellidos" value={perfil.apellidos} onChange={e => setPerfil({ ...perfil, apellidos: e.target.value })} />
               </div>
-              
-              {/* Columna Derecha: Formulario */}
-              <div className="flex flex-col gap-4 min-w-0">
-                {/* Campos de Nombre y Apellido */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <input className="input-perfil" placeholder="Nombres" value={perfil.nombres} onChange={e => setPerfil({ ...perfil, nombres: e.target.value })} />
-                  <input className="input-perfil" placeholder="Apellidos" value={perfil.apellidos} onChange={e => setPerfil({ ...perfil, apellidos: e.target.value })} />
-                </div>
-                {/* Campos de Contacto */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <input className="input-perfil" placeholder="Correo" value={perfil.correo} readOnly />
-                  <input className="input-perfil" placeholder="Celular" value={perfil.celular} onChange={e => setPerfil({ ...perfil, celular: e.target.value })} />
-                </div>
-                {/* Selectores */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  <select className="input-perfil" value={perfil.pais} onChange={e => setPerfil({ ...perfil, pais: e.target.value })}>
-                    <option>Perú</option>
-                    <option>México</option>
-                    <option>Colombia</option>
-                    <option>Argentina</option>
-                    <option>España</option>
-                    <option>Otro</option>
-                  </select>
-                  <select className="input-perfil" value={perfil.idioma} onChange={e => setPerfil({ ...perfil, idioma: e.target.value })}>
-                    <option>Español</option>
-                    <option>Inglés</option>
-                  </select>
-                  <select className="input-perfil" value={perfil.zona_horaria} onChange={e => setPerfil({ ...perfil, zona_horaria: e.target.value })}>
-                    <option>GMT-5</option>
-                    <option>GMT-6</option>
-                    <option>GMT-3</option>
-                    <option>GMT-8</option>
-                  </select>
-                </div>
-                {/* Wallet */}
-                <input className="input-perfil" placeholder="Wallet (opcional)" value={perfil.wallet} onChange={e => setPerfil({ ...perfil, wallet: e.target.value })} />
-                {/* Redes Sociales */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-                  <input className="input-perfil" placeholder="Facebook" value={perfil.facebook} onChange={e => setPerfil({ ...perfil, facebook: e.target.value })} />
-                  <input className="input-perfil" placeholder="Twitter" value={perfil.twitter} onChange={e => setPerfil({ ...perfil, twitter: e.target.value })} />
-                  <input className="input-perfil" placeholder="Instagram" value={perfil.instagram} onChange={e => setPerfil({ ...perfil, instagram: e.target.value })} />
-                  <input className="input-perfil" placeholder="TikTok" value={perfil.tiktok} onChange={e => setPerfil({ ...perfil, tiktok: e.target.value })} />
-                </div>
-                 {/* Campos de Admin (solo lectura) */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <select className="input-perfil" value={perfil.membresia} onChange={e => setPerfil({ ...perfil, membresia: e.target.value })}>
-                     <option>Afiliado</option>
-                     <option>Premium</option>
-                     <option>Free</option>
-                  </select>
-                  <input className="input-perfil" value={perfil.rol} readOnly />
-                  <input className="input-perfil" value={perfil.creditos} readOnly />
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <input className="input-perfil" value={perfil.nivel} readOnly placeholder="Nivel" />
-                  <input className="input-perfil" placeholder="Cursos (IDs separados por coma)" value={perfil.cursos.join(', ')} onChange={e => handleArrayInput(e, 'cursos')} />
-                  <input className="input-perfil" placeholder="Servicios (IDs separados por coma)" value={perfil.servicios.join(', ')} onChange={e => handleArrayInput(e, 'servicios')} />
-                </div>
-                {/* Botón Guardar */}
-                <div className="flex items-center mt-4">
-                  <button className="bg-yellow-500 text-black font-bold py-2 px-4 rounded-lg hover:bg-yellow-600 transition-colors" onClick={handleGuardar} disabled={guardando}>
-                    {guardando ? 'Guardando...' : 'Guardar cambios'}
-                  </button>
-                  {saved && (
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 ml-2 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                    </svg>
-                  )}
-                </div>
+              {/* Campos de Contacto */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <input className="input-perfil" placeholder="Correo" value={perfil.correo} readOnly />
+                <input className="input-perfil" placeholder="Celular" value={perfil.celular} onChange={e => setPerfil({ ...perfil, celular: e.target.value })} />
+              </div>
+              {/* Selectores */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <select className="input-perfil" value={perfil.pais} onChange={e => setPerfil({ ...perfil, pais: e.target.value })}>
+                  <option>Perú</option>
+                  <option>México</option>
+                  <option>Colombia</option>
+                  <option>Argentina</option>
+                  <option>España</option>
+                  <option>Otro</option>
+                </select>
+                <select className="input-perfil" value={perfil.idioma} onChange={e => setPerfil({ ...perfil, idioma: e.target.value })}>
+                  <option>Español</option>
+                  <option>Inglés</option>
+                </select>
+                <select className="input-perfil" value={perfil.zona_horaria} onChange={e => setPerfil({ ...perfil, zona_horaria: e.target.value })}>
+                  <option>GMT-5</option>
+                  <option>GMT-6</option>
+                  <option>GMT-3</option>
+                  <option>GMT-8</option>
+                </select>
+              </div>
+              {/* Wallet */}
+              <input className="input-perfil" placeholder="Wallet (opcional)" value={perfil.wallet} onChange={e => setPerfil({ ...perfil, wallet: e.target.value })} />
+              {/* Redes Sociales */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+                <input className="input-perfil" placeholder="Facebook" value={perfil.facebook} onChange={e => setPerfil({ ...perfil, facebook: e.target.value })} />
+                <input className="input-perfil" placeholder="Twitter" value={perfil.twitter} onChange={e => setPerfil({ ...perfil, twitter: e.target.value })} />
+                <input className="input-perfil" placeholder="Instagram" value={perfil.instagram} onChange={e => setPerfil({ ...perfil, instagram: e.target.value })} />
+                <input className="input-perfil" placeholder="TikTok" value={perfil.tiktok} onChange={e => setPerfil({ ...perfil, tiktok: e.target.value })} />
+              </div>
+               {/* Campos de Admin (solo lectura) */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <select className="input-perfil" value={perfil.membresia} onChange={e => setPerfil({ ...perfil, membresia: e.target.value })}>
+                   <option>Afiliado</option>
+                   <option>Premium</option>
+                   <option>Free</option>
+                </select>
+                <input className="input-perfil" value={perfil.rol} readOnly />
+                <input className="input-perfil" value={perfil.creditos} readOnly />
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <input className="input-perfil" value={perfil.nivel} readOnly placeholder="Nivel" />
+                <input className="input-perfil" placeholder="Cursos (IDs separados por coma)" value={perfil.cursos.join(', ')} onChange={e => handleArrayInput(e, 'cursos')} />
+                <input className="input-perfil" placeholder="Servicios (IDs separados por coma)" value={perfil.servicios.join(', ')} onChange={e => handleArrayInput(e, 'servicios')} />
+              </div>
+              {/* Botón Guardar */}
+              <div className="flex items-center mt-4">
+                <button className="bg-yellow-500 text-black font-bold py-2 px-4 rounded-lg hover:bg-yellow-600 transition-colors" onClick={handleGuardar} disabled={guardando}>
+                  {guardando ? 'Guardando...' : 'Guardar cambios'}
+                </button>
+                {saved && (
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 ml-2 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                )}
               </div>
             </div>
-          )}
+          </div>
           <div style={{ marginTop: 32 }}>
             <h3 style={{ color: '#FFD700', fontWeight: 600, fontSize: 22, marginBottom: 16 }}>Cursos Activos</h3>
             {cursosActivos.length === 0 ? (
