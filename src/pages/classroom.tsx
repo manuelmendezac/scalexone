@@ -19,6 +19,7 @@ type Modulo = {
   descripcion: string;
   icono?: string;
   imagen_url?: string;
+  imagen_url_mobile?: string;
   orden?: number;
   color?: string;
   badge_url?: string;
@@ -177,6 +178,8 @@ const EditModuleModal = lazy(() => Promise.resolve({
                 {editModulo.imagen_url && (
                   <img
                     src={editModulo.imagen_url}
+                    srcSet={editModulo.imagen_url_mobile ? `${editModulo.imagen_url_mobile} 800w, ${editModulo.imagen_url} 1280w` : undefined}
+                    sizes="(max-width: 600px) 800px, 1280px"
                     alt="Portada"
                     className="rounded-lg mt-2 max-h-40 object-cover border border-amber-400"
                     width="320"
@@ -295,37 +298,54 @@ const Classroom = () => {
 
     setIsUploading(true);
     try {
+      // Validar peso máximo antes de procesar
+      if (file.size > 300 * 1024) {
+        alert('La imagen supera el peso máximo de 300 KB. Por favor, selecciona una imagen más ligera.');
+        setIsUploading(false);
+        return;
+      }
       // Optimización: convertir a WebP y redimensionar
       if (file.type.startsWith('image/')) {
         try {
           const imageCompression = (await eval("import('browser-image-compression')")).default;
-          const compressed = await imageCompression(file, {
-            maxWidthOrHeight: 1280,
-            maxSizeMB: 0.7,
+          // Redimensionar a 800px para móvil, 1280px para escritorio
+          const compressedMobile = await imageCompression(file, {
+            maxWidthOrHeight: 800,
+            maxSizeMB: 0.3,
             useWebWorker: true,
             fileType: 'image/webp',
             initialQuality: 0.7
           });
-          file = new File([compressed], file.name.replace(/\.[^.]+$/, '.webp'), { type: 'image/webp' });
+          const compressedDesktop = await imageCompression(file, {
+            maxWidthOrHeight: 1280,
+            maxSizeMB: 0.3,
+            useWebWorker: true,
+            fileType: 'image/webp',
+            initialQuality: 0.7
+          });
+          // Subir ambas versiones
+          const fileNameMobile = `classroom-cover-mobile-${Date.now()}-${file.name.replace(/\.[^.]+$/, '.webp')}`;
+          const fileNameDesktop = `classroom-cover-desktop-${Date.now()}-${file.name.replace(/\.[^.]+$/, '.webp')}`;
+          const { error: uploadErrorMobile } = await supabase.storage
+            .from('cursos')
+            .upload(fileNameMobile, compressedMobile);
+          const { error: uploadErrorDesktop } = await supabase.storage
+            .from('cursos')
+            .upload(fileNameDesktop, compressedDesktop);
+          if (uploadErrorMobile || uploadErrorDesktop) throw uploadErrorMobile || uploadErrorDesktop;
+          const { data: urlDataMobile } = supabase.storage.from('cursos').getPublicUrl(fileNameMobile);
+          const { data: urlDataDesktop } = supabase.storage.from('cursos').getPublicUrl(fileNameDesktop);
+          setEditModulo({
+            ...editModulo,
+            imagen_url: urlDataDesktop.publicUrl,
+            imagen_url_mobile: urlDataMobile.publicUrl
+          });
         } catch (err) {
           // Si falla, sube el archivo original
         }
       }
-      const fileName = `classroom-cover-${Date.now()}-${file.name}`;
-      const { error: uploadError } = await supabase.storage
-        .from('cursos') // Usamos el bucket 'cursos'
-        .upload(fileName, file);
-
-      if (uploadError) throw uploadError;
-
-      const { data: urlData } = supabase.storage
-        .from('cursos')
-        .getPublicUrl(fileName);
-
-      setEditModulo({ ...editModulo, imagen_url: urlData.publicUrl });
     } catch (error) {
       console.error('Error al subir la imagen:', error);
-      // Aquí podrías añadir un mensaje de error para el usuario
     } finally {
       setIsUploading(false);
     }
@@ -413,7 +433,16 @@ const Classroom = () => {
                                 onClick={() => !isAdmin && navigate(`/classroom/videos/${displayMod.id}`)}
                               />
                             ) : displayMod.imagen_url ? (
-                              <img src={displayMod.imagen_url} alt={displayMod.titulo} className="object-cover w-full h-full" width="400" height="225" loading="lazy" />
+                              <img
+                                src={displayMod.imagen_url}
+                                srcSet={displayMod.imagen_url_mobile ? `${displayMod.imagen_url_mobile} 800w, ${displayMod.imagen_url} 1280w` : undefined}
+                                sizes="(max-width: 600px) 800px, 1280px"
+                                alt={displayMod.titulo}
+                                className="object-cover w-full h-full"
+                                width="400"
+                                height="225"
+                                loading="lazy"
+                              />
                             ) : (
                               <span className="text-6xl text-neutral-600">{displayMod.icono || '📦'}</span>
                             )}
