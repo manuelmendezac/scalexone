@@ -16,33 +16,6 @@ interface Banner {
   order_index: number;
 }
 
-const defaultBanners: Omit<Banner, 'id'>[] = [
-  {
-    image: '/images/banners/dynamic-expert.jpg',
-    title: '¡Nuevo módulo IA disponible!',
-    desc: 'Descubre DynamicExpertProfile y lleva tu clon al siguiente nivel.',
-    link: '/modules/dynamic-expert-profile',
-    cta: 'Ver más',
-    order_index: 0,
-  },
-  {
-    image: '/images/banners/habit-intelligence.jpg',
-    title: 'Mejora en hábitos y rutinas',
-    desc: 'Ahora tu IA puede medir y sugerir rutinas personalizadas.',
-    link: '/habit-intelligence',
-    cta: 'Explorar',
-    order_index: 1,
-  },
-  {
-    image: '/images/banners/voice-clone.jpg',
-    title: '¡Tu clon IA ahora tiene voz propia!',
-    desc: 'Activa la voz y personaliza la experiencia.',
-    link: '/settings',
-    cta: 'Configurar',
-    order_index: 2,
-  },
-];
-
 const BannerSlider: React.FC = () => {
   const [banners, setBanners] = useState<Banner[]>([]);
   const [loading, setLoading] = useState(true);
@@ -51,26 +24,6 @@ const BannerSlider: React.FC = () => {
   useEffect(() => {
     loadBanners();
   }, []);
-
-  const insertDefaultBanners = async () => {
-    try {
-      const bannersWithIds = defaultBanners.map(banner => ({
-        ...banner,
-        id: crypto.randomUUID()
-      }));
-
-      const { error: insertError } = await supabase
-        .from('banners')
-        .insert(bannersWithIds);
-
-      if (insertError) throw insertError;
-
-      return bannersWithIds;
-    } catch (err: any) {
-      console.error('Error insertando banners predeterminados:', err);
-      throw err;
-    }
-  };
 
   const loadBanners = async () => {
     try {
@@ -83,14 +36,7 @@ const BannerSlider: React.FC = () => {
         .order('order_index');
 
       if (fetchError) throw fetchError;
-
-      // Si no hay banners, insertar los predeterminados
-      if (!data || data.length === 0) {
-        const defaultBannersData = await insertDefaultBanners();
-        setBanners(defaultBannersData);
-      } else {
-        setBanners(data);
-      }
+      setBanners(data || []);
 
     } catch (err: any) {
       console.error('Error cargando banners:', err);
