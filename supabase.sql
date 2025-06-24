@@ -336,4 +336,76 @@ begin
   order by ventas_totales desc
   limit 5;
 end;
-$$; 
+$$;
+
+-- Tabla para los banners del slider
+CREATE TABLE IF NOT EXISTS public.banners (
+    id UUID DEFAULT extensions.uuid_generate_v4() PRIMARY KEY,
+    image TEXT NOT NULL,
+    title TEXT NOT NULL,
+    description TEXT NOT NULL,
+    link TEXT,
+    cta TEXT NOT NULL,
+    order_index INTEGER NOT NULL DEFAULT 0,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+-- Trigger para actualizar updated_at
+CREATE OR REPLACE FUNCTION update_updated_at_column()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = timezone('utc'::text, now());
+    RETURN NEW;
+END;
+$$ language 'plpgsql';
+
+CREATE TRIGGER update_banners_updated_at
+    BEFORE UPDATE ON public.banners
+    FOR EACH ROW
+    EXECUTE FUNCTION update_updated_at_column();
+
+-- Políticas de seguridad para banners
+ALTER TABLE public.banners ENABLE ROW LEVEL SECURITY;
+
+-- Política para lectura pública
+CREATE POLICY "Permitir lectura pública de banners" ON public.banners
+    FOR SELECT
+    USING (true);
+
+-- Política para inserción/actualización/eliminación solo por administradores
+CREATE POLICY "Permitir gestión de banners solo a administradores" ON public.banners
+    FOR ALL
+    USING (
+        auth.uid() IN (
+            SELECT id FROM public.usuarios WHERE rol = 'admin'
+        )
+    )
+    WITH CHECK (
+        auth.uid() IN (
+            SELECT id FROM public.usuarios WHERE rol = 'admin'
+        )
+    );
+
+-- Índice para optimizar el orden
+CREATE INDEX IF NOT EXISTS banners_order_index_idx ON public.banners (order_index);
+
+-- Función para reordenar banners
+CREATE OR REPLACE FUNCTION reorder_banners()
+RETURNS TRIGGER AS $$
+BEGIN
+    -- Si el order_index es NULL o menor que 0, asignar el siguiente número disponible
+    IF NEW.order_index IS NULL OR NEW.order_index < 0 THEN
+        SELECT COALESCE(MAX(order_index), 0) + 1
+        INTO NEW.order_index
+        FROM public.banners;
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Trigger para manejar el orden automáticamente
+CREATE TRIGGER handle_banner_order
+    BEFORE INSERT OR UPDATE ON public.banners
+    FOR EACH ROW
+    EXECUTE FUNCTION reorder_banners(); 
