@@ -321,8 +321,8 @@ const Classroom = () => {
     setIsUploading(true);
     try {
       // Validar peso máximo antes de procesar
-      if (file.size > 300 * 1024) {
-        alert('La imagen supera el peso máximo de 300 KB. Por favor, selecciona una imagen más ligera.');
+      if (file.size > 2 * 1024 * 1024) {
+        alert('La imagen supera el peso máximo de 2 MB. Por favor, selecciona una imagen más ligera.');
         setIsUploading(false);
         return;
       }
@@ -333,14 +333,14 @@ const Classroom = () => {
           // Redimensionar a 800px para móvil, 1280px para escritorio
           const compressedMobile = await imageCompression(file, {
             maxWidthOrHeight: 800,
-            maxSizeMB: 0.3,
+            maxSizeMB: 2,
             useWebWorker: true,
             fileType: 'image/webp',
             initialQuality: 0.7
           });
           const compressedDesktop = await imageCompression(file, {
             maxWidthOrHeight: 1280,
-            maxSizeMB: 0.3,
+            maxSizeMB: 2,
             useWebWorker: true,
             fileType: 'image/webp',
             initialQuality: 0.7
@@ -363,8 +363,26 @@ const Classroom = () => {
             imagen_url_mobile: urlDataMobile.publicUrl
           });
         } catch (err) {
-          // Si falla, sube el archivo original
+          // Si falla la compresión, sube el archivo original
+          try {
+            const fileNameOriginal = `classroom-cover-original-${Date.now()}-${file.name}`;
+            const { error: uploadErrorOriginal } = await supabase.storage
+              .from('cursos')
+              .upload(fileNameOriginal, file);
+            if (uploadErrorOriginal) throw uploadErrorOriginal;
+            const { data: urlDataOriginal } = supabase.storage.from('cursos').getPublicUrl(fileNameOriginal);
+            setEditModulo({
+              ...(editModulo as Modulo),
+              imagen_url: urlDataOriginal.publicUrl,
+              imagen_url_mobile: urlDataOriginal.publicUrl
+            });
+            alert('La imagen se subió sin optimizar porque el proceso de compresión falló.');
+          } catch (err2) {
+            alert('No se pudo subir la imagen. Asegúrate de que el archivo sea una imagen válida.');
+          }
         }
+      } else {
+        alert('El archivo seleccionado no es una imagen válida.');
       }
     } catch (error) {
       console.error('Error al subir la imagen:', error);
