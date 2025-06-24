@@ -115,7 +115,7 @@ const getVideoThumbnail = (url: string): string | null => {
 // Lazy load del modal de edición
 const EditModuleModal = lazy(() => Promise.resolve({
   default: ({
-    editIdx, editModulo, setShowEditModal, setEditModulo, isUploading, handleCoverImageUpload, handleSaveEdit, setIsUploading
+    editIdx, editModulo, setShowEditModal, setEditModulo, isUploading, handleCoverImageUpload, handleSaveEdit, setIsUploading, previewImage, setPreviewImage
   }: any) => (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
@@ -358,7 +358,7 @@ const Classroom = () => {
           const { data: urlDataMobile } = supabase.storage.from('cursos').getPublicUrl(fileNameMobile);
           const { data: urlDataDesktop } = supabase.storage.from('cursos').getPublicUrl(fileNameDesktop);
           setEditModulo({
-            ...editModulo,
+            ...(editModulo as Modulo),
             imagen_url: urlDataDesktop.publicUrl,
             imagen_url_mobile: urlDataMobile.publicUrl
           });
@@ -575,6 +575,8 @@ const Classroom = () => {
               handleCoverImageUpload={handleCoverImageUpload}
               handleSaveEdit={handleSaveEdit}
               setIsUploading={setIsUploading}
+              previewImage={previewImage}
+              setPreviewImage={setPreviewImage}
             />
           </Suspense>
         )}
