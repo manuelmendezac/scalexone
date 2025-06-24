@@ -45,6 +45,7 @@ const LineaVideosClassroom = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
   const [showReward, setShowReward] = useState(false);
+  const [showPlayer, setShowPlayer] = useState(false);
   const playerRef = useRef<any>(null);
 
   useEffect(() => {
@@ -231,6 +232,26 @@ const LineaVideosClassroom = () => {
                 <div className="w-full h-full flex items-center justify-center bg-neutral-800 text-center p-4">
                   <NeonSpinner size={64} />
                 </div>
+              ) : !showPlayer && (videoActual.url || videoActual.embed_code) ? (
+                <div className="w-full h-full flex flex-col items-center justify-center bg-neutral-800 text-center p-4 relative">
+                  {getVideoThumbnail(videoActual.url) && (
+                    <img
+                      src={getVideoThumbnail(videoActual.url)!}
+                      alt="Video preview"
+                      className="absolute inset-0 w-full h-full object-cover opacity-70"
+                      style={{ zIndex: 1 }}
+                      width="400"
+                      height="225"
+                      loading="lazy"
+                    />
+                  )}
+                  <button
+                    className="relative z-10 px-6 py-3 rounded-full bg-yellow-500 text-black font-bold text-lg shadow-lg hover:bg-yellow-400 transition"
+                    onClick={() => setShowPlayer(true)}
+                  >
+                    Ver video
+                  </button>
+                </div>
               ) : videoActual.embed_code ? (
                 <div className="w-full h-full [&>iframe]:w-full [&>iframe]:h-full" dangerouslySetInnerHTML={{ __html: videoActual.embed_code }} />
               ) : videoActual.url ? (
@@ -243,7 +264,7 @@ const LineaVideosClassroom = () => {
                   playing
                   onProgress={handleProgress}
                   onEnded={handleVideoEnded}
-                  config={{ youtube: { playerVars: { showinfo: 0, rel: 0 } }, vimeo: { playerOptions: { dnt: true } } }}
+                  config={{ youtube: { playerVars: { showinfo: 0, rel: 0, autoplay: 1 } }, vimeo: { playerOptions: { dnt: true, autoplay: true } } }}
                 />
               ) : (
                 <div className="w-full h-full flex flex-col items-center justify-center bg-neutral-800 text-center p-4">
