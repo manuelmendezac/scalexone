@@ -83,7 +83,42 @@ const BannerSlider: React.FC = () => {
   const handleSave = async (updatedBanners: Banner[]) => {
     try {
       setLoading(true);
+      setError(null);
+
+      // Eliminar banners que ya no existen
+      const bannersToDelete = banners.filter(
+        oldBanner => oldBanner.id !== 'initial' && !updatedBanners.find(newBanner => newBanner.id === oldBanner.id)
+      );
+
+      if (bannersToDelete.length > 0) {
+        const { error: deleteError } = await supabase
+          .from('banners')
+          .delete()
+          .in('id', bannersToDelete.map(b => b.id));
+
+        if (deleteError) throw deleteError;
+      }
+
+      // Filtrar el banner inicial y actualizar o insertar los demás
+      const bannersToSave = updatedBanners.filter(b => b.id !== 'initial');
+      
+      if (bannersToSave.length > 0) {
+        const { error: upsertError } = await supabase
+          .from('banners')
+          .upsert(
+            bannersToSave.map((banner, index) => ({
+              ...banner,
+              order_index: index
+            }))
+          );
+
+        if (upsertError) throw upsertError;
+      }
+
       await loadBanners();
+    } catch (err: any) {
+      console.error('Error guardando banners:', err);
+      setError(err.message);
     } finally {
       setLoading(false);
       setIsModalOpen(false);
