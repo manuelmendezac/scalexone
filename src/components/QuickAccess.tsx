@@ -3,12 +3,14 @@ import { FaBrain } from 'react-icons/fa';
 import { FiBookOpen, FiGlobe, FiUsers } from 'react-icons/fi';
 import { NavLink } from 'react-router-dom';
 
-const access = [
-  // { label: 'Mi Segundo Cerebro', icon: <FaBrain />, to: '/mind-sync', color: 'from-cyan-700 to-cyan-400' },
-  // { label: 'Centro de Entrenamiento', icon: <FiBookOpen />, to: '/knowledge-vault', color: 'from-purple-700 to-cyan-400' },
-  { label: 'Implementar mi IA', icon: <FiGlobe />, to: '/embed-js', color: 'from-yellow-700 to-yellow-500' },
-  { label: 'Dashboard de Afiliación', icon: <FiUsers />, to: '/afiliados', color: 'from-yellow-800 to-yellow-600' },
-];
+interface AccessItem {
+  label: string;
+  icon: React.ReactNode;
+  to: string;
+  color: string;
+}
+
+const access: AccessItem[] = [];
 
 const QuickAccess: React.FC = () => (
   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-6">
