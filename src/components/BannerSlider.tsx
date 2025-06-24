@@ -5,7 +5,7 @@ import 'swiper/css/pagination';
 import { Pagination, Autoplay } from 'swiper/modules';
 import { supabase } from '../supabase';
 import { Loader2, Edit2 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import BannerEditModal from './BannerEditModal';
 
 interface Banner {
   id: string;
@@ -28,14 +28,33 @@ const initialBanner: Banner = {
 };
 
 const BannerSlider: React.FC = () => {
-  const navigate = useNavigate();
   const [banners, setBanners] = useState<Banner[]>([initialBanner]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
+    checkAdminStatus();
     loadBanners();
   }, []);
+
+  const checkAdminStatus = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data } = await supabase
+          .from('usuarios')
+          .select('rol')
+          .eq('id', user.id)
+          .single();
+        
+        setIsAdmin(data?.rol === 'admin' || data?.rol === 'superadmin');
+      }
+    } catch (err) {
+      console.error('Error verificando rol de admin:', err);
+    }
+  };
 
   const loadBanners = async () => {
     try {
@@ -49,7 +68,6 @@ const BannerSlider: React.FC = () => {
 
       if (fetchError) throw fetchError;
       
-      // Si hay banners en la base de datos, usarlos. Si no, mantener el inicial
       if (data && data.length > 0) {
         setBanners(data);
       }
@@ -62,13 +80,19 @@ const BannerSlider: React.FC = () => {
     }
   };
 
-  const handleEditClick = () => {
-    navigate('/admin?section=banners');
+  const handleSave = async (updatedBanners: Banner[]) => {
+    try {
+      setLoading(true);
+      await loadBanners(); // Recargar los banners después de guardar
+    } finally {
+      setLoading(false);
+      setIsModalOpen(false);
+    }
   };
 
   if (loading) {
     return (
-      <div className="w-full h-64 flex items-center justify-center">
+      <div className="flex items-center justify-center h-64">
         <Loader2 className="w-8 h-8 animate-spin text-[#FFD700]" />
       </div>
     );
@@ -76,108 +100,64 @@ const BannerSlider: React.FC = () => {
 
   if (error) {
     return (
-      <div className="w-full p-4 rounded-lg bg-red-500/10 border border-red-500 text-red-500">
-        Error cargando banners: {error}
+      <div className="text-red-500 p-4">
+        Error: {error}
       </div>
     );
   }
 
   return (
-    <div className="w-full mb-12">
-      <Swiper
-        modules={[Pagination, Autoplay]}
-        pagination={{ clickable: true }}
-        autoplay={{ delay: 5000 }}
-        loop
-        className="rounded-2xl shadow-lg"
-        style={{ background: '#000000' }}
-      >
-        {banners.map((banner) => (
-          <SwiperSlide key={banner.id}>
-            <div 
-              className="flex flex-col md:flex-row items-center p-10 md:p-14 rounded-2xl gap-8 relative overflow-hidden"
-              style={{
-                background: 'linear-gradient(45deg, rgba(0,0,0,0.95) 0%, rgba(20,20,20,0.9) 100%)',
-                boxShadow: '0 4px 60px 0 rgba(255,215,0,0.15), inset 0 0 0 1px rgba(255,215,0,0.1)'
-              }}
-            >
-              {/* Botón de editar */}
-              <button
-                onClick={handleEditClick}
-                className="absolute top-4 right-4 p-2 rounded-full bg-black/50 border border-[#FFD700] text-[#FFD700] hover:bg-[#FFD700]/10 transition-colors z-10"
-              >
-                <Edit2 size={20} />
-              </button>
-
-              {/* Efectos de luz dorados */}
-              <div 
-                className="absolute top-0 left-0 w-full h-full pointer-events-none"
-                style={{
-                  background: 'radial-gradient(circle at 30% 50%, rgba(255,215,0,0.1) 0%, transparent 60%), radial-gradient(circle at 70% 50%, rgba(255,215,0,0.05) 0%, transparent 60%)'
-                }}
-              />
-              <div 
-                className="absolute top-0 left-0 w-full h-1"
-                style={{
-                  background: 'linear-gradient(90deg, transparent 0%, rgba(255,215,0,0.2) 50%, transparent 100%)'
-                }}
-              />
-              
-              {/* Imagen con efecto dorado */}
-              <div className="relative">
-                <img 
-                  src={banner.image} 
-                  alt={banner.title} 
-                  className="w-36 h-36 md:w-48 md:h-48 object-cover rounded-xl shadow-2xl" 
-                  style={{
-                    boxShadow: '0 0 30px 0 rgba(255,215,0,0.2), 0 0 0 1px rgba(255,215,0,0.1)'
-                  }}
+    <>
+      <div className="relative">
+        <Swiper
+          modules={[Pagination, Autoplay]}
+          pagination={{ clickable: true }}
+          autoplay={{ delay: 5000, disableOnInteraction: false }}
+          className="w-full rounded-xl overflow-hidden"
+        >
+          {banners.map((banner) => (
+            <SwiperSlide key={banner.id}>
+              <div className="relative aspect-[21/9]">
+                <img
+                  src={banner.image}
+                  alt={banner.title}
+                  className="w-full h-full object-cover"
                 />
-                <div 
-                  className="absolute inset-0 rounded-xl"
-                  style={{
-                    background: 'linear-gradient(45deg, rgba(255,215,0,0.1) 0%, transparent 100%)'
-                  }}
-                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent flex items-end p-6 md:p-8">
+                  <div className="max-w-2xl">
+                    <h2 className="text-2xl md:text-3xl font-bold text-white mb-2">{banner.title}</h2>
+                    <p className="text-gray-200 text-sm md:text-base mb-4">{banner.desc}</p>
+                    <a
+                      href={banner.link}
+                      className="inline-block px-6 py-2 bg-[#FFD700] text-black font-bold rounded-lg hover:bg-[#FDB813] transition-colors"
+                    >
+                      {banner.cta}
+                    </a>
+                  </div>
+                </div>
               </div>
+            </SwiperSlide>
+          ))}
+        </Swiper>
 
-              {/* Contenido */}
-              <div className="flex-1 relative z-10">
-                <h2 
-                  className="text-3xl md:text-4xl font-orbitron mb-4"
-                  style={{
-                    background: 'linear-gradient(90deg, #FFD700 0%, #FDB813 100%)',
-                    WebkitBackgroundClip: 'text',
-                    WebkitTextFillColor: 'transparent',
-                    textShadow: '0 2px 20px rgba(255,215,0,0.2)'
-                  }}
-                >
-                  {banner.title}
-                </h2>
-                <p 
-                  className="mb-6 text-lg md:text-xl"
-                  style={{ color: '#FDB813' }}
-                >
-                  {banner.desc}
-                </p>
-                <a 
-                  href={banner.link} 
-                  className="inline-block px-8 py-3 rounded-lg font-bold text-lg md:text-xl transition-all duration-300 transform hover:scale-105"
-                  style={{
-                    background: 'linear-gradient(90deg, #FFD700 0%, #FDB813 100%)',
-                    color: '#000000',
-                    boxShadow: '0 4px 20px rgba(255,215,0,0.3)',
-                    border: '1px solid rgba(255,215,0,0.3)'
-                  }}
-                >
-                  {banner.cta}
-                </a>
-              </div>
-            </div>
-          </SwiperSlide>
-        ))}
-      </Swiper>
-    </div>
+        {isAdmin && (
+          <button
+            onClick={() => setIsModalOpen(true)}
+            className="absolute top-4 right-4 z-10 p-2 rounded-lg bg-black/50 text-white hover:bg-black/70 transition-colors"
+            title="Editar banners"
+          >
+            <Edit2 size={20} />
+          </button>
+        )}
+      </div>
+
+      <BannerEditModal
+        open={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        banners={banners}
+        onSave={handleSave}
+      />
+    </>
   );
 };
 
