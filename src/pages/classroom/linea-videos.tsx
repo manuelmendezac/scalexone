@@ -12,6 +12,7 @@ import ReactPlayer from 'react-player/lazy';
 import Confetti from 'react-confetti';
 import DraggableProgressCircle from '../../components/DraggableProgressCircle';
 import RewardToast from '../../components/RewardToast';
+import NeonSpinner from '../../components/NeonSpinner';
 
 const LineaVideosClassroom = () => {
   const { modulo_id } = useParams();
@@ -224,7 +225,11 @@ const LineaVideosClassroom = () => {
           </div>
           <div className="w-full aspect-video">
             <div className="w-full h-full bg-black rounded-xl overflow-hidden border-2 border-yellow-800/50">
-              {videoActual.embed_code ? (
+              {loading ? (
+                <div className="w-full h-full flex items-center justify-center bg-neutral-800 text-center p-4">
+                  <NeonSpinner size={64} />
+                </div>
+              ) : videoActual.embed_code ? (
                 <div className="w-full h-full [&>iframe]:w-full [&>iframe]:h-full" dangerouslySetInnerHTML={{ __html: videoActual.embed_code }} />
               ) : videoActual.url ? (
                 <ReactPlayer
