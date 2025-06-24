@@ -17,6 +17,7 @@ import {
   LinkedinIcon,
   TelegramIcon
 } from 'react-share';
+import imageCompression from 'browser-image-compression';
 
 interface Post {
   id: string;
@@ -102,8 +103,24 @@ const FeedComunidad = () => {
     if (!files || files.length === 0) return;
     if (tipo === 'imagen') {
       const validFiles = Array.from(files).filter(file => file.type.startsWith('image/'));
-      setImagenesSeleccionadas(validFiles);
-      setImagenesPreview(validFiles.map(file => URL.createObjectURL(file)));
+      // Optimizar imágenes antes de subirlas
+      const optimizedFiles: File[] = [];
+      for (const file of validFiles) {
+        try {
+          const compressed = await imageCompression(file, {
+            maxWidthOrHeight: 1280,
+            maxSizeMB: 1,
+            useWebWorker: true,
+            fileType: 'image/webp',
+            initialQuality: 0.7
+          });
+          optimizedFiles.push(new File([compressed], file.name.replace(/\.[^.]+$/, '.webp'), { type: 'image/webp' }));
+        } catch (err) {
+          optimizedFiles.push(file); // Si falla la compresión, usar el original
+        }
+      }
+      setImagenesSeleccionadas(optimizedFiles);
+      setImagenesPreview(optimizedFiles.map(file => URL.createObjectURL(file)));
       setArchivoSeleccionado(null);
       setPreviewUrl(null);
       setOrientacion(undefined);
@@ -320,7 +337,7 @@ const FeedComunidad = () => {
               <div className="flex gap-2 overflow-x-auto py-2">
                 {imagenesPreview.map((url, idx) => (
                   <div key={idx} className="relative">
-                    <img src={url} alt={`preview-${idx}`} className="h-24 w-24 object-cover rounded-xl border-2 border-[#e6a800]" />
+                    <img src={url} alt={`preview-${idx}`} className="h-24 w-24 object-cover rounded-xl border-2 border-[#e6a800]" width="96" height="96" loading="lazy" />
                     <button
                       onClick={() => {
                         setImagenesPreview(prev => prev.filter((_, i) => i !== idx));
@@ -435,7 +452,7 @@ const FeedComunidad = () => {
                   </>
                 )}
                 {post.tipo === 'imagen' && post.media_url && (
-                  <img src={post.media_url} alt="imagen" className="rounded-xl max-h-80 object-cover mb-2" />
+                  <img src={post.media_url} alt="imagen" className="rounded-xl max-h-80 object-cover mb-2" width="600" height="400" loading="lazy" />
                 )}
                 {post.tipo === 'video' && post.media_url && (
                   <VideoWithOrientation src={post.media_url} orientacion={post.orientacion} />
@@ -618,6 +635,9 @@ const CarruselImagenes: React.FC<{ imagenes: string[] }> = ({ imagenes }) => {
             src={imagenes[idx]}
             alt={`img-${idx}`}
             className="rounded-xl object-contain border-2 border-[#e6a800] mx-auto"
+            width="600"
+            height="400"
+            loading="lazy"
             style={{ maxWidth: '100%', maxHeight: '70vh', width: 'auto', height: 'auto', display: 'block' }}
           />
           {/* Botón de descarga */}
@@ -717,7 +737,7 @@ const LinkPreview: React.FC<{ url: string }> = ({ url }) => {
     <a href={url} target="_blank" rel="noopener noreferrer" className="block bg-[#23232b] rounded-xl border-2 border-[#e6a800] overflow-hidden shadow-md hover:scale-[1.02] transition-all max-w-md">
       <div className="relative">
         {data.image && (
-          <img src={data.image.url || data.image} alt={data.title || 'preview'} className="w-full h-48 object-cover" />
+          <img src={data.image.url || data.image} alt={data.title || 'preview'} className="w-full h-48 object-cover" width="600" height="192" loading="lazy" />
         )}
         {data.video && (
           <div className="absolute inset-0 flex items-center justify-center">
@@ -731,7 +751,7 @@ const LinkPreview: React.FC<{ url: string }> = ({ url }) => {
         <div className="font-bold text-white text-base mb-1 line-clamp-1">{data.title}</div>
         <div className="text-gray-400 text-sm mb-2 line-clamp-2">{data.description}</div>
         <div className="flex items-center gap-2">
-          {data.logo && <img src={data.logo.url || data.logo} alt="logo" className="w-5 h-5 rounded" />}
+          {data.logo && <img src={data.logo.url || data.logo} alt="logo" className="w-5 h-5 rounded" width="20" height="20" loading="lazy" />}
           <span className="text-xs text-[#e6a800]">{data.publisher || data.url?.split('/')[2]}</span>
         </div>
       </div>
