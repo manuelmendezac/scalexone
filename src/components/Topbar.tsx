@@ -188,15 +188,6 @@ const Topbar: React.FC<TopbarProps> = ({
 
       {/* Iconos a la derecha */}
       <div className="flex items-center gap-2 sm:gap-4">
-        {/* Botón de soporte */}
-        <button
-          className="flex items-center gap-2 px-2 py-1 rounded-lg bg-gray-800 hover:bg-gray-700 text-white font-semibold transition text-sm"
-          aria-label="Soporte"
-          onClick={() => navigate('/soporte')}
-        >
-          <FiHelpCircle className="w-5 h-5" />
-          <span className="hidden md:inline">Help</span>
-        </button>
         {/* Notificaciones */}
         <div className="relative group" ref={notificationsRef}>
           <FiBell
