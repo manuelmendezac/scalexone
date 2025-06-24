@@ -451,15 +451,20 @@ const ClassroomModuleVideo: React.FC<ClassroomModuleVideoProps> = ({ videoUrl, o
   return (
     <div className="w-full h-full relative">
       {!showPlayer && thumbnail && (
-        <img
-          src={thumbnail}
-          alt="Video preview"
-          className="absolute inset-0 w-full h-full object-cover"
-          style={{ zIndex: 1 }}
-          width="400"
-          height="225"
-          loading="lazy"
-        />
+        <>
+          <img
+            src={thumbnail}
+            alt="Video preview"
+            className="absolute inset-0 w-full h-full object-cover"
+            style={{ zIndex: 1 }}
+            width="400"
+            height="225"
+            loading="lazy"
+          />
+          <div className="absolute inset-0 flex items-center justify-center" style={{ zIndex: 2 }}>
+            <NeonSpinner size={48} />
+          </div>
+        </>
       )}
       {showPlayer && ReactPlayer && (
         <div className="absolute top-0 left-0 w-full h-full">
