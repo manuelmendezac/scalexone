@@ -77,7 +77,7 @@ const BarraLateralComunidad = () => {
       <div className="bg-[#23232b] rounded-2xl overflow-hidden shadow-lg mb-2">
         <div className="h-28 w-full bg-cover bg-center" style={{backgroundImage: `url(${communityBanner})`}} />
         <div className="flex flex-col items-center p-4">
-          <img src={communityLogo} alt="Comunidad" className="w-20 h-20 rounded-full border-4 border-[#18181b] -mt-12 mb-2 bg-[#e6a800] object-cover" />
+          <img src={communityLogo} alt="Comunidad" className="w-20 h-20 rounded-full border-4 border-[#18181b] -mt-12 mb-2 bg-[#e6a800] object-cover" width="80" height="80" loading="lazy" />
           <h3 className="text-xl font-bold text-white mb-1">{communityName}</h3>
           <span className="text-[#e6a800] font-semibold text-sm mb-1">{communityStatus}</span>
           <span className="text-gray-400 text-xs text-center">{communityDescription}</span>
@@ -101,10 +101,10 @@ const BarraLateralComunidad = () => {
         </div>
         {/* Avatares de miembros */}
         <div className="flex -space-x-3 mb-2">
-          <img className="w-8 h-8 rounded-full border-2 border-[#18181b]" src="https://randomuser.me/api/portraits/men/32.jpg" alt="" />
-          <img className="w-8 h-8 rounded-full border-2 border-[#18181b]" src="https://randomuser.me/api/portraits/women/44.jpg" alt="" />
-          <img className="w-8 h-8 rounded-full border-2 border-[#18181b]" src="https://randomuser.me/api/portraits/men/45.jpg" alt="" />
-          <img className="w-8 h-8 rounded-full border-2 border-[#18181b]" src="https://randomuser.me/api/portraits/women/46.jpg" alt="" />
+          <img className="w-8 h-8 rounded-full border-2 border-[#18181b]" src="https://randomuser.me/api/portraits/men/32.jpg" alt="" width="32" height="32" loading="lazy" />
+          <img className="w-8 h-8 rounded-full border-2 border-[#18181b]" src="https://randomuser.me/api/portraits/women/44.jpg" alt="" width="32" height="32" loading="lazy" />
+          <img className="w-8 h-8 rounded-full border-2 border-[#18181b]" src="https://randomuser.me/api/portraits/men/45.jpg" alt="" width="32" height="32" loading="lazy" />
+          <img className="w-8 h-8 rounded-full border-2 border-[#18181b]" src="https://randomuser.me/api/portraits/women/46.jpg" alt="" width="32" height="32" loading="lazy" />
           <span className="w-8 h-8 rounded-full bg-[#e6a800] text-white flex items-center justify-center text-xs font-bold border-2 border-[#18181b]">+9</span>
         </div>
         {/* Botón de configuración */}

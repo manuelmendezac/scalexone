@@ -5,18 +5,6 @@ import ReaccionesFacebook from './ReaccionesFacebook';
 import ComunidadPostModal from './ComunidadPostModal';
 import useCommunityStore from '../../store/useCommunityStore';
 import LoadingScreen from '../LoadingScreen';
-import {
-  WhatsappShareButton,
-  FacebookShareButton,
-  TwitterShareButton,
-  LinkedinShareButton,
-  TelegramShareButton,
-  WhatsappIcon,
-  FacebookIcon,
-  TwitterIcon,
-  LinkedinIcon,
-  TelegramIcon
-} from 'react-share';
 
 interface Post {
   id: string;
@@ -832,6 +820,15 @@ function renderPostContentWithLinks(text: string) {
 // Componente de menú flotante para compartir
 const ShareMenu: React.FC<{ url: string; title?: string; onClose: () => void }> = ({ url, title, onClose }) => {
   const ref = useRef<HTMLDivElement>(null);
+  const [ShareComponents, setShareComponents] = useState<any>(null);
+  useEffect(() => {
+    let mounted = true;
+    import('react-share').then(mod => {
+      if (mounted) setShareComponents(mod);
+    });
+    return () => { mounted = false; };
+  }, []);
+
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (ref.current && !ref.current.contains(event.target as Node)) {
@@ -846,6 +843,11 @@ const ShareMenu: React.FC<{ url: string; title?: string; onClose: () => void }> 
     navigator.clipboard.writeText(url);
     onClose();
   }
+
+  if (!ShareComponents) {
+    return <div className="p-4 text-gray-400">Cargando opciones...</div>;
+  }
+  const { WhatsappShareButton, FacebookShareButton, TwitterShareButton, LinkedinShareButton, TelegramShareButton, WhatsappIcon, FacebookIcon, TwitterIcon, LinkedinIcon, TelegramIcon } = ShareComponents;
 
   return (
     <div ref={ref} className="absolute z-50 top-10 right-0 bg-[#23232b] border border-[#e6a800] rounded-xl shadow-lg p-3 flex flex-col gap-2 min-w-[180px]">

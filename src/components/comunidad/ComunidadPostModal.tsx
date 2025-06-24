@@ -208,7 +208,7 @@ const ComunidadPostModal: React.FC<ComunidadPostModalProps> = ({ post, onClose, 
           <div className="flex items-center gap-3">
             {postCompleto && (
               <>
-                <img src={postCompleto.usuario?.avatar_url || `https://ui-avatars.com/api/?name=Usuario&background=e6a800&color=fff&size=96`} alt="avatar" className="w-10 h-10 rounded-full border-2 border-[#e6a800] object-cover" />
+                <img src={postCompleto.usuario?.avatar_url || `https://ui-avatars.com/api/?name=Usuario&background=e6a800&color=fff&size=96`} alt="avatar" className="w-10 h-10 rounded-full border-2 border-[#e6a800] object-cover" width="40" height="40" loading="lazy" />
                 <div>
                   <span className="text-white font-bold">{postCompleto.usuario?.name || 'Usuario'}</span>
                   <span className="ml-2 text-xs text-[#e6a800] font-semibold">{new Date(postCompleto.created_at).toLocaleString()}</span>
@@ -232,7 +232,7 @@ const ComunidadPostModal: React.FC<ComunidadPostModalProps> = ({ post, onClose, 
             <>
               <div className="text-white text-base mb-2">{postCompleto.contenido}</div>
               {postCompleto.tipo === 'imagen' && postCompleto.media_url && (
-                <img src={postCompleto.media_url} alt="imagen" className="rounded-xl max-h-80 object-cover mb-2" />
+                <img src={postCompleto.media_url} alt="imagen" className="rounded-xl max-h-80 object-cover mb-2" width="600" height="400" loading="lazy" />
               )}
               {postCompleto.tipo === 'video' && postCompleto.media_url && (
                 <VideoWithOrientation src={postCompleto.media_url} orientacion={postCompleto.orientacion} />
