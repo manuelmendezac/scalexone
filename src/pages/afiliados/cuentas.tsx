@@ -1,5 +1,4 @@
 import React from 'react';
-import AfiliadosLayout from '../../components/afiliados/AfiliadosLayout';
 
 // Datos mock de la cuenta IB
 const cuentaIB = {
@@ -18,37 +17,35 @@ const cuentaIB = {
 
 const CuentasIBPage = () => {
   return (
-    <AfiliadosLayout>
-      <div className="min-h-screen bg-[#f7f9fb] flex flex-col items-center py-8">
-        <h2 className="text-3xl font-bold text-blue-900 font-orbitron tracking-wide mb-8 text-center">CUENTA IB</h2>
-        <div className="w-full max-w-xl mx-auto bg-white rounded-2xl shadow-md p-8 border border-gray-100">
-          <div className="mb-6">
-            <div className="text-sm text-gray-500 mb-1">Código de Cuenta IB</div>
-            <div className="text-xl font-bold text-blue-800 mb-2">{cuentaIB.codigo}</div>
-            <div className="text-sm text-gray-500 mb-1">Tipo de Suscripción</div>
-            <div className="text-lg font-semibold text-blue-700 mb-2">{cuentaIB.tipoSuscripcion} ({cuentaIB.porcentaje}% comisión directa)</div>
-          </div>
-          <div className="mb-6">
-            <div className="text-sm text-gray-500 mb-2 font-semibold">Niveles de Ganancias</div>
-            <ul className="space-y-2">
-              {cuentaIB.niveles.map(nivel => (
-                <li key={nivel.nivel} className="flex items-center gap-3">
-                  <span className="font-bold text-blue-700">Nivel {nivel.nivel}:</span>
-                  <span className="text-blue-600">{nivel.porcentaje}%</span>
-                  <span className="text-gray-500 text-xs">{nivel.descripcion}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-          <div className="mb-2">
-            <div className="text-sm text-gray-500 mb-1 font-semibold">Datos Personales</div>
-            <div className="text-base text-blue-900 font-semibold">{cuentaIB.nombre}</div>
-            <div className="text-sm text-gray-600">{cuentaIB.email}</div>
-            <div className="text-sm text-gray-600">{cuentaIB.telefono}</div>
-          </div>
+    <div className="min-h-screen bg-[#f7f9fb] flex flex-col items-center py-8">
+      <h2 className="text-3xl font-bold text-blue-900 font-orbitron tracking-wide mb-8 text-center">CUENTA IB</h2>
+      <div className="w-full max-w-xl mx-auto bg-white rounded-2xl shadow-md p-8 border border-gray-100">
+        <div className="mb-6">
+          <div className="text-sm text-gray-500 mb-1">Código de Cuenta IB</div>
+          <div className="text-xl font-bold text-blue-800 mb-2">{cuentaIB.codigo}</div>
+          <div className="text-sm text-gray-500 mb-1">Tipo de Suscripción</div>
+          <div className="text-lg font-semibold text-blue-700 mb-2">{cuentaIB.tipoSuscripcion} ({cuentaIB.porcentaje}% comisión directa)</div>
+        </div>
+        <div className="mb-6">
+          <div className="text-sm text-gray-500 mb-2 font-semibold">Niveles de Ganancias</div>
+          <ul className="space-y-2">
+            {cuentaIB.niveles.map(nivel => (
+              <li key={nivel.nivel} className="flex items-center gap-3">
+                <span className="font-bold text-blue-700">Nivel {nivel.nivel}:</span>
+                <span className="text-blue-600">{nivel.porcentaje}%</span>
+                <span className="text-gray-500 text-xs">{nivel.descripcion}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+        <div className="mb-2">
+          <div className="text-sm text-gray-500 mb-1 font-semibold">Datos Personales</div>
+          <div className="text-base text-blue-900 font-semibold">{cuentaIB.nombre}</div>
+          <div className="text-sm text-gray-600">{cuentaIB.email}</div>
+          <div className="text-sm text-gray-600">{cuentaIB.telefono}</div>
         </div>
       </div>
-    </AfiliadosLayout>
+    </div>
   );
 };
 
