@@ -17,7 +17,6 @@ import {
   LinkedinIcon,
   TelegramIcon
 } from 'react-share';
-import imageCompression from 'browser-image-compression';
 
 interface Post {
   id: string;
@@ -99,6 +98,7 @@ const FeedComunidad = () => {
   }, []);
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const imageCompression = (await import('browser-image-compression')).default;
     const files = e.target.files;
     if (!files || files.length === 0) return;
     if (tipo === 'imagen') {
