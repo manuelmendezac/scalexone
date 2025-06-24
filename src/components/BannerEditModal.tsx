@@ -208,6 +208,7 @@ const BannerEditModal: React.FC<Props> = ({ open, onClose, banners: initialBanne
   };
 
   const handleAddBanner = () => {
+    const now = new Date().toISOString();
     const newBanner: Banner = {
       id: crypto.randomUUID(),
       image: '',
@@ -215,7 +216,9 @@ const BannerEditModal: React.FC<Props> = ({ open, onClose, banners: initialBanne
       description: '',
       link: '',
       cta: '',
-      order_index: banners.length
+      order_index: banners.length,
+      created_at: now,
+      updated_at: now
     };
     setBanners([...banners, newBanner]);
   };
