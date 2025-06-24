@@ -17,6 +17,7 @@ import {
   LinkedinIcon,
   TelegramIcon
 } from 'react-share';
+import { optimizeImage } from '../../utils/optimizeImage';
 
 interface Post {
   id: string;
@@ -98,7 +99,6 @@ const FeedComunidad = () => {
   }, []);
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const imageCompression = (await import('browser-image-compression')).default;
     const files = e.target.files;
     if (!files || files.length === 0) return;
     if (tipo === 'imagen') {
@@ -106,18 +106,7 @@ const FeedComunidad = () => {
       // Optimizar imágenes antes de subirlas
       const optimizedFiles: File[] = [];
       for (const file of validFiles) {
-        try {
-          const compressed = await imageCompression(file, {
-            maxWidthOrHeight: 1280,
-            maxSizeMB: 1,
-            useWebWorker: true,
-            fileType: 'image/webp',
-            initialQuality: 0.7
-          });
-          optimizedFiles.push(new File([compressed], file.name.replace(/\.[^.]+$/, '.webp'), { type: 'image/webp' }));
-        } catch (err) {
-          optimizedFiles.push(file); // Si falla la compresión, usar el original
-        }
+        optimizedFiles.push(await optimizeImage(file));
       }
       setImagenesSeleccionadas(optimizedFiles);
       setImagenesPreview(optimizedFiles.map(file => URL.createObjectURL(file)));
