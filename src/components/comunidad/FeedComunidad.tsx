@@ -763,6 +763,35 @@ const LinkPreview: React.FC<{ url: string }> = ({ url }) => {
   );
 };
 
+// Componente para lazy load de iframes de YouTube/redes sociales
+const LazyEmbed: React.FC<{ embedUrl: string; type: 'youtube' | 'instagram' | 'tiktok' | 'facebook'; videoId?: string }> = ({ embedUrl, type, videoId }) => {
+  const [showIframe, setShowIframe] = useState(false);
+  let thumbnail = '';
+  if (type === 'youtube' && videoId) {
+    thumbnail = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
+  }
+  // Puedes agregar lógica para thumbnails de otras redes si lo deseas
+  return (
+    <div className="w-full flex justify-center my-2 relative" style={{ minHeight: 200 }}>
+      {!showIframe ? (
+        <div className="w-full max-w-xl aspect-video rounded-xl border-2 border-[#e6a800] bg-black flex items-center justify-center cursor-pointer relative overflow-hidden" onClick={() => setShowIframe(true)}>
+          {thumbnail && <img src={thumbnail} alt="preview" className="absolute inset-0 w-full h-full object-cover opacity-80" loading="lazy" width="600" height="338" />}
+          <button className="z-10 relative bg-[#e6a800] text-black font-bold px-6 py-2 rounded-full shadow-lg hover:bg-[#ffb300] transition text-lg">Ver video</button>
+        </div>
+      ) : (
+        <iframe
+          src={embedUrl}
+          className="w-full max-w-xl aspect-video rounded-xl border-2 border-[#e6a800]"
+          allow="autoplay; encrypted-media; fullscreen"
+          allowFullScreen
+          loading="lazy"
+          title="Video embed"
+        />
+      )}
+    </div>
+  );
+};
+
 // Utilidad para renderizar texto con enlaces clickeables y/o preview visual
 function renderPostContentWithLinks(text: string) {
   const urlRegex = /(https?:\/\/[\w./?=&%-]+)/g;
@@ -780,16 +809,7 @@ function renderPostContentWithLinks(text: string) {
     if (youtubeMatch) {
       const videoId = youtubeMatch[1];
       parts.push(
-        <div key={url + match.index} className="w-full flex justify-center my-2">
-          <iframe
-            src={`https://www.youtube.com/embed/${videoId}`}
-            className="w-full max-w-xl aspect-video rounded-xl border-2 border-[#e6a800]"
-            allow="autoplay; encrypted-media; fullscreen"
-            allowFullScreen
-            loading="lazy"
-            title="YouTube video embed"
-          />
-        </div>
+        <LazyEmbed key={url + match.index} embedUrl={`https://www.youtube.com/embed/${videoId}`} type="youtube" videoId={videoId} />
       );
     } else if (/instagram\.com|tiktok\.com|facebook\.com/.test(url)) {
       // Mostrar preview visual para otras redes
