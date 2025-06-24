@@ -96,6 +96,11 @@ const ProgresoFuturista = ({ porcentaje }: { porcentaje: number }) => (
 
 const MODULOS_POR_PAGINA = 9;
 
+interface ClassroomModuleVideoProps {
+  videoUrl: string;
+  onClick: () => void;
+}
+
 const Classroom = () => {
   const navigate = useNavigate();
   const [isAdmin, setIsAdmin] = React.useState(false);
@@ -511,56 +516,17 @@ const Classroom = () => {
   );
 };
 
-// Reemplazar ClassroomModuleVideo:
-const getVideoThumbnail = (url: string): string | null => {
-  if (!url) return null;
-  const youtubeMatch = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([\w-]{11})/);
-  if (youtubeMatch) return `https://img.youtube.com/vi/${youtubeMatch[1]}/hqdefault.jpg`;
-  const vimeoMatch = url.match(/vimeo\.com\/(\d+)/);
-  if (vimeoMatch) return `https://vumbnail.com/${vimeoMatch[1]}.jpg`;
-  return null;
-};
-
-interface ClassroomModuleVideoProps {
-  videoUrl: string;
-  onClick: () => void;
-}
+// Reemplazar ClassroomModuleVideo para que ReactPlayer se cargue y reproduzca siempre
 const ClassroomModuleVideo: React.FC<ClassroomModuleVideoProps> = ({ videoUrl, onClick }) => {
-  const [showPlayer, setShowPlayer] = React.useState(false);
   const [ReactPlayer, setReactPlayer] = React.useState<any>(null);
   React.useEffect(() => {
-    if (showPlayer && !ReactPlayer) {
+    if (!ReactPlayer) {
       import('react-player').then((mod) => setReactPlayer(() => mod.default));
     }
-  }, [showPlayer, ReactPlayer]);
-  const thumbnail = getVideoThumbnail(videoUrl);
+  }, [ReactPlayer]);
   return (
     <div className="w-full h-full relative">
-      {!showPlayer && thumbnail && (
-        <img
-          src={thumbnail}
-          alt="Video preview"
-          className="absolute inset-0 w-full h-full object-cover cursor-pointer"
-          style={{ zIndex: 1 }}
-          width="400"
-          height="225"
-          loading="lazy"
-          onClick={() => setShowPlayer(true)}
-        />
-      )}
-      {!showPlayer && (
-        <div
-          className="absolute inset-0 flex items-center justify-center cursor-pointer bg-black/30 z-10"
-          onClick={() => setShowPlayer(true)}
-        >
-          <div className="w-16 h-16 bg-black/50 rounded-full flex items-center justify-center backdrop-blur-sm border-2 border-amber-400/50">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-amber-400 ml-1" viewBox="0 0 20 20" fill="currentColor">
-              <path d="M4 3.222v13.556c0 .445.54.667.895.39l11.556-6.778a.444.444 0 000-.78L4.895 2.832A.444.444 0 004 3.222z" />
-            </svg>
-          </div>
-        </div>
-      )}
-      {showPlayer && ReactPlayer && (
+      {ReactPlayer && (
         <div className="absolute top-0 left-0 w-full h-full">
           <ReactPlayer
             url={videoUrl}
