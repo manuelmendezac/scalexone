@@ -1,4 +1,4 @@
-// BannerSlider component - Updated for deployment
+// BannerSlider component - Updated for deployment - Force deploy
 import React, { useState, useEffect } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import 'swiper/css';
