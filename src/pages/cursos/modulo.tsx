@@ -260,17 +260,36 @@ const ModuloDetalle = () => {
   // Verificar si es admin
   useEffect(() => {
     const checkAdmin = async () => {
-      if (!user?.email) {
+      // Validación más estricta del usuario y email
+      if (!user || !user.email || typeof user.email !== 'string' || user.email.trim() === '') {
+        console.log('Usuario no válido para verificar admin:', { user: user?.id, email: user?.email });
         setIsAdmin(false);
         return;
       }
-      const { data } = await supabase
-        .from('usuarios')
-        .select('rol')
-        .eq('email', user.email)
-        .single();
-      setIsAdmin(data?.rol === 'admin');
+
+      try {
+        console.log('Verificando admin para usuario:', user.email);
+        const { data, error } = await supabase
+          .from('usuarios')
+          .select('rol')
+          .eq('email', user.email.trim())
+          .single();
+
+        if (error) {
+          console.error('Error verificando admin status:', error);
+          setIsAdmin(false);
+          return;
+        }
+
+        const isUserAdmin = data?.rol === 'admin' || data?.rol === 'superadmin';
+        console.log('Resultado verificación admin:', { email: user.email, rol: data?.rol, isAdmin: isUserAdmin });
+        setIsAdmin(isUserAdmin);
+      } catch (error) {
+        console.error('Error inesperado verificando admin:', error);
+        setIsAdmin(false);
+      }
     };
+
     checkAdmin();
   }, [user?.email]);
 

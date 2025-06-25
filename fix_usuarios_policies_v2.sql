@@ -75,4 +75,23 @@ GRANT ALL ON public.usuarios TO service_role;
 DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 CREATE TRIGGER on_auth_user_created
     AFTER INSERT ON auth.users
-    FOR EACH ROW EXECUTE FUNCTION public.handle_new_user(); 
+    FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
+
+-- Política para permitir lectura a usuarios autenticados
+CREATE POLICY "Allow authenticated users to read"
+ON public.usuarios
+FOR SELECT
+USING (auth.role() = 'authenticated');
+
+-- Política para permitir inserción a usuarios autenticados
+CREATE POLICY "Allow authenticated users to insert"
+ON public.usuarios
+FOR INSERT
+WITH CHECK (auth.uid() = id);
+
+-- Política para permitir actualización a usuarios autenticados
+CREATE POLICY "Allow users to update their own data"
+ON public.usuarios
+FOR UPDATE
+USING (auth.uid() = id)
+WITH CHECK (auth.uid() = id); 
