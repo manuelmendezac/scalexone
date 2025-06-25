@@ -31,7 +31,6 @@ const VideoSlider: React.FC = () => {
 
   useEffect(() => {
     console.log('VideoSlider montado');
-    console.log('Estado inicial - loading:', loading, 'slides:', slides);
     fetchSlides();
   }, []);
 
@@ -51,37 +50,66 @@ const VideoSlider: React.FC = () => {
       if (error) {
         console.error('Error de Supabase:', error);
         setError(error.message);
-        throw error;
+        return;
       }
       
-      if (!data) {
-        console.log('No hay datos disponibles');
+      if (!data || !Array.isArray(data)) {
+        console.log('No hay datos disponibles o formato inválido');
         setSlides([]);
-      } else {
-        console.log('Slides obtenidos:', data);
-        setSlides(data);
+        return;
       }
+
+      // Validar y limpiar los datos
+      const validSlides = data.filter(slide => {
+        const isValid = 
+          slide &&
+          typeof slide.id === 'string' &&
+          typeof slide.title === 'string' &&
+          typeof slide.description === 'string' &&
+          typeof slide.videoUrl === 'string' &&
+          (slide.videoType === 'youtube' || slide.videoType === 'vimeo');
+        
+        if (!isValid) {
+          console.warn('Slide inválido encontrado:', slide);
+        }
+        return isValid;
+      });
+
+      console.log('Slides válidos:', validSlides);
+      setSlides(validSlides);
     } catch (error) {
       console.error('Error en fetchSlides:', error);
       setError(error instanceof Error ? error.message : 'Error desconocido');
     } finally {
       setLoading(false);
-      console.log('Estado final - loading:', false, 'slides:', slides);
     }
   };
 
   const getEmbedUrl = (url: string, type: 'youtube' | 'vimeo'): string => {
-    console.log('Procesando URL:', url, 'tipo:', type);
-    if (type === 'youtube') {
-      const videoId = url.match(/(?:youtu\.be\/|youtube\.com(?:\/embed\/|\/v\/|\/watch\?v=|\/user\/\S+|\/ytscreeningroom\?v=|\/sandalsResorts#\w\/\w\/.*\/))([^\/&\n?\s]{11})/);
-      const embedUrl = videoId ? `https://www.youtube.com/embed/${videoId[1]}` : url;
-      console.log('URL de embed generada:', embedUrl);
-      return embedUrl;
-    } else {
-      const videoId = url.match(/(?:www\.|player\.)?vimeo.com\/(?:channels\/(?:\w+\/)?|groups\/(?:[^\/]*)\/videos\/|album\/(?:\d+)\/video\/|video\/|)(\d+)(?:[a-zA-Z0-9_\-]+)?/);
-      const embedUrl = videoId ? `https://player.vimeo.com/video/${videoId[1]}` : url;
-      console.log('URL de embed generada:', embedUrl);
-      return embedUrl;
+    if (!url) {
+      console.warn('URL indefinida o vacía');
+      return '';
+    }
+
+    try {
+      if (type === 'youtube') {
+        const videoId = url.match(/(?:youtu\.be\/|youtube\.com(?:\/embed\/|\/v\/|\/watch\?v=|\/user\/\S+|\/ytscreeningroom\?v=|\/sandalsResorts#\w\/\w\/.*\/))([^\/&\n?\s]{11})/);
+        if (!videoId) {
+          console.warn('URL de YouTube inválida:', url);
+          return url;
+        }
+        return `https://www.youtube.com/embed/${videoId[1]}`;
+      } else {
+        const videoId = url.match(/(?:www\.|player\.)?vimeo.com\/(?:channels\/(?:\w+\/)?|groups\/(?:[^\/]*)\/videos\/|album\/(?:\d+)\/video\/|video\/|)(\d+)(?:[a-zA-Z0-9_\-]+)?/);
+        if (!videoId) {
+          console.warn('URL de Vimeo inválida:', url);
+          return url;
+        }
+        return `https://player.vimeo.com/video/${videoId[1]}`;
+      }
+    } catch (error) {
+      console.error('Error al procesar URL:', error);
+      return url;
     }
   };
 
@@ -92,6 +120,11 @@ const VideoSlider: React.FC = () => {
 
   const handleSave = async (updatedSlide: VideoSlide) => {
     try {
+      if (!updatedSlide.id || !updatedSlide.title || !updatedSlide.description || !updatedSlide.videoUrl) {
+        setError('Todos los campos requeridos deben estar completos');
+        return;
+      }
+
       const { error } = await supabase
         .from('video_slides')
         .upsert(updatedSlide);
@@ -103,6 +136,7 @@ const VideoSlider: React.FC = () => {
       fetchSlides();
     } catch (error) {
       console.error('Error saving slide:', error);
+      setError(error instanceof Error ? error.message : 'Error al guardar el slide');
     }
   };
 
@@ -117,19 +151,12 @@ const VideoSlider: React.FC = () => {
       fetchSlides();
     } catch (error) {
       console.error('Error deleting slide:', error);
+      setError(error instanceof Error ? error.message : 'Error al eliminar el slide');
     }
   };
 
-  console.log('Renderizando VideoSlider - Estado actual:', {
-    loading,
-    error,
-    slidesCount: slides.length,
-    isAdmin: userInfo?.rol === 'admin'
-  });
-
   // Si está cargando, mostrar un placeholder
   if (loading) {
-    console.log('Mostrando estado de carga');
     return (
       <div className="video-slider-container">
         <div className="video-slide loading-placeholder">
@@ -141,7 +168,6 @@ const VideoSlider: React.FC = () => {
 
   // Si hay un error, mostrarlo
   if (error) {
-    console.log('Mostrando estado de error:', error);
     return (
       <div className="video-slider-container">
         <div className="video-slide error-state">
@@ -159,9 +185,7 @@ const VideoSlider: React.FC = () => {
 
   // Si no hay slides y el usuario es admin, mostrar botón para crear
   if (slides.length === 0) {
-    console.log('No hay slides disponibles');
     if (userInfo?.rol === 'admin') {
-      console.log('Mostrando botón de creación para admin');
       return (
         <div className="video-slider-container">
           <div className="video-slide flex flex-col items-center justify-center">
@@ -188,7 +212,6 @@ const VideoSlider: React.FC = () => {
     return null;
   }
 
-  console.log('Renderizando slider con', slides.length, 'slides');
   return (
     <div className="video-slider-container">
       <Swiper
@@ -200,45 +223,42 @@ const VideoSlider: React.FC = () => {
         spaceBetween={30}
         slidesPerView={1}
       >
-        {slides.map((slide) => {
-          console.log('Renderizando slide:', slide);
-          return (
-            <SwiperSlide key={slide.id}>
-              <div className="video-slide">
-                <div className="video-container">
-                  <iframe
-                    src={getEmbedUrl(slide.videoUrl, slide.videoType)}
-                    title={slide.title}
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowFullScreen
-                  />
-                </div>
-                <div className="video-content">
-                  <h2>{slide.title}</h2>
-                  <p>{slide.description}</p>
-                  {slide.buttonText && slide.buttonUrl && (
-                    <a 
-                      href={slide.buttonUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="video-cta"
-                    >
-                      {slide.buttonText}
-                    </a>
-                  )}
-                </div>
-                {userInfo?.rol === 'admin' && (
-                  <button
-                    className="admin-edit-button"
-                    onClick={() => handleEdit(slide)}
+        {slides.map((slide) => (
+          <SwiperSlide key={slide.id}>
+            <div className="video-slide">
+              <div className="video-container">
+                <iframe
+                  src={getEmbedUrl(slide.videoUrl, slide.videoType)}
+                  title={slide.title}
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                />
+              </div>
+              <div className="video-content">
+                <h2>{slide.title}</h2>
+                <p>{slide.description}</p>
+                {slide.buttonText && slide.buttonUrl && (
+                  <a 
+                    href={slide.buttonUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="video-cta"
                   >
-                    <Edit2 size={20} />
-                  </button>
+                    {slide.buttonText}
+                  </a>
                 )}
               </div>
-            </SwiperSlide>
-          );
-        })}
+              {userInfo?.rol === 'admin' && (
+                <button
+                  className="admin-edit-button"
+                  onClick={() => handleEdit(slide)}
+                >
+                  <Edit2 size={20} />
+                </button>
+              )}
+            </div>
+          </SwiperSlide>
+        ))}
       </Swiper>
 
       {isEditing && selectedSlide && (
