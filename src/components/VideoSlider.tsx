@@ -31,6 +31,7 @@ const VideoSlider: React.FC = () => {
   const { userInfo } = useNeuroState();
   const { user, isAdmin } = useAuth();
   const [showSlider, setShowSlider] = useState(true);
+  const [previewUrl, setPreviewUrl] = useState<string>('');
 
   useEffect(() => {
     fetchSlides();
@@ -253,6 +254,19 @@ const VideoSlider: React.FC = () => {
     }
   };
 
+  const handleVideoUrlChange = (url: string) => {
+    if (!selectedSlide) return;
+    
+    setSelectedSlide({
+      ...selectedSlide,
+      videoUrl: url
+    });
+
+    // Generar URL de preview
+    const embedUrl = getEmbedUrl(url, selectedSlide.videoType);
+    setPreviewUrl(embedUrl);
+  };
+
   if (!showSlider) {
     return isAdmin ? (
       <div className="p-4 text-center">
@@ -338,14 +352,13 @@ const VideoSlider: React.FC = () => {
               </div>
             </div>
 
-            {/* Timeline con miniaturas */}
-            <div className="video-timeline">
-              <div className="timeline-track">
-                <div 
-                  className="timeline-progress" 
-                  style={{ width: `${((currentSlideIndex + 1) / visibleSlides.length) * 100}%` }}
-                />
-              </div>
+            {/* Timeline con checks */}
+            <div className="timeline-container">
+              <div className="timeline-line"></div>
+              <div 
+                className="timeline-progress" 
+                style={{ width: `${((currentSlideIndex + 1) / visibleSlides.length) * 100}%` }}
+              ></div>
               <div className="timeline-steps">
                 {visibleSlides.map((slide, index) => (
                   <div
@@ -353,16 +366,10 @@ const VideoSlider: React.FC = () => {
                     className={`timeline-step ${index === currentSlideIndex ? 'active' : index < currentSlideIndex ? 'completed' : ''}`}
                     onClick={() => setCurrentSlideIndex(index)}
                   >
-                    <div className="step-thumbnail">
-                      {/* Aquí iría la miniatura del video, por ahora usamos un placeholder */}
-                      <div style={{ 
-                        width: '100%', 
-                        height: '100%', 
-                        background: index === currentSlideIndex ? '#FFD700' : '#333',
-                        opacity: 0.6 
-                      }} />
+                    <div className="step-circle">
+                      {index + 1}
                     </div>
-                    <div className="step-number">{index + 1}</div>
+                    <div className="step-label">{slide.title}</div>
                   </div>
                 ))}
               </div>
@@ -494,75 +501,126 @@ const VideoSlider: React.FC = () => {
             <div className="modal-content">
               <h3>{selectedSlide.id ? 'Editar Video' : 'Agregar Video'}</h3>
               <form onSubmit={handleSave}>
-                <input
-                  type="text"
-                  value={selectedSlide.title}
-                  onChange={(e) => setSelectedSlide({
-                    ...selectedSlide,
-                    title: e.target.value
-                  })}
-                  placeholder="Título"
-                  required
-                />
-                <textarea
-                  value={selectedSlide.description}
-                  onChange={(e) => setSelectedSlide({
-                    ...selectedSlide,
-                    description: e.target.value
-                  })}
-                  placeholder="Descripción"
-                  required
-                />
-                <select
-                  value={selectedSlide.videoType}
-                  onChange={(e) => setSelectedSlide({
-                    ...selectedSlide,
-                    videoType: e.target.value as 'youtube' | 'vimeo'
-                  })}
-                  required
-                >
-                  <option value="youtube">YouTube</option>
-                  <option value="vimeo">Vimeo</option>
-                </select>
-                <input
-                  type="text"
-                  value={selectedSlide.videoUrl}
-                  onChange={(e) => setSelectedSlide({
-                    ...selectedSlide,
-                    videoUrl: e.target.value
-                  })}
-                  placeholder="URL del video (YouTube o Vimeo)"
-                  required
-                />
-                <input
-                  type="text"
-                  value={selectedSlide.buttonText || ''}
-                  onChange={(e) => setSelectedSlide({
-                    ...selectedSlide,
-                    buttonText: e.target.value
-                  })}
-                  placeholder="Texto del botón (opcional)"
-                />
-                <input
-                  type="text"
-                  value={selectedSlide.buttonUrl || ''}
-                  onChange={(e) => setSelectedSlide({
-                    ...selectedSlide,
-                    buttonUrl: e.target.value
-                  })}
-                  placeholder="URL del botón (opcional)"
-                />
-                <input
-                  type="number"
-                  value={selectedSlide.order || ''}
-                  onChange={(e) => setSelectedSlide({
-                    ...selectedSlide,
-                    order: parseInt(e.target.value) || undefined
-                  })}
-                  placeholder="Orden (número)"
-                  min="1"
-                />
-                <div className="visibility-toggle">
+                <div className="form-group">
+                  <label htmlFor="title">Título</label>
+                  <input
+                    id="title"
+                    type="text"
+                    value={selectedSlide.title}
+                    onChange={(e) => setSelectedSlide({
+                      ...selectedSlide,
+                      title: e.target.value
+                    })}
+                    placeholder="Ingresa el título del video"
+                    required
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="description">Descripción</label>
+                  <textarea
+                    id="description"
+                    value={selectedSlide.description}
+                    onChange={(e) => setSelectedSlide({
+                      ...selectedSlide,
+                      description: e.target.value
+                    })}
+                    placeholder="Ingresa una descripción del video"
+                    required
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="videoType">Tipo de Video</label>
+                  <select
+                    id="videoType"
+                    value={selectedSlide.videoType}
+                    onChange={(e) => {
+                      setSelectedSlide({
+                        ...selectedSlide,
+                        videoType: e.target.value as 'youtube' | 'vimeo'
+                      });
+                      setPreviewUrl('');
+                    }}
+                    required
+                  >
+                    <option value="youtube">YouTube</option>
+                    <option value="vimeo">Vimeo</option>
+                  </select>
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="videoUrl">URL del Video</label>
+                  <input
+                    id="videoUrl"
+                    type="text"
+                    value={selectedSlide.videoUrl}
+                    onChange={(e) => handleVideoUrlChange(e.target.value)}
+                    placeholder={`URL del video de ${selectedSlide.videoType === 'youtube' ? 'YouTube' : 'Vimeo'}`}
+                    required
+                  />
+                  <div className="hint">
+                    {selectedSlide.videoType === 'youtube' 
+                      ? 'Ejemplo: https://www.youtube.com/watch?v=XXXX o https://youtu.be/XXXX'
+                      : 'Ejemplo: https://vimeo.com/XXXX'}
+                  </div>
+                </div>
+
+                {previewUrl && (
+                  <div className="video-preview">
+                    <iframe
+                      src={previewUrl}
+                      title="Video Preview"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                    />
+                  </div>
+                )}
+
+                <div className="form-group">
+                  <label htmlFor="buttonText">Texto del Botón (opcional)</label>
+                  <input
+                    id="buttonText"
+                    type="text"
+                    value={selectedSlide.buttonText || ''}
+                    onChange={(e) => setSelectedSlide({
+                      ...selectedSlide,
+                      buttonText: e.target.value
+                    })}
+                    placeholder="Texto para el botón de acción"
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="buttonUrl">URL del Botón (opcional)</label>
+                  <input
+                    id="buttonUrl"
+                    type="text"
+                    value={selectedSlide.buttonUrl || ''}
+                    onChange={(e) => setSelectedSlide({
+                      ...selectedSlide,
+                      buttonUrl: e.target.value
+                    })}
+                    placeholder="URL para el botón de acción"
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="order">Orden</label>
+                  <input
+                    id="order"
+                    type="number"
+                    value={selectedSlide.order || ''}
+                    onChange={(e) => setSelectedSlide({
+                      ...selectedSlide,
+                      order: parseInt(e.target.value) || undefined
+                    })}
+                    placeholder="Posición en la secuencia"
+                    min="1"
+                  />
+                </div>
+
+                <div className="form-group">
                   <label>
                     <input
                       type="checkbox"
@@ -572,9 +630,10 @@ const VideoSlider: React.FC = () => {
                         is_visible: e.target.checked
                       })}
                     />
-                    Video visible
+                    {' '}Video visible
                   </label>
                 </div>
+
                 <div className="button-group">
                   <button type="submit" className="save-button">
                     {selectedSlide.id ? 'Guardar' : 'Crear'}
@@ -584,6 +643,7 @@ const VideoSlider: React.FC = () => {
                     onClick={() => {
                       setIsEditing(false);
                       setSelectedSlide(null);
+                      setPreviewUrl('');
                     }}
                     className="cancel-button"
                   >
