@@ -300,13 +300,15 @@ const VideoSlider: React.FC = () => {
           {currentSlide ? (
             <>
               <div className="video-content">
-                <div className="video-player">
-                  <iframe
-                    src={getEmbedUrl(currentSlide.video_url, currentSlide.video_type)}
-                    title={currentSlide.title}
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowFullScreen
-                  />
+                <div className="video-player-container">
+                  <div className="video-player">
+                    <iframe
+                      src={getEmbedUrl(currentSlide.video_url, currentSlide.video_type)}
+                      title={currentSlide.title}
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                    />
+                  </div>
                 </div>
                 <div className="video-info">
                   <div className="video-header">
@@ -335,20 +337,6 @@ const VideoSlider: React.FC = () => {
                         onClick={() => setCurrentSlideIndex(index)}
                       >
                         {index + 1}
-                      </div>
-                      <div className="progress-thumbnail">
-                        {slide.thumbnail_url ? (
-                          <img 
-                            src={slide.thumbnail_url} 
-                            alt={`Miniatura ${index + 1}`}
-                            className="thumbnail-image"
-                            loading="lazy"
-                          />
-                        ) : (
-                          <div className="thumbnail-placeholder">
-                            <span>Video {index + 1}</span>
-                          </div>
-                        )}
                       </div>
                     </div>
                   ))}
