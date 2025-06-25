@@ -27,7 +27,7 @@ export function useAuth(): AuthState {
       }));
 
       if (session?.user) {
-        checkAdminStatus(session.user.id);
+        checkAdminStatus(session.user.id, session.user.email);
       }
     });
 
@@ -40,7 +40,7 @@ export function useAuth(): AuthState {
       }));
 
       if (session?.user) {
-        checkAdminStatus(session.user.id);
+        checkAdminStatus(session.user.id, session.user.email);
       } else {
         setState(prevState => ({
           ...prevState,
@@ -55,14 +55,13 @@ export function useAuth(): AuthState {
     };
   }, []);
 
-  const checkAdminStatus = async (userId: string) => {
+  const checkAdminStatus = async (userId: string, userEmail?: string) => {
     try {
-      console.log('[useAuth] checkAdminStatus INICIO', { userId, stateUser: state.user });
-      if (!userId || !state.user?.email || typeof state.user.email !== 'string' || state.user.email.trim() === '') {
+      console.log('[useAuth] checkAdminStatus INICIO', { userId, userEmail });
+      if (!userId || !userEmail || typeof userEmail !== 'string' || userEmail.trim() === '') {
         console.log('[useAuth] Datos de usuario inválidos para verificar admin:', { 
           userId, 
-          email: state.user?.email,
-          userExists: !!state.user 
+          email: userEmail,
         });
         setState(prevState => ({
           ...prevState,
@@ -72,7 +71,7 @@ export function useAuth(): AuthState {
         return;
       }
 
-      console.log('[useAuth] Verificando admin status para:', { userId, email: state.user.email });
+      console.log('[useAuth] Verificando admin status para:', { userId, email: userEmail });
 
       // Verificar directamente el rol del usuario
       const { data: userData, error: userError } = await supabase
@@ -90,7 +89,7 @@ export function useAuth(): AuthState {
             .insert([
               {
                 id: userId,
-                email: state.user.email.trim(),
+                email: userEmail.trim(),
                 rol: 'user'
               }
             ]);
@@ -118,7 +117,7 @@ export function useAuth(): AuthState {
       if (userData) {
         const isUserAdmin = userData.rol === 'admin' || userData.rol === 'superadmin';
         console.log('[useAuth] Admin status verificado:', { 
-          email: state.user.email, 
+          email: userEmail, 
           rol: userData.rol, 
           isAdmin: isUserAdmin, 
           userData, 
