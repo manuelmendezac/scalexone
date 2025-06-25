@@ -4,6 +4,8 @@ import { Navigation, Pagination, Autoplay } from 'swiper/modules';
 import { Edit2 } from 'lucide-react';
 import { supabase } from '../supabase';
 import useNeuroState from '../store/useNeuroState';
+
+// Importar estilos de Swiper
 import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/pagination';
@@ -13,10 +15,10 @@ interface VideoSlide {
   id: string;
   title: string;
   description: string;
-  buttonText?: string; // Opcional
-  buttonUrl?: string; // Opcional
+  buttonText?: string;
+  buttonUrl?: string;
   videoUrl: string;
-  videoType: 'youtube' | 'vimeo'; // Tipo de video
+  videoType: 'youtube' | 'vimeo';
 }
 
 const VideoSlider: React.FC = () => {
@@ -90,14 +92,20 @@ const VideoSlider: React.FC = () => {
 
   const isAdmin = userInfo?.rol === 'admin';
 
+  if (slides.length === 0) {
+    return null; // No renderizar nada si no hay slides
+  }
+
   return (
     <div className="video-slider-container">
       <Swiper
         modules={[Navigation, Pagination, Autoplay]}
-        navigation
+        navigation={true}
         pagination={{ clickable: true }}
         autoplay={{ delay: 5000, disableOnInteraction: false }}
         className="video-swiper"
+        spaceBetween={30}
+        slidesPerView={1}
       >
         {slides.map((slide) => (
           <SwiperSlide key={slide.id}>
