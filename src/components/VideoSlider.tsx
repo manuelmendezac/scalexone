@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Edit2, Trash2, Plus, Eye, EyeOff } from 'lucide-react';
+import { Edit2, Trash2, Plus, Eye, EyeOff, ArrowLeft, ArrowRight } from 'lucide-react';
 import { supabase } from '../supabase';
 import useNeuroState from '../store/useNeuroState';
 import './VideoSlider.css';
@@ -14,6 +14,7 @@ interface VideoSlide {
   videoUrl: string;
   videoType: 'youtube' | 'vimeo';
   is_visible?: boolean;
+  order?: number;
 }
 
 interface UserConfig {
@@ -46,7 +47,7 @@ const VideoSlider: React.FC = () => {
       const { data, error } = await supabase
         .from('video_slides')
         .select('*')
-        .order('created_at', { ascending: true });
+        .order('order', { ascending: true });
 
       if (error) {
         console.error('Error al obtener slides:', error);
@@ -75,7 +76,8 @@ const VideoSlider: React.FC = () => {
           videoType: slide.video_type as 'youtube' | 'vimeo',
           buttonText: slide.button_text ? String(slide.button_text) : undefined,
           buttonUrl: slide.button_url ? String(slide.button_url) : undefined,
-          is_visible: slide.is_visible !== undefined ? Boolean(slide.is_visible) : true
+          is_visible: slide.is_visible !== undefined ? Boolean(slide.is_visible) : true,
+          order: slide.order
         };
 
         return [...acc, validSlide];
@@ -103,7 +105,6 @@ const VideoSlider: React.FC = () => {
       if (data) {
         setShowSlider(data.show_video_slider);
       } else if (isAdmin) {
-        // Si no existe configuración, la creamos con valor por defecto
         await supabase
           .from('user_config')
           .insert([{ user_id: user?.id, show_video_slider: true }]);
@@ -177,7 +178,6 @@ const VideoSlider: React.FC = () => {
         return;
       }
 
-      // Ajustar los nombres de las columnas para que coincidan con la base de datos
       const slideToSave = {
         id: selectedSlide.id,
         title: selectedSlide.title,
@@ -186,7 +186,8 @@ const VideoSlider: React.FC = () => {
         video_type: selectedSlide.videoType,
         button_text: selectedSlide.buttonText || null,
         button_url: selectedSlide.buttonUrl || null,
-        is_visible: selectedSlide.is_visible !== undefined ? selectedSlide.is_visible : true
+        is_visible: selectedSlide.is_visible !== undefined ? selectedSlide.is_visible : true,
+        order: selectedSlide.order || slides.length + 1
       };
 
       console.log('Guardando slide:', slideToSave);
@@ -237,6 +238,18 @@ const VideoSlider: React.FC = () => {
     } catch (err) {
       console.error('Error al cambiar visibilidad:', err);
       setError(err instanceof Error ? err.message : 'Error al cambiar visibilidad');
+    }
+  };
+
+  const handleNext = () => {
+    if (currentSlideIndex < visibleSlides.length - 1) {
+      setCurrentSlideIndex(currentSlideIndex + 1);
+    }
+  };
+
+  const handlePrev = () => {
+    if (currentSlideIndex > 0) {
+      setCurrentSlideIndex(currentSlideIndex - 1);
     }
   };
 
@@ -298,58 +311,74 @@ const VideoSlider: React.FC = () => {
       <div className="video-slider-container">
         {/* Video Principal */}
         {currentSlide ? (
-          <div className="main-video-container">
-            <div className="video-container">
-              <iframe
-                src={getEmbedUrl(currentSlide.videoUrl, currentSlide.videoType)}
-                title={currentSlide.title}
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-              />
+          <>
+            <div className="main-video-container">
+              <div className="video-container">
+                <iframe
+                  src={getEmbedUrl(currentSlide.videoUrl, currentSlide.videoType)}
+                  title={currentSlide.title}
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                />
+              </div>
+              <div className="video-content">
+                <h2>{currentSlide.title}</h2>
+                <p>{currentSlide.description}</p>
+                {currentSlide.buttonText && currentSlide.buttonUrl && (
+                  <a 
+                    href={currentSlide.buttonUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="video-cta"
+                  >
+                    {currentSlide.buttonText}
+                  </a>
+                )}
+              </div>
             </div>
-            <div className="video-content">
-              <h2>{currentSlide.title}</h2>
-              <p>{currentSlide.description}</p>
-              {currentSlide.buttonText && currentSlide.buttonUrl && (
-                <a 
-                  href={currentSlide.buttonUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="video-cta"
+
+            {/* Timeline */}
+            <div className="video-timeline">
+              <div className="timeline-line"></div>
+              <div 
+                className="timeline-progress" 
+                style={{ width: `${((currentSlideIndex + 1) / visibleSlides.length) * 100}%` }}
+              ></div>
+              {visibleSlides.map((_, index) => (
+                <div
+                  key={index}
+                  className={`timeline-step ${index === currentSlideIndex ? 'active' : index < currentSlideIndex ? 'completed' : ''}`}
+                  onClick={() => setCurrentSlideIndex(index)}
                 >
-                  {currentSlide.buttonText}
-                </a>
-              )}
+                  {index + 1}
+                </div>
+              ))}
             </div>
-          </div>
-        ) : userInfo?.rol === 'admin' ? (
+
+            {/* Botones de navegación */}
+            <div className="navigation-buttons">
+              <button
+                className="nav-button prev"
+                onClick={handlePrev}
+                disabled={currentSlideIndex === 0}
+              >
+                <ArrowLeft size={20} />
+                Anterior
+              </button>
+              <button
+                className="nav-button next"
+                onClick={handleNext}
+                disabled={currentSlideIndex === visibleSlides.length - 1}
+              >
+                Siguiente
+                <ArrowRight size={20} />
+              </button>
+            </div>
+          </>
+        ) : (
           <div className="empty-state">
             <p className="text-gold mb-4">No hay videos configurados</p>
-            <button
-              onClick={() => {
-                setSelectedSlide({
-                  id: crypto.randomUUID(),
-                  title: '',
-                  description: '',
-                  videoUrl: '',
-                  videoType: 'youtube',
-                  is_visible: true
-                });
-                setIsEditing(true);
-              }}
-              className="px-4 py-2 bg-gold text-black rounded-lg flex items-center gap-2"
-            >
-              <Plus size={20} />
-              Agregar Video
-            </button>
-          </div>
-        ) : null}
-
-        {/* Lista de Videos */}
-        {userInfo?.rol === 'admin' && slides.length > 0 && (
-          <div className="video-list">
-            <div className="list-header">
-              <h3>Lista de Videos</h3>
+            {isAdmin && (
               <button
                 onClick={() => {
                   setSelectedSlide({
@@ -362,6 +391,33 @@ const VideoSlider: React.FC = () => {
                   });
                   setIsEditing(true);
                 }}
+                className="px-4 py-2 bg-gold text-black rounded-lg flex items-center gap-2"
+              >
+                <Plus size={20} />
+                Agregar Video
+              </button>
+            )}
+          </div>
+        )}
+
+        {/* Lista de Videos para Administradores */}
+        {isAdmin && visibleSlides.length > 0 && (
+          <div className="video-list">
+            <div className="list-header">
+              <h3>Lista de Videos</h3>
+              <button
+                onClick={() => {
+                  setSelectedSlide({
+                    id: crypto.randomUUID(),
+                    title: '',
+                    description: '',
+                    videoUrl: '',
+                    videoType: 'youtube',
+                    is_visible: true,
+                    order: visibleSlides.length + 1
+                  });
+                  setIsEditing(true);
+                }}
                 className="add-video-button"
               >
                 <Plus size={20} />
@@ -369,12 +425,13 @@ const VideoSlider: React.FC = () => {
               </button>
             </div>
             <div className="video-items">
-              {slides.map((slide, index) => (
+              {visibleSlides.map((slide, index) => (
                 <div 
                   key={slide.id} 
-                  className={`video-item ${index === currentSlideIndex ? 'active' : ''} ${!slide.is_visible ? 'hidden-item' : ''}`}
+                  className={`video-item ${index === currentSlideIndex ? 'active' : ''}`}
                   onClick={() => setCurrentSlideIndex(index)}
                 >
+                  <div className="video-item-number">{index + 1}</div>
                   <div className="video-item-content">
                     <h4>{slide.title}</h4>
                     <p>{slide.description}</p>
@@ -402,7 +459,9 @@ const VideoSlider: React.FC = () => {
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
-                        handleDelete(slide.id);
+                        if (window.confirm('¿Estás seguro de que quieres eliminar este video?')) {
+                          handleDelete(slide.id);
+                        }
                       }}
                       className="delete-button"
                     >
@@ -478,6 +537,16 @@ const VideoSlider: React.FC = () => {
                     buttonUrl: e.target.value
                   })}
                   placeholder="URL del botón (opcional)"
+                />
+                <input
+                  type="number"
+                  value={selectedSlide.order || ''}
+                  onChange={(e) => setSelectedSlide({
+                    ...selectedSlide,
+                    order: parseInt(e.target.value) || undefined
+                  })}
+                  placeholder="Orden (número)"
+                  min="1"
                 />
                 <div className="visibility-toggle">
                   <label>
