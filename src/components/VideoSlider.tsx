@@ -4,12 +4,12 @@ import { useAuth } from '../hooks/useAuth';
 import './VideoSlider.css';
 
 interface ActionButton {
-  id?: number;  // Opcional para permitir nuevos botones
+  id?: number;  // ID generado por la base de datos
   title: string;
   url: string;
   order_index: number;
-  created_at?: string;  // Opcional ya que es manejado por la base de datos
-  updated_at?: string;  // Opcional ya que es manejado por la base de datos
+  created_at?: string;
+  updated_at?: string;
 }
 
 interface VideoSlide {
@@ -349,40 +349,29 @@ const VideoSlider: React.FC = () => {
   };
 
   const handleSaveActionButtons = async () => {
-    if (!isAdmin) {
-      setError('No tienes permisos para editar los botones');
-      return;
-    }
-
     try {
-      setError(null);
-      console.log('Guardando botones...');
-
-      // Preparar los botones para guardar, omitiendo el id para nuevos botones
-      const buttonsToSave = actionButtons.map((button, index) => {
-        const { id, ...buttonWithoutId } = button;
-        return {
-          ...(id ? { id } : {}), // Solo incluir id si existe
-          ...buttonWithoutId,
-          order_index: index + 1
-        };
-      });
-
-      console.log('Botones a guardar:', buttonsToSave);
-
+      console.log('Guardando botones de acción...');
+      
       // Separar botones existentes de nuevos botones
-      const existingButtons = buttonsToSave.filter(button => 'id' in button);
-      const newButtons = buttonsToSave.filter(button => !('id' in button));
-
+      const existingButtons = actionButtons.filter(button => button.id);
+      const newButtons = actionButtons.filter(button => !button.id);
+      
       // Actualizar botones existentes
       if (existingButtons.length > 0) {
         const { error: updateError } = await supabase
           .from('botones_accion')
-          .upsert(existingButtons);
+          .upsert(
+            existingButtons.map(({ id, title, url, order_index }) => ({
+              id,
+              title,
+              url,
+              order_index
+            }))
+          );
 
         if (updateError) {
-          console.error('Error al actualizar botones:', updateError);
-          throw new Error(updateError.message);
+          console.error('Error al actualizar botones existentes:', updateError);
+          throw updateError;
         }
       }
 
@@ -390,20 +379,27 @@ const VideoSlider: React.FC = () => {
       if (newButtons.length > 0) {
         const { error: insertError } = await supabase
           .from('botones_accion')
-          .insert(newButtons);
+          .insert(
+            newButtons.map(({ title, url, order_index }) => ({
+              title,
+              url,
+              order_index
+            }))
+          );
 
         if (insertError) {
-          console.error('Error al insertar botones:', insertError);
-          throw new Error(insertError.message);
+          console.error('Error al insertar nuevos botones:', insertError);
+          throw insertError;
         }
       }
 
-      console.log('Botones guardados exitosamente');
-      setIsEditing(false);
+      // Recargar los botones después de guardar
       await fetchActionButtons();
+      setIsEditingActions(false);
+      
     } catch (err) {
-      console.error('Error en handleSaveActionButtons:', err);
-      setError(err instanceof Error ? err.message : 'Error al guardar los cambios');
+      console.error('Error al guardar botones:', err);
+      setError('Error al guardar los botones de acción');
     }
   };
 
