@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from '../supabase';
 import { useAuth } from '../hooks/useAuth';
 import './VideoSlider.css';
@@ -29,25 +29,51 @@ const VideoSlider: React.FC = () => {
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
   const { user, isAdmin } = useAuth();
 
-  const getVimeoThumbnail = async (url: string): Promise<string> => {
+  // Memoizar las expresiones regulares para mejor rendimiento
+  const videoIdRegex = useMemo(() => ({
+    youtube: /(?:youtu\.be\/|youtube\.com(?:\/embed\/|\/v\/|\/watch\?v=|\/user\/\S+|\/ytscreeningroom\?v=|\/sandalsResorts#\w\/\w\/.*\/))([^\/&\n?\s]{11})/,
+    vimeo: /(?:www\.|player\.)?vimeo.com\/(?:channels\/(?:\w+\/)?|groups\/(?:[^\/]*)\/videos\/|album\/(?:\d+)\/video\/|video\/|)(\d+)(?:[a-zA-Z0-9_\-]+)?/
+  }), []);
+
+  // Cache para miniaturas
+  const thumbnailCache = useMemo(() => new Map<string, string>(), []);
+
+  const getVimeoThumbnail = useCallback(async (url: string): Promise<string> => {
+    // Verificar si ya tenemos la miniatura en caché
+    if (thumbnailCache.has(url)) {
+      return thumbnailCache.get(url)!;
+    }
+
     try {
-      const videoId = url.match(/(?:www\.|player\.)?vimeo.com\/(?:channels\/(?:\w+\/)?|groups\/(?:[^\/]*)\/videos\/|album\/(?:\d+)\/video\/|video\/|)(\d+)(?:[a-zA-Z0-9_\-]+)?/);
+      const videoId = url.match(videoIdRegex.vimeo);
       if (!videoId) return '';
       
       const response = await fetch(`https://vimeo.com/api/oembed.json?url=${encodeURIComponent(url)}`);
+      if (!response.ok) throw new Error('Error al obtener datos de Vimeo');
+      
       const data: VimeoOEmbedResponse = await response.json();
+      // Guardar en caché
+      thumbnailCache.set(url, data.thumbnail_url);
       return data.thumbnail_url;
     } catch (err) {
       console.error('Error al obtener miniatura de Vimeo:', err);
       return '';
     }
-  };
+  }, [videoIdRegex.vimeo, thumbnailCache]);
 
-  const getThumbnailUrl = async (url: string, type: 'youtube' | 'vimeo'): Promise<string> => {
+  const getThumbnailUrl = useCallback(async (url: string, type: 'youtube' | 'vimeo'): Promise<string> => {
+    // Verificar si ya tenemos la miniatura en caché
+    if (thumbnailCache.has(url)) {
+      return thumbnailCache.get(url)!;
+    }
+
     try {
       if (type === 'youtube') {
-        const videoId = url.match(/(?:youtu\.be\/|youtube\.com(?:\/embed\/|\/v\/|\/watch\?v=|\/user\/\S+|\/ytscreeningroom\?v=|\/sandalsResorts#\w\/\w\/.*\/))([^\/&\n?\s]{11})/);
-        return videoId ? `https://img.youtube.com/vi/${videoId[1]}/mqdefault.jpg` : '';
+        const videoId = url.match(videoIdRegex.youtube);
+        const thumbnailUrl = videoId ? `https://img.youtube.com/vi/${videoId[1]}/mqdefault.jpg` : '';
+        // Guardar en caché
+        thumbnailCache.set(url, thumbnailUrl);
+        return thumbnailUrl;
       } else {
         return await getVimeoThumbnail(url);
       }
@@ -55,17 +81,9 @@ const VideoSlider: React.FC = () => {
       console.error('Error al procesar URL para miniatura:', err);
       return '';
     }
-  };
+  }, [videoIdRegex.youtube, getVimeoThumbnail, thumbnailCache]);
 
-  useEffect(() => {
-    if (!user) {
-      setLoading(false);
-      return;
-    }
-    fetchSlides();
-  }, [user]);
-
-  const fetchSlides = async () => {
+  const fetchSlides = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -83,6 +101,7 @@ const VideoSlider: React.FC = () => {
 
       if (error) throw error;
 
+      // Procesar las miniaturas en paralelo
       const validSlides = await Promise.all((data || []).map(async slide => {
         const thumbnail = await getThumbnailUrl(slide.video_url, slide.video_type as 'youtube' | 'vimeo');
         return {
@@ -104,7 +123,15 @@ const VideoSlider: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [isAdmin, getThumbnailUrl]);
+
+  useEffect(() => {
+    if (!user) {
+      setLoading(false);
+      return;
+    }
+    fetchSlides();
+  }, [user, fetchSlides]);
 
   const getEmbedUrl = (url: string, type: 'youtube' | 'vimeo'): string => {
     try {
@@ -256,7 +283,7 @@ const VideoSlider: React.FC = () => {
           <div className="progress-bar">
             <div className="progress-line">
               {slides.map((slide, index) => (
-                <div key={index} className="progress-point-container">
+                <div key={slide.id} className="progress-point-container">
                   <div
                     className={`progress-point ${index <= currentSlideIndex ? 'completed' : ''} ${index === currentSlideIndex ? 'current' : ''}`}
                     onClick={() => setCurrentSlideIndex(index)}
@@ -264,12 +291,18 @@ const VideoSlider: React.FC = () => {
                     {index + 1}
                   </div>
                   <div className="progress-thumbnail">
-                    <img 
-                      src={slide.thumbnail_url || 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIwIiBoZWlnaHQ9IjE4MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMzIwIiBoZWlnaHQ9IjE4MCIgZmlsbD0iIzFhMWExYSIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMjAiIGZpbGw9IiNGRkQ3MDAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj5WaWRlbzwvdGV4dD48L3N2Zz4='} 
-                      alt={`Miniatura ${index + 1}`}
-                      className="thumbnail-image"
-                      loading="lazy"
-                    />
+                    {slide.thumbnail_url ? (
+                      <img 
+                        src={slide.thumbnail_url} 
+                        alt={`Miniatura ${index + 1}`}
+                        className="thumbnail-image"
+                        loading="lazy"
+                      />
+                    ) : (
+                      <div className="thumbnail-placeholder">
+                        <span>Video {index + 1}</span>
+                      </div>
+                    )}
                   </div>
                 </div>
               ))}

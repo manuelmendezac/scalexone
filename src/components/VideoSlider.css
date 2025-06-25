@@ -918,4 +918,16 @@
   .progress-line::before {
     top: 2rem;
   }
+}
+
+.thumbnail-placeholder {
+  width: 100%;
+  height: 100%;
+  background: #1a1a1a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #FFD700;
+  font-size: 0.875rem;
+  font-weight: 500;
 } 
