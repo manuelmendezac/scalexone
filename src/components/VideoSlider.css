@@ -506,4 +506,269 @@
 .empty-state button:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(255, 215, 0, 0.3);
+}
+
+.video-slider-simple {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+  background: #1a1a1a;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.video-content {
+  display: flex;
+  gap: 2rem;
+  margin-bottom: 2rem;
+}
+
+.video-player {
+  width: 60%;
+  position: relative;
+  padding-bottom: 33.75%; /* 16:9 aspect ratio */
+  height: 0;
+}
+
+.video-player iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border: none;
+  border-radius: 8px;
+}
+
+.video-info {
+  width: 40%;
+  padding: 1rem;
+}
+
+.video-info h2 {
+  font-size: 1.75rem;
+  color: #FFD700;
+  margin-bottom: 1rem;
+  font-weight: 600;
+}
+
+.video-info p {
+  color: #fff;
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+.progress-bar {
+  margin: 2rem 0;
+  padding: 0 2rem;
+}
+
+.progress-line {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: relative;
+  padding: 1rem 0;
+}
+
+.progress-line::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 2px;
+  background: #FFD700;
+  transform: translateY(-50%);
+  z-index: 0;
+}
+
+.progress-point {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #1a1a1a;
+  border: 2px solid #FFD700;
+  color: #FFD700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  position: relative;
+  z-index: 1;
+  transition: all 0.3s ease;
+}
+
+.progress-point.completed {
+  background: #FFD700;
+  color: #000;
+}
+
+.progress-point.current {
+  transform: scale(1.2);
+  box-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
+}
+
+.navigation-buttons {
+  display: flex;
+  justify-content: space-between;
+  padding: 0 2rem;
+  margin-top: 2rem;
+}
+
+.nav-button {
+  padding: 0.75rem 2rem;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.nav-button.prev {
+  background: #333;
+  color: #fff;
+}
+
+.nav-button.next {
+  background: #FFD700;
+  color: #000;
+}
+
+.nav-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.nav-button:not(:disabled):hover {
+  transform: translateY(-2px);
+}
+
+/* Modal de edición */
+.edit-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: #1a1a1a;
+  padding: 2rem;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 500px;
+}
+
+.modal-content h3 {
+  color: #FFD700;
+  font-size: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.form-group {
+  margin-bottom: 1rem;
+}
+
+.form-group label {
+  display: block;
+  color: #fff;
+  margin-bottom: 0.5rem;
+}
+
+.form-group input,
+.form-group textarea,
+.form-group select {
+  width: 100%;
+  padding: 0.75rem;
+  background: #333;
+  border: 1px solid #444;
+  border-radius: 4px;
+  color: #fff;
+}
+
+.form-group textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+
+.button-group {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.button-group button {
+  flex: 1;
+  padding: 0.75rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.button-group button[type="submit"] {
+  background: #FFD700;
+  color: #000;
+}
+
+.button-group button[type="button"] {
+  background: #333;
+  color: #fff;
+}
+
+.admin-controls {
+  display: flex;
+  justify-content: flex-end;
+  padding: 1rem;
+}
+
+.admin-controls button {
+  padding: 0.5rem 1rem;
+  background: #FFD700;
+  color: #000;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.admin-controls button:hover {
+  transform: translateY(-2px);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .video-content {
+    flex-direction: column;
+  }
+
+  .video-player,
+  .video-info {
+    width: 100%;
+  }
+
+  .video-player {
+    padding-bottom: 56.25%;
+  }
+
+  .progress-point {
+    width: 30px;
+    height: 30px;
+    font-size: 0.875rem;
+  }
+
+  .nav-button {
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+  }
 } 
