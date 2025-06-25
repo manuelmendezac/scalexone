@@ -55,16 +55,26 @@ const Inicio: React.FC = () => {
     }
   }, [isHydrated, userInfo.id]);
 
+  if (loading) {
+    return <LoadingScreen />;
+  }
+
   return (
-    <div className="w-full min-h-screen" style={{ background: '#000' }}>
-      <div className="max-w-7xl w-full mx-auto px-4 md:px-8">
+    <div className="w-full min-h-screen bg-black">
+      <div className="max-w-7xl w-full mx-auto px-4 md:px-8 py-8">
         <BannerSlider />
-        <div className="flex flex-col gap-8">
+        <div className="flex flex-col gap-8 mt-8">
           <OnboardingMentor />
-          <VideoSlider />
+          <div className="w-full">
+            <VideoSlider />
+          </div>
         </div>
-        <QuickAccess />
-        <TipsCarousel news={news} />
+        <div className="mt-8">
+          <QuickAccess />
+        </div>
+        <div className="mt-8">
+          <TipsCarousel news={news} />
+        </div>
       </div>
     </div>
   );
