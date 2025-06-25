@@ -263,7 +263,7 @@ const CursoDetalle = () => {
     let videos = [];
     if (moduloReal?.id) {
       const { data: videosData } = await supabase
-        .from('videos_modulo')
+        .from('videos_classroom_modulo')
         .select('*')
         .eq('modulo_id', moduloReal.id)
         .order('orden', { ascending: true });
