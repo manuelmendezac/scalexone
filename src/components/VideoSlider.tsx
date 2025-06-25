@@ -7,6 +7,7 @@ interface ActionButton {
   id: number;
   title: string;
   url: string;
+  order_index: number;
 }
 
 interface VideoSlide {
@@ -35,23 +36,7 @@ const VideoSlider: React.FC = () => {
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
   const { user, isAdmin } = useAuth();
   const [isEditingActions, setIsEditingActions] = useState(false);
-  const [actionButtons, setActionButtons] = useState<ActionButton[]>([
-    {
-      id: 1,
-      title: "Ver comunidad Bepartnex",
-      url: "/comunidad"
-    },
-    {
-      id: 2,
-      title: "Grupo de anuncios",
-      url: "/anuncios"
-    },
-    {
-      id: 3,
-      title: "Comunidad de Facebook",
-      url: "https://facebook.com/groups/bepartnex"
-    }
-  ]);
+  const [actionButtons, setActionButtons] = useState<ActionButton[]>([]);
   const [editingButton, setEditingButton] = useState<ActionButton | null>(null);
   const [isEditingVideo, setIsEditingVideo] = useState(false);
   const [editingVideo, setEditingVideo] = useState<VideoSlide | null>(null);
@@ -152,13 +137,62 @@ const VideoSlider: React.FC = () => {
     }
   }, [isAdmin, getThumbnailUrl]);
 
+  const fetchActionButtons = useCallback(async () => {
+    try {
+      const { data, error } = await supabase
+        .from('botones_accion')
+        .select('*')
+        .order('order_index');
+
+      if (error) throw error;
+
+      if (data && data.length > 0) {
+        setActionButtons(data);
+      } else {
+        // Si no hay botones en la base de datos, crear los botones por defecto
+        const defaultButtons = [
+          {
+            title: "Ver comunidad Bepartnex",
+            url: "/comunidad",
+            order_index: 1
+          },
+          {
+            title: "Grupo de anuncios",
+            url: "/anuncios",
+            order_index: 2
+          },
+          {
+            title: "Comunidad de Facebook",
+            url: "https://facebook.com/groups/bepartnex",
+            order_index: 3
+          }
+        ];
+
+        const { data: insertedButtons, error: insertError } = await supabase
+          .from('botones_accion')
+          .insert(defaultButtons)
+          .select();
+
+        if (insertError) throw insertError;
+
+        if (insertedButtons) {
+          setActionButtons(insertedButtons);
+        }
+      }
+    } catch (err) {
+      console.error('Error al cargar los botones:', err);
+      setError('Error al cargar los botones de acción');
+    }
+  }, []);
+
   useEffect(() => {
     if (!user) {
       setLoading(false);
       return;
     }
     fetchSlides();
-  }, [user, fetchSlides]);
+    fetchActionButtons();
+  }, [user, fetchSlides, fetchActionButtons]);
 
   const getEmbedUrl = (url: string, type: 'youtube' | 'vimeo'): string => {
     try {
@@ -254,6 +288,29 @@ const VideoSlider: React.FC = () => {
   const handleCancelEditAction = () => {
     setEditingButton(null);
     setIsEditingActions(false);
+  };
+
+  const handleSaveActionButtons = async () => {
+    try {
+      const { error } = await supabase
+        .from('botones_accion')
+        .upsert(
+          actionButtons.map(button => ({
+            id: button.id,
+            title: button.title,
+            url: button.url,
+            order_index: button.order_index
+          }))
+        );
+
+      if (error) throw error;
+
+      setIsEditing(false);
+      await fetchActionButtons(); // Recargar los botones después de guardar
+    } catch (err) {
+      console.error('Error al guardar los botones:', err);
+      setError('Error al guardar los cambios en los botones');
+    }
   };
 
   if (loading) {
@@ -459,9 +516,9 @@ const VideoSlider: React.FC = () => {
             <div className="action-modal-header">
               <h3>Editar Botones de Acción</h3>
             </div>
-            {actionButtons.map(button => (
+            {actionButtons.map((button, index) => (
               <div key={button.id} className="action-form-group">
-                <label>Botón {button.id}</label>
+                <label>Botón {index + 1}</label>
                 <input
                   type="text"
                   value={button.title}
@@ -492,13 +549,16 @@ const VideoSlider: React.FC = () => {
             <div className="action-modal-buttons">
               <button
                 className="action-modal-button action-modal-cancel"
-                onClick={() => setIsEditing(false)}
+                onClick={() => {
+                  setIsEditing(false);
+                  fetchActionButtons(); // Recargar los botones originales al cancelar
+                }}
               >
                 Cancelar
               </button>
               <button
                 className="action-modal-button action-modal-save"
-                onClick={() => setIsEditing(false)}
+                onClick={handleSaveActionButtons}
               >
                 Guardar
               </button>
