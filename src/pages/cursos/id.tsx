@@ -972,6 +972,28 @@ const CursoDetalle = () => {
                   </button>
                 </div>
               </div>
+              <div className="w-full mt-4">
+                <div className="h-3 rounded-full bg-neutral-700 relative overflow-hidden mb-1">
+                  <div
+                    className="h-3 rounded-full transition-all duration-700"
+                    style={{
+                      width: `${mod.progreso || 0}%`,
+                      background: 'linear-gradient(90deg, #FDB813 0%, #E8A317 100%)',
+                      boxShadow: '0 0 10px 1px #FDB81399',
+                    }}
+                  />
+                  <span className="absolute inset-0 flex items-center justify-center text-xs font-bold text-white" style={{textShadow:'0 1px 1px rgba(0,0,0,0.7)'}}>
+                    {mod.progreso ? `${mod.progreso}%` : '0%'}
+                  </span>
+                </div>
+                <div className="flex flex-row items-center gap-3 mt-1">
+                  <span className="text-cyan-300 font-bold text-sm">+{mod.xp || 0}</span>
+                  <span className="text-yellow-400 font-bold text-sm">🪙 {mod.monedas || 0}</span>
+                  {mod.progreso === 100 && (
+                    <span className="text-2xl ml-auto">🏆</span>
+                  )}
+                </div>
+              </div>
             </div>
           ))}
         </div>
