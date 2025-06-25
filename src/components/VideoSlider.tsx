@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Edit2, Trash2, Plus, Eye, EyeOff, ArrowLeft, ArrowRight, Edit3 } from 'lucide-react';
 import { supabase } from '../supabase';
-import useNeuroState from '../store/useNeuroState';
 import './VideoSlider.css';
 import { useAuth } from '../hooks/useAuth';
 
@@ -28,16 +27,18 @@ const VideoSlider: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
-  const { userInfo } = useNeuroState();
   const { user, isAdmin } = useAuth();
   const [showSlider, setShowSlider] = useState(true);
   const [previewUrl, setPreviewUrl] = useState<string>('');
 
   useEffect(() => {
-    fetchSlides();
-    if (user) {
-      fetchUserConfig();
+    if (!user) {
+      setLoading(false);
+      return;
     }
+    
+    fetchSlides();
+    fetchUserConfig();
   }, [user]);
 
   const fetchSlides = async () => {
@@ -45,10 +46,17 @@ const VideoSlider: React.FC = () => {
       setLoading(true);
       setError(null);
 
-      const { data, error } = await supabase
+      let query = supabase
         .from('video_slides')
         .select('*')
         .order('order', { ascending: true });
+
+      // Si no es admin, solo mostrar slides visibles
+      if (!isAdmin) {
+        query = query.eq('is_visible', true);
+      }
+
+      const { data, error } = await query;
 
       if (error) {
         console.error('Error al obtener slides:', error);
@@ -59,29 +67,36 @@ const VideoSlider: React.FC = () => {
       const validSlides = (data || []).reduce((acc: VideoSlide[], slide: any) => {
         if (!slide) return acc;
 
-        if (!slide.id || !slide.title || !slide.description || !slide.video_url || !slide.video_type) {
-          console.warn('Slide inválido encontrado:', slide);
+        try {
+          const validSlide: VideoSlide = {
+            id: String(slide.id),
+            title: String(slide.title),
+            description: String(slide.description),
+            videoUrl: String(slide.video_url),
+            videoType: slide.video_type as 'youtube' | 'vimeo',
+            buttonText: slide.button_text ? String(slide.button_text) : undefined,
+            buttonUrl: slide.button_url ? String(slide.button_url) : undefined,
+            is_visible: slide.is_visible !== undefined ? Boolean(slide.is_visible) : true,
+            order: slide.order
+          };
+
+          // Validar campos requeridos
+          if (!validSlide.title || !validSlide.description || !validSlide.videoUrl) {
+            console.warn('Slide con campos requeridos faltantes:', slide);
+            return acc;
+          }
+
+          // Validar tipo de video
+          if (validSlide.videoType !== 'youtube' && validSlide.videoType !== 'vimeo') {
+            console.warn('Tipo de video inválido:', validSlide.videoType);
+            return acc;
+          }
+
+          return [...acc, validSlide];
+        } catch (err) {
+          console.error('Error procesando slide:', err);
           return acc;
         }
-
-        if (slide.video_type !== 'youtube' && slide.video_type !== 'vimeo') {
-          console.warn('Tipo de video inválido:', slide.video_type);
-          return acc;
-        }
-
-        const validSlide: VideoSlide = {
-          id: String(slide.id),
-          title: String(slide.title),
-          description: String(slide.description),
-          videoUrl: String(slide.video_url),
-          videoType: slide.video_type as 'youtube' | 'vimeo',
-          buttonText: slide.button_text ? String(slide.button_text) : undefined,
-          buttonUrl: slide.button_url ? String(slide.button_url) : undefined,
-          is_visible: slide.is_visible !== undefined ? Boolean(slide.is_visible) : true,
-          order: slide.order
-        };
-
-        return [...acc, validSlide];
       }, []);
 
       setSlides(validSlides);
@@ -94,24 +109,35 @@ const VideoSlider: React.FC = () => {
   };
 
   const fetchUserConfig = async () => {
+    if (!user) return;
+
     try {
       const { data, error } = await supabase
         .from('user_config')
         .select('show_video_slider')
-        .eq('user_id', user?.id)
+        .eq('user_id', user.id)
         .single();
 
-      if (error) throw error;
+      if (error && error.code !== 'PGRST116') { // Ignorar error cuando no hay registros
+        throw error;
+      }
 
       if (data) {
         setShowSlider(data.show_video_slider);
       } else if (isAdmin) {
-        await supabase
+        // Solo crear configuración por defecto para admins
+        const { error: insertError } = await supabase
           .from('user_config')
-          .insert([{ user_id: user?.id, show_video_slider: true }]);
+          .insert([{ 
+            user_id: user.id, 
+            show_video_slider: true 
+          }]);
+
+        if (insertError) throw insertError;
       }
     } catch (error) {
       console.error('Error fetching user config:', error);
+      // No mostrar error al usuario ya que esto es configuración opcional
     }
   };
 
@@ -287,46 +313,25 @@ const VideoSlider: React.FC = () => {
     }
   };
 
-  if (!showSlider) {
-    return isAdmin ? (
-      <div className="p-4 text-center">
-        <button
-          onClick={toggleSliderVisibility}
-          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-        >
-          Habilitar Sección de Videos
-        </button>
-      </div>
-    ) : null;
+  if (!user) {
+    return null; // O un componente de "Inicie sesión para ver el contenido"
   }
 
   if (loading) {
-    return (
-      <div className="video-slider-container">
-        <div className="video-slide loading-placeholder">
-          <div className="animate-pulse bg-gray-700 h-64 rounded-lg"></div>
-        </div>
-      </div>
-    );
+    return <div className="flex justify-center items-center h-64">
+      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-yellow-400"></div>
+    </div>;
   }
 
   if (error) {
-    return (
-      <div className="video-slider-container">
-        <div className="video-slide error-state">
-          <p className="text-red-500">Error: {error}</p>
-          <button 
-            onClick={fetchSlides}
-            className="mt-4 px-4 py-2 bg-gold text-black rounded-lg"
-          >
-            Reintentar
-          </button>
-        </div>
-      </div>
-    );
+    return <div className="text-red-500 p-4">{error}</div>;
   }
 
-  const visibleSlides = userInfo?.rol === 'admin' ? slides : slides.filter(slide => slide.is_visible);
+  if (!showSlider && !isAdmin) {
+    return null;
+  }
+
+  const visibleSlides = isAdmin ? slides : slides.filter(slide => slide.is_visible);
   const currentSlide = visibleSlides[currentSlideIndex];
 
   return (
