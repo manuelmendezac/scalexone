@@ -25,6 +25,8 @@ const VideoSlider: React.FC = () => {
   const [slides, setSlides] = useState<VideoSlide[]>([]);
   const [isEditing, setIsEditing] = useState(false);
   const [selectedSlide, setSelectedSlide] = useState<VideoSlide | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const { userInfo } = useNeuroState();
 
   useEffect(() => {
@@ -33,15 +35,26 @@ const VideoSlider: React.FC = () => {
 
   const fetchSlides = async () => {
     try {
+      console.log('Fetching slides...');
+      setLoading(true);
       const { data, error } = await supabase
         .from('video_slides')
         .select('*')
         .order('created_at', { ascending: true });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching slides:', error);
+        setError(error.message);
+        throw error;
+      }
+      
+      console.log('Slides fetched:', data);
       setSlides(data || []);
     } catch (error) {
-      console.error('Error fetching slides:', error);
+      console.error('Error in fetchSlides:', error);
+      setError(error instanceof Error ? error.message : 'Error desconocido');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -92,8 +105,61 @@ const VideoSlider: React.FC = () => {
 
   const isAdmin = userInfo?.rol === 'admin';
 
+  // Si está cargando, mostrar un placeholder
+  if (loading) {
+    return (
+      <div className="video-slider-container">
+        <div className="video-slide loading-placeholder">
+          <div className="animate-pulse bg-gray-700 h-64 rounded-lg"></div>
+        </div>
+      </div>
+    );
+  }
+
+  // Si hay un error, mostrarlo
+  if (error) {
+    return (
+      <div className="video-slider-container">
+        <div className="video-slide error-state">
+          <p className="text-red-500">Error: {error}</p>
+          <button 
+            onClick={fetchSlides}
+            className="mt-4 px-4 py-2 bg-gold text-black rounded-lg"
+          >
+            Reintentar
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Si no hay slides y el usuario es admin, mostrar botón para crear
   if (slides.length === 0) {
-    return null; // No renderizar nada si no hay slides
+    if (isAdmin) {
+      return (
+        <div className="video-slider-container">
+          <div className="video-slide flex flex-col items-center justify-center">
+            <p className="text-gold mb-4">No hay videos configurados</p>
+            <button
+              onClick={() => {
+                setSelectedSlide({
+                  id: crypto.randomUUID(),
+                  title: '',
+                  description: '',
+                  videoUrl: '',
+                  videoType: 'youtube'
+                });
+                setIsEditing(true);
+              }}
+              className="px-4 py-2 bg-gold text-black rounded-lg"
+            >
+              Agregar Video
+            </button>
+          </div>
+        </div>
+      );
+    }
+    return null; // Si no es admin y no hay slides, no mostrar nada
   }
 
   return (
@@ -216,16 +282,18 @@ const VideoSlider: React.FC = () => {
                 <button type="button" onClick={() => setIsEditing(false)}>
                   Cancelar
                 </button>
-                <button
-                  type="button"
-                  className="delete-button"
-                  onClick={() => {
-                    handleDelete(selectedSlide.id);
-                    setIsEditing(false);
-                  }}
-                >
-                  Eliminar
-                </button>
+                {selectedSlide.id && (
+                  <button
+                    type="button"
+                    className="delete-button"
+                    onClick={() => {
+                      handleDelete(selectedSlide.id);
+                      setIsEditing(false);
+                    }}
+                  >
+                    Eliminar
+                  </button>
+                )}
               </div>
             </form>
           </div>
