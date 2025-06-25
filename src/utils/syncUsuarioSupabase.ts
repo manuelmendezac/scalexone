@@ -26,13 +26,13 @@ export async function syncUsuarioSupabase(user: any) {
       return;
     }
 
-    // Usar solo el campo 'nombres'
-    const nombres = user.user_metadata?.name || user.user_metadata?.full_name || user.email;
-    console.log('Valor que se usará en nombres:', nombres);
+    // Usar solo el campo 'name'
+    const name = user.user_metadata?.name || user.user_metadata?.full_name || user.email;
+    console.log('Valor que se usará en name:', name);
     const usuarioUpsert = {
       id: user.id,
       email: user.email.trim(),
-      nombres,
+      name,
       avatar_url: user.user_metadata?.avatar_url || '',
       community_id: existingUser?.community_id || 'default' // Preservar community_id existente o usar default
     };
