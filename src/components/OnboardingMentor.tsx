@@ -93,7 +93,7 @@ const OnboardingMentor: React.FC = () => {
             await supabase.from('usuarios').insert([
               {
                 id: user.id,
-                name: user.user_metadata?.nombre || user.user_metadata?.full_name || '',
+                nombres: user.user_metadata?.nombre || user.user_metadata?.full_name || '',
                 avatar_url: user.user_metadata?.avatar_url || '',
                 created_at: new Date().toISOString(),
               },
@@ -174,7 +174,7 @@ const OnboardingMentor: React.FC = () => {
       const { error } = await supabase.from('usuarios').insert([
         {
           id: user.id,
-          name: user.user_metadata?.nombre || user.user_metadata?.full_name || '',
+          nombres: user.user_metadata?.nombre || user.user_metadata?.full_name || '',
           avatar_url: user.user_metadata?.avatar_url || '',
           created_at: new Date().toISOString(),
         },

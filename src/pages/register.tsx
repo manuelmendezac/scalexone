@@ -24,7 +24,7 @@ const Register = () => {
       const { error } = await supabase.from('usuarios').insert([
         {
           id: user.id,
-          name: user.user_metadata?.nombre || user.user_metadata?.full_name || user.email || '',
+          nombres: user.user_metadata?.nombre || user.user_metadata?.full_name || user.email || '',
           avatar_url: user.user_metadata?.avatar_url || '/images/silueta-perfil.svg',
           created_at: new Date().toISOString(),
         },
