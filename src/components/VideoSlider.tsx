@@ -49,14 +49,12 @@ const VideoSlider: React.FC = () => {
   const isAdminMode = localStorage.getItem('adminMode') === 'true';
   
   // Determinar si se deben mostrar los controles de edición
-  // Solo mostrar si es admin Y está en modo admin Y NO está en modo afiliado
-  const showEditControls = isAdmin && isAdminMode && !isAffiliateMode;
+  // Solo mostrar si es admin, sin importar otros modos
+  const showEditControls = isAdmin;
 
   // Logs para depuración
   console.log('Estado de controles de edición:', {
     isAdmin,
-    isAdminMode,
-    isAffiliateMode,
     showEditControls
   });
 
