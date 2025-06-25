@@ -4,10 +4,12 @@ import { useAuth } from '../hooks/useAuth';
 import './VideoSlider.css';
 
 interface ActionButton {
-  id: number;
+  id?: number;  // Opcional para permitir nuevos botones
   title: string;
   url: string;
   order_index: number;
+  created_at?: string;  // Opcional ya que es manejado por la base de datos
+  updated_at?: string;  // Opcional ya que es manejado por la base de datos
 }
 
 interface VideoSlide {
@@ -292,18 +294,35 @@ const VideoSlider: React.FC = () => {
 
   const handleSaveActionButtons = async () => {
     try {
-      const { error } = await supabase
-        .from('botones_accion')
-        .upsert(
-          actionButtons.map(button => ({
-            id: button.id,
-            title: button.title,
-            url: button.url,
-            order_index: button.order_index
-          }))
-        );
+      // Preparar los datos para el upsert, asegurándonos de que tengan el formato correcto
+      const buttonsToUpdate = actionButtons.map((button, index) => ({
+        id: button.id,
+        title: button.title,
+        url: button.url,
+        order_index: index + 1
+      }));
 
-      if (error) throw error;
+      // Separar botones existentes de nuevos botones
+      const existingButtons = buttonsToUpdate.filter(button => button.id);
+      const newButtons = buttonsToUpdate.filter(button => !button.id).map(({id, ...rest}) => rest);
+
+      // Actualizar botones existentes
+      if (existingButtons.length > 0) {
+        const { error: updateError } = await supabase
+          .from('botones_accion')
+          .upsert(existingButtons);
+
+        if (updateError) throw updateError;
+      }
+
+      // Insertar nuevos botones
+      if (newButtons.length > 0) {
+        const { error: insertError } = await supabase
+          .from('botones_accion')
+          .insert(newButtons);
+
+        if (insertError) throw insertError;
+      }
 
       setIsEditing(false);
       await fetchActionButtons(); // Recargar los botones después de guardar
