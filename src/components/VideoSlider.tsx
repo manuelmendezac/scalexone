@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Edit2, Trash2, Plus, Eye, EyeOff, ArrowLeft, ArrowRight } from 'lucide-react';
+import { Edit2, Trash2, Plus, Eye, EyeOff, ArrowLeft, ArrowRight, Edit3 } from 'lucide-react';
 import { supabase } from '../supabase';
 import useNeuroState from '../store/useNeuroState';
 import './VideoSlider.css';
@@ -267,6 +267,26 @@ const VideoSlider: React.FC = () => {
     setPreviewUrl(embedUrl);
   };
 
+  const handleAddVideo = () => {
+    setSelectedSlide({
+      id: crypto.randomUUID(),
+      title: '',
+      description: '',
+      videoUrl: '',
+      videoType: 'youtube',
+      is_visible: true,
+      order: visibleSlides.length + 1
+    });
+    setIsEditing(true);
+  };
+
+  const handleEditCurrent = () => {
+    if (currentSlide) {
+      setSelectedSlide(currentSlide);
+      setIsEditing(true);
+    }
+  };
+
   if (!showSlider) {
     return isAdmin ? (
       <div className="p-4 text-center">
@@ -315,9 +335,16 @@ const VideoSlider: React.FC = () => {
         <div className="flex justify-end p-4">
           <button
             onClick={toggleSliderVisibility}
-            className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
+            className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded mr-4"
           >
-            Deshabilitar Sección de Videos
+            {showSlider ? 'Deshabilitar' : 'Habilitar'} Sección de Videos
+          </button>
+          <button
+            onClick={handleAddVideo}
+            className="bg-gold hover:bg-gold/90 text-black font-bold py-2 px-4 rounded flex items-center gap-2"
+          >
+            <Plus size={20} />
+            Agregar Video
           </button>
         </div>
       )}
@@ -325,6 +352,16 @@ const VideoSlider: React.FC = () => {
       <div className="video-slider-container">
         {currentSlide ? (
           <>
+            {isAdmin && (
+              <button 
+                className="edit-float-button"
+                onClick={handleEditCurrent}
+                title="Editar video actual"
+              >
+                <Edit3 />
+              </button>
+            )}
+
             <div className="main-video-section">
               <div className="main-video-container">
                 <div className="video-container">
@@ -399,23 +436,9 @@ const VideoSlider: React.FC = () => {
           <div className="empty-state">
             <p className="text-gold mb-4">No hay videos configurados</p>
             {isAdmin && (
-              <button
-                onClick={() => {
-                  setSelectedSlide({
-                    id: crypto.randomUUID(),
-                    title: '',
-                    description: '',
-                    videoUrl: '',
-                    videoType: 'youtube',
-                    is_visible: true,
-                    order: visibleSlides.length + 1
-                  });
-                  setIsEditing(true);
-                }}
-                className="px-4 py-2 bg-gold text-black rounded-lg flex items-center gap-2"
-              >
+              <button onClick={handleAddVideo}>
                 <Plus size={20} />
-                Agregar Video
+                Agregar Primer Video
               </button>
             )}
           </div>
