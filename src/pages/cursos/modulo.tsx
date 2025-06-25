@@ -120,7 +120,8 @@ const ModuloDetalle = () => {
           titulo: mod.titulo,
           descripcion: mod.descripcion || '',
           nivel: mod.nivel || '',
-          orden: Number.isFinite(idx) ? idx : 0
+          orden: Number.isFinite(idx) ? idx : 0,
+          origen: 'curso'
         };
         const { data: newMod } = await supabase
           .from('modulos_curso')
@@ -289,7 +290,8 @@ const ModuloDetalle = () => {
         id: modulo.id,
         titulo: modulo.titulo,
         descripcion: modulo.descripcion,
-        orden: modulo.orden || 0
+        orden: modulo.orden || 0,
+        origen: 'curso'
       }]);
     }
 

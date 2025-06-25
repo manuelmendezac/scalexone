@@ -13,7 +13,7 @@ import GlobalLoadingSpinner from '../components/GlobalLoadingSpinner';
 import NeonSpinner from '../components/NeonSpinner';
 
 // Modelo de módulo con imagen de portada
-type Modulo = {
+export type Modulo = {
   id?: string;
   titulo: string;
   descripcion: string;
@@ -29,6 +29,7 @@ type Modulo = {
   videos_completados?: number;
   recompensa_xp?: number;
   recompensa_monedas?: number;
+  origen?: string;
 };
 
 const MODULOS_MODELO: Modulo[] = [
@@ -411,8 +412,10 @@ const Classroom = () => {
     }
   };
 
-  const totalPaginas = Math.ceil(modulos.length / MODULOS_POR_PAGINA);
-  const modulosPagina = modulos.slice((pagina-1)*MODULOS_POR_PAGINA, pagina*MODULOS_POR_PAGINA);
+  // Después de obtener todos los módulos
+  const todosLosModulos = (modulos || []).filter((mod) => mod.origen === 'classroom');
+  const totalPaginas = Math.ceil(todosLosModulos.length / MODULOS_POR_PAGINA);
+  const modulosPagina = todosLosModulos.slice((pagina-1)*MODULOS_POR_PAGINA, pagina*MODULOS_POR_PAGINA);
 
   if (!isHydrated) return <GlobalLoader pageName="Classroom" />;
   
