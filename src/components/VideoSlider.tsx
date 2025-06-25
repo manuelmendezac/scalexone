@@ -3,6 +3,12 @@ import { supabase } from '../supabase';
 import { useAuth } from '../hooks/useAuth';
 import './VideoSlider.css';
 
+interface ActionButton {
+  id: number;
+  title: string;
+  url: string;
+}
+
 interface VideoSlide {
   id: string;
   title: string;
@@ -28,6 +34,25 @@ const VideoSlider: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
   const { user, isAdmin } = useAuth();
+  const [isEditingActions, setIsEditingActions] = useState(false);
+  const [actionButtons, setActionButtons] = useState<ActionButton[]>([
+    {
+      id: 1,
+      title: "Ver comunidad Bepartnex",
+      url: "/comunidad"
+    },
+    {
+      id: 2,
+      title: "Grupo de anuncios",
+      url: "/anuncios"
+    },
+    {
+      id: 3,
+      title: "Comunidad de Facebook",
+      url: "https://facebook.com/groups/bepartnex"
+    }
+  ]);
+  const [editingButton, setEditingButton] = useState<ActionButton | null>(null);
 
   // Memoizar las expresiones regulares para mejor rendimiento
   const videoIdRegex = useMemo(() => ({
@@ -229,6 +254,25 @@ const VideoSlider: React.FC = () => {
     }
   };
 
+  const handleEditActions = () => {
+    setIsEditingActions(true);
+  };
+
+  const handleSaveActionButton = (button: ActionButton) => {
+    if (button.id) {
+      setActionButtons(buttons =>
+        buttons.map(b => b.id === button.id ? button : b)
+      );
+    }
+    setEditingButton(null);
+    setIsEditingActions(false);
+  };
+
+  const handleCancelEditAction = () => {
+    setEditingButton(null);
+    setIsEditingActions(false);
+  };
+
   if (loading) {
     return <div className="flex justify-center items-center h-64">
       <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-yellow-400"></div>
@@ -242,7 +286,7 @@ const VideoSlider: React.FC = () => {
   const currentSlide = slides[currentSlideIndex];
 
   return (
-    <div className="video-slider-simple">
+    <div className="video-slider-container">
       {isAdmin && (
         <div className="admin-controls">
           <button onClick={handleAddVideo} className="add-button">
@@ -251,91 +295,123 @@ const VideoSlider: React.FC = () => {
         </div>
       )}
 
-      {currentSlide ? (
-        <>
-          <div className="video-content">
-            <div className="video-player">
-              <iframe
-                src={getEmbedUrl(currentSlide.video_url, currentSlide.video_type)}
-                title={currentSlide.title}
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-              />
-            </div>
-            <div className="video-info">
-              <div className="video-header">
-                <h2>{currentSlide.title}</h2>
-                {isAdmin && (
-                  <div className="video-actions">
-                    <button onClick={() => handleEditVideo(currentSlide)} className="edit-button">
-                      Editar
-                    </button>
-                    <button onClick={() => handleDeleteVideo(currentSlide.id)} className="delete-button">
-                      Eliminar
-                    </button>
-                  </div>
-                )}
-              </div>
-              <p>{currentSlide.description}</p>
-            </div>
-          </div>
-
-          <div className="progress-bar">
-            <div className="progress-line">
-              {slides.map((slide, index) => (
-                <div key={slide.id} className="progress-point-container">
-                  <div
-                    className={`progress-point ${index <= currentSlideIndex ? 'completed' : ''} ${index === currentSlideIndex ? 'current' : ''}`}
-                    onClick={() => setCurrentSlideIndex(index)}
-                  >
-                    {index + 1}
-                  </div>
-                  <div className="progress-thumbnail">
-                    {slide.thumbnail_url ? (
-                      <img 
-                        src={slide.thumbnail_url} 
-                        alt={`Miniatura ${index + 1}`}
-                        className="thumbnail-image"
-                        loading="lazy"
-                      />
-                    ) : (
-                      <div className="thumbnail-placeholder">
-                        <span>Video {index + 1}</span>
+      <div className="video-slider-layout">
+        <div className="video-content-column">
+          {currentSlide ? (
+            <>
+              <div className="video-content">
+                <div className="video-player">
+                  <iframe
+                    src={getEmbedUrl(currentSlide.video_url, currentSlide.video_type)}
+                    title={currentSlide.title}
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                  />
+                </div>
+                <div className="video-info">
+                  <div className="video-header">
+                    <h2>{currentSlide.title}</h2>
+                    {isAdmin && (
+                      <div className="video-actions">
+                        <button onClick={() => handleEditVideo(currentSlide)} className="edit-button">
+                          Editar
+                        </button>
+                        <button onClick={() => handleDeleteVideo(currentSlide.id)} className="delete-button">
+                          Eliminar
+                        </button>
                       </div>
                     )}
                   </div>
+                  <p>{currentSlide.description}</p>
                 </div>
+              </div>
+
+              <div className="progress-bar">
+                <div className="progress-line">
+                  {slides.map((slide, index) => (
+                    <div key={slide.id} className="progress-point-container">
+                      <div
+                        className={`progress-point ${index <= currentSlideIndex ? 'completed' : ''} ${index === currentSlideIndex ? 'current' : ''}`}
+                        onClick={() => setCurrentSlideIndex(index)}
+                      >
+                        {index + 1}
+                      </div>
+                      <div className="progress-thumbnail">
+                        {slide.thumbnail_url ? (
+                          <img 
+                            src={slide.thumbnail_url} 
+                            alt={`Miniatura ${index + 1}`}
+                            className="thumbnail-image"
+                            loading="lazy"
+                          />
+                        ) : (
+                          <div className="thumbnail-placeholder">
+                            <span>Video {index + 1}</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="navigation-buttons">
+                <button
+                  onClick={handlePrev}
+                  disabled={currentSlideIndex === 0}
+                  className="nav-button prev"
+                >
+                  ANTERIOR
+                </button>
+                <button
+                  onClick={handleNext}
+                  disabled={currentSlideIndex === slides.length - 1}
+                  className="nav-button next"
+                >
+                  SIGUIENTE
+                </button>
+              </div>
+            </>
+          ) : (
+            <div className="empty-state">
+              <p>No hay videos disponibles</p>
+              {isAdmin && (
+                <button onClick={handleAddVideo} className="add-button">
+                  + Agregar Primer Video
+                </button>
+              )}
+            </div>
+          )}
+        </div>
+
+        <div className="action-column">
+          <div className="action-content">
+            <h2 className="action-title">¿Qué hay de nuevo en tu comunidad?</h2>
+            {isAdmin && (
+              <button 
+                onClick={handleEditActions}
+                className="edit-button"
+                style={{ marginBottom: '15px' }}
+              >
+                Editar Botones
+              </button>
+            )}
+            <div className="action-buttons">
+              {actionButtons.map(button => (
+                <a
+                  key={button.id}
+                  href={button.url}
+                  className="action-button"
+                  target={button.url.startsWith('http') ? '_blank' : undefined}
+                  rel={button.url.startsWith('http') ? 'noopener noreferrer' : undefined}
+                >
+                  {button.title}
+                </a>
               ))}
             </div>
           </div>
-
-          <div className="navigation-buttons">
-            <button
-              onClick={handlePrev}
-              disabled={currentSlideIndex === 0}
-              className="nav-button prev"
-            >
-              ANTERIOR
-            </button>
-            <button
-              onClick={handleNext}
-              disabled={currentSlideIndex === slides.length - 1}
-              className="nav-button next"
-            >
-              SIGUIENTE
-            </button>
-          </div>
-        </>
-      ) : (
-        <div className="empty-state">
-          <p>No hay videos disponibles</p>
-          {isAdmin && (
-            <button onClick={handleAddVideo} className="add-button">
-              + Agregar Primer Video
-            </button>
-          )}
         </div>
-      )}
+      </div>
 
       {isEditing && selectedSlide && (
         <div className="edit-modal">
@@ -423,6 +499,60 @@ const VideoSlider: React.FC = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {isEditingActions && (
+        <div className="action-edit-modal">
+          <div className="action-modal-content">
+            <div className="action-modal-header">
+              <h3>Editar Botones de Acción</h3>
+            </div>
+            {actionButtons.map(button => (
+              <div key={button.id} className="action-form-group">
+                <label>Botón {button.id}</label>
+                <input
+                  type="text"
+                  value={button.title}
+                  onChange={(e) => {
+                    setActionButtons(buttons =>
+                      buttons.map(b =>
+                        b.id === button.id ? { ...b, title: e.target.value } : b
+                      )
+                    );
+                  }}
+                  placeholder="Título del botón"
+                />
+                <input
+                  type="text"
+                  value={button.url}
+                  onChange={(e) => {
+                    setActionButtons(buttons =>
+                      buttons.map(b =>
+                        b.id === button.id ? { ...b, url: e.target.value } : b
+                      )
+                    );
+                  }}
+                  placeholder="URL del botón"
+                  style={{ marginTop: '10px' }}
+                />
+              </div>
+            ))}
+            <div className="action-modal-buttons">
+              <button
+                className="action-modal-button action-modal-cancel"
+                onClick={handleCancelEditAction}
+              >
+                Cancelar
+              </button>
+              <button
+                className="action-modal-button action-modal-save"
+                onClick={() => setIsEditingActions(false)}
+              >
+                Guardar
+              </button>
+            </div>
           </div>
         </div>
       )}
