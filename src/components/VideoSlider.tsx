@@ -52,6 +52,14 @@ const VideoSlider: React.FC = () => {
   // Solo mostrar si es admin Y está en modo admin Y NO está en modo afiliado
   const showEditControls = isAdmin && isAdminMode && !isAffiliateMode;
 
+  // Logs para depuración
+  console.log('Estado de controles de edición:', {
+    isAdmin,
+    isAdminMode,
+    isAffiliateMode,
+    showEditControls
+  });
+
   // Memoizar las expresiones regulares para mejor rendimiento
   const videoIdRegex = useMemo(() => ({
     youtube: /(?:youtu\.be\/|youtube\.com(?:\/embed\/|\/v\/|\/watch\?v=|\/user\/\S+|\/ytscreeningroom\?v=|\/sandalsResorts#\w\/\w\/.*\/))([^\/&\n?\s]{11})/,
