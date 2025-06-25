@@ -25,16 +25,21 @@ export async function syncUsuarioSupabase(user: any) {
       console.error('Error verificando usuario existente:', selectError);
       return;
     }
+
+    // Construir el objeto a upsert sin updated_at
+    const usuarioUpsert = {
+      id: user.id,
+      email: user.email.trim(),
+      name: user.user_metadata?.name || user.user_metadata?.full_name || user.email,
+      avatar_url: user.user_metadata?.avatar_url || '',
+      community_id: existingUser?.community_id || 'default' // Preservar community_id existente o usar default
+    };
+    // Log para depuración
+    console.log('Objeto que se enviará a upsert usuarios:', usuarioUpsert);
     
     const { error: upsertError } = await supabase
       .from('usuarios')
-      .upsert({
-        id: user.id,
-        email: user.email.trim(),
-        name: user.user_metadata?.name || user.user_metadata?.full_name || user.email,
-        avatar_url: user.user_metadata?.avatar_url || '',
-        community_id: existingUser?.community_id || 'default' // Preservar community_id existente o usar default
-      });
+      .upsert(usuarioUpsert);
 
     if (upsertError) {
       console.error('Error sincronizando usuario en tabla usuarios:', upsertError);
