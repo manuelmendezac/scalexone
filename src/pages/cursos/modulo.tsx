@@ -411,6 +411,17 @@ const ModuloDetalle = () => {
             </div>
           </div>
 
+          {isAdmin && modulo?.id && (
+            <button
+              className="absolute top-4 right-4 z-20 bg-yellow-500 hover:bg-yellow-400 text-black rounded-full p-2 shadow-lg transition-all"
+              title="Editar videos del módulo"
+              onClick={() => navigate(`/classroom/editar-videos?modulo_id=${modulo.id}`)}
+              style={{ fontSize: 20 }}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536M9 13l6.586-6.586a2 2 0 112.828 2.828L11.828 15.828a2 2 0 01-2.828 0L9 13zm-6 6h6v-2a2 2 0 012-2h2a2 2 0 012 2v2h6" /></svg>
+            </button>
+          )}
+
         </div>
       </div>
       {!fullscreen && (
