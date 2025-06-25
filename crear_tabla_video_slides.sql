@@ -2,11 +2,13 @@
 CREATE TABLE IF NOT EXISTS video_slides (
   id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
   title TEXT NOT NULL,
-  description TEXT,
+  description TEXT NOT NULL,
   button_text TEXT,
+  button_url TEXT,
   video_url TEXT NOT NULL,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+  video_type TEXT NOT NULL CHECK (video_type IN ('youtube', 'vimeo')),
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('UTC'::TEXT, NOW()) NOT NULL,
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('UTC'::TEXT, NOW()) NOT NULL
 );
 
 -- Crear política de seguridad para lectura pública
@@ -25,15 +27,16 @@ CREATE POLICY "Permitir escritura solo para administradores en video_slides" ON 
 ALTER TABLE video_slides ENABLE ROW LEVEL SECURITY;
 
 -- Trigger para actualizar updated_at
-CREATE OR REPLACE FUNCTION update_video_slides_updated_at()
+CREATE OR REPLACE FUNCTION update_updated_at_video_slides()
 RETURNS TRIGGER AS $$
 BEGIN
-  NEW.updated_at = CURRENT_TIMESTAMP;
-  RETURN NEW;
+    NEW.updated_at = TIMEZONE('UTC'::TEXT, NOW());
+    RETURN NEW;
 END;
-$$ LANGUAGE plpgsql;
+$$ language 'plpgsql';
 
-CREATE TRIGGER video_slides_updated_at
-  BEFORE UPDATE ON video_slides
-  FOR EACH ROW
-  EXECUTE FUNCTION update_video_slides_updated_at(); 
+CREATE TRIGGER update_video_slides_updated_at
+    BEFORE UPDATE
+    ON video_slides
+    FOR EACH ROW
+EXECUTE FUNCTION update_updated_at_video_slides(); 
