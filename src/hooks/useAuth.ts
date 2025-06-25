@@ -6,13 +6,15 @@ interface AuthState {
   user: User | null;
   loading: boolean;
   isAdmin: boolean;
+  authReady: boolean;
 }
 
 export function useAuth(): AuthState {
   const [state, setState] = useState<AuthState>({
     user: null,
     loading: true,
-    isAdmin: false
+    isAdmin: false,
+    authReady: false
   });
 
   useEffect(() => {
@@ -42,7 +44,8 @@ export function useAuth(): AuthState {
       } else {
         setState(prevState => ({
           ...prevState,
-          isAdmin: false
+          isAdmin: false,
+          authReady: true
         }));
       }
     });
@@ -54,7 +57,6 @@ export function useAuth(): AuthState {
 
   const checkAdminStatus = async (userId: string) => {
     try {
-      // Validación estricta del userId y email del usuario
       console.log('[useAuth] checkAdminStatus INICIO', { userId, stateUser: state.user });
       if (!userId || !state.user?.email || typeof state.user.email !== 'string' || state.user.email.trim() === '') {
         console.log('[useAuth] Datos de usuario inválidos para verificar admin:', { 
@@ -64,7 +66,8 @@ export function useAuth(): AuthState {
         });
         setState(prevState => ({
           ...prevState,
-          isAdmin: false
+          isAdmin: false,
+          authReady: true
         }));
         return;
       }
@@ -80,7 +83,6 @@ export function useAuth(): AuthState {
 
       if (userError) {
         console.error('[useAuth] Error fetching user:', userError);
-        // Si hay error al buscar el usuario, intentar crearlo solo si tenemos email válido
         if (userError.code === 'PGRST116') { // No data found
           console.log('[useAuth] Usuario no encontrado, creando nuevo usuario');
           const { error: insertError } = await supabase
@@ -97,14 +99,16 @@ export function useAuth(): AuthState {
             console.error('[useAuth] Error creating user:', insertError);
             setState(prevState => ({
               ...prevState,
-              isAdmin: false
+              isAdmin: false,
+              authReady: true
             }));
             return;
           }
         } else {
           setState(prevState => ({
             ...prevState,
-            isAdmin: false
+            isAdmin: false,
+            authReady: true
           }));
           return;
         }
@@ -113,24 +117,33 @@ export function useAuth(): AuthState {
       // Si el usuario existe, verificar su rol
       if (userData) {
         const isUserAdmin = userData.rol === 'admin' || userData.rol === 'superadmin';
-        console.log('[useAuth] Admin status verificado:', { email: state.user.email, rol: userData.rol, isAdmin: isUserAdmin, userData });
+        console.log('[useAuth] Admin status verificado:', { 
+          email: state.user.email, 
+          rol: userData.rol, 
+          isAdmin: isUserAdmin, 
+          userData, 
+          userIdSesion: userId, 
+          userIdTabla: userData.id 
+        });
         setState(prevState => ({
           ...prevState,
-          isAdmin: isUserAdmin
+          isAdmin: isUserAdmin,
+          authReady: true
         }));
       } else {
-        // Si no hay datos del usuario después de todo, establecer como no admin
         console.log('[useAuth] No se encontraron datos de usuario después de verificación');
         setState(prevState => ({
           ...prevState,
-          isAdmin: false
+          isAdmin: false,
+          authReady: true
         }));
       }
     } catch (error) {
       console.error('[useAuth] Error checking admin status:', error);
       setState(prevState => ({
         ...prevState,
-        isAdmin: false
+        isAdmin: false,
+        authReady: true
       }));
     }
   };

@@ -36,7 +36,7 @@ const VideoSlider: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
-  const { user, isAdmin } = useAuth();
+  const { user, isAdmin, authReady } = useAuth();
   const [isEditingActions, setIsEditingActions] = useState(false);
   const [actionButtons, setActionButtons] = useState<ActionButton[]>([]);
   const [editingButton, setEditingButton] = useState<ActionButton | null>(null);
@@ -449,6 +449,12 @@ const VideoSlider: React.FC = () => {
       setError('Error al guardar los botones de acción');
     }
   };
+
+  if (!authReady) {
+    return <div className="flex justify-center items-center h-64">
+      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-yellow-400"></div>
+    </div>;
+  }
 
   if (loading) {
     return <div className="flex justify-center items-center h-64">
