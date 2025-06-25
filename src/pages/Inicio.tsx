@@ -7,6 +7,7 @@ import LoadingScreen from '../components/LoadingScreen';
 import { FaUserAstronaut } from 'react-icons/fa';
 import { WaveSurfer, WaveForm } from "wavesurfer-react";
 import OnboardingMentor from '../components/OnboardingMentor';
+import VideoSlider from '../components/VideoSlider';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../supabase';
 
@@ -64,6 +65,7 @@ const Inicio: React.FC = () => {
             <OnboardingMentor />
           </div>
         </div>
+        <VideoSlider />
         <QuickAccess />
         <TipsCarousel news={news} />
       </div>
