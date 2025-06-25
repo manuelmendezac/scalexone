@@ -309,19 +309,20 @@ const VideoSlider: React.FC = () => {
       )}
       
       <div className="video-slider-container">
-        {/* Video Principal */}
         {currentSlide ? (
           <>
-            <div className="main-video-container">
-              <div className="video-container">
-                <iframe
-                  src={getEmbedUrl(currentSlide.videoUrl, currentSlide.videoType)}
-                  title={currentSlide.title}
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                />
+            <div className="main-video-section">
+              <div className="main-video-container">
+                <div className="video-container">
+                  <iframe
+                    src={getEmbedUrl(currentSlide.videoUrl, currentSlide.videoType)}
+                    title={currentSlide.title}
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                  />
+                </div>
               </div>
-              <div className="video-content">
+              <div className="video-info">
                 <h2>{currentSlide.title}</h2>
                 <p>{currentSlide.description}</p>
                 {currentSlide.buttonText && currentSlide.buttonUrl && (
@@ -337,22 +338,34 @@ const VideoSlider: React.FC = () => {
               </div>
             </div>
 
-            {/* Timeline */}
+            {/* Timeline con miniaturas */}
             <div className="video-timeline">
-              <div className="timeline-line"></div>
-              <div 
-                className="timeline-progress" 
-                style={{ width: `${((currentSlideIndex + 1) / visibleSlides.length) * 100}%` }}
-              ></div>
-              {visibleSlides.map((_, index) => (
-                <div
-                  key={index}
-                  className={`timeline-step ${index === currentSlideIndex ? 'active' : index < currentSlideIndex ? 'completed' : ''}`}
-                  onClick={() => setCurrentSlideIndex(index)}
-                >
-                  {index + 1}
-                </div>
-              ))}
+              <div className="timeline-track">
+                <div 
+                  className="timeline-progress" 
+                  style={{ width: `${((currentSlideIndex + 1) / visibleSlides.length) * 100}%` }}
+                />
+              </div>
+              <div className="timeline-steps">
+                {visibleSlides.map((slide, index) => (
+                  <div
+                    key={slide.id}
+                    className={`timeline-step ${index === currentSlideIndex ? 'active' : index < currentSlideIndex ? 'completed' : ''}`}
+                    onClick={() => setCurrentSlideIndex(index)}
+                  >
+                    <div className="step-thumbnail">
+                      {/* Aquí iría la miniatura del video, por ahora usamos un placeholder */}
+                      <div style={{ 
+                        width: '100%', 
+                        height: '100%', 
+                        background: index === currentSlideIndex ? '#FFD700' : '#333',
+                        opacity: 0.6 
+                      }} />
+                    </div>
+                    <div className="step-number">{index + 1}</div>
+                  </div>
+                ))}
+              </div>
             </div>
 
             {/* Botones de navegación */}
@@ -387,7 +400,8 @@ const VideoSlider: React.FC = () => {
                     description: '',
                     videoUrl: '',
                     videoType: 'youtube',
-                    is_visible: true
+                    is_visible: true,
+                    order: visibleSlides.length + 1
                   });
                   setIsEditing(true);
                 }}
