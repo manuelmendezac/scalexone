@@ -14,7 +14,7 @@ import BannersAdminPanel from './BannersAdminPanel';
 
 const perfilDefault = {
   avatar: '',
-  nombres: '',
+  name: '',
   apellidos: '',
   correo: '',
   celular: '',
@@ -102,7 +102,7 @@ const AdminConfigPanel: React.FC<AdminConfigPanelProps> = ({ selected }) => {
         if (usuario) {
           setPerfil({
             avatar: usuario.avatar_url || '',
-            nombres: usuario.nombres || '',
+            name: usuario.name || '',
             apellidos: usuario.apellidos || '',
             correo: usuario.email || '',
             celular: usuario.celular || '',
@@ -156,7 +156,7 @@ const AdminConfigPanel: React.FC<AdminConfigPanelProps> = ({ selected }) => {
     if (user) {
       const { error } = await supabase.from('usuarios').update({
         avatar_url: perfil.avatar,
-        nombres: perfil.nombres,
+        name: perfil.name,
         apellidos: perfil.apellidos,
         celular: perfil.celular,
         pais: perfil.pais,
@@ -184,7 +184,7 @@ const AdminConfigPanel: React.FC<AdminConfigPanelProps> = ({ selected }) => {
       const { data: updatedUser, error: updateUserError } = await supabase.auth.updateUser({
         data: { 
           avatar_url: perfil.avatar,
-          nombres: perfil.nombres,
+          name: perfil.name,
           apellidos: perfil.apellidos
         }
       });
@@ -235,7 +235,7 @@ const AdminConfigPanel: React.FC<AdminConfigPanelProps> = ({ selected }) => {
             <div className="flex flex-col gap-4 min-w-0">
               {/* Campos de Nombre y Apellido */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <input className="input-perfil" placeholder="Nombres" value={perfil.nombres} onChange={e => setPerfil({ ...perfil, nombres: e.target.value })} />
+                <input className="input-perfil" placeholder="Nombre" value={perfil.name} onChange={e => setPerfil({ ...perfil, name: e.target.value })} />
                 <input className="input-perfil" placeholder="Apellidos" value={perfil.apellidos} onChange={e => setPerfil({ ...perfil, apellidos: e.target.value })} />
               </div>
               {/* Campos de Contacto */}
