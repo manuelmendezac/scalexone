@@ -44,11 +44,13 @@ const VideoSlider: React.FC = () => {
   const [editingVideo, setEditingVideo] = useState<VideoSlide | null>(null);
   const [userRole, setUserRole] = useState<string | null>(null);
   
-  // Obtener el modo afiliado del localStorage
+  // Obtener los modos del localStorage
   const isAffiliateMode = localStorage.getItem('affiliateMode') === 'IB';
+  const isAdminMode = localStorage.getItem('adminMode') === 'true';
   
   // Determinar si se deben mostrar los controles de edición
-  const showEditControls = isAdmin && !isAffiliateMode;
+  // Solo mostrar si es admin Y está en modo admin Y NO está en modo afiliado
+  const showEditControls = isAdmin && isAdminMode && !isAffiliateMode;
 
   // Memoizar las expresiones regulares para mejor rendimiento
   const videoIdRegex = useMemo(() => ({
