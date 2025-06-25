@@ -13,8 +13,10 @@ interface VideoSlide {
   id: string;
   title: string;
   description: string;
-  buttonText: string;
+  buttonText?: string; // Opcional
+  buttonUrl?: string; // Opcional
   videoUrl: string;
+  videoType: 'youtube' | 'vimeo'; // Tipo de video
 }
 
 const VideoSlider: React.FC = () => {
@@ -38,6 +40,16 @@ const VideoSlider: React.FC = () => {
       setSlides(data || []);
     } catch (error) {
       console.error('Error fetching slides:', error);
+    }
+  };
+
+  const getEmbedUrl = (url: string, type: 'youtube' | 'vimeo'): string => {
+    if (type === 'youtube') {
+      const videoId = url.match(/(?:youtu\.be\/|youtube\.com(?:\/embed\/|\/v\/|\/watch\?v=|\/user\/\S+|\/ytscreeningroom\?v=|\/sandalsResorts#\w\/\w\/.*\/))([^\/&\n?\s]{11})/);
+      return videoId ? `https://www.youtube.com/embed/${videoId[1]}` : url;
+    } else {
+      const videoId = url.match(/(?:www\.|player\.)?vimeo.com\/(?:channels\/(?:\w+\/)?|groups\/(?:[^\/]*)\/videos\/|album\/(?:\d+)\/video\/|video\/|)(\d+)(?:[a-zA-Z0-9_\-]+)?/);
+      return videoId ? `https://player.vimeo.com/video/${videoId[1]}` : url;
     }
   };
 
@@ -76,7 +88,7 @@ const VideoSlider: React.FC = () => {
     }
   };
 
-  const isAdmin = userInfo?.role === 'admin';
+  const isAdmin = userInfo?.rol === 'admin';
 
   return (
     <div className="video-slider-container">
@@ -92,7 +104,7 @@ const VideoSlider: React.FC = () => {
             <div className="video-slide">
               <div className="video-container">
                 <iframe
-                  src={slide.videoUrl}
+                  src={getEmbedUrl(slide.videoUrl, slide.videoType)}
                   title={slide.title}
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                   allowFullScreen
@@ -101,7 +113,16 @@ const VideoSlider: React.FC = () => {
               <div className="video-content">
                 <h2>{slide.title}</h2>
                 <p>{slide.description}</p>
-                <button className="video-cta">{slide.buttonText}</button>
+                {slide.buttonText && slide.buttonUrl && (
+                  <a 
+                    href={slide.buttonUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="video-cta"
+                  >
+                    {slide.buttonText}
+                  </a>
+                )}
               </div>
               {isAdmin && (
                 <button
@@ -132,6 +153,7 @@ const VideoSlider: React.FC = () => {
                   title: e.target.value
                 })}
                 placeholder="Título"
+                required
               />
               <textarea
                 value={selectedSlide.description}
@@ -140,16 +162,19 @@ const VideoSlider: React.FC = () => {
                   description: e.target.value
                 })}
                 placeholder="Descripción"
+                required
               />
-              <input
-                type="text"
-                value={selectedSlide.buttonText}
+              <select
+                value={selectedSlide.videoType}
                 onChange={(e) => setSelectedSlide({
                   ...selectedSlide,
-                  buttonText: e.target.value
+                  videoType: e.target.value as 'youtube' | 'vimeo'
                 })}
-                placeholder="Texto del botón"
-              />
+                required
+              >
+                <option value="youtube">YouTube</option>
+                <option value="vimeo">Vimeo</option>
+              </select>
               <input
                 type="text"
                 value={selectedSlide.videoUrl}
@@ -157,7 +182,26 @@ const VideoSlider: React.FC = () => {
                   ...selectedSlide,
                   videoUrl: e.target.value
                 })}
-                placeholder="URL del video"
+                placeholder="URL del video (YouTube o Vimeo)"
+                required
+              />
+              <input
+                type="text"
+                value={selectedSlide.buttonText || ''}
+                onChange={(e) => setSelectedSlide({
+                  ...selectedSlide,
+                  buttonText: e.target.value
+                })}
+                placeholder="Texto del botón (opcional)"
+              />
+              <input
+                type="text"
+                value={selectedSlide.buttonUrl || ''}
+                onChange={(e) => setSelectedSlide({
+                  ...selectedSlide,
+                  buttonUrl: e.target.value
+                })}
+                placeholder="URL del botón (opcional)"
               />
               <div className="button-group">
                 <button type="submit">Guardar</button>

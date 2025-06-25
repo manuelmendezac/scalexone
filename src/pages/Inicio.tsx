@@ -59,13 +59,16 @@ const Inicio: React.FC = () => {
     <div className="w-full min-h-screen" style={{ background: '#000' }}>
       <div className="max-w-7xl w-full mx-auto px-4 md:px-8">
         <BannerSlider />
-        <div className="flex flex-col md:flex-row gap-8 mb-8">
-          {/* Onboarding Mentor IA centrado */}
-          <div className="flex-1 flex items-center justify-center mx-auto">
-            <OnboardingMentor />
+        <div className="flex flex-col gap-8">
+          <OnboardingMentor />
+          <VideoSlider />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="flex flex-col gap-8">
+              <NovedadesPanel />
+              <TipsPanel />
+            </div>
           </div>
         </div>
-        <VideoSlider />
         <QuickAccess />
         <TipsCarousel news={news} />
       </div>
