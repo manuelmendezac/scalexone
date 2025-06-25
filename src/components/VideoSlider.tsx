@@ -1,14 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Swiper, SwiperSlide } from 'swiper/react';
-import { Navigation, Pagination, Autoplay } from 'swiper/modules';
-import { Edit2 } from 'lucide-react';
+import { Edit2, Trash2, Plus, Eye, EyeOff } from 'lucide-react';
 import { supabase } from '../supabase';
 import useNeuroState from '../store/useNeuroState';
-
-// Importar estilos de Swiper
-import 'swiper/css';
-import 'swiper/css/navigation';
-import 'swiper/css/pagination';
 import './VideoSlider.css';
 
 interface VideoSlide {
@@ -19,6 +12,7 @@ interface VideoSlide {
   buttonUrl?: string;
   videoUrl: string;
   videoType: 'youtube' | 'vimeo';
+  is_visible?: boolean;
 }
 
 const VideoSlider: React.FC = () => {
@@ -27,6 +21,7 @@ const VideoSlider: React.FC = () => {
   const [selectedSlide, setSelectedSlide] = useState<VideoSlide | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
   const { userInfo } = useNeuroState();
 
   useEffect(() => {
@@ -49,23 +44,19 @@ const VideoSlider: React.FC = () => {
         return;
       }
 
-      // Validar y transformar los datos
       const validSlides = (data || []).reduce((acc: VideoSlide[], slide: any) => {
         if (!slide) return acc;
 
-        // Validar campos requeridos
         if (!slide.id || !slide.title || !slide.description || !slide.videoUrl || !slide.videoType) {
           console.warn('Slide inválido encontrado:', slide);
           return acc;
         }
 
-        // Validar tipo de video
         if (slide.videoType !== 'youtube' && slide.videoType !== 'vimeo') {
           console.warn('Tipo de video inválido:', slide.videoType);
           return acc;
         }
 
-        // Crear objeto slide con valores por defecto seguros
         const validSlide: VideoSlide = {
           id: String(slide.id),
           title: String(slide.title),
@@ -73,7 +64,8 @@ const VideoSlider: React.FC = () => {
           videoUrl: String(slide.videoUrl),
           videoType: slide.videoType as 'youtube' | 'vimeo',
           buttonText: slide.buttonText ? String(slide.buttonText) : undefined,
-          buttonUrl: slide.buttonUrl ? String(slide.buttonUrl) : undefined
+          buttonUrl: slide.buttonUrl ? String(slide.buttonUrl) : undefined,
+          is_visible: slide.is_visible !== undefined ? Boolean(slide.is_visible) : true
         };
 
         return [...acc, validSlide];
@@ -96,7 +88,6 @@ const VideoSlider: React.FC = () => {
 
     try {
       if (type === 'youtube') {
-        // Validar si ya es una URL de embed
         if (url.includes('youtube.com/embed/')) {
           return url;
         }
@@ -104,7 +95,6 @@ const VideoSlider: React.FC = () => {
         const videoId = url.match(/(?:youtu\.be\/|youtube\.com(?:\/embed\/|\/v\/|\/watch\?v=|\/user\/\S+|\/ytscreeningroom\?v=|\/sandalsResorts#\w\/\w\/.*\/))([^\/&\n?\s]{11})/);
         return videoId ? `https://www.youtube.com/embed/${videoId[1]}` : '';
       } else if (type === 'vimeo') {
-        // Validar si ya es una URL de embed
         if (url.includes('player.vimeo.com/video/')) {
           return url;
         }
@@ -126,6 +116,21 @@ const VideoSlider: React.FC = () => {
     setIsEditing(true);
   };
 
+  const toggleVisibility = async (slide: VideoSlide) => {
+    try {
+      const { error: updateError } = await supabase
+        .from('video_slides')
+        .update({ is_visible: !slide.is_visible })
+        .eq('id', slide.id);
+
+      if (updateError) throw updateError;
+      await fetchSlides();
+    } catch (err) {
+      console.error('Error al cambiar visibilidad:', err);
+      setError(err instanceof Error ? err.message : 'Error al cambiar visibilidad');
+    }
+  };
+
   const handleSave = async (updatedSlide: VideoSlide) => {
     try {
       if (!updatedSlide.id || !updatedSlide.title || !updatedSlide.description || !updatedSlide.videoUrl) {
@@ -133,7 +138,6 @@ const VideoSlider: React.FC = () => {
         return;
       }
 
-      // Validar URL del video según el tipo
       const embedUrl = getEmbedUrl(updatedSlide.videoUrl, updatedSlide.videoType);
       if (!embedUrl) {
         setError('URL del video inválida');
@@ -202,12 +206,63 @@ const VideoSlider: React.FC = () => {
     );
   }
 
-  if (slides.length === 0) {
-    if (userInfo?.rol === 'admin') {
-      return (
-        <div className="video-slider-container">
-          <div className="video-slide flex flex-col items-center justify-center">
-            <p className="text-gold mb-4">No hay videos configurados</p>
+  const currentSlide = slides[currentSlideIndex];
+
+  return (
+    <div className="video-slider-container">
+      {/* Video Principal */}
+      {currentSlide ? (
+        <div className="main-video-container">
+          <div className="video-container">
+            <iframe
+              src={getEmbedUrl(currentSlide.videoUrl, currentSlide.videoType)}
+              title={currentSlide.title}
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            />
+          </div>
+          <div className="video-content">
+            <h2>{currentSlide.title}</h2>
+            <p>{currentSlide.description}</p>
+            {currentSlide.buttonText && currentSlide.buttonUrl && (
+              <a 
+                href={currentSlide.buttonUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="video-cta"
+              >
+                {currentSlide.buttonText}
+              </a>
+            )}
+          </div>
+        </div>
+      ) : userInfo?.rol === 'admin' ? (
+        <div className="empty-state">
+          <p className="text-gold mb-4">No hay videos configurados</p>
+          <button
+            onClick={() => {
+              setSelectedSlide({
+                id: crypto.randomUUID(),
+                title: '',
+                description: '',
+                videoUrl: '',
+                videoType: 'youtube'
+              });
+              setIsEditing(true);
+            }}
+            className="px-4 py-2 bg-gold text-black rounded-lg flex items-center gap-2"
+          >
+            <Plus size={20} />
+            Agregar Video
+          </button>
+        </div>
+      ) : null}
+
+      {/* Lista de Videos */}
+      {userInfo?.rol === 'admin' && slides.length > 0 && (
+        <div className="video-list">
+          <div className="list-header">
+            <h3>Lista de Videos</h3>
             <button
               onClick={() => {
                 setSelectedSlide({
@@ -219,75 +274,54 @@ const VideoSlider: React.FC = () => {
                 });
                 setIsEditing(true);
               }}
-              className="px-4 py-2 bg-gold text-black rounded-lg"
+              className="add-video-button"
             >
+              <Plus size={20} />
               Agregar Video
             </button>
           </div>
-        </div>
-      );
-    }
-    return null;
-  }
-
-  return (
-    <div className="video-slider-container">
-      <Swiper
-        modules={[Navigation, Pagination, Autoplay]}
-        navigation={true}
-        pagination={{ clickable: true }}
-        autoplay={{ delay: 5000, disableOnInteraction: false }}
-        className="video-swiper"
-        spaceBetween={30}
-        slidesPerView={1}
-      >
-        {slides.map((slide) => {
-          const embedUrl = getEmbedUrl(slide.videoUrl, slide.videoType);
-          if (!embedUrl) return null;
-
-          return (
-            <SwiperSlide key={slide.id}>
-              <div className="video-slide">
-                <div className="video-container">
-                  <iframe
-                    src={embedUrl}
-                    title={slide.title}
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowFullScreen
-                  />
-                </div>
-                <div className="video-content">
-                  <h2>{slide.title}</h2>
+          <div className="video-items">
+            {slides.map((slide, index) => (
+              <div 
+                key={slide.id} 
+                className={`video-item ${index === currentSlideIndex ? 'active' : ''}`}
+                onClick={() => setCurrentSlideIndex(index)}
+              >
+                <div className="video-item-content">
+                  <h4>{slide.title}</h4>
                   <p>{slide.description}</p>
-                  {slide.buttonText && slide.buttonUrl && (
-                    <a 
-                      href={slide.buttonUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="video-cta"
-                    >
-                      {slide.buttonText}
-                    </a>
-                  )}
                 </div>
-                {userInfo?.rol === 'admin' && (
+                <div className="video-item-actions">
                   <button
-                    className="admin-edit-button"
-                    onClick={() => handleEdit(slide)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleEdit(slide);
+                    }}
+                    className="edit-button"
                   >
-                    <Edit2 size={20} />
+                    <Edit2 size={16} />
                   </button>
-                )}
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDelete(slide.id);
+                    }}
+                    className="delete-button"
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                </div>
               </div>
-            </SwiperSlide>
-          );
-        })}
-      </Swiper>
+            ))}
+          </div>
+        </div>
+      )}
 
+      {/* Modal de Edición */}
       {isEditing && selectedSlide && (
         <div className="edit-modal">
           <div className="modal-content">
-            <h3>Editar Slide</h3>
+            <h3>{selectedSlide.id ? 'Editar Video' : 'Agregar Video'}</h3>
             <form onSubmit={(e) => {
               e.preventDefault();
               handleSave(selectedSlide);
@@ -351,22 +385,19 @@ const VideoSlider: React.FC = () => {
                 placeholder="URL del botón (opcional)"
               />
               <div className="button-group">
-                <button type="submit">Guardar</button>
-                <button type="button" onClick={() => setIsEditing(false)}>
+                <button type="submit" className="save-button">
+                  {selectedSlide.id ? 'Guardar' : 'Crear'}
+                </button>
+                <button 
+                  type="button" 
+                  onClick={() => {
+                    setIsEditing(false);
+                    setSelectedSlide(null);
+                  }}
+                  className="cancel-button"
+                >
                   Cancelar
                 </button>
-                {selectedSlide.id && (
-                  <button
-                    type="button"
-                    className="delete-button"
-                    onClick={() => {
-                      handleDelete(selectedSlide.id);
-                      setIsEditing(false);
-                    }}
-                  >
-                    Eliminar
-                  </button>
-                )}
               </div>
             </form>
           </div>
