@@ -92,10 +92,13 @@ const ModulosCurso = () => {
   useEffect(() => {
     async function fetchData() {
       setLoading(true);
-      const { data: portada } = await supabase.from('cursos_portada').select('*').eq('curso_id', id).single();
-      let modArr = (portada && portada.modulos) ? portada.modulos : [];
-      if (!Array.isArray(modArr)) modArr = [];
-      setModulos(modArr);
+      const { data: classroomMods } = await supabase
+        .from('classroom_modulos')
+        .select('*')
+        .eq('origen', 'curso')
+        .eq('curso_id', id)
+        .order('orden', { ascending: true });
+      setModulos(classroomMods || []);
       setLoading(false);
     }
     if (id) fetchData();
@@ -122,7 +125,7 @@ const ModulosCurso = () => {
         }
         // Traer videos reales
         const { data: videosData } = await supabase
-          .from('videos_modulo')
+          .from('videos_classroom_modulo')
           .select('*')
           .eq('modulo_id', moduloReal.id)
           .order('orden', { ascending: true });
@@ -150,7 +153,7 @@ const ModulosCurso = () => {
     let videos = [];
     if (moduloReal?.id) {
       const { data: videosData } = await supabase
-        .from('videos_modulo')
+        .from('videos_classroom_modulo')
         .select('*')
         .eq('modulo_id', moduloReal.id)
         .order('orden', { ascending: true });
