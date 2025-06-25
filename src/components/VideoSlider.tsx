@@ -141,8 +141,10 @@ const VideoSlider: React.FC = () => {
   }, [isAdmin, getThumbnailUrl]);
 
   const fetchActionButtons = useCallback(async () => {
+    if (!user) return;
+    
     try {
-      console.log('Intentando cargar botones...');
+      console.log('Cargando botones...');
       const { data, error } = await supabase
         .from('botones_accion')
         .select('*')
@@ -153,13 +155,11 @@ const VideoSlider: React.FC = () => {
         throw error;
       }
 
-      console.log('Botones cargados:', data);
-
       if (data && data.length > 0) {
         setActionButtons(data);
-      } else {
-        console.log('No hay botones, creando botones por defecto...');
-        // Si no hay botones en la base de datos, crear los botones por defecto
+      } else if (isAdmin) {
+        // Solo crear botones por defecto si es admin y no hay botones
+        console.log('Creando botones por defecto...');
         const defaultButtons = [
           {
             title: "Únete a nuestra comunidad",
@@ -178,34 +178,51 @@ const VideoSlider: React.FC = () => {
           }
         ];
 
-        const { data: insertedButtons, error: insertError } = await supabase
+        const { error: insertError } = await supabase
           .from('botones_accion')
-          .insert(defaultButtons)
-          .select();
+          .insert(defaultButtons);
 
         if (insertError) {
-          console.error('Error al insertar botones por defecto:', insertError);
+          console.error('Error al crear botones por defecto:', insertError);
           throw insertError;
         }
 
-        console.log('Botones por defecto insertados:', insertedButtons);
-        if (insertedButtons) {
-          setActionButtons(insertedButtons);
+        // Recargar los botones después de insertar
+        const { data: newData } = await supabase
+          .from('botones_accion')
+          .select('*')
+          .order('order_index');
+
+        if (newData) {
+          setActionButtons(newData);
         }
       }
     } catch (err) {
-      console.error('Error al cargar los botones:', err);
+      console.error('Error en fetchActionButtons:', err);
       setError('Error al cargar los botones de acción');
     }
-  }, []);
+  }, [user, isAdmin]);
 
   useEffect(() => {
-    if (!user) {
+    const loadInitialData = async () => {
+      setLoading(true);
+      try {
+        await Promise.all([
+          fetchSlides(),
+          fetchActionButtons()
+        ]);
+      } catch (err) {
+        console.error('Error al cargar datos iniciales:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (user) {
+      loadInitialData();
+    } else {
       setLoading(false);
-      return;
     }
-    fetchSlides();
-    fetchActionButtons();
   }, [user, fetchSlides, fetchActionButtons]);
 
   useEffect(() => {
@@ -332,62 +349,35 @@ const VideoSlider: React.FC = () => {
   };
 
   const handleSaveActionButtons = async () => {
-    try {
-      if (userRole !== 'admin' && userRole !== 'superadmin') {
-        setError('No tienes permisos para editar los botones');
-        console.error('Usuario no tiene permisos de administrador');
-        return;
-      }
+    if (!isAdmin) {
+      setError('No tienes permisos para editar los botones');
+      return;
+    }
 
-      console.log('Intentando guardar botones como', userRole);
-      
-      // Preparar los datos para el upsert
-      const buttonsToUpdate = actionButtons.map((button, index) => ({
-        id: button.id,
-        title: button.title,
-        url: button.url,
+    try {
+      setError(null);
+      console.log('Guardando botones...');
+
+      const buttonsToSave = actionButtons.map((button, index) => ({
+        ...button,
         order_index: index + 1
       }));
 
-      console.log('Botones a actualizar:', buttonsToUpdate);
+      const { error: saveError } = await supabase
+        .from('botones_accion')
+        .upsert(buttonsToSave);
 
-      // Separar botones existentes de nuevos botones
-      const existingButtons = buttonsToUpdate.filter(button => button.id);
-      const newButtons = buttonsToUpdate.filter(button => !button.id).map(({id, ...rest}) => rest);
-
-      console.log('Botones existentes:', existingButtons);
-      console.log('Botones nuevos:', newButtons);
-
-      // Actualizar botones existentes
-      if (existingButtons.length > 0) {
-        const { error: updateError } = await supabase
-          .from('botones_accion')
-          .upsert(existingButtons);
-
-        if (updateError) {
-          console.error('Error detallado al actualizar botones:', updateError);
-          throw new Error(`Error al actualizar botones: ${updateError.message}`);
-        }
-      }
-
-      // Insertar nuevos botones
-      if (newButtons.length > 0) {
-        const { error: insertError } = await supabase
-          .from('botones_accion')
-          .insert(newButtons);
-
-        if (insertError) {
-          console.error('Error detallado al insertar botones:', insertError);
-          throw new Error(`Error al insertar botones: ${insertError.message}`);
-        }
+      if (saveError) {
+        console.error('Error al guardar botones:', saveError);
+        throw new Error(saveError.message);
       }
 
       console.log('Botones guardados exitosamente');
       setIsEditing(false);
-      await fetchActionButtons(); // Recargar los botones
+      await fetchActionButtons();
     } catch (err) {
-      console.error('Error al guardar los botones:', err);
-      setError(err instanceof Error ? err.message : 'Error al guardar los cambios en los botones');
+      console.error('Error en handleSaveActionButtons:', err);
+      setError(err instanceof Error ? err.message : 'Error al guardar los cambios');
     }
   };
 
@@ -595,15 +585,15 @@ const VideoSlider: React.FC = () => {
               <h3>Editar Botones de Acción</h3>
             </div>
             {actionButtons.map((button, index) => (
-              <div key={button.id} className="action-form-group">
+              <div key={button.id || index} className="action-form-group">
                 <label>Botón {index + 1}</label>
                 <input
                   type="text"
                   value={button.title}
                   onChange={(e) => {
                     setActionButtons(buttons =>
-                      buttons.map(b =>
-                        b.id === button.id ? { ...b, title: e.target.value } : b
+                      buttons.map((b, i) =>
+                        i === index ? { ...b, title: e.target.value } : b
                       )
                     );
                   }}
@@ -614,8 +604,8 @@ const VideoSlider: React.FC = () => {
                   value={button.url}
                   onChange={(e) => {
                     setActionButtons(buttons =>
-                      buttons.map(b =>
-                        b.id === button.id ? { ...b, url: e.target.value } : b
+                      buttons.map((b, i) =>
+                        i === index ? { ...b, url: e.target.value } : b
                       )
                     );
                   }}
@@ -629,7 +619,7 @@ const VideoSlider: React.FC = () => {
                 className="action-modal-button action-modal-cancel"
                 onClick={() => {
                   setIsEditing(false);
-                  fetchActionButtons(); // Recargar los botones originales al cancelar
+                  fetchActionButtons();
                 }}
               >
                 Cancelar
