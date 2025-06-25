@@ -30,13 +30,11 @@ const VideoSlider: React.FC = () => {
   const { userInfo } = useNeuroState();
 
   useEffect(() => {
-    console.log('VideoSlider montado');
     fetchSlides();
   }, []);
 
   const fetchSlides = async () => {
     try {
-      console.log('Iniciando fetchSlides...');
       setLoading(true);
       setError(null);
 
@@ -45,71 +43,81 @@ const VideoSlider: React.FC = () => {
         .select('*')
         .order('created_at', { ascending: true });
 
-      console.log('Respuesta de Supabase:', { data, error });
-
       if (error) {
-        console.error('Error de Supabase:', error);
+        console.error('Error al obtener slides:', error);
         setError(error.message);
         return;
       }
-      
-      if (!data || !Array.isArray(data)) {
-        console.log('No hay datos disponibles o formato inválido');
-        setSlides([]);
-        return;
-      }
 
-      // Validar y limpiar los datos
-      const validSlides = data.filter(slide => {
-        const isValid = 
-          slide &&
-          typeof slide.id === 'string' &&
-          typeof slide.title === 'string' &&
-          typeof slide.description === 'string' &&
-          typeof slide.videoUrl === 'string' &&
-          (slide.videoType === 'youtube' || slide.videoType === 'vimeo');
-        
-        if (!isValid) {
+      // Validar y transformar los datos
+      const validSlides = (data || []).reduce((acc: VideoSlide[], slide: any) => {
+        if (!slide) return acc;
+
+        // Validar campos requeridos
+        if (!slide.id || !slide.title || !slide.description || !slide.videoUrl || !slide.videoType) {
           console.warn('Slide inválido encontrado:', slide);
+          return acc;
         }
-        return isValid;
-      });
 
-      console.log('Slides válidos:', validSlides);
+        // Validar tipo de video
+        if (slide.videoType !== 'youtube' && slide.videoType !== 'vimeo') {
+          console.warn('Tipo de video inválido:', slide.videoType);
+          return acc;
+        }
+
+        // Crear objeto slide con valores por defecto seguros
+        const validSlide: VideoSlide = {
+          id: String(slide.id),
+          title: String(slide.title),
+          description: String(slide.description),
+          videoUrl: String(slide.videoUrl),
+          videoType: slide.videoType as 'youtube' | 'vimeo',
+          buttonText: slide.buttonText ? String(slide.buttonText) : undefined,
+          buttonUrl: slide.buttonUrl ? String(slide.buttonUrl) : undefined
+        };
+
+        return [...acc, validSlide];
+      }, []);
+
       setSlides(validSlides);
-    } catch (error) {
-      console.error('Error en fetchSlides:', error);
-      setError(error instanceof Error ? error.message : 'Error desconocido');
+    } catch (err) {
+      console.error('Error inesperado:', err);
+      setError(err instanceof Error ? err.message : 'Error desconocido');
     } finally {
       setLoading(false);
     }
   };
 
   const getEmbedUrl = (url: string, type: 'youtube' | 'vimeo'): string => {
-    if (!url) {
-      console.warn('URL indefinida o vacía');
+    if (!url || !type) {
+      console.warn('URL o tipo indefinido:', { url, type });
       return '';
     }
 
     try {
       if (type === 'youtube') {
+        // Validar si ya es una URL de embed
+        if (url.includes('youtube.com/embed/')) {
+          return url;
+        }
+
         const videoId = url.match(/(?:youtu\.be\/|youtube\.com(?:\/embed\/|\/v\/|\/watch\?v=|\/user\/\S+|\/ytscreeningroom\?v=|\/sandalsResorts#\w\/\w\/.*\/))([^\/&\n?\s]{11})/);
-        if (!videoId) {
-          console.warn('URL de YouTube inválida:', url);
+        return videoId ? `https://www.youtube.com/embed/${videoId[1]}` : '';
+      } else if (type === 'vimeo') {
+        // Validar si ya es una URL de embed
+        if (url.includes('player.vimeo.com/video/')) {
           return url;
         }
-        return `https://www.youtube.com/embed/${videoId[1]}`;
-      } else {
+
         const videoId = url.match(/(?:www\.|player\.)?vimeo.com\/(?:channels\/(?:\w+\/)?|groups\/(?:[^\/]*)\/videos\/|album\/(?:\d+)\/video\/|video\/|)(\d+)(?:[a-zA-Z0-9_\-]+)?/);
-        if (!videoId) {
-          console.warn('URL de Vimeo inválida:', url);
-          return url;
-        }
-        return `https://player.vimeo.com/video/${videoId[1]}`;
+        return videoId ? `https://player.vimeo.com/video/${videoId[1]}` : '';
       }
-    } catch (error) {
-      console.error('Error al procesar URL:', error);
-      return url;
+      
+      console.warn('Tipo de video no soportado:', type);
+      return '';
+    } catch (err) {
+      console.error('Error al procesar URL:', err);
+      return '';
     }
   };
 
@@ -125,37 +133,49 @@ const VideoSlider: React.FC = () => {
         return;
       }
 
-      const { error } = await supabase
-        .from('video_slides')
-        .upsert(updatedSlide);
+      // Validar URL del video según el tipo
+      const embedUrl = getEmbedUrl(updatedSlide.videoUrl, updatedSlide.videoType);
+      if (!embedUrl) {
+        setError('URL del video inválida');
+        return;
+      }
 
-      if (error) throw error;
+      const slideToSave = {
+        ...updatedSlide,
+        videoUrl: embedUrl
+      };
+
+      const { error: saveError } = await supabase
+        .from('video_slides')
+        .upsert(slideToSave);
+
+      if (saveError) throw saveError;
       
       setIsEditing(false);
       setSelectedSlide(null);
-      fetchSlides();
-    } catch (error) {
-      console.error('Error saving slide:', error);
-      setError(error instanceof Error ? error.message : 'Error al guardar el slide');
+      await fetchSlides();
+    } catch (err) {
+      console.error('Error al guardar slide:', err);
+      setError(err instanceof Error ? err.message : 'Error al guardar el slide');
     }
   };
 
   const handleDelete = async (id: string) => {
     try {
-      const { error } = await supabase
+      const { error: deleteError } = await supabase
         .from('video_slides')
         .delete()
         .eq('id', id);
 
-      if (error) throw error;
-      fetchSlides();
-    } catch (error) {
-      console.error('Error deleting slide:', error);
-      setError(error instanceof Error ? error.message : 'Error al eliminar el slide');
+      if (deleteError) throw deleteError;
+      await fetchSlides();
+      setIsEditing(false);
+    } catch (err) {
+      console.error('Error al eliminar slide:', err);
+      setError(err instanceof Error ? err.message : 'Error al eliminar el slide');
     }
   };
 
-  // Si está cargando, mostrar un placeholder
   if (loading) {
     return (
       <div className="video-slider-container">
@@ -166,7 +186,6 @@ const VideoSlider: React.FC = () => {
     );
   }
 
-  // Si hay un error, mostrarlo
   if (error) {
     return (
       <div className="video-slider-container">
@@ -183,7 +202,6 @@ const VideoSlider: React.FC = () => {
     );
   }
 
-  // Si no hay slides y el usuario es admin, mostrar botón para crear
   if (slides.length === 0) {
     if (userInfo?.rol === 'admin') {
       return (
@@ -223,42 +241,47 @@ const VideoSlider: React.FC = () => {
         spaceBetween={30}
         slidesPerView={1}
       >
-        {slides.map((slide) => (
-          <SwiperSlide key={slide.id}>
-            <div className="video-slide">
-              <div className="video-container">
-                <iframe
-                  src={getEmbedUrl(slide.videoUrl, slide.videoType)}
-                  title={slide.title}
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                />
-              </div>
-              <div className="video-content">
-                <h2>{slide.title}</h2>
-                <p>{slide.description}</p>
-                {slide.buttonText && slide.buttonUrl && (
-                  <a 
-                    href={slide.buttonUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="video-cta"
+        {slides.map((slide) => {
+          const embedUrl = getEmbedUrl(slide.videoUrl, slide.videoType);
+          if (!embedUrl) return null;
+
+          return (
+            <SwiperSlide key={slide.id}>
+              <div className="video-slide">
+                <div className="video-container">
+                  <iframe
+                    src={embedUrl}
+                    title={slide.title}
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                  />
+                </div>
+                <div className="video-content">
+                  <h2>{slide.title}</h2>
+                  <p>{slide.description}</p>
+                  {slide.buttonText && slide.buttonUrl && (
+                    <a 
+                      href={slide.buttonUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="video-cta"
+                    >
+                      {slide.buttonText}
+                    </a>
+                  )}
+                </div>
+                {userInfo?.rol === 'admin' && (
+                  <button
+                    className="admin-edit-button"
+                    onClick={() => handleEdit(slide)}
                   >
-                    {slide.buttonText}
-                  </a>
+                    <Edit2 size={20} />
+                  </button>
                 )}
               </div>
-              {userInfo?.rol === 'admin' && (
-                <button
-                  className="admin-edit-button"
-                  onClick={() => handleEdit(slide)}
-                >
-                  <Edit2 size={20} />
-                </button>
-              )}
-            </div>
-          </SwiperSlide>
-        ))}
+            </SwiperSlide>
+          );
+        })}
       </Swiper>
 
       {isEditing && selectedSlide && (
