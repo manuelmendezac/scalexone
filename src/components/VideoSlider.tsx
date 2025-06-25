@@ -358,18 +358,44 @@ const VideoSlider: React.FC = () => {
       setError(null);
       console.log('Guardando botones...');
 
-      const buttonsToSave = actionButtons.map((button, index) => ({
-        ...button,
-        order_index: index + 1
-      }));
+      // Preparar los botones para guardar, omitiendo el id para nuevos botones
+      const buttonsToSave = actionButtons.map((button, index) => {
+        const { id, ...buttonWithoutId } = button;
+        return {
+          ...(id ? { id } : {}), // Solo incluir id si existe
+          ...buttonWithoutId,
+          order_index: index + 1
+        };
+      });
 
-      const { error: saveError } = await supabase
-        .from('botones_accion')
-        .upsert(buttonsToSave);
+      console.log('Botones a guardar:', buttonsToSave);
 
-      if (saveError) {
-        console.error('Error al guardar botones:', saveError);
-        throw new Error(saveError.message);
+      // Separar botones existentes de nuevos botones
+      const existingButtons = buttonsToSave.filter(button => 'id' in button);
+      const newButtons = buttonsToSave.filter(button => !('id' in button));
+
+      // Actualizar botones existentes
+      if (existingButtons.length > 0) {
+        const { error: updateError } = await supabase
+          .from('botones_accion')
+          .upsert(existingButtons);
+
+        if (updateError) {
+          console.error('Error al actualizar botones:', updateError);
+          throw new Error(updateError.message);
+        }
+      }
+
+      // Insertar nuevos botones
+      if (newButtons.length > 0) {
+        const { error: insertError } = await supabase
+          .from('botones_accion')
+          .insert(newButtons);
+
+        if (insertError) {
+          console.error('Error al insertar botones:', insertError);
+          throw new Error(insertError.message);
+        }
       }
 
       console.log('Botones guardados exitosamente');
