@@ -62,12 +62,6 @@ const Inicio: React.FC = () => {
         <div className="flex flex-col gap-8">
           <OnboardingMentor />
           <VideoSlider />
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div className="flex flex-col gap-8">
-              <NovedadesPanel />
-              <TipsPanel />
-            </div>
-          </div>
         </div>
         <QuickAccess />
         <TipsCarousel news={news} />
