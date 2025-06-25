@@ -800,7 +800,7 @@ const CursoDetalle = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#0a0a0a] via-[#1a1a2e] to-[#16213e] text-white">
+    <div className="min-h-screen w-full bg-black text-white">
       {/* Editor solo para admin, siempre visible arriba */}
       {isAdmin && (
         <div className="max-w-5xl mx-auto pt-4 flex justify-end">
