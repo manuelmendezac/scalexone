@@ -89,37 +89,35 @@ function App() {
   useEffect(() => {
     async function checkAndSyncUser() {
       const { data: { user } } = await supabase.auth.getUser();
-      if (user && user.email) {
-        const nombre = user.user_metadata?.name || user.user_metadata?.full_name || user.email;
-        if (nombre !== userName) setUserName(nombre);
+      if (!user || !user.email) return;
+      const nombre = user.user_metadata?.name || user.user_metadata?.full_name || user.email;
+      if (nombre !== userName) setUserName(nombre);
+      // Obtener datos completos del usuario desde la tabla usuarios
+      const { data: usuarioData } = await supabase
+        .from('usuarios')
+        .select('rol, community_id')
+        .eq('email', user.email)
+        .single();
 
-        // Obtener datos completos del usuario desde la tabla usuarios
-        const { data: usuarioData } = await supabase
-          .from('usuarios')
-          .select('rol, community_id')
-          .eq('email', user.email)
-          .single();
+      // Solo actualiza si hay cambios reales
+      if (
+        usuarioData?.rol !== userInfo.rol ||
+        usuarioData?.community_id !== userInfo.community_id ||
+        nombre !== userInfo.name ||
+        user.email !== userInfo.email
+      ) {
+        updateUserInfo({
+          name: nombre,
+          email: user.email,
+          rol: usuarioData?.rol || user.user_metadata?.rol || 'user',
+          community_id: usuarioData?.community_id || 'default'
+        });
+      }
 
-        // Solo actualiza si hay cambios reales
-        if (
-          usuarioData?.rol !== userInfo.rol ||
-          usuarioData?.community_id !== userInfo.community_id ||
-          nombre !== userInfo.name ||
-          user.email !== userInfo.email
-        ) {
-          updateUserInfo({
-            name: nombre,
-            email: user.email,
-            rol: usuarioData?.rol || user.user_metadata?.rol || 'user',
-            community_id: usuarioData?.community_id || 'default'
-          });
-        }
-
-        syncUsuarioSupabase(user);
-        // Redirige solo si está en login, registro o raíz
-        if (["/login", "/registro", "/"].includes(location.pathname)) {
-          navigate("/home", { replace: true });
-        }
+      syncUsuarioSupabase(user);
+      // Redirige solo si está en login, registro o raíz
+      if (["/login", "/registro", "/"].includes(location.pathname)) {
+        navigate("/home", { replace: true });
       }
     }
     checkAndSyncUser();
