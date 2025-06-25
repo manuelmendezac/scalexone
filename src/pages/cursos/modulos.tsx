@@ -1,307 +1,137 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../../supabase';
-import ModalFuturista from '../../components/ModalFuturista';
-import { useGlobalLoading } from '../../store/useGlobalLoading';
-
-// Barra de progreso circular (copiada de id.tsx)
-const CircularProgress = ({ percent = 0, size = 64, stroke = 8 }) => {
-  const r = (size - stroke) / 2;
-  const c = 2 * Math.PI * r;
-  const offset = c - (percent / 100) * c;
-  return (
-    <div className="flex flex-col items-center">
-      <svg width={size} height={size} className="block relative z-10">
-        <defs>
-          <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stopColor="#00fff7" />
-            <stop offset="100%" stopColor="#7f5cff" />
-          </linearGradient>
-          <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
-            <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
-            <feMerge>
-              <feMergeNode in="coloredBlur"/>
-              <feMergeNode in="SourceGraphic"/>
-            </feMerge>
-          </filter>
-        </defs>
-        <circle cx={size/2} cy={size/2} r={r} stroke="#222a" strokeWidth={stroke} fill="rgba(20,20,30,0.7)" />
-        <circle
-          cx={size/2}
-          cy={size/2}
-          r={r}
-          stroke="url(#grad1)"
-          strokeWidth={stroke}
-          fill="none"
-          strokeDasharray={c}
-          strokeDashoffset={offset}
-          strokeLinecap="round"
-          style={{ filter: 'url(#glow)' }}
-        />
-      </svg>
-      <span className="text-cyan-300 font-bold text-sm mt-1 drop-shadow-glow">{percent}%</span>
-    </div>
-  );
-};
-
-const focoSVG = (
-  <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <g>
-      <circle cx="24" cy="24" r="24" fill="none" />
-      <path d="M24 36V40" stroke="#39FF14" strokeWidth="3" strokeLinecap="round"/>
-      <path d="M16 28C16 22.4772 20.4772 18 26 18C31.5228 18 36 22.4772 36 28C36 31.3137 33.3137 34 30 34H22C18.6863 34 16 31.3137 16 28Z" stroke="#39FF14" strokeWidth="3"/>
-      <circle cx="26" cy="28" r="6" stroke="#39FF14" strokeWidth="3"/>
-    </g>
-  </svg>
-);
-
-// Copiar función getVideoThumbnail del módulo
-function getVideoThumbnail(url: string): string | null {
-  if (!url) return null;
-  // YouTube
-  const ytMatch = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([\w-]{11})/);
-  if (ytMatch) {
-    return `https://img.youtube.com/vi/${ytMatch[1]}/hqdefault.jpg`;
-  }
-  // Vimeo
-  const vimeoMatch = url.match(/vimeo\.com\/(\d+)/);
-  if (vimeoMatch) {
-    return `https://vumbnail.com/${vimeoMatch[1]}.jpg`;
-  }
-  return null;
-}
+import NeonSpinner from '../../components/NeonSpinner';
+import { Award, Film, CheckCircle, Edit } from 'lucide-react';
+import useNeuroState from '../../store/useNeuroState';
 
 const ModulosCurso = () => {
-  const { id } = useParams();
+  const { id } = useParams(); // id del curso
   const navigate = useNavigate();
+  const neuro = useNeuroState();
   const [modulos, setModulos] = useState<any[]>([]);
+  const [progreso, setProgreso] = useState<Record<string, string[]>>({}); // { moduloId: [videoIds] }
   const [loading, setLoading] = useState(true);
-  const [videosPorModulo, setVideosPorModulo] = useState<any[][]>([]);
-  const [modalInfoOpen, setModalInfoOpen] = useState(false);
-  const [modalInfoModulo, setModalInfoModulo] = useState<any>(null);
   const [isAdmin, setIsAdmin] = useState(false);
-  const carouselRef = useRef<HTMLDivElement>(null);
-  const setLoadingGlobal = useGlobalLoading(state => state.setLoading);
+  const userId = neuro.userInfo?.id;
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      setIsAdmin(localStorage.getItem('adminMode') === 'true');
-    }
-  }, []);
-
-  useEffect(() => {
-    async function fetchData() {
+    const fetchData = async () => {
       setLoading(true);
-      const { data: classroomMods } = await supabase
-        .from('classroom_modulos')
+      // 1. Obtener módulos del curso
+      const { data: modulosData } = await supabase
+        .from('modulos_curso')
         .select('*')
-        .eq('origen', 'curso')
         .eq('curso_id', id)
         .order('orden', { ascending: true });
-      setModulos(classroomMods || []);
+      setModulos(modulosData || []);
+
+      // 2. Obtener progreso del usuario
+      if (userId) {
+        const { data: progresoData } = await supabase
+          .from('progreso_academico_usuario')
+          .select('modulos_ids, videos_ids')
+          .eq('usuario_id', userId)
+          .single();
+        // Mapear videos completados por módulo
+        const videosPorModulo: Record<string, string[]> = {};
+        (modulosData || []).forEach((mod: any) => {
+          videosPorModulo[mod.id] = (progresoData?.videos_ids || []).filter((vid: string) => vid.startsWith(mod.id));
+        });
+        setProgreso(videosPorModulo);
+      }
+
+      // 3. Verificar si es admin
+      if (neuro.userInfo?.rol === 'admin' || neuro.userInfo?.rol === 'superadmin') {
+        setIsAdmin(true);
+      }
       setLoading(false);
-    }
-    if (id) fetchData();
-  }, [id]);
+    };
+    fetchData();
+  }, [id, userId, neuro.userInfo?.rol]);
 
-  useEffect(() => {
-    async function fetchVideosTodosModulos() {
-      if (!modulos.length) {
-        setVideosPorModulo([]);
-        return;
-      }
-      const videosArr: any[][] = [];
-      for (const mod of modulos) {
-        // Buscar el id real del módulo
-        const { data: moduloReal } = await supabase
-          .from('modulos_curso')
-          .select('id')
-          .eq('curso_id', id)
-          .eq('titulo', mod.titulo)
-          .maybeSingle();
-        if (!moduloReal?.id) {
-          videosArr.push([]);
-          continue;
-        }
-        // Traer videos reales
-        const { data: videosData } = await supabase
-          .from('videos_classroom_modulo')
-          .select('*')
-          .eq('modulo_id', moduloReal.id)
-          .order('orden', { ascending: true });
-        videosArr.push(videosData || []);
-      }
-      setVideosPorModulo(videosArr);
-    }
-    if (modulos.length > 0) fetchVideosTodosModulos();
-  }, [modulos, id]);
-
-  useEffect(() => {
-    setLoadingGlobal(loading);
-    return () => setLoadingGlobal(false);
-  }, [loading, setLoadingGlobal]);
-
-  // Función para abrir el popup de un módulo específico
-  const handleVerClases = async (mod: any, idx: number) => {
-    // Buscar el id real del módulo
-    const { data: moduloReal } = await supabase
-      .from('modulos_curso')
-      .select('id')
-      .eq('curso_id', id)
-      .eq('titulo', mod.titulo)
-      .maybeSingle();
-    let videos = [];
-    if (moduloReal?.id) {
-      const { data: videosData } = await supabase
-        .from('videos_classroom_modulo')
-        .select('*')
-        .eq('modulo_id', moduloReal.id)
-        .order('orden', { ascending: true });
-      videos = videosData || [];
-    }
-    setModalInfoModulo({ modulo: mod, videos });
-    setModalInfoOpen(true);
+  const handleEditModulo = (moduloId: string) => {
+    navigate(`/classroom/editar-videos?modulo_id=${moduloId}`);
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#0a0a0a] via-[#1a1a2e] to-[#16213e] text-white">
-      <div className="max-w-6xl mx-auto py-10 px-4">
-        <h1 className="text-3xl font-bold text-cyan-400 mb-8">Módulos del Curso</h1>
-        {modulos.map((mod, idx) => (
-          <div key={idx} id={`modulo-${idx}`} className="bg-black/80 border-2 border-cyan-400 rounded-2xl p-8 shadow-xl flex flex-col min-h-[340px] max-w-3xl w-full mx-auto mb-10">
-            <div className="flex flex-col items-center mb-4">
-              <div className="flex flex-row items-center justify-center gap-6 w-full md:flex-row flex-col">
-                {/* Barra de progreso circular */}
-                <div className="flex flex-col items-center">
-                  <CircularProgress percent={Math.floor(Math.random()*60+40)} size={54} stroke={7} />
-                </div>
-                {/* Icono grande, ajustado automáticamente */}
-                <div className="flex flex-col items-center">
-                  {mod.icono ? (
-                    <img src={mod.icono} alt="icono" className="w-16 h-16 md:w-20 md:h-20 object-cover rounded-full bg-black/80" style={{minWidth: '64px', minHeight: '64px', maxWidth: '80px', maxHeight: '80px', border: 'none', boxShadow: 'none'}} />
-                  ) : (
-                    <svg width="64" height="64" fill="none" stroke="#22d3ee" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="text-cyan-400"><circle cx="32" cy="32" r="26" /><path d="M48 48L40 40" /><circle cx="32" cy="32" r="10" /></svg>
-                  )}
-                </div>
-              </div>
-            </div>
-            <div className="text-xl font-bold text-white mb-2 text-center uppercase">{mod.titulo}</div>
-            <div className="text-white/90 text-base mb-6 text-center">{mod.descripcion}</div>
-            <div className="flex gap-2 mb-8 justify-center">
-              <button
-                className="bg-white text-black font-bold py-2 px-6 rounded-full transition-all text-base shadow hover:bg-cyan-200"
-                onClick={() => navigate(`/cursos/${id}/modulo/${idx}?video=0`)}
+    <div className="min-h-screen bg-black text-yellow-100 flex flex-col items-center py-8 px-2">
+      <h1 className="text-3xl md:text-4xl font-bold text-yellow-400 mb-8 drop-shadow-lg uppercase tracking-wider">Módulos del Curso</h1>
+      {loading ? (
+        <div className="flex justify-center items-center h-64">
+          <NeonSpinner size={64} />
+        </div>
+      ) : (
+        <div className="w-full max-w-5xl grid grid-cols-1 md:grid-cols-2 gap-8">
+          {modulos.map((modulo) => {
+            const videosCompletados = progreso[modulo.id]?.length || 0;
+            const totalVideos = modulo.videos?.length || modulo.total_videos || 0;
+            const completado = totalVideos > 0 && videosCompletados === totalVideos;
+            return (
+              <div
+                key={modulo.id}
+                className="relative bg-gradient-to-br from-black via-neutral-900 to-yellow-900/30 border-2 border-yellow-700 rounded-3xl shadow-xl p-6 flex flex-col gap-4 hover:scale-[1.02] transition-transform duration-200"
               >
-                Iniciar
-              </button>
-              <button
-                className="bg-cyan-700 text-white font-bold py-2 px-6 rounded-full transition-all text-base shadow hover:bg-cyan-500"
-                onClick={() => handleVerClases(mod, idx)}
-              >
-                Ver clases
-              </button>
-            </div>
-            {/* Tarjetas de videos del módulo */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
-              {videosPorModulo[idx] && videosPorModulo[idx].map((v: any, vidx: number) => {
-                let thumb = v.miniatura_url;
-                if (!thumb && v.url) {
-                  thumb = getVideoThumbnail(v.url);
-                }
-                // Determinar si es columna izquierda (par) o derecha (impar)
-                const isLeft = vidx % 2 === 0;
-                // Tooltip: si es izquierda, sale a la izquierda; si es derecha, sale a la derecha
-                const tooltipPosition = isLeft ? 'right-full mr-6' : 'left-full ml-6';
-                const flechaPosition = isLeft ? '-right-3' : '-left-3';
-                const flechaBorder = isLeft ? { borderLeft: '12px solid #fff' } : { borderRight: '12px solid #fff' };
-                return (
-                  <div key={v.id} className="relative group flex flex-row items-center gap-4 bg-neutral-900 rounded-2xl border-4 border-cyan-400 p-3 shadow-2xl w-full">
-                    {/* Tooltip informativo */}
+                {/* Botón de edición solo para admins */}
+                {isAdmin && (
+                  <button
+                    className="absolute top-4 right-4 bg-yellow-500 hover:bg-yellow-400 text-black rounded-full p-2 shadow-lg z-10"
+                    title="Editar videos del módulo"
+                    onClick={() => handleEditModulo(modulo.id)}
+                  >
+                    <Edit size={20} />
+                  </button>
+                )}
+                <div className="flex items-center gap-4">
+                  <Award className="text-yellow-400 w-8 h-8" />
+                  <h2 className="text-2xl font-bold text-yellow-300 flex-1">{modulo.titulo}</h2>
+                  {completado && <CheckCircle className="text-yellow-400 w-7 h-7" />}
+                </div>
+                <p className="text-yellow-200/90 text-base mb-2">{modulo.descripcion}</p>
+                {/* Barra de progreso dorada */}
+                <div className="w-full h-3 bg-yellow-900/40 rounded-full overflow-hidden mb-2">
+                  <div
+                    className="h-full bg-gradient-to-r from-yellow-400 to-yellow-600 rounded-full transition-all duration-500"
+                    style={{ width: totalVideos > 0 ? `${(videosCompletados / totalVideos) * 100}%` : '0%' }}
+                  />
+                </div>
+                <div className="flex items-center gap-4 mb-2">
+                  <span className="bg-yellow-500/20 px-3 py-1 rounded-full border border-yellow-500/30 text-yellow-400 font-bold text-sm">XP: {modulo.xp || 0}</span>
+                  <span className="flex items-center gap-1 bg-yellow-500/20 px-3 py-1 rounded-full border border-yellow-500/30 text-yellow-400 font-bold text-sm">
+                    <img src="/images/modulos/neurocoin.svg" alt="Coin" className="w-4 h-4" />
+                    {modulo.monedas || 0}
+                  </span>
+                  <span className="text-yellow-300 text-sm">{videosCompletados} / {totalVideos} videos</span>
+                </div>
+                {/* Listado de videos en tarjetas */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-2">
+                  {(modulo.videos || []).map((video: any, idx: number) => (
                     <div
-                      className={`pointer-events-none absolute z-30 opacity-0 group-hover:opacity-100 group-hover:pointer-events-auto transition-opacity duration-200 delay-150 flex-col min-w-[220px] max-w-xs px-4 py-3 bg-white border-2 border-cyan-400 text-black text-sm rounded-2xl shadow-lg
-                        ${tooltipPosition} top-1/2 -translate-y-1/2 hidden sm:flex
-                      `}
-                      style={{ boxShadow: '0 4px 24px 0 rgba(0,0,0,0.12)' }}
+                      key={video.id || idx}
+                      className={`flex items-center gap-3 bg-neutral-900/80 border border-yellow-800/40 rounded-xl p-3 shadow hover:bg-yellow-900/20 transition-colors ${progreso[modulo.id]?.includes(video.id) ? 'ring-2 ring-yellow-400' : ''}`}
                     >
-                      <div className="mb-1 font-bold text-cyan-600">{v.titulo}</div>
-                      <div className="text-black/90">{v.descripcion || 'Sin descripción'}</div>
-                      {/* Flecha */}
-                      <div className={`absolute top-1/2 -translate-y-1/2 ${flechaPosition}`}
-                        style={{ width: 0, height: 0, borderTop: '8px solid transparent', borderBottom: '8px solid transparent', ...flechaBorder }}
-                      />
-                    </div>
-                    {/* Tooltip móvil */}
-                    <div
-                      className="pointer-events-none absolute z-30 left-1/2 -translate-x-1/2 bottom-[-50px] w-[85vw] max-w-[320px] px-2 py-2 bg-white border-2 border-cyan-400 text-black text-xs rounded-2xl shadow-lg opacity-0 group-hover:opacity-100 group-hover:pointer-events-auto transition-opacity duration-200 delay-150 flex-col items-center sm:hidden"
-                      style={{ boxShadow: '0 4px 24px 0 rgba(0,0,0,0.12)', wordBreak: 'break-word' }}
-                    >
-                      <div className="mb-1 font-bold text-cyan-600 text-sm">{v.titulo}</div>
-                      <div className="text-black/90 text-xs leading-tight">{v.descripcion || 'Sin descripción'}</div>
-                    </div>
-                    {/* Tarjeta de video */}
-                    <div className="w-[120px] h-[80px] sm:w-[120px] sm:h-[80px] w-[90vw] h-[56vw] max-w-[120px] max-h-[80px] sm:max-w-[120px] sm:max-h-[80px] bg-black rounded-2xl overflow-hidden flex items-center justify-center border-4 border-cyan-400 shadow-lg">
-                      {thumb ? (
-                        <img src={thumb} alt={v.titulo} className="w-full h-full object-cover" />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center text-cyan-400">Sin imagen</div>
+                      <Film className="text-yellow-400 w-6 h-6 flex-shrink-0" />
+                      <div className="flex-1">
+                        <div className="font-semibold text-yellow-200 text-base truncate">{video.titulo || 'Video'}</div>
+                        <div className="text-yellow-300 text-xs truncate">{video.descripcion || ''}</div>
+                      </div>
+                      {progreso[modulo.id]?.includes(video.id) && (
+                        <CheckCircle className="text-yellow-400 w-5 h-5" />
                       )}
                     </div>
-                    <div className="flex-1 flex flex-col justify-center min-w-0">
-                      <div className="font-bold text-cyan-200 text-base truncate mb-1">{v.titulo}</div>
-                      <div className="text-xs text-cyan-400 opacity-70">Video</div>
-                    </div>
-                    <button
-                      className="bg-cyan-600 hover:bg-cyan-400 text-white font-bold p-2 rounded-full w-10 h-10 flex items-center justify-center"
-                      onClick={() => navigate(`/cursos/${id}/modulo/${idx}?video=${vidx}`)}
-                      title="Ir a video"
-                    >
-                      <svg width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><polygon points="6,4 20,12 6,20" fill="currentColor" /></svg>
-                    </button>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        ))}
-        {/* Modal de información de módulo */}
-        <ModalFuturista open={modalInfoOpen} onClose={() => setModalInfoOpen(false)}>
-          {modalInfoModulo && (
-            <div className="flex flex-col gap-4 w-full">
-              <h2 className="text-2xl font-bold text-cyan-300 mb-2 text-center">{modalInfoModulo.modulo.titulo}</h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
-                {modalInfoModulo.videos.map((v: any, idx: number) => {
-                  let thumb = v.miniatura_url;
-                  if (!thumb && v.url) {
-                    thumb = getVideoThumbnail(v.url);
-                  }
-                  return (
-                    <div key={v.id} className="flex flex-row items-center gap-4 bg-neutral-900 rounded-2xl border-4 border-cyan-400 p-3 shadow-2xl w-full">
-                      <div className="w-[120px] h-[80px] sm:w-[120px] sm:h-[80px] w-[90vw] h-[56vw] max-w-[120px] max-h-[80px] sm:max-w-[120px] sm:max-h-[80px] bg-black rounded-2xl overflow-hidden flex items-center justify-center border-4 border-cyan-400 shadow-lg">
-                        {thumb ? (
-                          <img src={thumb} alt={v.titulo} className="w-full h-full object-cover" />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center text-cyan-400">Sin imagen</div>
-                        )}
-                      </div>
-                      <div className="flex-1 flex flex-col justify-center min-w-0">
-                        <div className="font-bold text-cyan-200 text-base truncate mb-1">{v.titulo}</div>
-                        <div className="text-xs text-cyan-400 opacity-70">Video</div>
-                      </div>
-                      <button
-                        className="bg-cyan-600 hover:bg-cyan-400 text-white font-bold p-2 rounded-full w-10 h-10 flex items-center justify-center"
-                        onClick={() => { setModalInfoOpen(false); navigate(`/cursos/${id}/modulo/${modulos.findIndex(m => m.titulo === modalInfoModulo.modulo.titulo)}?video=${idx}`); }}
-                        title="Ir a video"
-                      >
-                        <svg width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><polygon points="6,4 20,12 6,20" fill="currentColor" /></svg>
-                      </button>
-                    </div>
-                  );
-                })}
+                  ))}
+                </div>
+                <button
+                  className="mt-4 w-full py-2 rounded-xl bg-yellow-500 hover:bg-yellow-400 text-black font-bold text-lg shadow-lg transition"
+                  onClick={() => navigate(`/cursos/${id}/modulo/${modulo.orden || 0}`)}
+                >
+                  {completado ? 'Revisar módulo' : 'Entrar al módulo'}
+                </button>
               </div>
-            </div>
-          )}
-        </ModalFuturista>
-      </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 };
