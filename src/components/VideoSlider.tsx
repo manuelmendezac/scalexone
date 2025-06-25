@@ -42,6 +42,7 @@ const VideoSlider: React.FC = () => {
   const [editingButton, setEditingButton] = useState<ActionButton | null>(null);
   const [isEditingVideo, setIsEditingVideo] = useState(false);
   const [editingVideo, setEditingVideo] = useState<VideoSlide | null>(null);
+  const [userRole, setUserRole] = useState<string | null>(null);
 
   // Memoizar las expresiones regulares para mejor rendimiento
   const videoIdRegex = useMemo(() => ({
@@ -208,7 +209,7 @@ const VideoSlider: React.FC = () => {
   }, [user, fetchSlides, fetchActionButtons]);
 
   useEffect(() => {
-    const checkPermissions = async () => {
+    const checkUserRole = async () => {
       try {
         const { data: { user: currentUser } } = await supabase.auth.getUser();
         if (currentUser) {
@@ -219,25 +220,20 @@ const VideoSlider: React.FC = () => {
             .single();
 
           if (userError) {
-            console.error('Error al verificar permisos:', userError);
-            throw userError;
+            console.error('Error al obtener rol del usuario:', userError);
+            return;
           }
 
+          setUserRole(userData?.rol || null);
           console.log('Rol del usuario:', userData?.rol);
-          if (userData?.rol !== 'admin' && userData?.rol !== 'superadmin') {
-            setError('No tienes permisos para editar los botones');
-          }
         }
       } catch (err) {
-        console.error('Error al verificar permisos:', err);
-        setError('Error al verificar permisos de usuario');
+        console.error('Error al verificar rol del usuario:', err);
       }
     };
 
-    if (isEditing) {
-      checkPermissions();
-    }
-  }, [isEditing]);
+    checkUserRole();
+  }, []);
 
   const getEmbedUrl = (url: string, type: 'youtube' | 'vimeo'): string => {
     try {
@@ -337,8 +333,15 @@ const VideoSlider: React.FC = () => {
 
   const handleSaveActionButtons = async () => {
     try {
-      console.log('Intentando guardar botones...');
-      // Preparar los datos para el upsert, asegurándonos de que tengan el formato correcto
+      if (userRole !== 'admin' && userRole !== 'superadmin') {
+        setError('No tienes permisos para editar los botones');
+        console.error('Usuario no tiene permisos de administrador');
+        return;
+      }
+
+      console.log('Intentando guardar botones como', userRole);
+      
+      // Preparar los datos para el upsert
       const buttonsToUpdate = actionButtons.map((button, index) => ({
         id: button.id,
         title: button.title,
@@ -362,8 +365,8 @@ const VideoSlider: React.FC = () => {
           .upsert(existingButtons);
 
         if (updateError) {
-          console.error('Error al actualizar botones existentes:', updateError);
-          throw updateError;
+          console.error('Error detallado al actualizar botones:', updateError);
+          throw new Error(`Error al actualizar botones: ${updateError.message}`);
         }
       }
 
@@ -374,17 +377,17 @@ const VideoSlider: React.FC = () => {
           .insert(newButtons);
 
         if (insertError) {
-          console.error('Error al insertar nuevos botones:', insertError);
-          throw insertError;
+          console.error('Error detallado al insertar botones:', insertError);
+          throw new Error(`Error al insertar botones: ${insertError.message}`);
         }
       }
 
       console.log('Botones guardados exitosamente');
       setIsEditing(false);
-      await fetchActionButtons(); // Recargar los botones después de guardar
+      await fetchActionButtons(); // Recargar los botones
     } catch (err) {
       console.error('Error al guardar los botones:', err);
-      setError('Error al guardar los cambios en los botones');
+      setError(err instanceof Error ? err.message : 'Error al guardar los cambios en los botones');
     }
   };
 
