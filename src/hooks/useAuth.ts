@@ -54,9 +54,32 @@ export function useAuth(): AuthState {
 
   const checkAdminStatus = async (userId: string) => {
     try {
+      // Primero, asegurarse de que el usuario existe en la tabla usuarios
+      const { data: existingUser, error: existingError } = await supabase
+        .from('usuarios')
+        .select('id')
+        .eq('id', userId)
+        .single();
+
+      if (!existingUser) {
+        // Si el usuario no existe, crearlo
+        const { error: insertError } = await supabase
+          .from('usuarios')
+          .insert([
+            {
+              id: userId,
+              email: state.user?.email,
+              rol: 'user'
+            }
+          ]);
+
+        if (insertError) throw insertError;
+      }
+
+      // Verificar el rol del usuario
       const { data, error } = await supabase
-        .from('users')
-        .select('role')
+        .from('usuarios')
+        .select('rol')
         .eq('id', userId)
         .single();
 
@@ -64,7 +87,7 @@ export function useAuth(): AuthState {
 
       setState(prevState => ({
         ...prevState,
-        isAdmin: data?.role === 'admin'
+        isAdmin: data?.rol === 'admin' || data?.rol === 'superadmin'
       }));
     } catch (error) {
       console.error('Error checking admin status:', error);
