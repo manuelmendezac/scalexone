@@ -228,29 +228,33 @@ const VideoSlider: React.FC = () => {
   useEffect(() => {
     const checkUserRole = async () => {
       try {
-        const { data: { user: currentUser } } = await supabase.auth.getUser();
-        if (currentUser) {
-          const { data: userData, error: userError } = await supabase
-            .from('usuarios')
-            .select('rol')
-            .eq('id', currentUser.id)
-            .single();
-
-          if (userError) {
-            console.error('Error al obtener rol del usuario:', userError);
-            return;
-          }
-
-          setUserRole(userData?.rol || null);
-          console.log('Rol del usuario:', userData?.rol);
+        if (!user) {
+          setUserRole(null);
+          return;
         }
+
+        const { data: userData, error: userError } = await supabase
+          .from('usuarios')
+          .select('rol')
+          .eq('id', user.id)
+          .single();
+
+        if (userError) {
+          console.error('Error al obtener rol del usuario:', userError);
+          setUserRole(null);
+          return;
+        }
+
+        setUserRole(userData?.rol || null);
+        console.log('Rol del usuario:', userData?.rol);
       } catch (err) {
         console.error('Error al verificar rol del usuario:', err);
+        setUserRole(null);
       }
     };
 
     checkUserRole();
-  }, []);
+  }, [user]);
 
   const getEmbedUrl = (url: string, type: 'youtube' | 'vimeo'): string => {
     try {
@@ -349,9 +353,27 @@ const VideoSlider: React.FC = () => {
   };
 
   const handleSaveActionButtons = async () => {
+    if (!user) {
+      setError('Debes iniciar sesión para realizar esta acción');
+      return;
+    }
+
     try {
       console.log('Guardando botones de acción...');
+      setError(null);
       
+      // Verificar que todos los botones tengan los campos requeridos
+      const validButtons = actionButtons.every(button => 
+        button.title && 
+        button.url && 
+        typeof button.order_index === 'number'
+      );
+
+      if (!validButtons) {
+        setError('Todos los botones deben tener título, URL y orden');
+        return;
+      }
+
       // Separar botones existentes de nuevos botones
       const existingButtons = actionButtons.filter(button => button.id);
       const newButtons = actionButtons.filter(button => !button.id);
@@ -371,7 +393,8 @@ const VideoSlider: React.FC = () => {
 
         if (updateError) {
           console.error('Error al actualizar botones existentes:', updateError);
-          throw updateError;
+          setError(`Error al actualizar botones: ${updateError.message}`);
+          return;
         }
       }
 
@@ -389,7 +412,8 @@ const VideoSlider: React.FC = () => {
 
         if (insertError) {
           console.error('Error al insertar nuevos botones:', insertError);
-          throw insertError;
+          setError(`Error al insertar botones: ${insertError.message}`);
+          return;
         }
       }
 
