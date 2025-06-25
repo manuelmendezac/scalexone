@@ -334,7 +334,7 @@ const VideoSlider: React.FC = () => {
   };
 
   const handleEditActions = () => {
-    setIsEditingActions(true);
+    setIsEditing(true);
   };
 
   const handleSaveActionButton = (button: ActionButton) => {
@@ -344,12 +344,13 @@ const VideoSlider: React.FC = () => {
       );
     }
     setEditingButton(null);
-    setIsEditingActions(false);
+    setIsEditing(false);
   };
 
   const handleCancelEditAction = () => {
     setEditingButton(null);
-    setIsEditingActions(false);
+    setIsEditing(false);
+    fetchActionButtons(); // Recargar los botones originales
   };
 
   const handleSaveActionButtons = async () => {
@@ -362,21 +363,27 @@ const VideoSlider: React.FC = () => {
       console.log('Guardando botones de acción...');
       setError(null);
       
+      // Asignar order_index basado en la posición actual
+      const buttonsWithOrder = actionButtons.map((button, index) => ({
+        ...button,
+        order_index: index + 1
+      }));
+      
       // Verificar que todos los botones tengan los campos requeridos
-      const validButtons = actionButtons.every(button => 
+      const validButtons = buttonsWithOrder.every(button => 
         button.title && 
         button.url && 
         typeof button.order_index === 'number'
       );
 
       if (!validButtons) {
-        setError('Todos los botones deben tener título, URL y orden');
+        setError('Todos los botones deben tener título y URL');
         return;
       }
 
       // Separar botones existentes de nuevos botones
-      const existingButtons = actionButtons.filter(button => button.id);
-      const newButtons = actionButtons.filter(button => !button.id);
+      const existingButtons = buttonsWithOrder.filter(button => button.id);
+      const newButtons = buttonsWithOrder.filter(button => !button.id);
       
       // Actualizar botones existentes
       if (existingButtons.length > 0) {
@@ -419,7 +426,7 @@ const VideoSlider: React.FC = () => {
 
       // Recargar los botones después de guardar
       await fetchActionButtons();
-      setIsEditingActions(false);
+      setIsEditing(false);
       
     } catch (err) {
       console.error('Error al guardar botones:', err);
