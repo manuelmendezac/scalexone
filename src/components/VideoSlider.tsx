@@ -94,6 +94,45 @@ const VideoSlider: React.FC = () => {
     }
   };
 
+  const handleAddVideo = () => {
+    setSelectedSlide({
+      id: crypto.randomUUID(),
+      title: '',
+      description: '',
+      video_url: '',
+      video_type: 'youtube',
+      is_visible: true,
+      order: slides.length + 1
+    });
+    setIsEditing(true);
+  };
+
+  const handleEditVideo = (slide: VideoSlide) => {
+    setSelectedSlide(slide);
+    setIsEditing(true);
+  };
+
+  const handleDeleteVideo = async (id: string) => {
+    if (!window.confirm('¿Estás seguro de que quieres eliminar este video?')) return;
+
+    try {
+      const { error } = await supabase
+        .from('video_slides')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+
+      await fetchSlides();
+      if (currentSlideIndex >= slides.length - 1) {
+        setCurrentSlideIndex(Math.max(0, slides.length - 2));
+      }
+    } catch (err) {
+      console.error('Error al eliminar video:', err);
+      setError('Error al eliminar el video');
+    }
+  };
+
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
@@ -135,65 +174,92 @@ const VideoSlider: React.FC = () => {
   }
 
   const currentSlide = slides[currentSlideIndex];
-  if (!currentSlide) return null;
 
   return (
     <div className="video-slider-simple">
-      <div className="video-content">
-        <div className="video-player">
-          <iframe
-            src={getEmbedUrl(currentSlide.video_url, currentSlide.video_type)}
-            title={currentSlide.title}
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowFullScreen
-          />
-        </div>
-        <div className="video-info">
-          <h2>{currentSlide.title}</h2>
-          <p>{currentSlide.description}</p>
-        </div>
-      </div>
-
-      <div className="progress-bar">
-        <div className="progress-line">
-          {slides.map((_, index) => (
-            <div
-              key={index}
-              className={`progress-point ${index <= currentSlideIndex ? 'completed' : ''} ${index === currentSlideIndex ? 'current' : ''}`}
-            >
-              {index + 1}
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div className="navigation-buttons">
-        <button
-          onClick={handlePrev}
-          disabled={currentSlideIndex === 0}
-          className="nav-button prev"
-        >
-          ANTERIOR
-        </button>
-        <button
-          onClick={handleNext}
-          disabled={currentSlideIndex === slides.length - 1}
-          className="nav-button next"
-        >
-          SIGUIENTE
-        </button>
-      </div>
-
       {isAdmin && (
         <div className="admin-controls">
-          <button onClick={() => setIsEditing(true)}>Editar</button>
+          <button onClick={handleAddVideo} className="add-button">
+            + Agregar Video
+          </button>
+        </div>
+      )}
+
+      {currentSlide ? (
+        <>
+          <div className="video-content">
+            <div className="video-player">
+              <iframe
+                src={getEmbedUrl(currentSlide.video_url, currentSlide.video_type)}
+                title={currentSlide.title}
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              />
+            </div>
+            <div className="video-info">
+              <div className="video-header">
+                <h2>{currentSlide.title}</h2>
+                {isAdmin && (
+                  <div className="video-actions">
+                    <button onClick={() => handleEditVideo(currentSlide)} className="edit-button">
+                      Editar
+                    </button>
+                    <button onClick={() => handleDeleteVideo(currentSlide.id)} className="delete-button">
+                      Eliminar
+                    </button>
+                  </div>
+                )}
+              </div>
+              <p>{currentSlide.description}</p>
+            </div>
+          </div>
+
+          <div className="progress-bar">
+            <div className="progress-line">
+              {slides.map((_, index) => (
+                <div
+                  key={index}
+                  className={`progress-point ${index <= currentSlideIndex ? 'completed' : ''} ${index === currentSlideIndex ? 'current' : ''}`}
+                  onClick={() => setCurrentSlideIndex(index)}
+                >
+                  {index + 1}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="navigation-buttons">
+            <button
+              onClick={handlePrev}
+              disabled={currentSlideIndex === 0}
+              className="nav-button prev"
+            >
+              ANTERIOR
+            </button>
+            <button
+              onClick={handleNext}
+              disabled={currentSlideIndex === slides.length - 1}
+              className="nav-button next"
+            >
+              SIGUIENTE
+            </button>
+          </div>
+        </>
+      ) : (
+        <div className="empty-state">
+          <p>No hay videos disponibles</p>
+          {isAdmin && (
+            <button onClick={handleAddVideo} className="add-button">
+              + Agregar Primer Video
+            </button>
+          )}
         </div>
       )}
 
       {isEditing && selectedSlide && (
         <div className="edit-modal">
           <div className="modal-content">
-            <h3>Editar Video</h3>
+            <h3>{selectedSlide.id ? 'Editar Video' : 'Agregar Nuevo Video'}</h3>
             <form onSubmit={handleSave}>
               <div className="form-group">
                 <label>Título</label>
@@ -204,6 +270,7 @@ const VideoSlider: React.FC = () => {
                     ...selectedSlide,
                     title: e.target.value
                   })}
+                  placeholder="Ingresa el título del video"
                   required
                 />
               </div>
@@ -215,6 +282,7 @@ const VideoSlider: React.FC = () => {
                     ...selectedSlide,
                     description: e.target.value
                   })}
+                  placeholder="Ingresa una descripción del video"
                   required
                 />
               </div>
@@ -227,6 +295,7 @@ const VideoSlider: React.FC = () => {
                     ...selectedSlide,
                     video_url: e.target.value
                   })}
+                  placeholder="URL de YouTube o Vimeo"
                   required
                 />
               </div>
@@ -244,9 +313,31 @@ const VideoSlider: React.FC = () => {
                   <option value="vimeo">Vimeo</option>
                 </select>
               </div>
+              <div className="form-group">
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={selectedSlide.is_visible}
+                    onChange={(e) => setSelectedSlide({
+                      ...selectedSlide,
+                      is_visible: e.target.checked
+                    })}
+                  />
+                  {' '}Video visible
+                </label>
+              </div>
               <div className="button-group">
-                <button type="submit">Guardar</button>
-                <button type="button" onClick={() => setIsEditing(false)}>
+                <button type="submit" className="save-button">
+                  {selectedSlide.id ? 'Guardar Cambios' : 'Crear Video'}
+                </button>
+                <button 
+                  type="button" 
+                  onClick={() => {
+                    setIsEditing(false);
+                    setSelectedSlide(null);
+                  }}
+                  className="cancel-button"
+                >
                   Cancelar
                 </button>
               </div>

@@ -546,6 +546,18 @@
   padding: 1rem;
 }
 
+.video-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+}
+
+.video-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
 .video-info h2 {
   font-size: 1.75rem;
   color: #FFD700;
@@ -598,6 +610,12 @@
   position: relative;
   z-index: 1;
   transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.progress-point:hover {
+  transform: scale(1.1);
+  box-shadow: 0 0 10px rgba(255, 215, 0, 0.2);
 }
 
 .progress-point.completed {
@@ -647,6 +665,72 @@
   transform: translateY(-2px);
 }
 
+/* Admin Controls */
+.admin-controls {
+  display: flex;
+  justify-content: flex-end;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.add-button {
+  padding: 0.75rem 1.5rem;
+  background: #FFD700;
+  color: #000;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.add-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 215, 0, 0.2);
+}
+
+.edit-button {
+  padding: 0.5rem 1rem;
+  background: #4a90e2;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.delete-button {
+  padding: 0.5rem 1rem;
+  background: #e74c3c;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.edit-button:hover,
+.delete-button:hover {
+  transform: translateY(-2px);
+  opacity: 0.9;
+}
+
+/* Empty State */
+.empty-state {
+  text-align: center;
+  padding: 3rem;
+  color: #fff;
+}
+
+.empty-state p {
+  margin-bottom: 1.5rem;
+  font-size: 1.2rem;
+  color: #666;
+}
+
 /* Modal de edición */
 .edit-modal {
   position: fixed;
@@ -685,6 +769,10 @@
   margin-bottom: 0.5rem;
 }
 
+.form-group input[type="checkbox"] {
+  margin-right: 0.5rem;
+}
+
 .form-group input,
 .form-group textarea,
 .form-group select {
@@ -694,6 +782,11 @@
   border: 1px solid #444;
   border-radius: 4px;
   color: #fff;
+}
+
+.form-group input::placeholder,
+.form-group textarea::placeholder {
+  color: #666;
 }
 
 .form-group textarea {
@@ -714,35 +807,21 @@
   border-radius: 4px;
   cursor: pointer;
   transition: all 0.3s ease;
+  font-weight: 600;
 }
 
-.button-group button[type="submit"] {
+.save-button {
   background: #FFD700;
   color: #000;
 }
 
-.button-group button[type="button"] {
+.cancel-button {
   background: #333;
   color: #fff;
 }
 
-.admin-controls {
-  display: flex;
-  justify-content: flex-end;
-  padding: 1rem;
-}
-
-.admin-controls button {
-  padding: 0.5rem 1rem;
-  background: #FFD700;
-  color: #000;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.admin-controls button:hover {
+.save-button:hover,
+.cancel-button:hover {
   transform: translateY(-2px);
 }
 
@@ -761,6 +840,16 @@
     padding-bottom: 56.25%;
   }
 
+  .video-header {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .video-actions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
   .progress-point {
     width: 30px;
     height: 30px;
@@ -770,5 +859,12 @@
   .nav-button {
     padding: 0.5rem 1rem;
     font-size: 0.875rem;
+  }
+
+  .modal-content {
+    width: 95%;
+    margin: 1rem;
+    max-height: 90vh;
+    overflow-y: auto;
   }
 } 
