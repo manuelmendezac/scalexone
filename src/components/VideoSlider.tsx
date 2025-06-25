@@ -53,6 +53,8 @@ const VideoSlider: React.FC = () => {
     }
   ]);
   const [editingButton, setEditingButton] = useState<ActionButton | null>(null);
+  const [isEditingVideo, setIsEditingVideo] = useState(false);
+  const [editingVideo, setEditingVideo] = useState<VideoSlide | null>(null);
 
   // Memoizar las expresiones regulares para mejor rendimiento
   const videoIdRegex = useMemo(() => ({
@@ -198,9 +200,9 @@ const VideoSlider: React.FC = () => {
     setIsEditing(true);
   };
 
-  const handleEditVideo = (slide: VideoSlide) => {
-    setSelectedSlide(slide);
-    setIsEditing(true);
+  const handleEditVideo = (video: VideoSlide) => {
+    setEditingVideo(video);
+    setIsEditingVideo(true);
   };
 
   const handleDeleteVideo = async (id: string) => {
@@ -224,34 +226,15 @@ const VideoSlider: React.FC = () => {
     }
   };
 
-  const handleSave = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      if (!selectedSlide) return;
+  const handleSaveVideo = (updatedVideo: VideoSlide) => {
+    // Aquí iría la lógica para guardar los cambios del video
+    setIsEditingVideo(false);
+    setEditingVideo(null);
+  };
 
-      const slideToSave = {
-        id: selectedSlide.id,
-        title: selectedSlide.title,
-        description: selectedSlide.description,
-        video_url: selectedSlide.video_url,
-        video_type: selectedSlide.video_type,
-        is_visible: selectedSlide.is_visible !== undefined ? selectedSlide.is_visible : true,
-        order: selectedSlide.order || slides.length + 1
-      };
-
-      const { error: saveError } = await supabase
-        .from('video_slides')
-        .upsert(slideToSave);
-
-      if (saveError) throw saveError;
-      
-      setIsEditing(false);
-      setSelectedSlide(null);
-      await fetchSlides();
-    } catch (err) {
-      console.error('Error al guardar:', err);
-      setError('Error al guardar el video');
-    }
+  const handleCancelEdit = () => {
+    setIsEditingVideo(false);
+    setEditingVideo(null);
   };
 
   const handleEditActions = () => {
@@ -338,6 +321,20 @@ const VideoSlider: React.FC = () => {
                       >
                         {index + 1}
                       </div>
+                      <div className="progress-thumbnail">
+                        {slide.thumbnail_url ? (
+                          <img 
+                            src={slide.thumbnail_url} 
+                            alt={`Miniatura ${index + 1}`}
+                            className="thumbnail-image"
+                            loading="lazy"
+                          />
+                        ) : (
+                          <div className="thumbnail-placeholder">
+                            <span>Video {index + 1}</span>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -377,7 +374,7 @@ const VideoSlider: React.FC = () => {
             <h2 className="action-title">¿Qué hay de nuevo en tu comunidad?</h2>
             {isAdmin && (
               <button 
-                onClick={handleEditActions}
+                onClick={() => setIsEditing(true)}
                 className="edit-button"
                 style={{ marginBottom: '15px' }}
               >
@@ -401,97 +398,62 @@ const VideoSlider: React.FC = () => {
         </div>
       </div>
 
-      {isEditing && selectedSlide && (
-        <div className="edit-modal">
-          <div className="modal-content">
-            <h3>{selectedSlide.id ? 'Editar Video' : 'Agregar Nuevo Video'}</h3>
-            <form onSubmit={handleSave}>
-              <div className="form-group">
-                <label>Título</label>
-                <input
-                  type="text"
-                  value={selectedSlide.title}
-                  onChange={(e) => setSelectedSlide({
-                    ...selectedSlide,
-                    title: e.target.value
-                  })}
-                  placeholder="Ingresa el título del video"
-                  required
-                />
-              </div>
-              <div className="form-group">
-                <label>Descripción</label>
-                <textarea
-                  value={selectedSlide.description}
-                  onChange={(e) => setSelectedSlide({
-                    ...selectedSlide,
-                    description: e.target.value
-                  })}
-                  placeholder="Ingresa una descripción del video"
-                  required
-                />
-              </div>
-              <div className="form-group">
-                <label>URL del Video</label>
-                <input
-                  type="text"
-                  value={selectedSlide.video_url}
-                  onChange={(e) => setSelectedSlide({
-                    ...selectedSlide,
-                    video_url: e.target.value
-                  })}
-                  placeholder="URL de YouTube o Vimeo"
-                  required
-                />
-              </div>
-              <div className="form-group">
-                <label>Tipo de Video</label>
-                <select
-                  value={selectedSlide.video_type}
-                  onChange={(e) => setSelectedSlide({
-                    ...selectedSlide,
-                    video_type: e.target.value as 'youtube' | 'vimeo'
-                  })}
-                  required
-                >
-                  <option value="youtube">YouTube</option>
-                  <option value="vimeo">Vimeo</option>
-                </select>
-              </div>
-              <div className="form-group">
-                <label>
-                  <input
-                    type="checkbox"
-                    checked={selectedSlide.is_visible}
-                    onChange={(e) => setSelectedSlide({
-                      ...selectedSlide,
-                      is_visible: e.target.checked
-                    })}
-                  />
-                  {' '}Video visible
-                </label>
-              </div>
-              <div className="button-group">
-                <button type="submit" className="save-button">
-                  {selectedSlide.id ? 'Guardar Cambios' : 'Crear Video'}
-                </button>
-                <button 
-                  type="button" 
-                  onClick={() => {
-                    setIsEditing(false);
-                    setSelectedSlide(null);
-                  }}
-                  className="cancel-button"
-                >
-                  Cancelar
-                </button>
-              </div>
-            </form>
+      {isEditingVideo && editingVideo && (
+        <div className="edit-video-modal">
+          <div className="edit-modal-content">
+            <div className="edit-modal-header">
+              <h3>Editar Video</h3>
+            </div>
+            <div className="edit-form-group">
+              <label>Título</label>
+              <input
+                type="text"
+                value={editingVideo.title}
+                onChange={(e) => setEditingVideo({...editingVideo, title: e.target.value})}
+              />
+            </div>
+            <div className="edit-form-group">
+              <label>Descripción</label>
+              <textarea
+                value={editingVideo.description}
+                onChange={(e) => setEditingVideo({...editingVideo, description: e.target.value})}
+              />
+            </div>
+            <div className="edit-form-group">
+              <label>URL del Video</label>
+              <input
+                type="text"
+                value={editingVideo.video_url}
+                onChange={(e) => setEditingVideo({...editingVideo, video_url: e.target.value})}
+              />
+            </div>
+            <div className="edit-form-group">
+              <label>URL de la Miniatura (opcional)</label>
+              <input
+                type="text"
+                value={editingVideo.thumbnail_url || ''}
+                onChange={(e) => setEditingVideo({...editingVideo, thumbnail_url: e.target.value})}
+              />
+            </div>
+            <div className="edit-modal-buttons">
+              <button
+                className="edit-modal-button edit-modal-cancel"
+                onClick={handleCancelEdit}
+              >
+                Cancelar
+              </button>
+              <button
+                className="edit-modal-button edit-modal-save"
+                onClick={() => handleSaveVideo(editingVideo)}
+              >
+                Guardar
+              </button>
+            </div>
           </div>
         </div>
       )}
 
-      {isEditingActions && (
+      {isEditing && (
         <div className="action-edit-modal">
           <div className="action-modal-content">
             <div className="action-modal-header">
@@ -530,13 +492,13 @@ const VideoSlider: React.FC = () => {
             <div className="action-modal-buttons">
               <button
                 className="action-modal-button action-modal-cancel"
-                onClick={handleCancelEditAction}
+                onClick={() => setIsEditing(false)}
               >
                 Cancelar
               </button>
               <button
                 className="action-modal-button action-modal-save"
-                onClick={() => setIsEditingActions(false)}
+                onClick={() => setIsEditing(false)}
               >
                 Guardar
               </button>
