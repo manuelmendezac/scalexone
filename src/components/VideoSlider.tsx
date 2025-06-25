@@ -43,6 +43,12 @@ const VideoSlider: React.FC = () => {
   const [isEditingVideo, setIsEditingVideo] = useState(false);
   const [editingVideo, setEditingVideo] = useState<VideoSlide | null>(null);
   const [userRole, setUserRole] = useState<string | null>(null);
+  
+  // Obtener el modo afiliado del localStorage
+  const isAffiliateMode = localStorage.getItem('affiliateMode') === 'IB';
+  
+  // Determinar si se deben mostrar los controles de edición
+  const showEditControls = isAdmin && !isAffiliateMode;
 
   // Memoizar las expresiones regulares para mejor rendimiento
   const videoIdRegex = useMemo(() => ({
@@ -448,7 +454,7 @@ const VideoSlider: React.FC = () => {
 
   return (
     <div className="video-slider-container">
-      {isAdmin && (
+      {showEditControls && (
         <div className="admin-controls">
           <button onClick={handleAddVideo} className="add-button">
             + Agregar Video
@@ -474,7 +480,7 @@ const VideoSlider: React.FC = () => {
                 <div className="video-info">
                   <div className="video-header">
                     <h2>{currentSlide.title}</h2>
-                    {isAdmin && (
+                    {showEditControls && (
                       <div className="video-actions">
                         <button onClick={() => handleEditVideo(currentSlide)} className="edit-button">
                           Editar
@@ -538,7 +544,7 @@ const VideoSlider: React.FC = () => {
           ) : (
             <div className="empty-state">
               <p>No hay videos disponibles</p>
-              {isAdmin && (
+              {showEditControls && (
                 <button onClick={handleAddVideo} className="add-button">
                   + Agregar Primer Video
                 </button>
@@ -550,7 +556,7 @@ const VideoSlider: React.FC = () => {
         <div className="action-column">
           <div className="action-content">
             <h2 className="action-title">¿Qué hay de nuevo en tu comunidad?</h2>
-            {isAdmin && (
+            {showEditControls && (
               <button 
                 onClick={() => setIsEditing(true)}
                 className="edit-button"
@@ -576,7 +582,7 @@ const VideoSlider: React.FC = () => {
         </div>
       </div>
 
-      {isEditingVideo && editingVideo && (
+      {showEditControls && isEditingVideo && editingVideo && (
         <div className="edit-video-modal">
           <div className="edit-modal-content">
             <div className="edit-modal-header">
@@ -631,7 +637,7 @@ const VideoSlider: React.FC = () => {
         </div>
       )}
 
-      {isEditing && (
+      {showEditControls && isEditing && (
         <div className="action-edit-modal">
           <div className="action-modal-content">
             <div className="action-modal-header">
