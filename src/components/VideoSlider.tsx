@@ -141,31 +141,38 @@ const VideoSlider: React.FC = () => {
 
   const fetchActionButtons = useCallback(async () => {
     try {
+      console.log('Intentando cargar botones...');
       const { data, error } = await supabase
         .from('botones_accion')
         .select('*')
         .order('order_index');
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error al cargar botones:', error);
+        throw error;
+      }
+
+      console.log('Botones cargados:', data);
 
       if (data && data.length > 0) {
         setActionButtons(data);
       } else {
+        console.log('No hay botones, creando botones por defecto...');
         // Si no hay botones en la base de datos, crear los botones por defecto
         const defaultButtons = [
           {
-            title: "Ver comunidad Bepartnex",
-            url: "/comunidad",
+            title: "Únete a nuestra comunidad",
+            url: "https://www.facebook.com/groups/bepartnex",
             order_index: 1
           },
           {
-            title: "Grupo de anuncios",
-            url: "/anuncios",
+            title: "Accede a recursos exclusivos",
+            url: "/recursos",
             order_index: 2
           },
           {
-            title: "Comunidad de Facebook",
-            url: "https://facebook.com/groups/bepartnex",
+            title: "Grupo de Telegram",
+            url: "https://t.me/bepartnex",
             order_index: 3
           }
         ];
@@ -175,8 +182,12 @@ const VideoSlider: React.FC = () => {
           .insert(defaultButtons)
           .select();
 
-        if (insertError) throw insertError;
+        if (insertError) {
+          console.error('Error al insertar botones por defecto:', insertError);
+          throw insertError;
+        }
 
+        console.log('Botones por defecto insertados:', insertedButtons);
         if (insertedButtons) {
           setActionButtons(insertedButtons);
         }
@@ -195,6 +206,38 @@ const VideoSlider: React.FC = () => {
     fetchSlides();
     fetchActionButtons();
   }, [user, fetchSlides, fetchActionButtons]);
+
+  useEffect(() => {
+    const checkPermissions = async () => {
+      try {
+        const { data: { user: currentUser } } = await supabase.auth.getUser();
+        if (currentUser) {
+          const { data: userData, error: userError } = await supabase
+            .from('usuarios')
+            .select('rol')
+            .eq('id', currentUser.id)
+            .single();
+
+          if (userError) {
+            console.error('Error al verificar permisos:', userError);
+            throw userError;
+          }
+
+          console.log('Rol del usuario:', userData?.rol);
+          if (userData?.rol !== 'admin' && userData?.rol !== 'superadmin') {
+            setError('No tienes permisos para editar los botones');
+          }
+        }
+      } catch (err) {
+        console.error('Error al verificar permisos:', err);
+        setError('Error al verificar permisos de usuario');
+      }
+    };
+
+    if (isEditing) {
+      checkPermissions();
+    }
+  }, [isEditing]);
 
   const getEmbedUrl = (url: string, type: 'youtube' | 'vimeo'): string => {
     try {
@@ -294,6 +337,7 @@ const VideoSlider: React.FC = () => {
 
   const handleSaveActionButtons = async () => {
     try {
+      console.log('Intentando guardar botones...');
       // Preparar los datos para el upsert, asegurándonos de que tengan el formato correcto
       const buttonsToUpdate = actionButtons.map((button, index) => ({
         id: button.id,
@@ -302,9 +346,14 @@ const VideoSlider: React.FC = () => {
         order_index: index + 1
       }));
 
+      console.log('Botones a actualizar:', buttonsToUpdate);
+
       // Separar botones existentes de nuevos botones
       const existingButtons = buttonsToUpdate.filter(button => button.id);
       const newButtons = buttonsToUpdate.filter(button => !button.id).map(({id, ...rest}) => rest);
+
+      console.log('Botones existentes:', existingButtons);
+      console.log('Botones nuevos:', newButtons);
 
       // Actualizar botones existentes
       if (existingButtons.length > 0) {
@@ -312,7 +361,10 @@ const VideoSlider: React.FC = () => {
           .from('botones_accion')
           .upsert(existingButtons);
 
-        if (updateError) throw updateError;
+        if (updateError) {
+          console.error('Error al actualizar botones existentes:', updateError);
+          throw updateError;
+        }
       }
 
       // Insertar nuevos botones
@@ -321,9 +373,13 @@ const VideoSlider: React.FC = () => {
           .from('botones_accion')
           .insert(newButtons);
 
-        if (insertError) throw insertError;
+        if (insertError) {
+          console.error('Error al insertar nuevos botones:', insertError);
+          throw insertError;
+        }
       }
 
+      console.log('Botones guardados exitosamente');
       setIsEditing(false);
       await fetchActionButtons(); // Recargar los botones después de guardar
     } catch (err) {
