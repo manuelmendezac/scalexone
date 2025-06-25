@@ -82,6 +82,22 @@ const VideoSlider: React.FC = () => {
     }
   };
 
+  const getThumbnailUrl = (url: string, type: 'youtube' | 'vimeo'): string => {
+    try {
+      if (type === 'youtube') {
+        const videoId = url.match(/(?:youtu\.be\/|youtube\.com(?:\/embed\/|\/v\/|\/watch\?v=|\/user\/\S+|\/ytscreeningroom\?v=|\/sandalsResorts#\w\/\w\/.*\/))([^\/&\n?\s]{11})/);
+        return videoId ? `https://img.youtube.com/vi/${videoId[1]}/mqdefault.jpg` : '';
+      } else {
+        // Para Vimeo necesitaríamos hacer una llamada a su API para obtener la miniatura
+        // Por ahora retornamos un placeholder
+        return 'https://placehold.co/320x180?text=Video';
+      }
+    } catch (err) {
+      console.error('Error al procesar URL para miniatura:', err);
+      return '';
+    }
+  };
+
   const handleNext = () => {
     if (currentSlideIndex < slides.length - 1) {
       setCurrentSlideIndex(currentSlideIndex + 1);
@@ -216,13 +232,22 @@ const VideoSlider: React.FC = () => {
 
           <div className="progress-bar">
             <div className="progress-line">
-              {slides.map((_, index) => (
-                <div
-                  key={index}
-                  className={`progress-point ${index <= currentSlideIndex ? 'completed' : ''} ${index === currentSlideIndex ? 'current' : ''}`}
-                  onClick={() => setCurrentSlideIndex(index)}
-                >
-                  {index + 1}
+              {slides.map((slide, index) => (
+                <div key={index} className="progress-point-container">
+                  <div
+                    className={`progress-point ${index <= currentSlideIndex ? 'completed' : ''} ${index === currentSlideIndex ? 'current' : ''}`}
+                    onClick={() => setCurrentSlideIndex(index)}
+                  >
+                    {index + 1}
+                  </div>
+                  <div className="progress-thumbnail">
+                    <img 
+                      src={getThumbnailUrl(slide.video_url, slide.video_type)} 
+                      alt={`Miniatura ${index + 1}`}
+                      className="thumbnail-image"
+                      loading="lazy"
+                    />
+                  </div>
                 </div>
               ))}
             </div>

@@ -579,9 +579,10 @@
 .progress-line {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
   position: relative;
-  padding: 1rem 0;
+  padding: 2rem 0;
+  margin: 0 2rem;
 }
 
 .progress-line::before {
@@ -589,7 +590,7 @@
   position: absolute;
   left: 0;
   right: 0;
-  top: 50%;
+  top: 2.5rem;
   height: 2px;
   background: #FFD700;
   transform: translateY(-50%);
@@ -626,6 +627,39 @@
 .progress-point.current {
   transform: scale(1.2);
   box-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
+}
+
+.progress-point-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  position: relative;
+  z-index: 1;
+}
+
+.progress-thumbnail {
+  width: 160px;
+  height: 90px;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 2px solid #FFD700;
+  opacity: 0.7;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  position: relative;
+  background: #000;
+}
+
+.progress-point-container:hover .progress-thumbnail {
+  opacity: 1;
+  transform: translateY(-5px);
+}
+
+.thumbnail-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .navigation-buttons {
@@ -866,5 +900,22 @@
     margin: 1rem;
     max-height: 90vh;
     overflow-y: auto;
+  }
+
+  .progress-thumbnail {
+    width: 120px;
+    height: 67.5px;
+  }
+
+  .progress-line {
+    margin: 0 1rem;
+    padding: 1.5rem 0;
+    overflow-x: auto;
+    justify-content: flex-start;
+    gap: 1rem;
+  }
+
+  .progress-line::before {
+    top: 2rem;
   }
 } 
