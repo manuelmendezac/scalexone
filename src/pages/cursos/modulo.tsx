@@ -135,10 +135,10 @@ const ModuloDetalle = () => {
 
     setModulo(moduloReal ? { ...mod, id: moduloReal.id } : mod);
 
-    // 3. Cargar videos desde videos_modulo
+    // 3. Cargar videos desde videos_classroom_modulo
     if (moduloReal?.id) {
       const { data: vids } = await supabase
-        .from('videos_modulo')
+        .from('videos_classroom_modulo')
         .select('*')
         .eq('modulo_id', moduloReal.id)
         .order('orden', { ascending: true });
