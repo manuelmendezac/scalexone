@@ -11,6 +11,13 @@ interface VideoSlide {
   video_type: 'youtube' | 'vimeo';
   is_visible?: boolean;
   order?: number;
+  thumbnail_url?: string;
+}
+
+interface VimeoOEmbedResponse {
+  thumbnail_url: string;
+  width: number;
+  height: number;
 }
 
 const VideoSlider: React.FC = () => {
@@ -21,6 +28,34 @@ const VideoSlider: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
   const { user, isAdmin } = useAuth();
+
+  const getVimeoThumbnail = async (url: string): Promise<string> => {
+    try {
+      const videoId = url.match(/(?:www\.|player\.)?vimeo.com\/(?:channels\/(?:\w+\/)?|groups\/(?:[^\/]*)\/videos\/|album\/(?:\d+)\/video\/|video\/|)(\d+)(?:[a-zA-Z0-9_\-]+)?/);
+      if (!videoId) return '';
+      
+      const response = await fetch(`https://vimeo.com/api/oembed.json?url=${encodeURIComponent(url)}`);
+      const data: VimeoOEmbedResponse = await response.json();
+      return data.thumbnail_url;
+    } catch (err) {
+      console.error('Error al obtener miniatura de Vimeo:', err);
+      return '';
+    }
+  };
+
+  const getThumbnailUrl = async (url: string, type: 'youtube' | 'vimeo'): Promise<string> => {
+    try {
+      if (type === 'youtube') {
+        const videoId = url.match(/(?:youtu\.be\/|youtube\.com(?:\/embed\/|\/v\/|\/watch\?v=|\/user\/\S+|\/ytscreeningroom\?v=|\/sandalsResorts#\w\/\w\/.*\/))([^\/&\n?\s]{11})/);
+        return videoId ? `https://img.youtube.com/vi/${videoId[1]}/mqdefault.jpg` : '';
+      } else {
+        return await getVimeoThumbnail(url);
+      }
+    } catch (err) {
+      console.error('Error al procesar URL para miniatura:', err);
+      return '';
+    }
+  };
 
   useEffect(() => {
     if (!user) {
@@ -48,14 +83,18 @@ const VideoSlider: React.FC = () => {
 
       if (error) throw error;
 
-      const validSlides = (data || []).map(slide => ({
-        id: String(slide.id),
-        title: String(slide.title),
-        description: String(slide.description),
-        video_url: String(slide.video_url),
-        video_type: slide.video_type as 'youtube' | 'vimeo',
-        is_visible: slide.is_visible !== undefined ? Boolean(slide.is_visible) : true,
-        order: slide.order
+      const validSlides = await Promise.all((data || []).map(async slide => {
+        const thumbnail = await getThumbnailUrl(slide.video_url, slide.video_type as 'youtube' | 'vimeo');
+        return {
+          id: String(slide.id),
+          title: String(slide.title),
+          description: String(slide.description),
+          video_url: String(slide.video_url),
+          video_type: slide.video_type as 'youtube' | 'vimeo',
+          is_visible: slide.is_visible !== undefined ? Boolean(slide.is_visible) : true,
+          order: slide.order,
+          thumbnail_url: thumbnail
+        };
       }));
 
       setSlides(validSlides);
@@ -78,22 +117,6 @@ const VideoSlider: React.FC = () => {
       }
     } catch (err) {
       console.error('Error al procesar URL:', err);
-      return '';
-    }
-  };
-
-  const getThumbnailUrl = (url: string, type: 'youtube' | 'vimeo'): string => {
-    try {
-      if (type === 'youtube') {
-        const videoId = url.match(/(?:youtu\.be\/|youtube\.com(?:\/embed\/|\/v\/|\/watch\?v=|\/user\/\S+|\/ytscreeningroom\?v=|\/sandalsResorts#\w\/\w\/.*\/))([^\/&\n?\s]{11})/);
-        return videoId ? `https://img.youtube.com/vi/${videoId[1]}/mqdefault.jpg` : '';
-      } else {
-        // Para Vimeo necesitaríamos hacer una llamada a su API para obtener la miniatura
-        // Por ahora retornamos un placeholder
-        return 'https://placehold.co/320x180?text=Video';
-      }
-    } catch (err) {
-      console.error('Error al procesar URL para miniatura:', err);
       return '';
     }
   };
@@ -242,7 +265,7 @@ const VideoSlider: React.FC = () => {
                   </div>
                   <div className="progress-thumbnail">
                     <img 
-                      src={getThumbnailUrl(slide.video_url, slide.video_type)} 
+                      src={slide.thumbnail_url || 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIwIiBoZWlnaHQ9IjE4MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMzIwIiBoZWlnaHQ9IjE4MCIgZmlsbD0iIzFhMWExYSIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMjAiIGZpbGw9IiNGRkQ3MDAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj5WaWRlbzwvdGV4dD48L3N2Zz4='} 
                       alt={`Miniatura ${index + 1}`}
                       className="thumbnail-image"
                       loading="lazy"
