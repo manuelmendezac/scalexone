@@ -53,9 +53,10 @@ const VideoSlider: React.FC = () => {
   const showEditControls = isAdmin;
 
   // Logs para depuración
-  console.log('Estado de controles de edición:', {
+  console.log('[VideoSlider] Estado de controles de edición:', {
     isAdmin,
-    showEditControls
+    showEditControls,
+    user
   });
 
   // Memoizar las expresiones regulares para mejor rendimiento
@@ -218,6 +219,7 @@ const VideoSlider: React.FC = () => {
   }, [user, isAdmin]);
 
   useEffect(() => {
+    console.log('[VideoSlider] useEffect user:', user);
     const loadInitialData = async () => {
       setLoading(true);
       try {
@@ -226,7 +228,7 @@ const VideoSlider: React.FC = () => {
           fetchActionButtons()
         ]);
       } catch (err) {
-        console.error('Error al cargar datos iniciales:', err);
+        console.error('[VideoSlider] Error al cargar datos iniciales:', err);
       } finally {
         setLoading(false);
       }
