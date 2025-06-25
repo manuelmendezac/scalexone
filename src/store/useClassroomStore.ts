@@ -73,7 +73,7 @@ const useClassroomStore = create<ClassroomStore>((set, get) => ({
       
       // 2. Fetch todos los módulos y todos los videos en paralelo
       const [modulosRes, videosRes, progresoRes] = await Promise.all([
-        supabase.from('classroom_modulos').select('*').order('orden', { ascending: true }),
+        supabase.from('classroom_modulos').select('*').eq('origen', 'classroom').order('orden', { ascending: true }),
         supabase.from('videos_classroom_modulo').select('id, modulo_id'),
         userId ? supabase.from('progreso_academico_usuario').select('videos_ids').eq('usuario_id', userId).single() : Promise.resolve({ data: null, error: null })
       ]);
