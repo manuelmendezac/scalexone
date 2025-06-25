@@ -915,7 +915,7 @@ const CursoDetalle = () => {
                 <div className="flex flex-row items-center justify-center gap-6 w-full md:flex-row flex-col">
                   {/* Barra de progreso circular */}
                   <div className="flex flex-col items-center">
-                    <CircularProgress percent={Math.floor(Math.random()*60+40)} />
+                    <CircularProgress percent={mod.progreso || 0} size={64} stroke={8} />
                   </div>
                   {/* Icono grande, ajustado automáticamente */}
                   <div className="flex flex-col items-center">
