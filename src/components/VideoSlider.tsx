@@ -331,353 +331,298 @@ const VideoSlider: React.FC = () => {
 
   return (
     <div className="w-full">
-      {isAdmin && (
-        <div className="flex justify-end p-4">
-          <button
-            onClick={toggleSliderVisibility}
-            className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded mr-4"
-          >
-            {showSlider ? 'Deshabilitar' : 'Habilitar'} Sección de Videos
-          </button>
-          <button
-            onClick={handleAddVideo}
-            className="bg-gold hover:bg-gold/90 text-black font-bold py-2 px-4 rounded flex items-center gap-2"
-          >
-            <Plus size={20} />
-            Agregar Video
-          </button>
-        </div>
-      )}
-      
-      <div className="video-slider-container">
-        {currentSlide ? (
+      <div className="flex justify-end gap-4 p-4 mb-4">
+        {isAdmin && (
           <>
-            {isAdmin && (
-              <button 
-                className="edit-float-button"
-                onClick={handleEditCurrent}
-                title="Editar video actual"
-              >
-                <Edit3 />
-              </button>
-            )}
-
-            <div className="main-video-section">
-              <div className="main-video-container">
-                <div className="video-container">
-                  <iframe
-                    src={getEmbedUrl(currentSlide.videoUrl, currentSlide.videoType)}
-                    title={currentSlide.title}
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowFullScreen
-                  />
-                </div>
-              </div>
-              <div className="video-info">
-                <h2>{currentSlide.title}</h2>
-                <p>{currentSlide.description}</p>
-                {currentSlide.buttonText && currentSlide.buttonUrl && (
-                  <a 
-                    href={currentSlide.buttonUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="video-cta"
-                  >
-                    {currentSlide.buttonText}
-                  </a>
-                )}
-              </div>
-            </div>
-
-            {/* Timeline con checks */}
-            <div className="timeline-container">
-              <div className="timeline-line"></div>
-              <div 
-                className="timeline-progress" 
-                style={{ width: `${((currentSlideIndex + 1) / visibleSlides.length) * 100}%` }}
-              ></div>
-              <div className="timeline-steps">
-                {visibleSlides.map((slide, index) => (
-                  <div
-                    key={slide.id}
-                    className={`timeline-step ${index === currentSlideIndex ? 'active' : index < currentSlideIndex ? 'completed' : ''}`}
-                    onClick={() => setCurrentSlideIndex(index)}
-                  >
-                    <div className="step-circle">
-                      {index + 1}
-                    </div>
-                    <div className="step-label">{slide.title}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Botones de navegación */}
-            <div className="navigation-buttons">
-              <button
-                className="nav-button prev"
-                onClick={handlePrev}
-                disabled={currentSlideIndex === 0}
-              >
-                <ArrowLeft size={20} />
-                Anterior
-              </button>
-              <button
-                className="nav-button next"
-                onClick={handleNext}
-                disabled={currentSlideIndex === visibleSlides.length - 1}
-              >
-                Siguiente
-                <ArrowRight size={20} />
-              </button>
-            </div>
+            <button
+              onClick={handleAddVideo}
+              className="bg-gold hover:bg-gold/90 text-black font-bold py-2 px-4 rounded flex items-center gap-2"
+            >
+              <Plus size={20} />
+              Agregar Video
+            </button>
+            <button
+              onClick={toggleSliderVisibility}
+              className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
+            >
+              {showSlider ? 'Deshabilitar' : 'Habilitar'} Sección
+            </button>
           </>
-        ) : (
-          <div className="empty-state">
-            <p className="text-gold mb-4">No hay videos configurados</p>
-            {isAdmin && (
-              <button onClick={handleAddVideo}>
-                <Plus size={20} />
-                Agregar Primer Video
-              </button>
-            )}
-          </div>
         )}
-
-        {/* Lista de Videos para Administradores */}
-        {isAdmin && visibleSlides.length > 0 && (
-          <div className="video-list">
-            <div className="list-header">
-              <h3>Lista de Videos</h3>
-              <button
-                onClick={() => {
-                  setSelectedSlide({
-                    id: crypto.randomUUID(),
-                    title: '',
-                    description: '',
-                    videoUrl: '',
-                    videoType: 'youtube',
-                    is_visible: true,
-                    order: visibleSlides.length + 1
-                  });
-                  setIsEditing(true);
-                }}
-                className="add-video-button"
-              >
-                <Plus size={20} />
-                Agregar Video
-              </button>
-            </div>
-            <div className="video-items">
-              {visibleSlides.map((slide, index) => (
-                <div 
-                  key={slide.id} 
-                  className={`video-item ${index === currentSlideIndex ? 'active' : ''}`}
-                  onClick={() => setCurrentSlideIndex(index)}
-                >
-                  <div className="video-item-number">{index + 1}</div>
-                  <div className="video-item-content">
-                    <h4>{slide.title}</h4>
-                    <p>{slide.description}</p>
-                  </div>
-                  <div className="video-item-actions">
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        toggleVisibility(slide);
-                      }}
-                      className={`visibility-button ${!slide.is_visible ? 'hidden' : ''}`}
-                      title={slide.is_visible ? 'Ocultar video' : 'Mostrar video'}
-                    >
-                      {slide.is_visible ? <Eye size={16} /> : <EyeOff size={16} />}
-                    </button>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleEdit(slide);
-                      }}
-                      className="edit-button"
-                    >
-                      <Edit2 size={16} />
-                    </button>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        if (window.confirm('¿Estás seguro de que quieres eliminar este video?')) {
-                          handleDelete(slide.id);
-                        }
-                      }}
-                      className="delete-button"
-                    >
-                      <Trash2 size={16} />
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Modal de Edición */}
-        {isEditing && selectedSlide && (
-          <div className="edit-modal">
-            <div className="modal-content">
-              <h3>{selectedSlide.id ? 'Editar Video' : 'Agregar Video'}</h3>
-              <form onSubmit={handleSave}>
-                <div className="form-group">
-                  <label htmlFor="title">Título</label>
-                  <input
-                    id="title"
-                    type="text"
-                    value={selectedSlide.title}
-                    onChange={(e) => setSelectedSlide({
-                      ...selectedSlide,
-                      title: e.target.value
-                    })}
-                    placeholder="Ingresa el título del video"
-                    required
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label htmlFor="description">Descripción</label>
-                  <textarea
-                    id="description"
-                    value={selectedSlide.description}
-                    onChange={(e) => setSelectedSlide({
-                      ...selectedSlide,
-                      description: e.target.value
-                    })}
-                    placeholder="Ingresa una descripción del video"
-                    required
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label htmlFor="videoType">Tipo de Video</label>
-                  <select
-                    id="videoType"
-                    value={selectedSlide.videoType}
-                    onChange={(e) => {
-                      setSelectedSlide({
-                        ...selectedSlide,
-                        videoType: e.target.value as 'youtube' | 'vimeo'
-                      });
-                      setPreviewUrl('');
-                    }}
-                    required
-                  >
-                    <option value="youtube">YouTube</option>
-                    <option value="vimeo">Vimeo</option>
-                  </select>
-                </div>
-
-                <div className="form-group">
-                  <label htmlFor="videoUrl">URL del Video</label>
-                  <input
-                    id="videoUrl"
-                    type="text"
-                    value={selectedSlide.videoUrl}
-                    onChange={(e) => handleVideoUrlChange(e.target.value)}
-                    placeholder={`URL del video de ${selectedSlide.videoType === 'youtube' ? 'YouTube' : 'Vimeo'}`}
-                    required
-                  />
-                  <div className="hint">
-                    {selectedSlide.videoType === 'youtube' 
-                      ? 'Ejemplo: https://www.youtube.com/watch?v=XXXX o https://youtu.be/XXXX'
-                      : 'Ejemplo: https://vimeo.com/XXXX'}
-                  </div>
-                </div>
-
-                {previewUrl && (
-                  <div className="video-preview">
+      </div>
+      
+      {showSlider && (
+        <div className="video-slider-container">
+          {currentSlide ? (
+            <>
+              <div className="main-video-section">
+                <div className="main-video-container">
+                  <div className="video-container">
                     <iframe
-                      src={previewUrl}
-                      title="Video Preview"
+                      src={getEmbedUrl(currentSlide.videoUrl, currentSlide.videoType)}
+                      title={currentSlide.title}
                       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                       allowFullScreen
                     />
                   </div>
-                )}
-
-                <div className="form-group">
-                  <label htmlFor="buttonText">Texto del Botón (opcional)</label>
-                  <input
-                    id="buttonText"
-                    type="text"
-                    value={selectedSlide.buttonText || ''}
-                    onChange={(e) => setSelectedSlide({
-                      ...selectedSlide,
-                      buttonText: e.target.value
-                    })}
-                    placeholder="Texto para el botón de acción"
-                  />
                 </div>
-
-                <div className="form-group">
-                  <label htmlFor="buttonUrl">URL del Botón (opcional)</label>
-                  <input
-                    id="buttonUrl"
-                    type="text"
-                    value={selectedSlide.buttonUrl || ''}
-                    onChange={(e) => setSelectedSlide({
-                      ...selectedSlide,
-                      buttonUrl: e.target.value
-                    })}
-                    placeholder="URL para el botón de acción"
-                  />
+                <div className="video-info">
+                  <div className="flex justify-between items-start mb-4">
+                    <h2 className="text-2xl font-bold text-gold">{currentSlide.title}</h2>
+                    {isAdmin && (
+                      <div className="flex gap-2">
+                        <button
+                          onClick={handleEditCurrent}
+                          className="p-2 bg-gold text-black rounded-full hover:bg-gold/90 transition-all"
+                          title="Editar video"
+                        >
+                          <Edit3 size={20} />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(currentSlide.id)}
+                          className="p-2 bg-red-500 text-white rounded-full hover:bg-red-600 transition-all"
+                          title="Eliminar video"
+                        >
+                          <Trash2 size={20} />
+                        </button>
+                        <button
+                          onClick={() => toggleVisibility(currentSlide)}
+                          className="p-2 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition-all"
+                          title={currentSlide.is_visible ? "Ocultar video" : "Mostrar video"}
+                        >
+                          {currentSlide.is_visible ? <EyeOff size={20} /> : <Eye size={20} />}
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                  <p className="text-gray-300 mb-4">{currentSlide.description}</p>
+                  {currentSlide.buttonText && currentSlide.buttonUrl && (
+                    <a 
+                      href={currentSlide.buttonUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="video-cta"
+                    >
+                      {currentSlide.buttonText}
+                    </a>
+                  )}
                 </div>
+              </div>
 
-                <div className="form-group">
-                  <label htmlFor="order">Orden</label>
-                  <input
-                    id="order"
-                    type="number"
-                    value={selectedSlide.order || ''}
-                    onChange={(e) => setSelectedSlide({
-                      ...selectedSlide,
-                      order: parseInt(e.target.value) || undefined
-                    })}
-                    placeholder="Posición en la secuencia"
-                    min="1"
-                  />
+              <div className="timeline-container">
+                <div className="timeline-line"></div>
+                <div 
+                  className="timeline-progress" 
+                  style={{ width: `${((currentSlideIndex + 1) / visibleSlides.length) * 100}%` }}
+                ></div>
+                <div className="timeline-steps">
+                  {visibleSlides.map((slide, index) => (
+                    <div
+                      key={slide.id}
+                      className={`timeline-step ${index === currentSlideIndex ? 'active' : index < currentSlideIndex ? 'completed' : ''}`}
+                      onClick={() => setCurrentSlideIndex(index)}
+                    >
+                      <div className="step-circle">
+                        {index + 1}
+                      </div>
+                      <div className="step-label">{slide.title}</div>
+                    </div>
+                  ))}
                 </div>
+              </div>
 
-                <div className="form-group">
-                  <label>
+              <div className="navigation-buttons">
+                <button
+                  className="nav-button prev"
+                  onClick={handlePrev}
+                  disabled={currentSlideIndex === 0}
+                >
+                  <ArrowLeft size={20} />
+                  Anterior
+                </button>
+                <button
+                  className="nav-button next"
+                  onClick={handleNext}
+                  disabled={currentSlideIndex === visibleSlides.length - 1}
+                >
+                  Siguiente
+                  <ArrowRight size={20} />
+                </button>
+              </div>
+            </>
+          ) : (
+            <div className="empty-state">
+              <p className="text-gold mb-4">No hay videos configurados</p>
+              {isAdmin && (
+                <button onClick={handleAddVideo}>
+                  <Plus size={20} />
+                  Agregar Primer Video
+                </button>
+              )}
+            </div>
+          )}
+
+          {/* Modal de Edición */}
+          {isEditing && selectedSlide && (
+            <div className="edit-modal">
+              <div className="modal-content">
+                <h3>{selectedSlide.id ? 'Editar Video' : 'Agregar Video'}</h3>
+                <form onSubmit={handleSave}>
+                  <div className="form-group">
+                    <label htmlFor="title">Título</label>
                     <input
-                      type="checkbox"
-                      checked={selectedSlide.is_visible}
+                      id="title"
+                      type="text"
+                      value={selectedSlide.title}
                       onChange={(e) => setSelectedSlide({
                         ...selectedSlide,
-                        is_visible: e.target.checked
+                        title: e.target.value
                       })}
+                      placeholder="Ingresa el título del video"
+                      required
                     />
-                    {' '}Video visible
-                  </label>
-                </div>
+                  </div>
 
-                <div className="button-group">
-                  <button type="submit" className="save-button">
-                    {selectedSlide.id ? 'Guardar' : 'Crear'}
-                  </button>
-                  <button 
-                    type="button" 
-                    onClick={() => {
-                      setIsEditing(false);
-                      setSelectedSlide(null);
-                      setPreviewUrl('');
-                    }}
-                    className="cancel-button"
-                  >
-                    Cancelar
-                  </button>
-                </div>
-              </form>
+                  <div className="form-group">
+                    <label htmlFor="description">Descripción</label>
+                    <textarea
+                      id="description"
+                      value={selectedSlide.description}
+                      onChange={(e) => setSelectedSlide({
+                        ...selectedSlide,
+                        description: e.target.value
+                      })}
+                      placeholder="Ingresa una descripción del video"
+                      required
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="videoType">Tipo de Video</label>
+                    <select
+                      id="videoType"
+                      value={selectedSlide.videoType}
+                      onChange={(e) => {
+                        setSelectedSlide({
+                          ...selectedSlide,
+                          videoType: e.target.value as 'youtube' | 'vimeo'
+                        });
+                        setPreviewUrl('');
+                      }}
+                      required
+                    >
+                      <option value="youtube">YouTube</option>
+                      <option value="vimeo">Vimeo</option>
+                    </select>
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="videoUrl">URL del Video</label>
+                    <input
+                      id="videoUrl"
+                      type="text"
+                      value={selectedSlide.videoUrl}
+                      onChange={(e) => handleVideoUrlChange(e.target.value)}
+                      placeholder={`URL del video de ${selectedSlide.videoType === 'youtube' ? 'YouTube' : 'Vimeo'}`}
+                      required
+                    />
+                    <div className="hint">
+                      {selectedSlide.videoType === 'youtube' 
+                        ? 'Ejemplo: https://www.youtube.com/watch?v=XXXX o https://youtu.be/XXXX'
+                        : 'Ejemplo: https://vimeo.com/XXXX'}
+                    </div>
+                  </div>
+
+                  {previewUrl && (
+                    <div className="video-preview">
+                      <iframe
+                        src={previewUrl}
+                        title="Video Preview"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                      />
+                    </div>
+                  )}
+
+                  <div className="form-group">
+                    <label htmlFor="buttonText">Texto del Botón (opcional)</label>
+                    <input
+                      id="buttonText"
+                      type="text"
+                      value={selectedSlide.buttonText || ''}
+                      onChange={(e) => setSelectedSlide({
+                        ...selectedSlide,
+                        buttonText: e.target.value
+                      })}
+                      placeholder="Texto para el botón de acción"
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="buttonUrl">URL del Botón (opcional)</label>
+                    <input
+                      id="buttonUrl"
+                      type="text"
+                      value={selectedSlide.buttonUrl || ''}
+                      onChange={(e) => setSelectedSlide({
+                        ...selectedSlide,
+                        buttonUrl: e.target.value
+                      })}
+                      placeholder="URL para el botón de acción"
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="order">Orden</label>
+                    <input
+                      id="order"
+                      type="number"
+                      value={selectedSlide.order || ''}
+                      onChange={(e) => setSelectedSlide({
+                        ...selectedSlide,
+                        order: parseInt(e.target.value) || undefined
+                      })}
+                      placeholder="Posición en la secuencia"
+                      min="1"
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label>
+                      <input
+                        type="checkbox"
+                        checked={selectedSlide.is_visible}
+                        onChange={(e) => setSelectedSlide({
+                          ...selectedSlide,
+                          is_visible: e.target.checked
+                        })}
+                      />
+                      {' '}Video visible
+                    </label>
+                  </div>
+
+                  <div className="button-group">
+                    <button type="submit" className="save-button">
+                      {selectedSlide.id ? 'Guardar' : 'Crear'}
+                    </button>
+                    <button 
+                      type="button" 
+                      onClick={() => {
+                        setIsEditing(false);
+                        setSelectedSlide(null);
+                        setPreviewUrl('');
+                      }}
+                      className="cancel-button"
+                    >
+                      Cancelar
+                    </button>
+                  </div>
+                </form>
+              </div>
             </div>
-          </div>
-        )}
-      </div>
+          )}
+        </div>
+      )}
     </div>
   );
 };
