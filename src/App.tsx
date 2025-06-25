@@ -88,38 +88,67 @@ function App() {
 
   useEffect(() => {
     async function checkAndSyncUser() {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user || !user.email) return;
-      const nombre = user.user_metadata?.name || user.user_metadata?.full_name || user.email;
-      if (nombre !== userName) setUserName(nombre);
-      // Obtener datos completos del usuario desde la tabla usuarios
-      const { data: usuarioData } = await supabase
-        .from('usuarios')
-        .select('rol, community_id')
-        .eq('email', user.email)
-        .single();
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        
+        // Validación estricta del usuario y email
+        if (!user || !user.email || typeof user.email !== 'string' || user.email.trim() === '') {
+          console.log('Usuario no válido en checkAndSyncUser:', { 
+            userExists: !!user, 
+            email: user?.email,
+            emailType: typeof user?.email 
+          });
+          return;
+        }
 
-      // Solo actualiza si hay cambios reales
-      if (
-        usuarioData?.rol !== userInfo.rol ||
-        usuarioData?.community_id !== userInfo.community_id ||
-        nombre !== userInfo.name ||
-        user.email !== userInfo.email
-      ) {
-        updateUserInfo({
-          name: nombre,
-          email: user.email,
-          rol: usuarioData?.rol || user.user_metadata?.rol || 'user',
-          community_id: usuarioData?.community_id || 'default'
-        });
-      }
+        const nombre = user.user_metadata?.name || user.user_metadata?.full_name || user.email;
+        if (nombre !== userName) setUserName(nombre);
 
-      syncUsuarioSupabase(user);
-      // Redirige solo si está en login, registro o raíz
-      if (["/login", "/registro", "/"].includes(location.pathname)) {
-        navigate("/home", { replace: true });
+        // Obtener datos completos del usuario desde la tabla usuarios con validación
+        console.log('Consultando datos de usuario para:', user.email);
+        const { data: usuarioData, error: usuarioError } = await supabase
+          .from('usuarios')
+          .select('rol, community_id')
+          .eq('email', user.email.trim())
+          .single();
+
+        if (usuarioError) {
+          console.error('Error consultando datos de usuario:', usuarioError);
+          // Si hay error, usar valores por defecto
+          updateUserInfo({
+            name: nombre,
+            email: user.email,
+            rol: user.user_metadata?.rol || 'user',
+            community_id: 'default'
+          });
+        } else {
+          // Solo actualiza si hay cambios reales
+          if (
+            usuarioData?.rol !== userInfo.rol ||
+            usuarioData?.community_id !== userInfo.community_id ||
+            nombre !== userInfo.name ||
+            user.email !== userInfo.email
+          ) {
+            updateUserInfo({
+              name: nombre,
+              email: user.email,
+              rol: usuarioData?.rol || user.user_metadata?.rol || 'user',
+              community_id: usuarioData?.community_id || 'default'
+            });
+          }
+        }
+
+        syncUsuarioSupabase(user);
+        
+        // Redirige solo si está en login, registro o raíz
+        if (["/login", "/registro", "/"].includes(location.pathname)) {
+          navigate("/home", { replace: true });
+        }
+      } catch (error) {
+        console.error('Error inesperado en checkAndSyncUser:', error);
       }
     }
+    
     checkAndSyncUser();
     const { data: listener } = supabase.auth.onAuthStateChange(() => {
       checkAndSyncUser();

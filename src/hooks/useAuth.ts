@@ -54,6 +54,22 @@ export function useAuth(): AuthState {
 
   const checkAdminStatus = async (userId: string) => {
     try {
+      // Validación estricta del userId y email del usuario
+      if (!userId || !state.user?.email || typeof state.user.email !== 'string' || state.user.email.trim() === '') {
+        console.log('Datos de usuario inválidos para verificar admin:', { 
+          userId, 
+          email: state.user?.email,
+          userExists: !!state.user 
+        });
+        setState(prevState => ({
+          ...prevState,
+          isAdmin: false
+        }));
+        return;
+      }
+
+      console.log('Verificando admin status para:', { userId, email: state.user.email });
+
       // Verificar directamente el rol del usuario
       const { data: userData, error: userError } = await supabase
         .from('usuarios')
@@ -62,14 +78,15 @@ export function useAuth(): AuthState {
         .single();
 
       if (userError) {
-        // Si hay error al buscar el usuario, intentar crearlo
+        // Si hay error al buscar el usuario, intentar crearlo solo si tenemos email válido
         if (userError.code === 'PGRST116') { // No data found
+          console.log('Usuario no encontrado, creando nuevo usuario');
           const { error: insertError } = await supabase
             .from('usuarios')
             .insert([
               {
                 id: userId,
-                email: state.user?.email,
+                email: state.user.email.trim(),
                 rol: 'user'
               }
             ]);
@@ -94,12 +111,15 @@ export function useAuth(): AuthState {
 
       // Si el usuario existe, verificar su rol
       if (userData) {
+        const isUserAdmin = userData.rol === 'admin' || userData.rol === 'superadmin';
+        console.log('Admin status verificado:', { email: state.user.email, rol: userData.rol, isAdmin: isUserAdmin });
         setState(prevState => ({
           ...prevState,
-          isAdmin: userData.rol === 'admin' || userData.rol === 'superadmin'
+          isAdmin: isUserAdmin
         }));
       } else {
         // Si no hay datos del usuario después de todo, establecer como no admin
+        console.log('No se encontraron datos de usuario después de verificación');
         setState(prevState => ({
           ...prevState,
           isAdmin: false
