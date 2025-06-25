@@ -2,7 +2,7 @@
 CREATE TABLE IF NOT EXISTS public.usuarios (
     id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
     email TEXT UNIQUE NOT NULL,
-    nombres TEXT,
+    name TEXT,
     apellidos TEXT,
     celular TEXT,
     pais TEXT DEFAULT 'Perú',
