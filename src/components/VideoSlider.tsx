@@ -57,13 +57,13 @@ const VideoSlider: React.FC = () => {
       const validSlides = (data || []).reduce((acc: VideoSlide[], slide: any) => {
         if (!slide) return acc;
 
-        if (!slide.id || !slide.title || !slide.description || !slide.videoUrl || !slide.videoType) {
+        if (!slide.id || !slide.title || !slide.description || !slide.video_url || !slide.video_type) {
           console.warn('Slide inválido encontrado:', slide);
           return acc;
         }
 
-        if (slide.videoType !== 'youtube' && slide.videoType !== 'vimeo') {
-          console.warn('Tipo de video inválido:', slide.videoType);
+        if (slide.video_type !== 'youtube' && slide.video_type !== 'vimeo') {
+          console.warn('Tipo de video inválido:', slide.video_type);
           return acc;
         }
 
@@ -71,10 +71,10 @@ const VideoSlider: React.FC = () => {
           id: String(slide.id),
           title: String(slide.title),
           description: String(slide.description),
-          videoUrl: String(slide.videoUrl),
-          videoType: slide.videoType as 'youtube' | 'vimeo',
-          buttonText: slide.buttonText ? String(slide.buttonText) : undefined,
-          buttonUrl: slide.buttonUrl ? String(slide.buttonUrl) : undefined,
+          videoUrl: String(slide.video_url),
+          videoType: slide.video_type as 'youtube' | 'vimeo',
+          buttonText: slide.button_text ? String(slide.button_text) : undefined,
+          buttonUrl: slide.button_url ? String(slide.button_url) : undefined,
           is_visible: slide.is_visible !== undefined ? Boolean(slide.is_visible) : true
         };
 
@@ -177,9 +177,15 @@ const VideoSlider: React.FC = () => {
         return;
       }
 
-      // No convertimos la URL a embed aquí, lo haremos al mostrar el video
+      // Ajustar los nombres de las columnas para que coincidan con la base de datos
       const slideToSave = {
-        ...selectedSlide,
+        id: selectedSlide.id,
+        title: selectedSlide.title,
+        description: selectedSlide.description,
+        video_url: selectedSlide.videoUrl,
+        video_type: selectedSlide.videoType,
+        button_text: selectedSlide.buttonText || null,
+        button_url: selectedSlide.buttonUrl || null,
         is_visible: selectedSlide.is_visible !== undefined ? selectedSlide.is_visible : true
       };
 
