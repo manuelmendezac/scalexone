@@ -54,41 +54,57 @@ export function useAuth(): AuthState {
 
   const checkAdminStatus = async (userId: string) => {
     try {
-      // Primero, asegurarse de que el usuario existe en la tabla usuarios
-      const { data: existingUser, error: existingError } = await supabase
-        .from('usuarios')
-        .select('id')
-        .eq('id', userId)
-        .single();
-
-      if (!existingUser) {
-        // Si el usuario no existe, crearlo
-        const { error: insertError } = await supabase
-          .from('usuarios')
-          .insert([
-            {
-              id: userId,
-              email: state.user?.email,
-              rol: 'user'
-            }
-          ]);
-
-        if (insertError) throw insertError;
-      }
-
-      // Verificar el rol del usuario
-      const { data, error } = await supabase
+      // Verificar directamente el rol del usuario
+      const { data: userData, error: userError } = await supabase
         .from('usuarios')
         .select('rol')
         .eq('id', userId)
         .single();
 
-      if (error) throw error;
+      if (userError) {
+        // Si hay error al buscar el usuario, intentar crearlo
+        if (userError.code === 'PGRST116') { // No data found
+          const { error: insertError } = await supabase
+            .from('usuarios')
+            .insert([
+              {
+                id: userId,
+                email: state.user?.email,
+                rol: 'user'
+              }
+            ]);
 
-      setState(prevState => ({
-        ...prevState,
-        isAdmin: data?.rol === 'admin' || data?.rol === 'superadmin'
-      }));
+          if (insertError) {
+            console.error('Error creating user:', insertError);
+            setState(prevState => ({
+              ...prevState,
+              isAdmin: false
+            }));
+            return;
+          }
+        } else {
+          console.error('Error fetching user:', userError);
+          setState(prevState => ({
+            ...prevState,
+            isAdmin: false
+          }));
+          return;
+        }
+      }
+
+      // Si el usuario existe, verificar su rol
+      if (userData) {
+        setState(prevState => ({
+          ...prevState,
+          isAdmin: userData.rol === 'admin' || userData.rol === 'superadmin'
+        }));
+      } else {
+        // Si no hay datos del usuario después de todo, establecer como no admin
+        setState(prevState => ({
+          ...prevState,
+          isAdmin: false
+        }));
+      }
     } catch (error) {
       console.error('Error checking admin status:', error);
       setState(prevState => ({
