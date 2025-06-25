@@ -102,28 +102,28 @@ const PortadaCursoEditor = ({ cursoId, portada, onSave }: any) => {
 
   return (
     <div className="bg-neutral-900 p-4 rounded-xl mb-6 max-w-3xl mx-auto">
-      <h3 className="text-lg font-bold mb-2 text-cyan-400">Editar portada del curso</h3>
+      <h3 className="text-lg font-bold mb-2 text-yellow-400">Editar portada del curso</h3>
       <div className="flex flex-col gap-2">
         {/* Logo */}
-        <label className="font-semibold text-cyan-300">Logo (sugerido 300x80px, PNG/SVG)</label>
+        <label className="font-semibold text-yellow-300">Logo (sugerido 300x80px, PNG/SVG)</label>
         <div className="flex gap-2 items-center">
           <input name="logo_url" value={form.logo_url} onChange={handleChange} placeholder="URL del logo" className="p-2 rounded bg-neutral-800 flex-1" />
-          <label className="cursor-pointer flex items-center gap-1 bg-cyan-700 hover:bg-cyan-600 text-white px-3 py-2 rounded shadow text-xs">
+          <label className="cursor-pointer flex items-center gap-1 bg-yellow-700 hover:bg-yellow-600 text-white px-3 py-2 rounded shadow text-xs">
             <UploadCloud className="w-4 h-4" /> Subir
             <input type="file" accept="image/*" className="hidden" onChange={e => handleUpload(e, 'logo_url')} disabled={uploadingLogo} />
           </label>
         </div>
-        {uploadingLogo && <span className="text-xs text-cyan-400">Subiendo logo...</span>}
+        {uploadingLogo && <span className="text-xs text-yellow-400">Subiendo logo...</span>}
         {/* Imagen lateral/portada */}
-        <label className="font-semibold text-cyan-300 mt-2">Imagen de portada (sugerido 1200x600px, JPG/PNG)</label>
+        <label className="font-semibold text-yellow-300 mt-2">Imagen de portada (sugerido 1200x600px, JPG/PNG)</label>
         <div className="flex gap-2 items-center">
           <input name="imagen_lateral_url" value={form.imagen_lateral_url} onChange={handleChange} placeholder="URL imagen lateral" className="p-2 rounded bg-neutral-800 flex-1" />
-          <label className="cursor-pointer flex items-center gap-1 bg-cyan-700 hover:bg-cyan-600 text-white px-3 py-2 rounded shadow text-xs">
+          <label className="cursor-pointer flex items-center gap-1 bg-yellow-700 hover:bg-yellow-600 text-white px-3 py-2 rounded shadow text-xs">
             <UploadCloud className="w-4 h-4" /> Subir
             <input type="file" accept="image/*" className="hidden" onChange={e => handleUpload(e, 'imagen_lateral_url')} disabled={uploadingPortada} />
           </label>
         </div>
-        {uploadingPortada && <span className="text-xs text-cyan-400">Subiendo imagen de portada...</span>}
+        {uploadingPortada && <span className="text-xs text-yellow-400">Subiendo imagen de portada...</span>}
         {/* Resto de campos */}
         <input name="titulo" value={form.titulo} onChange={handleChange} placeholder="Título" className="p-2 rounded bg-neutral-800" />
         <textarea name="descripcion" value={form.descripcion} onChange={handleChange} placeholder="Descripción" className="p-2 rounded bg-neutral-800" />
@@ -132,7 +132,7 @@ const PortadaCursoEditor = ({ cursoId, portada, onSave }: any) => {
         <input name="video_url" value={form.video_url} onChange={handleChange} placeholder="URL video (opcional)" className="p-2 rounded bg-neutral-800" />
         <input name="boton_principal_texto" value={form.boton_principal_texto} onChange={handleChange} placeholder="Texto botón principal" className="p-2 rounded bg-neutral-800" />
         <input name="boton_principal_url" value={form.boton_principal_url} onChange={handleChange} placeholder="URL botón principal" className="p-2 rounded bg-neutral-800" />
-        <button onClick={handleSave} className="bg-cyan-500 text-white px-4 py-2 rounded mt-2" disabled={saving}>{saving ? 'Guardando...' : 'Guardar cambios'}</button>
+        <button onClick={handleSave} className="bg-yellow-500 text-black px-4 py-2 rounded mt-2" disabled={saving}>{saving ? 'Guardando...' : 'Guardar cambios'}</button>
       </div>
     </div>
   );
@@ -176,7 +176,7 @@ const CircularProgress = ({ percent = 0, size = 64, stroke = 8 }) => {
         />
       </svg>
       {/* Porcentaje debajo */}
-      <span className="text-cyan-300 font-bold text-sm mt-1 drop-shadow-glow">{percent}%</span>
+      <span className="text-yellow-300 font-bold text-sm mt-1 drop-shadow-glow">{percent}%</span>
     </div>
   );
 };
@@ -208,7 +208,7 @@ const getPlataformaIcon = (plataforma: string) => {
   if (p.includes('youtube')) return <svg width="22" height="22" viewBox="0 0 48 48" fill="none"><rect width="48" height="48" rx="24" fill="#FF0000"/><path d="M20 18L32 24L20 30V18Z" fill="white"/></svg>;
   if (p.includes('facebook')) return <svg width="22" height="22" viewBox="0 0 48 48" fill="none"><rect width="48" height="48" rx="24" fill="#1877F3"/><path d="M28 24H25V34H21V24H19V20H21V18.5C21 16.567 22.567 15 24.5 15H28V19H25C24.4477 19 24 19.4477 24 20V20H28V24Z" fill="white"/></svg>;
   if (p.includes('google')) return <svg width="22" height="22" viewBox="0 0 48 48" fill="none"><rect width="48" height="48" rx="24" fill="#4285F4"/><path d="M24 34C29.5228 34 34 29.5228 34 24C34 18.4772 29.5228 14 24 14C18.4772 14 14 18.4772 14 24C14 29.5228 18.4772 34 24 34Z" fill="white"/></svg>;
-  return <Globe className="text-cyan-400" size={22} />;
+  return <Globe className="text-yellow-400" size={22} />;
 };
 
 const CursoDetalle = () => {
@@ -805,7 +805,7 @@ const CursoDetalle = () => {
       {isAdmin && (
         <div className="max-w-5xl mx-auto pt-4 flex justify-end">
           <button
-            className="bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-2 px-6 rounded-full shadow transition"
+            className="bg-yellow-600 hover:bg-yellow-700 text-white font-bold py-2 px-6 rounded-full shadow transition"
             onClick={() => setEditPortadaOpen(true)}
           >
             Editar portada
@@ -819,7 +819,7 @@ const CursoDetalle = () => {
             {/* Botón X de cerrar */}
             <button
               onClick={() => setEditPortadaOpen(false)}
-              className="absolute top-3 right-3 text-cyan-400 hover:text-cyan-200 text-2xl z-20"
+              className="absolute top-3 right-3 text-yellow-400 hover:text-yellow-200 text-2xl z-20"
               aria-label="Cerrar"
               style={{background: 'none', border: 'none', cursor: 'pointer'}}>
               <X size={28} />
@@ -848,12 +848,12 @@ const CursoDetalle = () => {
             <img src={data.logo_url} alt="Logo" className="h-10 w-auto mb-4" style={{maxWidth: '110px'}} />
             <div className="flex flex-row gap-3 flex-wrap items-center mb-7 ml-1">
               <button
-                className="flex items-center gap-1.5 px-4 py-1.5 rounded-full border border-cyan-400 text-cyan-400 font-semibold text-sm shadow-none bg-black hover:bg-cyan-900/10 transition-all"
+                className="flex items-center gap-1.5 px-4 py-1.5 rounded-full border border-yellow-400 text-yellow-400 font-semibold text-sm shadow-none bg-black hover:bg-yellow-900/10 transition-all"
                 onClick={() => navigate(`/cursos/${id}/modulos`)}
               >
                 <BookOpen className="w-4 h-4"/>Módulos
               </button>
-              <button className="flex items-center gap-1.5 px-4 py-1.5 rounded-full border border-cyan-400 text-cyan-400 font-semibold text-sm shadow-none bg-black hover:bg-cyan-900/10 transition-all" 
+              <button className="flex items-center gap-1.5 px-4 py-1.5 rounded-full border border-yellow-400 text-yellow-400 font-semibold text-sm shadow-none bg-black hover:bg-yellow-900/10 transition-all" 
                 onClick={() => {
                   const el = document.getElementById('complementario-section');
                   if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -861,23 +861,23 @@ const CursoDetalle = () => {
               >
                 <Users className="w-4 h-4"/>Complementario
               </button>
-              <button className="flex items-center gap-1.5 px-4 py-1.5 rounded-full border border-cyan-400 text-cyan-400 font-semibold text-sm shadow-none bg-black hover:bg-cyan-900/10 transition-all"><Award className="w-4 h-4"/>Master Adventure</button>
+              <button className="flex items-center gap-1.5 px-4 py-1.5 rounded-full border border-yellow-400 text-yellow-400 font-semibold text-sm shadow-none bg-black hover:bg-yellow-900/10 transition-all"><Award className="w-4 h-4"/>Master Adventure</button>
             </div>
-            <h1 className="text-4xl md:text-5xl font-bold mb-4 text-cyan-400" style={{letterSpacing: '-1px'}}>{data.titulo}</h1>
+            <h1 className="text-4xl md:text-5xl font-bold mb-4 text-yellow-400" style={{letterSpacing: '-1px'}}>{data.titulo}</h1>
             <p className="text-lg md:text-xl mb-6 text-white/90 max-w-2xl">{data.descripcion}</p>
             <div className="flex flex-row items-center gap-4 mb-7">
-              <span className="text-cyan-400 text-3xl font-bold">{'★'.repeat(Math.round(data.calificacion))}</span>
+              <span className="text-yellow-400 text-3xl font-bold">{'★'.repeat(Math.round(data.calificacion))}</span>
               <span className="text-white text-lg">{data.calificacion}/5 - {data.num_calificaciones} Calificaciones</span>
             </div>
             <div className="flex gap-2 mt-auto">
               <button
-                className="flex-1 bg-white text-black font-bold py-2 rounded-full transition-all text-sm shadow group-hover:scale-105 border border-white hover:bg-cyan-400 hover:text-black hover:border-cyan-400"
+                className="flex-1 bg-white text-black font-bold py-2 rounded-full transition-all text-sm shadow group-hover:scale-105 border border-white hover:bg-yellow-400 hover:text-black hover:border-yellow-400"
                 onClick={() => navigate(`/cursos/${id}/modulo/0?video=0`)}
               >
                 Iniciar
               </button>
               <button
-                className="flex-1 border border-cyan-400 text-cyan-400 hover:bg-cyan-400 hover:text-black font-bold py-2 rounded-full transition-all text-sm shadow group-hover:scale-105 flex items-center justify-center gap-1 bg-black"
+                className="flex-1 border border-yellow-400 text-yellow-400 hover:bg-yellow-400 hover:text-black font-bold py-2 rounded-full transition-all text-sm shadow group-hover:scale-105 flex items-center justify-center gap-1 bg-black"
                 onClick={() => handleVerClasesModulo(modulos[0], 0)}
               >
                 Ver clases <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 9h8m0 0-3-3m3 3-3 3"/></svg>
@@ -901,7 +901,7 @@ const CursoDetalle = () => {
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-2xl font-bold">Módulos</h2>
           <button
-            className="flex items-center gap-2 px-5 py-2 rounded-full border border-cyan-400 text-cyan-400 font-semibold text-base bg-black hover:bg-cyan-400 hover:text-black transition-all shadow-none"
+            className="flex items-center gap-2 px-5 py-2 rounded-full border border-yellow-400 text-yellow-400 font-semibold text-base bg-black hover:bg-yellow-400 hover:text-black transition-all shadow-none"
             onClick={() => navigate(`/cursos/${id}/modulos`)}
           >
             Ver Todos <span className="text-xl font-bold transition-transform group-hover:translate-x-1">&gt;</span>
@@ -909,7 +909,7 @@ const CursoDetalle = () => {
         </div>
         <div className="grid md:grid-cols-3 gap-8 max-w-7xl mx-auto">
           {modulos.map((mod, idx) => (
-            <div key={idx} className="bg-neutral-900 rounded-2xl p-7 shadow-xl border border-neutral-800 flex flex-col h-full transition-all hover:shadow-2xl hover:border-cyan-400 group">
+            <div key={idx} className="bg-neutral-900 rounded-2xl p-7 shadow-xl border border-neutral-800 flex flex-col h-full transition-all hover:shadow-2xl hover:border-yellow-400 group">
               {/* Icono grande arriba */}
               <div className="flex flex-col items-center mb-4">
                 <div className="flex flex-row items-center justify-center gap-6 w-full md:flex-row flex-col">
@@ -922,17 +922,17 @@ const CursoDetalle = () => {
                     {mod.icono ? (
                       <img src={mod.icono} alt="icono" className="w-16 h-16 md:w-20 md:h-20 object-cover rounded-full bg-black/80" style={{minWidth: '64px', minHeight: '64px', maxWidth: '80px', maxHeight: '80px', border: 'none', boxShadow: 'none'}} />
                     ) : (
-                      <svg width="64" height="64" fill="none" stroke="#22d3ee" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="text-cyan-400"><circle cx="32" cy="32" r="26" /><path d="M48 48L40 40" /><circle cx="32" cy="32" r="10" /></svg>
+                      <svg width="64" height="64" fill="none" stroke="#22d3ee" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="text-yellow-400"><circle cx="32" cy="32" r="26" /><path d="M48 48L40 40" /><circle cx="32" cy="32" r="10" /></svg>
                     )}
                   </div>
                 </div>
               </div>
               {/* Título */}
-              <h3 className="text-xl font-bold mb-2 text-cyan-200 group-hover:text-cyan-400 transition-all">{mod.titulo}</h3>
+              <h3 className="text-xl font-bold mb-2 text-yellow-200 group-hover:text-yellow-400 transition-all">{mod.titulo}</h3>
               {/* Descripción */}
               <p className="mb-4 text-white/90 text-sm min-h-[60px]">{mod.descripcion}</p>
               {/* Info fila */}
-              <div className="flex flex-row items-center gap-4 text-cyan-300 mb-5">
+              <div className="flex flex-row items-center gap-4 text-yellow-300 mb-5">
                 <span className="flex items-center gap-1 text-xs"><Layers className="w-4 h-4"/>Nivel: {mod.nivel}</span>
                 <span className="flex items-center gap-1 text-xs"><PlayCircle className="w-4 h-4"/>Clases: {mod.clases}</span>
               </div>
@@ -941,7 +941,7 @@ const CursoDetalle = () => {
                 <div className="flex flex-row w-full justify-end">
                   {isAdmin && (
                     <button
-                      className="mb-2 px-2 py-1 rounded bg-cyan-700 text-white text-xs font-bold hover:bg-cyan-500 transition w-fit"
+                      className="mb-2 px-2 py-1 rounded bg-yellow-700 text-white text-xs font-bold hover:bg-yellow-500 transition w-fit"
                       style={{ fontSize: '0.85rem', minWidth: 60 }}
                       onClick={() => handleEditModulo(idx)}
                     >
@@ -959,13 +959,13 @@ const CursoDetalle = () => {
                 </div>
                 <div className="flex flex-row gap-2 mt-2">
                   <button
-                    className="flex-1 bg-white text-black font-bold py-2 rounded-full transition-all text-sm shadow group-hover:scale-105 border border-white hover:bg-cyan-400 hover:text-black hover:border-cyan-400"
+                    className="flex-1 bg-white text-black font-bold py-2 rounded-full transition-all text-sm shadow group-hover:scale-105 border border-white hover:bg-yellow-400 hover:text-black hover:border-yellow-400"
                     onClick={() => navigate(`/cursos/${id}/modulo/${idx}`)}
                   >
                     Iniciar
                   </button>
                   <button
-                    className="flex-1 border border-cyan-400 text-cyan-400 hover:bg-cyan-400 hover:text-black font-bold py-2 rounded-full transition-all text-sm shadow group-hover:scale-105 flex items-center justify-center gap-1 bg-black"
+                    className="flex-1 border border-yellow-400 text-yellow-400 hover:bg-yellow-400 hover:text-black font-bold py-2 rounded-full transition-all text-sm shadow group-hover:scale-105 flex items-center justify-center gap-1 bg-black"
                     onClick={() => handleVerClasesModulo(mod, idx)}
                   >
                     Ver clases <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 9h8m0 0-3-3m3 3-3 3"/></svg>
@@ -987,7 +987,7 @@ const CursoDetalle = () => {
                   </span>
                 </div>
                 <div className="flex flex-row items-center gap-3 mt-1">
-                  <span className="text-cyan-300 font-bold text-sm">+{mod.xp || 0}</span>
+                  <span className="text-yellow-300 font-bold text-sm">+{mod.xp || 0}</span>
                   <span className="text-yellow-400 font-bold text-sm">🪙 {mod.monedas || 0}</span>
                   {mod.progreso === 100 && (
                     <span className="text-2xl ml-auto">🏆</span>
@@ -1001,31 +1001,31 @@ const CursoDetalle = () => {
         <ModalFuturista open={editModuloIdx !== null} onClose={handleCloseModal}>
           <div style={{display:'flex',alignItems:'center',justifyContent:'center',height:'100%',minHeight:'100vh'}}>
             <form className="flex flex-col gap-4 p-4 min-w-[320px] max-w-[420px] w-full" style={{maxWidth: 420, maxHeight: '90vh', overflowY: 'auto'}} onSubmit={async e => { e.preventDefault(); await handleSaveModulo(); }}>
-              <div className="font-bold text-lg mb-2 text-cyan-400">Editar módulo</div>
-              {savingModulo && <div className="text-cyan-400 text-center">Guardando cambios...</div>}
+              <div className="font-bold text-lg mb-2 text-yellow-400">Editar módulo</div>
+              {savingModulo && <div className="text-yellow-400 text-center">Guardando cambios...</div>}
               {errorModulo && <div className="text-red-400 text-center">{errorModulo}</div>}
-              <label className="text-cyan-300 font-semibold">Título</label>
-              <input name="titulo" value={moduloForm.titulo || ''} onChange={handleModuloChange} className="p-2 rounded bg-neutral-800 border border-cyan-400 text-white" required />
-              <label className="text-cyan-300 font-semibold">Descripción</label>
-              <textarea name="descripcion" value={moduloForm.descripcion || ''} onChange={handleModuloChange} className="p-2 rounded bg-neutral-800 border border-cyan-400 text-white" rows={3} required />
-              <label className="text-cyan-300 font-semibold">Nivel</label>
-              <select name="nivel" value={moduloForm.nivel || ''} onChange={handleModuloChange} className="p-2 rounded bg-neutral-800 border border-cyan-400 text-white" required>
+              <label className="text-yellow-300 font-semibold">Título</label>
+              <input name="titulo" value={moduloForm.titulo || ''} onChange={handleModuloChange} className="p-2 rounded bg-neutral-800 border border-yellow-400 text-white" required />
+              <label className="text-yellow-300 font-semibold">Descripción</label>
+              <textarea name="descripcion" value={moduloForm.descripcion || ''} onChange={handleModuloChange} className="p-2 rounded bg-neutral-800 border border-yellow-400 text-white" rows={3} required />
+              <label className="text-yellow-300 font-semibold">Nivel</label>
+              <select name="nivel" value={moduloForm.nivel || ''} onChange={handleModuloChange} className="p-2 rounded bg-neutral-800 border border-yellow-400 text-white" required>
                 <option value="">Selecciona el nivel</option>
                 <option value="Junior">Junior</option>
                 <option value="Intermedio">Intermedio</option>
                 <option value="Avanzado">Avanzado</option>
               </select>
-              <label className="text-cyan-300 font-semibold">Clases</label>
-              <input name="clases" type="number" value={moduloForm.clases || ''} onChange={handleModuloChange} className="p-2 rounded bg-neutral-800 border border-cyan-400 text-white" required />
-              <label className="text-cyan-300 font-semibold">Icono/Imagen</label>
+              <label className="text-yellow-300 font-semibold">Clases</label>
+              <input name="clases" type="number" value={moduloForm.clases || ''} onChange={handleModuloChange} className="p-2 rounded bg-neutral-800 border border-yellow-400 text-white" required />
+              <label className="text-yellow-300 font-semibold">Icono/Imagen</label>
               <input type="file" accept="image/*" onChange={handleIconUpload} />
               <span className="text-xs text-neutral-400 text-center">Sugerencia: Usa un icono cuadrado de 80x80px en PNG, JPG o SVG para mejor visualización.</span>
-              {uploadingIcon && <span className="text-xs text-cyan-400">Subiendo icono...</span>}
+              {uploadingIcon && <span className="text-xs text-yellow-400">Subiendo icono...</span>}
               {moduloForm.icono && (
                 <img src={moduloForm.icono} alt="icono" className="w-20 h-20 object-cover rounded-full mt-2" style={{border: 'none', boxShadow: 'none', background: '#111'}} />
               )}
               <div className="flex gap-2 mt-4 sticky bottom-0 bg-neutral-900 py-2 z-10">
-                <button type="submit" className="flex-1 bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-2 rounded transition">Guardar</button>
+                <button type="submit" className="flex-1 bg-yellow-600 hover:bg-yellow-700 text-white font-bold py-2 rounded transition">Guardar</button>
                 <button type="button" className="flex-1 bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 rounded transition" onClick={handleCloseModal}>Cancelar</button>
               </div>
             </form>
@@ -1047,9 +1047,9 @@ const CursoDetalle = () => {
                 <div className="flex items-center gap-2 mb-2 justify-center">
                   {totalPages > 1 && (
                     <>
-                      <button onClick={() => handlePrevPage(cat.key)} disabled={page === 0} className="px-2 py-1 rounded-full bg-cyan-800 text-white disabled:opacity-40">◀</button>
-                      <span className="text-cyan-300 text-xs">Página {page + 1} de {totalPages}</span>
-                      <button onClick={() => handleNextPage(cat.key, videosCat.length)} disabled={page >= totalPages - 1} className="px-2 py-1 rounded-full bg-cyan-800 text-white disabled:opacity-40">▶</button>
+                      <button onClick={() => handlePrevPage(cat.key)} disabled={page === 0} className="px-2 py-1 rounded-full bg-yellow-800 text-white disabled:opacity-40">◀</button>
+                      <span className="text-yellow-300 text-xs">Página {page + 1} de {totalPages}</span>
+                      <button onClick={() => handleNextPage(cat.key, videosCat.length)} disabled={page >= totalPages - 1} className="px-2 py-1 rounded-full bg-yellow-800 text-white disabled:opacity-40">▶</button>
                     </>
                   )}
                 </div>
@@ -1059,12 +1059,12 @@ const CursoDetalle = () => {
                       <div className="relative w-full h-[170px] bg-black">
                         <img src={video.imagen} alt={video.titulo} className="w-full h-full object-cover" />
                         <button
-                          className="absolute bottom-3 left-1/2 -translate-x-1/2 bg-cyan-100 hover:bg-cyan-200 text-cyan-700 font-bold py-1.5 px-4 rounded-full flex items-center gap-2 text-base shadow z-10 border border-cyan-400"
+                          className="absolute bottom-3 left-1/2 -translate-x-1/2 bg-yellow-100 hover:bg-yellow-200 text-yellow-700 font-bold py-1.5 px-4 rounded-full flex items-center gap-2 text-base shadow z-10 border border-yellow-400"
                           style={{minWidth: '90px', fontWeight: 600, fontSize: '1rem', boxShadow: '0 2px 8px #00fff733'}}
                           onClick={() => setVideoModal({ url: video.video_url, titulo: video.titulo })}
                         >
                           <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{opacity:0.7}}><polygon points="6,4 20,11 6,18" fill="currentColor" /></svg>
-                          <span className="text-cyan-700 font-semibold" style={{fontSize:'1rem', opacity:0.8}}>Ver</span>
+                          <span className="text-yellow-700 font-semibold" style={{fontSize:'1rem', opacity:0.8}}>Ver</span>
                         </button>
                       </div>
                       <div className="p-4 flex-1 flex flex-col justify-between">
@@ -1075,7 +1075,7 @@ const CursoDetalle = () => {
                         </div>
                         {isAdmin && (
                           <div className="flex gap-2 mt-2">
-                            <button className="text-xs text-cyan-400 underline" onClick={() => handleEditVideo(video)}>Editar</button>
+                            <button className="text-xs text-yellow-400 underline" onClick={() => handleEditVideo(video)}>Editar</button>
                             <button className="text-xs text-yellow-400 underline" onClick={() => handleDuplicateVideo(video)}>Duplicar</button>
                             <button className="text-xs text-red-400 underline" onClick={() => handleDeleteVideo(video)}>Eliminar</button>
                           </div>
@@ -1111,21 +1111,21 @@ const CursoDetalle = () => {
           <ModalFuturista open={!!editVideo} onClose={() => setEditVideo(null)}>
             {editVideo && (
               <form className="flex flex-col gap-4 p-6 min-w-[320px] max-w-[420px] w-full" style={{maxWidth: 420}} onSubmit={e => { e.preventDefault(); handleSaveEditVideo(); }}>
-                <div className="font-bold text-lg mb-2 text-cyan-400">Editar video</div>
-                <label className="text-cyan-300 font-semibold">Título</label>
-                <input name="titulo" value={editVideoForm.titulo || ''} onChange={handleEditVideoChange} className="p-2 rounded bg-neutral-800 border border-cyan-400 text-white" required />
-                <label className="text-cyan-300 font-semibold">Ponente</label>
-                <input name="ponente" value={editVideoForm.ponente || ''} onChange={handleEditVideoChange} className="p-2 rounded bg-neutral-800 border border-cyan-400 text-white" required />
-                <label className="text-cyan-300 font-semibold">Miniatura</label>
+                <div className="font-bold text-lg mb-2 text-yellow-400">Editar video</div>
+                <label className="text-yellow-300 font-semibold">Título</label>
+                <input name="titulo" value={editVideoForm.titulo || ''} onChange={handleEditVideoChange} className="p-2 rounded bg-neutral-800 border border-yellow-400 text-white" required />
+                <label className="text-yellow-300 font-semibold">Ponente</label>
+                <input name="ponente" value={editVideoForm.ponente || ''} onChange={handleEditVideoChange} className="p-2 rounded bg-neutral-800 border border-yellow-400 text-white" required />
+                <label className="text-yellow-300 font-semibold">Miniatura</label>
                 <input type="file" accept="image/*" onChange={handleThumbUpload} />
-                {uploadingThumb && <span className="text-xs text-cyan-400">Subiendo miniatura...</span>}
+                {uploadingThumb && <span className="text-xs text-yellow-400">Subiendo miniatura...</span>}
                 {editVideoForm.imagen && (
                   <img src={editVideoForm.imagen} alt="miniatura" className="w-32 h-20 object-cover rounded mt-2" />
                 )}
-                <label className="text-cyan-300 font-semibold">Enlace de video (YouTube, Vimeo, etc.)</label>
-                <input name="video_url" value={editVideoForm.video_url || ''} onChange={handleEditVideoChange} className="p-2 rounded bg-neutral-800 border border-cyan-400 text-white" required />
+                <label className="text-yellow-300 font-semibold">Enlace de video (YouTube, Vimeo, etc.)</label>
+                <input name="video_url" value={editVideoForm.video_url || ''} onChange={handleEditVideoChange} className="p-2 rounded bg-neutral-800 border border-yellow-400 text-white" required />
                 <div className="flex gap-2 mt-4">
-                  <button type="submit" className="flex-1 bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-2 rounded transition">Guardar</button>
+                  <button type="submit" className="flex-1 bg-yellow-600 hover:bg-yellow-700 text-white font-bold py-2 rounded transition">Guardar</button>
                   <button type="button" className="flex-1 bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 rounded transition" onClick={() => setEditVideo(null)}>Cancelar</button>
                 </div>
               </form>
@@ -1143,7 +1143,7 @@ const CursoDetalle = () => {
           <div className="absolute top-4 right-4 z-20">
             {isAdmin && (
               <button 
-                className="text-xs bg-cyan-700 hover:bg-cyan-500 text-white px-3 py-1 rounded-full font-bold shadow"
+                className="text-xs bg-yellow-700 hover:bg-yellow-500 text-white px-3 py-1 rounded-full font-bold shadow"
                 onClick={() => setEditComunidadPortadaOpen(true)}
               >
                 Editar portada
@@ -1155,7 +1155,7 @@ const CursoDetalle = () => {
               <h2 className="text-3xl font-bold mb-2 text-white">bemaster</h2>
               {isAdmin && (
                 <button 
-                  className="text-xs bg-cyan-700 hover:bg-cyan-500 text-white px-3 py-1 rounded-full font-bold shadow"
+                  className="text-xs bg-yellow-700 hover:bg-yellow-500 text-white px-3 py-1 rounded-full font-bold shadow"
                   onClick={() => setEditComunidadOpen(true)}
                 >
                   Editar
@@ -1185,7 +1185,7 @@ const CursoDetalle = () => {
           <div className="absolute top-4 right-4 z-20">
             {isAdmin && (
               <button 
-                className="text-xs bg-cyan-700 hover:bg-cyan-500 text-white px-3 py-1 rounded-full font-bold shadow"
+                className="text-xs bg-yellow-700 hover:bg-yellow-500 text-white px-3 py-1 rounded-full font-bold shadow"
                 onClick={() => setEditEventosPortadaOpen(true)}
               >
                 Editar portada
@@ -1197,7 +1197,7 @@ const CursoDetalle = () => {
               <h2 className="text-3xl font-bold text-white">Eventos</h2>
               {isAdmin && (
                 <button 
-                  className="text-xs bg-cyan-700 hover:bg-cyan-500 text-white px-3 py-1 rounded-full font-bold shadow"
+                  className="text-xs bg-yellow-700 hover:bg-yellow-500 text-white px-3 py-1 rounded-full font-bold shadow"
                   onClick={() => setEditEventosOpen(true)}
                 >
                   Editar
@@ -1218,18 +1218,18 @@ const CursoDetalle = () => {
                   countdown = `${days > 0 ? days + 'd ' : ''}${String(hours).padStart(2, '0')}:${String(min).padStart(2, '0')}:${String(sec).padStart(2, '0')}`;
                 }
                 return (
-                  <div key={idx} className="bg-neutral-800 rounded-xl p-5 flex flex-col md:flex-row md:items-center gap-3 shadow-lg border-l-8 border-cyan-500">
+                  <div key={idx} className="bg-neutral-800 rounded-xl p-5 flex flex-col md:flex-row md:items-center gap-3 shadow-lg border-l-8 border-yellow-500">
                     <div className="flex-1 flex items-center gap-3">
                       {getPlataformaIcon(ev.plataforma)}
                       <div>
                         <div className="text-lg font-bold text-white mb-1">{ev.titulo}</div>
-                        <div className="text-cyan-300 font-semibold mb-1">{ev.dia} {ev.hora} - {ev.plataforma}</div>
+                        <div className="text-yellow-300 font-semibold mb-1">{ev.dia} {ev.hora} - {ev.plataforma}</div>
                         {ev.fecha_hora && (
-                          <div className="text-xs text-cyan-400 font-mono mt-1">Falta: {countdown}</div>
+                          <div className="text-xs text-yellow-400 font-mono mt-1">Falta: {countdown}</div>
                         )}
                       </div>
                     </div>
-                    <a href={ev.url} target="_blank" rel="noopener noreferrer" className="bg-white text-black font-bold px-6 py-2 rounded-full shadow hover:bg-cyan-200 transition flex items-center gap-2">
+                    <a href={ev.url} target="_blank" rel="noopener noreferrer" className="bg-white text-black font-bold px-6 py-2 rounded-full shadow hover:bg-yellow-200 transition flex items-center gap-2">
                       <ExternalLink size={18} /> Unirse
                     </a>
                   </div>
@@ -1244,7 +1244,7 @@ const CursoDetalle = () => {
       <section className="certificacion mb-10">
         {isAdmin && (
           <button
-            className="text-xs bg-cyan-700 hover:bg-cyan-500 text-white px-3 py-1 rounded-full font-bold shadow mb-3"
+            className="text-xs bg-yellow-700 hover:bg-yellow-500 text-white px-3 py-1 rounded-full font-bold shadow mb-3"
             onClick={() => setEditCertificacionOpen(true)}
           >
             Editar certificación
@@ -1276,53 +1276,53 @@ const CursoDetalle = () => {
       `}</style>
 
       {/* Loader visual general */}
-      {loading && <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50"><div className="text-cyan-300 text-xl font-bold animate-pulse">Cargando...</div></div>}
+      {loading && <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50"><div className="text-yellow-300 text-xl font-bold animate-pulse">Cargando...</div></div>}
 
       {/* Modal de edición de comunidad */}
       <ModalFuturista open={editComunidadOpen} onClose={() => setEditComunidadOpen(false)}>
         <div className="flex flex-col gap-4 p-6 min-w-[320px] max-w-[420px] w-full">
-          <div className="font-bold text-lg mb-2 text-cyan-400">Editar Comunidad</div>
+          <div className="font-bold text-lg mb-2 text-yellow-400">Editar Comunidad</div>
           <div className="flex flex-col gap-4">
             <div>
-              <label className="text-cyan-300 font-semibold">Título</label>
+              <label className="text-yellow-300 font-semibold">Título</label>
               <input
                 name="titulo"
                 value={comunidadForm.titulo}
                 onChange={handleComunidadChange}
-                className="w-full p-2 rounded bg-neutral-800 border border-cyan-400 text-white"
+                className="w-full p-2 rounded bg-neutral-800 border border-yellow-400 text-white"
               />
             </div>
             <div>
-              <label className="text-cyan-300 font-semibold">Descripción</label>
+              <label className="text-yellow-300 font-semibold">Descripción</label>
               <textarea
                 name="descripcion"
                 value={comunidadForm.descripcion}
                 onChange={handleComunidadChange}
-                className="w-full p-2 rounded bg-neutral-800 border border-cyan-400 text-white"
+                className="w-full p-2 rounded bg-neutral-800 border border-yellow-400 text-white"
                 rows={3}
               />
             </div>
             <div>
-              <label className="text-cyan-300 font-semibold">Enlaces</label>
+              <label className="text-yellow-300 font-semibold">Enlaces</label>
               <div className="flex flex-col gap-3">
                 {comunidadForm.links.map((link: any, index: number) => (
                   <div key={index} className="flex gap-2 items-center">
                     <input
                       value={link.texto}
                       onChange={(e) => handleComunidadLinkChange(index, 'texto', e.target.value)}
-                      className="flex-1 p-2 rounded bg-neutral-800 border border-cyan-400 text-white"
+                      className="flex-1 p-2 rounded bg-neutral-800 border border-yellow-400 text-white"
                       placeholder="Texto del enlace"
                     />
                     <input
                       value={link.url || ''}
                       onChange={(e) => handleComunidadLinkChange(index, 'url', e.target.value)}
-                      className="flex-1 p-2 rounded bg-neutral-800 border border-cyan-400 text-white"
+                      className="flex-1 p-2 rounded bg-neutral-800 border border-yellow-400 text-white"
                       placeholder="URL del enlace"
                     />
                     <select
                       value={link.color}
                       onChange={(e) => handleComunidadLinkChange(index, 'color', e.target.value)}
-                      className="p-2 rounded bg-neutral-800 border border-cyan-400 text-white"
+                      className="p-2 rounded bg-neutral-800 border border-yellow-400 text-white"
                     >
                       <option value="red">Rojo</option>
                       <option value="green">Verde</option>
@@ -1338,7 +1338,7 @@ const CursoDetalle = () => {
                 ))}
                 <button
                   onClick={handleAddComunidadLink}
-                  className="text-cyan-400 hover:text-cyan-300 text-sm font-semibold"
+                  className="text-yellow-400 hover:text-yellow-300 text-sm font-semibold"
                 >
                   + Agregar enlace
                 </button>
@@ -1348,7 +1348,7 @@ const CursoDetalle = () => {
           <div className="flex gap-2 mt-4">
             <button
               onClick={handleSaveComunidad}
-              className="flex-1 bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-2 rounded transition"
+              className="flex-1 bg-yellow-600 hover:bg-yellow-700 text-white font-bold py-2 rounded transition"
               disabled={uploadingComunidadPortada}
             >
               Guardar
@@ -1366,19 +1366,19 @@ const CursoDetalle = () => {
       {/* Modal de edición de portada de comunidad */}
       <ModalFuturista open={editComunidadPortadaOpen} onClose={() => setEditComunidadPortadaOpen(false)}>
         <div className="flex flex-col gap-4 p-6 min-w-[320px] max-w-[420px] w-full">
-          <div className="font-bold text-lg mb-2 text-cyan-400">Editar Portada de Comunidad</div>
+          <div className="font-bold text-lg mb-2 text-yellow-400">Editar Portada de Comunidad</div>
           <div className="flex flex-col gap-4">
             <div>
-              <label className="text-cyan-300 font-semibold">Imagen de portada</label>
+              <label className="text-yellow-300 font-semibold">Imagen de portada</label>
               <input
                 type="file"
                 accept="image/*"
                 onChange={handleComunidadPortadaUpload}
-                className="w-full p-2 rounded bg-neutral-800 border border-cyan-400 text-white"
+                className="w-full p-2 rounded bg-neutral-800 border border-yellow-400 text-white"
               />
-              <span className="text-xs text-cyan-300 mt-1 block">Tamaño recomendado: <b>800x180px</b> (JPG o PNG)</span>
+              <span className="text-xs text-yellow-300 mt-1 block">Tamaño recomendado: <b>800x180px</b> (JPG o PNG)</span>
               {uploadingComunidadPortada && (
-                <div className="text-cyan-400 text-sm mt-2">Subiendo imagen...</div>
+                <div className="text-yellow-400 text-sm mt-2">Subiendo imagen...</div>
               )}
               {comunidadPortadaUrl && (
                 <img
@@ -1393,7 +1393,7 @@ const CursoDetalle = () => {
           <div className="flex gap-2 mt-4">
             <button
               onClick={handleSaveComunidad}
-              className="flex-1 bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-2 rounded transition"
+              className="flex-1 bg-yellow-600 hover:bg-yellow-700 text-white font-bold py-2 rounded transition"
               disabled={uploadingComunidadPortada}
             >
               Guardar
@@ -1405,12 +1405,12 @@ const CursoDetalle = () => {
       {/* Modal de edición de eventos */}
       <ModalFuturista open={editEventosOpen} onClose={() => setEditEventosOpen(false)}>
         <div className="flex flex-col gap-4 p-6 min-w-[320px] max-w-[420px] w-full">
-          <div className="font-bold text-lg mb-2 text-cyan-400">Editar Eventos</div>
+          <div className="font-bold text-lg mb-2 text-yellow-400">Editar Eventos</div>
           <div className="flex flex-col gap-4">
             {eventosForm.map((evento, index) => (
               <div key={index} className="flex flex-col gap-3 p-4 bg-neutral-800 rounded-lg">
                 <div className="flex justify-between items-center">
-                  <h3 className="text-cyan-300 font-semibold">Evento {index + 1}</h3>
+                  <h3 className="text-yellow-300 font-semibold">Evento {index + 1}</h3>
                   <button
                     onClick={() => handleRemoveEvento(index)}
                     className="text-red-400 hover:text-red-300"
@@ -1421,47 +1421,47 @@ const CursoDetalle = () => {
                 <input
                   value={evento.titulo}
                   onChange={(e) => handleEventoChange(index, 'titulo', e.target.value)}
-                  className="w-full p-2 rounded bg-neutral-900 border border-cyan-400 text-white"
+                  className="w-full p-2 rounded bg-neutral-900 border border-yellow-400 text-white"
                   placeholder="Título del evento"
                 />
                 <input
                   type="datetime-local"
                   value={evento.fecha_hora || ''}
                   onChange={e => handleEventoChange(index, 'fecha_hora', e.target.value)}
-                  className="w-full p-2 rounded bg-neutral-900 border border-cyan-400 text-white"
+                  className="w-full p-2 rounded bg-neutral-900 border border-yellow-400 text-white"
                   placeholder="Fecha y hora"
                 />
                 <div className="grid grid-cols-2 gap-2">
                   <input
                     value={evento.dia}
                     onChange={(e) => handleEventoChange(index, 'dia', e.target.value)}
-                    className="w-full p-2 rounded bg-neutral-900 border border-cyan-400 text-white"
+                    className="w-full p-2 rounded bg-neutral-900 border border-yellow-400 text-white"
                     placeholder="Día"
                   />
                   <input
                     value={evento.hora}
                     onChange={(e) => handleEventoChange(index, 'hora', e.target.value)}
-                    className="w-full p-2 rounded bg-neutral-900 border border-cyan-400 text-white"
+                    className="w-full p-2 rounded bg-neutral-900 border border-yellow-400 text-white"
                     placeholder="Hora"
                   />
                 </div>
                 <input
                   value={evento.plataforma}
                   onChange={(e) => handleEventoChange(index, 'plataforma', e.target.value)}
-                  className="w-full p-2 rounded bg-neutral-900 border border-cyan-400 text-white"
+                  className="w-full p-2 rounded bg-neutral-900 border border-yellow-400 text-white"
                   placeholder="Plataforma"
                 />
                 <input
                   value={evento.url}
                   onChange={(e) => handleEventoChange(index, 'url', e.target.value)}
-                  className="w-full p-2 rounded bg-neutral-900 border border-cyan-400 text-white"
+                  className="w-full p-2 rounded bg-neutral-900 border border-yellow-400 text-white"
                   placeholder="URL del evento"
                 />
               </div>
             ))}
             <button
               onClick={handleAddEvento}
-              className="text-cyan-400 hover:text-cyan-300 text-sm font-semibold"
+              className="text-yellow-400 hover:text-yellow-300 text-sm font-semibold"
             >
               + Agregar evento
             </button>
@@ -1469,7 +1469,7 @@ const CursoDetalle = () => {
           <div className="flex gap-2 mt-4">
             <button
               onClick={handleSaveEventosPortada}
-              className="flex-1 bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-2 rounded transition"
+              className="flex-1 bg-yellow-600 hover:bg-yellow-700 text-white font-bold py-2 rounded transition"
               disabled={uploadingEventosPortada}
             >
               Guardar
@@ -1487,19 +1487,19 @@ const CursoDetalle = () => {
       {/* Modal de edición de portada de eventos */}
       <ModalFuturista open={editEventosPortadaOpen} onClose={() => setEditEventosPortadaOpen(false)}>
         <div className="flex flex-col gap-4 p-6 min-w-[320px] max-w-[420px] w-full">
-          <div className="font-bold text-lg mb-2 text-cyan-400">Editar Portada de Eventos</div>
+          <div className="font-bold text-lg mb-2 text-yellow-400">Editar Portada de Eventos</div>
           <div className="flex flex-col gap-4">
             <div>
-              <label className="text-cyan-300 font-semibold">Imagen de portada</label>
+              <label className="text-yellow-300 font-semibold">Imagen de portada</label>
               <input
                 type="file"
                 accept="image/*"
                 onChange={handleEventosPortadaUpload}
-                className="w-full p-2 rounded bg-neutral-800 border border-cyan-400 text-white"
+                className="w-full p-2 rounded bg-neutral-800 border border-yellow-400 text-white"
               />
-              <span className="text-xs text-cyan-300 mt-1 block">Tamaño recomendado: <b>800x180px</b> (JPG o PNG)</span>
+              <span className="text-xs text-yellow-300 mt-1 block">Tamaño recomendado: <b>800x180px</b> (JPG o PNG)</span>
               {uploadingEventosPortada && (
-                <div className="text-cyan-400 text-sm mt-2">Subiendo imagen...</div>
+                <div className="text-yellow-400 text-sm mt-2">Subiendo imagen...</div>
               )}
               {eventosPortadaUrl && (
                 <img
@@ -1514,7 +1514,7 @@ const CursoDetalle = () => {
           <div className="flex gap-2 mt-4">
             <button
               onClick={handleSaveEventosPortada}
-              className="flex-1 bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-2 rounded transition"
+              className="flex-1 bg-yellow-600 hover:bg-yellow-700 text-white font-bold py-2 rounded transition"
               disabled={uploadingEventosPortada}
             >
               Guardar
@@ -1527,7 +1527,7 @@ const CursoDetalle = () => {
       <ModalFuturista open={modalVideosOpen} onClose={() => setModalVideosOpen(false)}>
         {infoPrimerModulo && (
           <div className="flex flex-col gap-4 w-full">
-            <h2 className="text-2xl font-bold text-cyan-300 mb-2 text-center">{infoPrimerModulo.titulo}</h2>
+            <h2 className="text-2xl font-bold text-yellow-300 mb-2 text-center">{infoPrimerModulo.titulo}</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
               {videosPrimerModulo.map((v: any, idx: number) => {
                 let thumb = v.miniatura_url;
@@ -1535,20 +1535,20 @@ const CursoDetalle = () => {
                   thumb = getVideoThumbnail(v.url);
                 }
                 return (
-                  <div key={v.id} className="flex flex-row items-center gap-4 bg-neutral-900 rounded-2xl border-4 border-cyan-400 p-3 shadow-2xl w-full">
-                    <div className="w-[120px] h-[80px] sm:w-[120px] sm:h-[80px] w-[90vw] h-[56vw] max-w-[120px] max-h-[80px] sm:max-w-[120px] sm:max-h-[80px] bg-black rounded-2xl overflow-hidden flex items-center justify-center border-4 border-cyan-400 shadow-lg">
+                  <div key={v.id} className="flex flex-row items-center gap-4 bg-neutral-900 rounded-2xl border-4 border-yellow-400 p-3 shadow-2xl w-full">
+                    <div className="w-[120px] h-[80px] sm:w-[120px] sm:h-[80px] w-[90vw] h-[56vw] max-w-[120px] max-h-[80px] sm:max-w-[120px] sm:max-h-[80px] bg-black rounded-2xl overflow-hidden flex items-center justify-center border-4 border-yellow-400 shadow-lg">
                       {thumb ? (
                         <img src={thumb} alt={v.titulo} className="w-full h-full object-cover" />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center text-cyan-400">Sin imagen</div>
+                        <div className="w-full h-full flex items-center justify-center text-yellow-400">Sin imagen</div>
                       )}
                     </div>
                     <div className="flex-1 flex flex-col justify-center min-w-0">
-                      <div className="font-bold text-cyan-200 text-base truncate mb-1">{v.titulo}</div>
-                      <div className="text-xs text-cyan-400 opacity-70">Video</div>
+                      <div className="font-bold text-yellow-200 text-base truncate mb-1">{v.titulo}</div>
+                      <div className="text-xs text-yellow-400 opacity-70">Video</div>
                     </div>
                     <button
-                      className="bg-cyan-600 hover:bg-cyan-400 text-white font-bold p-2 rounded-full w-10 h-10 flex items-center justify-center"
+                      className="bg-yellow-600 hover:bg-yellow-400 text-white font-bold p-2 rounded-full w-10 h-10 flex items-center justify-center"
                       onClick={() => { setModalVideosOpen(false); navigate(`/cursos/${id}/modulo/0?video=${idx}`); }}
                       title="Ir a video"
                     >
@@ -1573,7 +1573,7 @@ const CursoDetalle = () => {
                 </span>
               </div>
               <div className="flex flex-row items-center gap-3 mt-1">
-                <span className="text-cyan-300 font-bold text-sm">+{infoPrimerModulo?.xp || 0}</span>
+                <span className="text-yellow-300 font-bold text-sm">+{infoPrimerModulo?.xp || 0}</span>
                 <span className="text-yellow-400 font-bold text-sm">🪙 {infoPrimerModulo?.monedas || 0}</span>
                 {infoPrimerModulo?.progreso === 100 && (
                   <span className="text-2xl ml-auto">🏆</span>
