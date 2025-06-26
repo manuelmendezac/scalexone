@@ -21,16 +21,29 @@ const SuscripcionesAdminPanel: React.FC = () => {
   
   // Estado para manejar la organización
   const [organizacionId, setOrganizacionId] = useState<string | null>(null);
+  const [intentosInicializacion, setIntentosInicializacion] = useState(0);
 
   // Función para inicializar o crear la organización
   const inicializarOrganizacion = async () => {
+    if (intentosInicializacion >= 3) {
+      console.error('Máximo número de intentos de inicialización alcanzado');
+      setMensaje('Error: No se pudo inicializar la organización después de varios intentos');
+      setLoading(false);
+      return;
+    }
+
+    setIntentosInicializacion(prev => prev + 1);
+
     try {
       const communityId = userInfo?.community_id || 'default';
+      console.log(`Inicializando organización (intento ${intentosInicializacion + 1}) para community_id:`, communityId);
       
       // Buscar si existe una organización con este community_id como slug
+      console.log('Buscando organización existente...');
       let organizacion = await SuscripcionesAPI.organizaciones.obtenerOrganizacionPorSlug(communityId);
       
       if (!organizacion) {
+        console.log('No se encontró organización, creando nueva...');
         // Si no existe, crear una nueva organización
         organizacion = await SuscripcionesAPI.organizaciones.crearOrganizacion({
           nombre: `Organización ${communityId}`,
@@ -39,21 +52,26 @@ const SuscripcionesAdminPanel: React.FC = () => {
           estado: 'activa',
           configuracion: {}
         });
-        console.log('Organización creada:', organizacion);
+        console.log('Organización creada exitosamente:', organizacion);
+      } else {
+        console.log('Organización encontrada:', organizacion);
       }
       
+      console.log('Estableciendo organizacionId:', organizacion.id);
       setOrganizacionId(organizacion.id);
     } catch (error) {
-      console.error('Error inicializando organización:', error);
+      console.error('Error completo inicializando organización:', error);
       setMensaje('Error al inicializar organización: ' + (error as Error).message);
+      setLoading(false); // Importante: detener el loading en caso de error
     }
   };
 
   useEffect(() => {
-    if (userInfo?.community_id) {
+    if (userInfo?.community_id && !organizacionId) {
+      console.log('Ejecutando inicializarOrganizacion desde useEffect');
       inicializarOrganizacion();
     }
-  }, [userInfo?.community_id]);
+  }, [userInfo?.community_id, organizacionId]);
 
   useEffect(() => {
     if (organizacionId) {
