@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Users, DollarSign, CreditCard, TrendingUp, Calendar, Search, Filter, Plus, Edit, Trash2, CheckCircle, XCircle, AlertCircle, Download, Eye, Pause, Play, UserX } from 'lucide-react';
 import { SuscripcionesAPI, type SuscripcionConDetalles, type PlanSuscripcion, type EstadisticasOrganizacion } from '../../services/suscripcionesService';
 import useNeuroState from '../../store/useNeuroState';
+import { supabase } from '../../supabase';
 
 const SuscripcionesAdminPanel: React.FC = () => {
   const [suscripciones, setSuscripciones] = useState<SuscripcionConDetalles[]>([]);
@@ -13,6 +14,7 @@ const SuscripcionesAdminPanel: React.FC = () => {
   const [selectedFilter, setSelectedFilter] = useState('todos');
   const [mensaje, setMensaje] = useState('');
   const [showCreatePlan, setShowCreatePlan] = useState(false);
+  const [showCreateSuscripcion, setShowCreateSuscripcion] = useState(false);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
 
   const { userInfo } = useNeuroState();
@@ -99,6 +101,40 @@ const SuscripcionesAdminPanel: React.FC = () => {
     }
   };
 
+  const handleCreateSuscripcion = async (suscripcionData: any) => {
+    try {
+      setActionLoading('create');
+      
+      // Calcular fecha de fin basada en la duración del plan
+      const plan = planes.find(p => p.id === suscripcionData.plan_id);
+      if (!plan) {
+        throw new Error('Plan no encontrado');
+      }
+      
+      const fechaInicio = new Date();
+      const fechaFin = new Date();
+      fechaFin.setDate(fechaFin.getDate() + plan.duracion_dias);
+      
+      const nuevaSuscripcion = {
+        ...suscripcionData,
+        organizacion_id: organizacionId,
+        fecha_inicio: fechaInicio.toISOString(),
+        fecha_fin: fechaFin.toISOString(),
+        precio_pagado: plan.precio,
+        estado: suscripcionData.estado || 'activa'
+      };
+      
+      await SuscripcionesAPI.suscripciones.crearSuscripcion(nuevaSuscripcion);
+      setMensaje('Suscripción creada exitosamente');
+      setShowCreateSuscripcion(false);
+      await cargarDatos();
+    } catch (error: any) {
+      setMensaje('Error al crear suscripción: ' + error.message);
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
   const getEstadoIcon = (estado: string) => {
     switch (estado) {
       case 'activa':
@@ -180,6 +216,13 @@ const SuscripcionesAdminPanel: React.FC = () => {
             <button className="flex items-center gap-2 bg-blue-500 text-white px-4 py-2 rounded-lg font-bold hover:bg-blue-600 transition-colors">
               <Download size={20} />
               Exportar
+            </button>
+            <button 
+              onClick={() => setShowCreateSuscripcion(true)}
+              className="flex items-center gap-2 bg-green-500 text-white px-4 py-2 rounded-lg font-bold hover:bg-green-600 transition-colors"
+            >
+              <Plus size={20} />
+              Crear Suscripción
             </button>
             <button 
               onClick={() => setShowCreatePlan(true)}
@@ -476,6 +519,16 @@ const SuscripcionesAdminPanel: React.FC = () => {
           </div>
         )}
 
+        {/* Modal Crear Suscripción */}
+        {showCreateSuscripcion && (
+          <CreateSuscripcionModal
+            planes={planes.filter(p => p.activo)}
+            onClose={() => setShowCreateSuscripcion(false)}
+            onSubmit={handleCreateSuscripcion}
+            loading={actionLoading === 'create'}
+          />
+        )}
+
         {/* Mensajes */}
         {mensaje && (
           <div className="fixed bottom-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg z-50">
@@ -488,6 +541,202 @@ const SuscripcionesAdminPanel: React.FC = () => {
             </button>
           </div>
         )}
+      </div>
+    </div>
+  );
+};
+
+// Modal para crear nueva suscripción
+interface CreateSuscripcionModalProps {
+  planes: PlanSuscripcion[];
+  onClose: () => void;
+  onSubmit: (data: any) => void;
+  loading: boolean;
+}
+
+const CreateSuscripcionModal: React.FC<CreateSuscripcionModalProps> = ({ 
+  planes, 
+  onClose, 
+  onSubmit, 
+  loading 
+}) => {
+  const [formData, setFormData] = useState({
+    usuario_id: '',
+    plan_id: '',
+    estado: 'activa',
+    renovacion_automatica: true,
+    descuento_aplicado: 0
+  });
+
+  const [usuarios, setUsuarios] = useState<Array<{id: string, name: string, email: string}>>([]);
+  const [loadingUsuarios, setLoadingUsuarios] = useState(false);
+  const [searchUsuario, setSearchUsuario] = useState('');
+
+  // Cargar usuarios disponibles
+  useEffect(() => {
+    const cargarUsuarios = async () => {
+      try {
+        setLoadingUsuarios(true);
+        // Aquí deberías hacer una llamada a la API para obtener usuarios
+        // Por ahora simularemos algunos usuarios
+        const { data, error } = await supabase
+          .from('usuarios')
+          .select('id, name, email')
+          .ilike('email', `%${searchUsuario}%`)
+          .limit(10);
+        
+        if (error) throw error;
+        setUsuarios(data || []);
+      } catch (error) {
+        console.error('Error cargando usuarios:', error);
+      } finally {
+        setLoadingUsuarios(false);
+      }
+    };
+
+    cargarUsuarios();
+  }, [searchUsuario]);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!formData.usuario_id || !formData.plan_id) {
+      alert('Por favor selecciona un usuario y un plan');
+      return;
+    }
+    
+    onSubmit(formData);
+  };
+
+  const selectedPlan = planes.find(p => p.id === formData.plan_id);
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-gray-800 rounded-lg p-6 w-full max-w-md">
+        <h2 className="text-xl font-bold text-white mb-4">Crear Nueva Suscripción</h2>
+        
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Selección de Usuario */}
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-2">
+              Usuario
+            </label>
+            <input
+              type="text"
+              placeholder="Buscar por email..."
+              value={searchUsuario}
+              onChange={(e) => setSearchUsuario(e.target.value)}
+              className="w-full p-2 bg-gray-700 border border-gray-600 rounded text-white placeholder-gray-400 focus:border-yellow-500 focus:outline-none mb-2"
+            />
+            <select
+              value={formData.usuario_id}
+              onChange={(e) => setFormData({...formData, usuario_id: e.target.value})}
+              className="w-full p-2 bg-gray-700 border border-gray-600 rounded text-white focus:border-yellow-500 focus:outline-none"
+              required
+            >
+              <option value="">Seleccionar usuario...</option>
+              {usuarios.map(usuario => (
+                <option key={usuario.id} value={usuario.id}>
+                  {usuario.name} - {usuario.email}
+                </option>
+              ))}
+            </select>
+            {loadingUsuarios && (
+              <p className="text-sm text-gray-400 mt-1">Buscando usuarios...</p>
+            )}
+          </div>
+
+          {/* Selección de Plan */}
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-2">
+              Plan de Suscripción
+            </label>
+            <select
+              value={formData.plan_id}
+              onChange={(e) => setFormData({...formData, plan_id: e.target.value})}
+              className="w-full p-2 bg-gray-700 border border-gray-600 rounded text-white focus:border-yellow-500 focus:outline-none"
+              required
+            >
+              <option value="">Seleccionar plan...</option>
+              {planes.map(plan => (
+                <option key={plan.id} value={plan.id}>
+                  {plan.nombre} - ${plan.precio}/{plan.duracion_dias} días
+                </option>
+              ))}
+            </select>
+            {selectedPlan && (
+              <div className="mt-2 p-2 bg-gray-700 rounded text-sm text-gray-300">
+                <p><strong>Precio:</strong> ${selectedPlan.precio}</p>
+                <p><strong>Duración:</strong> {selectedPlan.duracion_dias} días</p>
+                <p><strong>Descripción:</strong> {selectedPlan.descripcion}</p>
+              </div>
+            )}
+          </div>
+
+          {/* Estado */}
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-2">
+              Estado Inicial
+            </label>
+            <select
+              value={formData.estado}
+              onChange={(e) => setFormData({...formData, estado: e.target.value})}
+              className="w-full p-2 bg-gray-700 border border-gray-600 rounded text-white focus:border-yellow-500 focus:outline-none"
+            >
+              <option value="activa">Activa</option>
+              <option value="trial">Trial</option>
+              <option value="pausada">Pausada</option>
+            </select>
+          </div>
+
+          {/* Renovación Automática */}
+          <div className="flex items-center">
+            <input
+              type="checkbox"
+              id="renovacion"
+              checked={formData.renovacion_automatica}
+              onChange={(e) => setFormData({...formData, renovacion_automatica: e.target.checked})}
+              className="mr-2"
+            />
+            <label htmlFor="renovacion" className="text-sm text-gray-300">
+              Renovación automática
+            </label>
+          </div>
+
+          {/* Descuento */}
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-2">
+              Descuento (%)
+            </label>
+            <input
+              type="number"
+              min="0"
+              max="100"
+              value={formData.descuento_aplicado}
+              onChange={(e) => setFormData({...formData, descuento_aplicado: parseFloat(e.target.value) || 0})}
+              className="w-full p-2 bg-gray-700 border border-gray-600 rounded text-white focus:border-yellow-500 focus:outline-none"
+            />
+          </div>
+
+          {/* Botones */}
+          <div className="flex gap-3 pt-4">
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 transition-colors"
+              disabled={loading}
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              className="flex-1 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition-colors disabled:opacity-50"
+              disabled={loading}
+            >
+              {loading ? 'Creando...' : 'Crear Suscripción'}
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   );
