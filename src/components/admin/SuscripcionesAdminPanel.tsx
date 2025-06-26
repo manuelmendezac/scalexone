@@ -135,6 +135,28 @@ const SuscripcionesAdminPanel: React.FC = () => {
     }
   };
 
+  const handleCreatePlan = async (planData: any) => {
+    try {
+      setActionLoading('createPlan');
+      
+      const nuevoPlan = {
+        ...planData,
+        organizacion_id: organizacionId,
+        activo: true,
+        orden: planes.length + 1
+      };
+      
+      await SuscripcionesAPI.planes.crearPlan(nuevoPlan);
+      setMensaje('Plan creado exitosamente');
+      setShowCreatePlan(false);
+      await cargarDatos();
+    } catch (error: any) {
+      setMensaje('Error al crear plan: ' + error.message);
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
   const getEstadoIcon = (estado: string) => {
     switch (estado) {
       case 'activa':
@@ -529,6 +551,15 @@ const SuscripcionesAdminPanel: React.FC = () => {
           />
         )}
 
+        {/* Modal Crear Plan */}
+        {showCreatePlan && (
+          <CreatePlanModal
+            onClose={() => setShowCreatePlan(false)}
+            onSubmit={handleCreatePlan}
+            loading={actionLoading === 'createPlan'}
+          />
+        )}
+
         {/* Mensajes */}
         {mensaje && (
           <div className="fixed bottom-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg z-50">
@@ -734,6 +765,213 @@ const CreateSuscripcionModal: React.FC<CreateSuscripcionModalProps> = ({
               disabled={loading}
             >
               {loading ? 'Creando...' : 'Crear Suscripción'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+};
+
+// Modal para crear nuevo plan
+interface CreatePlanModalProps {
+  onClose: () => void;
+  onSubmit: (data: any) => void;
+  loading: boolean;
+}
+
+const CreatePlanModal: React.FC<CreatePlanModalProps> = ({ 
+  onClose, 
+  onSubmit, 
+  loading 
+}) => {
+  const [formData, setFormData] = useState({
+    nombre: '',
+    descripcion: '',
+    precio: 0,
+    moneda: 'USD',
+    duracion_dias: 30,
+    caracteristicas: [''],
+    limites: {}
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!formData.nombre || formData.precio <= 0) {
+      alert('Por favor completa los campos requeridos');
+      return;
+    }
+    
+    // Filtrar características vacías
+    const caracteristicasLimpias = formData.caracteristicas.filter(c => c.trim() !== '');
+    
+    onSubmit({
+      ...formData,
+      caracteristicas: caracteristicasLimpias
+    });
+  };
+
+  const handleAddCaracteristica = () => {
+    setFormData({
+      ...formData,
+      caracteristicas: [...formData.caracteristicas, '']
+    });
+  };
+
+  const handleRemoveCaracteristica = (index: number) => {
+    const nuevasCaracteristicas = formData.caracteristicas.filter((_, i) => i !== index);
+    setFormData({
+      ...formData,
+      caracteristicas: nuevasCaracteristicas
+    });
+  };
+
+  const handleCaracteristicaChange = (index: number, value: string) => {
+    const nuevasCaracteristicas = [...formData.caracteristicas];
+    nuevasCaracteristicas[index] = value;
+    setFormData({
+      ...formData,
+      caracteristicas: nuevasCaracteristicas
+    });
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-gray-800 rounded-lg p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto">
+        <h2 className="text-xl font-bold text-white mb-4">Crear Nuevo Plan</h2>
+        
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Nombre del Plan */}
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-2">
+              Nombre del Plan *
+            </label>
+            <input
+              type="text"
+              value={formData.nombre}
+              onChange={(e) => setFormData({...formData, nombre: e.target.value})}
+              className="w-full p-2 bg-gray-700 border border-gray-600 rounded text-white placeholder-gray-400 focus:border-yellow-500 focus:outline-none"
+              placeholder="Ej: Plan Pro"
+              required
+            />
+          </div>
+
+          {/* Descripción */}
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-2">
+              Descripción
+            </label>
+            <textarea
+              value={formData.descripcion}
+              onChange={(e) => setFormData({...formData, descripcion: e.target.value})}
+              className="w-full p-2 bg-gray-700 border border-gray-600 rounded text-white placeholder-gray-400 focus:border-yellow-500 focus:outline-none"
+              placeholder="Describe las características del plan..."
+              rows={3}
+            />
+          </div>
+
+          {/* Precio y Moneda */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">
+                Precio *
+              </label>
+              <input
+                type="number"
+                min="0"
+                step="0.01"
+                value={formData.precio}
+                onChange={(e) => setFormData({...formData, precio: parseFloat(e.target.value) || 0})}
+                className="w-full p-2 bg-gray-700 border border-gray-600 rounded text-white focus:border-yellow-500 focus:outline-none"
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">
+                Moneda
+              </label>
+              <select
+                value={formData.moneda}
+                onChange={(e) => setFormData({...formData, moneda: e.target.value})}
+                className="w-full p-2 bg-gray-700 border border-gray-600 rounded text-white focus:border-yellow-500 focus:outline-none"
+              >
+                <option value="USD">USD ($)</option>
+                <option value="EUR">EUR (€)</option>
+                <option value="COP">COP ($)</option>
+                <option value="MXN">MXN ($)</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Duración */}
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-2">
+              Duración (días)
+            </label>
+            <select
+              value={formData.duracion_dias}
+              onChange={(e) => setFormData({...formData, duracion_dias: parseInt(e.target.value)})}
+              className="w-full p-2 bg-gray-700 border border-gray-600 rounded text-white focus:border-yellow-500 focus:outline-none"
+            >
+              <option value={7}>7 días (Semanal)</option>
+              <option value={30}>30 días (Mensual)</option>
+              <option value={90}>90 días (Trimestral)</option>
+              <option value={365}>365 días (Anual)</option>
+            </select>
+          </div>
+
+          {/* Características */}
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-2">
+              Características del Plan
+            </label>
+            {formData.caracteristicas.map((caracteristica, index) => (
+              <div key={index} className="flex gap-2 mb-2">
+                <input
+                  type="text"
+                  value={caracteristica}
+                  onChange={(e) => handleCaracteristicaChange(index, e.target.value)}
+                  className="flex-1 p-2 bg-gray-700 border border-gray-600 rounded text-white placeholder-gray-400 focus:border-yellow-500 focus:outline-none"
+                  placeholder="Ej: Acceso a cursos premium"
+                />
+                {formData.caracteristicas.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveCaracteristica(index)}
+                    className="px-3 py-2 bg-red-500 text-white rounded hover:bg-red-600"
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                )}
+              </div>
+            ))}
+            <button
+              type="button"
+              onClick={handleAddCaracteristica}
+              className="mt-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors flex items-center gap-2"
+            >
+              <Plus size={16} />
+              Agregar Característica
+            </button>
+          </div>
+
+          {/* Botones */}
+          <div className="flex gap-3 pt-4">
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 transition-colors"
+              disabled={loading}
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              className="flex-1 px-4 py-2 bg-yellow-500 text-black rounded hover:bg-yellow-600 transition-colors disabled:opacity-50"
+              disabled={loading}
+            >
+              {loading ? 'Creando...' : 'Crear Plan'}
             </button>
           </div>
         </form>

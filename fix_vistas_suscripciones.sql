@@ -17,6 +17,7 @@ SELECT
     s.estado,
     s.fecha_inicio,
     s.fecha_fin,
+    s.fecha_creacion,
     s.precio_pagado,
     s.renovacion_automatica,
     CASE 
