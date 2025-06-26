@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import FeedComunidad from '../components/comunidad/FeedComunidad';
-import BarraLateralComunidad from '../components/comunidad/BarraLateralComunidad';
+import BarraLateralComunidad from '../components/comunidad/BarraLateralComunidadFixed';
 import LoadingScreen from '../components/LoadingScreen';
 import useNeuroState, { useHydration } from '../store/useNeuroState';
 import { supabase } from '../supabase';
@@ -22,17 +22,42 @@ const ComunidadPage = () => {
         return;
       }
       try {
-        const { data, error } = await supabase
-          .from('comunidades')
-          .select('nombre')
-          .eq('owner_id', userInfo.id)
-          .single();
-        if (error && error.code !== 'PGRST116') throw error;
-        if (data) {
-          setCommunityName(data.nombre);
+        let communityData = null;
+        
+        // Primero intentar obtener ScaleXOne si es community_id default o scalexone
+        if (userInfo.community_id === 'scalexone' || userInfo.community_id === 'default') {
+          const { data: scalexoneData, error: scalexoneError } = await supabase
+            .from('comunidades')
+            .select('nombre')
+            .eq('slug', 'scalexone')
+            .single();
+            
+          if (!scalexoneError && scalexoneData) {
+            communityData = scalexoneData;
+          }
+        }
+        
+        // Si no encontró ScaleXOne, buscar por owner_id
+        if (!communityData) {
+          const { data, error } = await supabase
+            .from('comunidades')
+            .select('nombre')
+            .eq('owner_id', userInfo.id)
+            .single();
+            
+          if (!error) {
+            communityData = data;
+          }
+        }
+        
+        if (communityData) {
+          setCommunityName(communityData.nombre);
+        } else {
+          setCommunityName('ScaleXOne'); // Fallback
         }
       } catch (err) {
         console.error("Error fetching community name for loader:", err);
+        setCommunityName('ScaleXOne'); // Fallback
       } finally {
         setLoading(false);
       }
@@ -41,7 +66,7 @@ const ComunidadPage = () => {
     if (isHydrated) {
       fetchCommunityName();
     }
-  }, [isHydrated, userInfo.id]);
+  }, [isHydrated, userInfo.id, userInfo.community_id]);
 
   if (!isHydrated || loading) {
     return <GlobalLoader pageName="Comunidad" />;
