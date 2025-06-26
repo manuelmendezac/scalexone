@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import FeedComunidad from '../components/comunidad/FeedComunidad';
 import BarraLateralComunidad from '../components/comunidad/BarraLateralComunidadFixed';
 import CanalesComunidad from '../components/comunidad/CanalesComunidad';
+import CommunityProfileCard from '../components/CommunityProfileCard';
 import LoadingScreen from '../components/LoadingScreen';
 import useNeuroState, { useHydration } from '../store/useNeuroState';
 import { supabase } from '../supabase';
@@ -125,7 +126,7 @@ const ComunidadPage = () => {
               </button>
               {/* Info de la comunidad */}
               <div className="overflow-y-auto h-full pt-10">
-                <BarraLateralComunidad />
+                <CommunityProfileCard />
               </div>
             </aside>
           </div>
@@ -140,7 +141,7 @@ const ComunidadPage = () => {
       
       {/* Barra lateral solo en desktop */}
       <aside className="w-[300px] p-2 bg-neutral-900 border-l border-cyan-900/30 hidden md:block">
-        <BarraLateralComunidad />
+        <CommunityProfileCard />
       </aside>
     </div>
   );
