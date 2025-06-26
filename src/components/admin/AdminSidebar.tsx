@@ -31,7 +31,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ selected, onSelect }) => {
           <h1 className="text-xl font-bold text-yellow-500">Panel Admin</h1>
         </div>
         <nav className="flex-1 space-y-1">
-          {menuItems.map(item => (
+          {menuItems.filter(item => item.key !== 'banners').map(item => (
             <button
               key={item.key}
               onClick={() => onSelect(item.key)}
