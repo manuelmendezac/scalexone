@@ -12,6 +12,7 @@ import { Menu, X } from 'lucide-react';
 import useNeuroState from '../../store/useNeuroState';
 import ConfiguracionProyecto from '../../components/ConfiguracionProyecto';
 import AdminCanalesPanel from '../../components/AdminCanalesPanel';
+import CursosMarketplacePanel from '../../components/admin/CursosMarketplacePanel';
 
 export default function AdminSettingsPage() {
   const [selectedItem, setSelectedItem] = useState('community');
@@ -63,6 +64,9 @@ export default function AdminSettingsPage() {
         case 'subscriptions':
           console.log('Rendering SuscripcionesAdminPanel');
           return <SuscripcionesAdminPanel />;
+        case 'marketplace-cursos':
+          console.log('Rendering CursosMarketplacePanel');
+          return <CursosMarketplacePanel />;
         default:
           return (
             <div className="w-full p-8">
@@ -138,6 +142,30 @@ export default function AdminSettingsPage() {
                   <span>{item.label}</span>
                 </button>
               ))}
+              
+              {/* Separador y título de Contenido */}
+              <div className="pt-2 mt-2 border-t border-gray-700">
+                <div className="text-xs font-semibold text-cyan-400 uppercase tracking-wide mb-2 px-3">
+                  Contenido
+                </div>
+                
+                {/* Sección Contenido */}
+                {menuItems.filter(item => item.section === 'contenido').map(item => (
+                  <button
+                    key={item.key}
+                    onClick={() => handleSelect(item.key)}
+                    className={`w-full flex items-center p-3 rounded-md transition-colors text-left
+                      ${selectedItem === item.key 
+                        ? 'bg-cyan-500 text-black font-bold' 
+                        : 'bg-gray-800 text-white hover:bg-gray-700'
+                      }`
+                    }
+                  >
+                    <div className="mr-3">{item.icon}</div>
+                    <span>{item.label}</span>
+                  </button>
+                ))}
+              </div>
               
               {/* Separador y título de Finanzas */}
               <div className="pt-2 mt-2 border-t border-gray-700">
