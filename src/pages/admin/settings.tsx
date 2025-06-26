@@ -9,6 +9,7 @@ import { useHydration } from '../../store/useNeuroState';
 import { Menu, X } from 'lucide-react';
 import useNeuroState from '../../store/useNeuroState';
 import ConfiguracionProyecto from '../../components/ConfiguracionProyecto';
+import AdminCanalesPanel from '../../components/AdminCanalesPanel';
 
 export default function AdminSettingsPage() {
   const [selectedItem, setSelectedItem] = useState('welcome');
@@ -119,7 +120,7 @@ export default function AdminSettingsPage() {
           {isAdmin && selectedItem === 'community' && <CommunitySettingsPanel />}
           {isAdmin && selectedItem === 'mainMenu' && <ConfiguracionProyecto />}
           {isAdmin && selectedItem === 'levels' && <AdminConfigPanel selected='levels' />}
-          {isAdmin && selectedItem === 'channels' && <AdminConfigPanel selected='channels' />}
+          {isAdmin && selectedItem === 'channels' && <AdminCanalesPanel />}
         </div>
       </div>
     </div>
