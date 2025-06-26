@@ -22,7 +22,12 @@ interface Post {
   imagenes_urls?: string[] | null;
 }
 
-const FeedComunidad = () => {
+interface FeedComunidadProps {
+  canalActivo?: string;
+  nombreCanalActivo?: string;
+}
+
+const FeedComunidad = ({ canalActivo, nombreCanalActivo }: FeedComunidadProps) => {
   const { 
     posts,
     reaccionesPorPost,
@@ -270,6 +275,27 @@ const FeedComunidad = () => {
 
   return (
     <div className="max-w-2xl mx-auto flex flex-col gap-8">
+      {/* Header del canal activo */}
+      {nombreCanalActivo && (
+        <div className="bg-gradient-to-r from-[#23232b] to-[#2a2a35] rounded-2xl p-4 shadow-lg border border-cyan-900/30">
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 bg-[#e6a800] rounded-full flex items-center justify-center">
+              <span className="text-black font-bold text-lg">#</span>
+            </div>
+            <div className="flex-1">
+              <h2 className="text-[#e6a800] font-bold text-xl">#{nombreCanalActivo}</h2>
+              <p className="text-gray-400 text-sm">
+                {canalActivo ? 'Canal activo • Publique sus mensajes aquí' : 'Selecciona un canal para ver las publicaciones'}
+              </p>
+            </div>
+            <div className="text-right">
+              <span className="text-xs text-gray-500">Canal</span>
+              <div className="w-2 h-2 bg-green-400 rounded-full ml-auto mt-1"></div>
+            </div>
+          </div>
+        </div>
+      )}
+      
       {/* Caja para crear nueva publicación */}
       <div className="bg-[#23232b] rounded-2xl p-6 shadow-lg flex flex-col gap-4 mb-4">
         <textarea
