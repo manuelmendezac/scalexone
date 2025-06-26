@@ -61,11 +61,11 @@ const Header = () => {
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
               {community?.logo_horizontal_url ? (
-                <img src={community.logo_horizontal_url} alt="Logo Horizontal Comunidad" className="h-10 w-auto object-contain" />
+                <img src={community.logo_horizontal_url} alt="Logo Horizontal Comunidad" className="h-12 w-auto object-contain" />
               ) : community?.logo_url ? (
-                <img src={community.logo_url} alt="Logo Comunidad" className="h-10 w-10 rounded-full object-cover" />
+                <img src={community.logo_url} alt="Logo Comunidad" className="h-12 w-12 rounded-full object-cover" />
               ) : (
-                <img src="/images/logoneuroclonhorizontal.svg" alt="NeuroLink Logo" className="h-10 w-auto object-contain" />
+                <img src="/images/logoneuroclonhorizontal.svg" alt="NeuroLink Logo" className="h-12 w-auto object-contain" />
               )}
             </div>
             
