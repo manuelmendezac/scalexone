@@ -12,6 +12,8 @@ const ComunidadPage = () => {
   const [canalActivo, setCanalActivo] = useState<string>('');
   const [nombreCanalActivo, setNombreCanalActivo] = useState<string>('');
   
+  // Force deploy - Sistema de canales restaurado
+  
   // Detectar si es móvil
   const esMovil = typeof window !== 'undefined' && window.innerWidth < 768;
   const [loading, setLoading] = useState(true);
