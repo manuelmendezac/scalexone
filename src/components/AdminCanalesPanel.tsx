@@ -84,29 +84,57 @@ export default function AdminCanalesPanel() {
   };
 
   const fetchPlanesSuscripcion = async () => {
-    // Buscar primero el ID de la comunidad
-    const { data: comunidad, error: comunidadError } = await supabase
-      .from("comunidades")
-      .select("id")
-      .eq("slug", community_id)
-      .single();
-    
-    if (comunidadError || !comunidad) {
-      console.error("Error fetching comunidad: ", comunidadError);
-      return;
-    }
-
-    const { data, error } = await supabase
-      .from("planes_suscripcion")
-      .select("id, nombre, precio, descripcion")
-      .eq("comunidad_id", comunidad.id)
-      .eq("activo", true)
-      .order("orden", { ascending: true });
+    try {
+      // Buscar primero el ID de la comunidad
+      const { data: comunidad, error: comunidadError } = await supabase
+        .from("comunidades")
+        .select("id")
+        .eq("slug", community_id)
+        .single();
       
-    if (error) {
-      console.error("Error fetching planes suscripción: ", error);
-    } else {
-      setPlanesSuscripcion(data || []);
+      if (comunidadError || !comunidad) {
+        console.error("Error fetching comunidad: ", comunidadError);
+        // Si no encuentra por slug, intentar buscar por nombre
+        const { data: comunidadByName, error: errorByName } = await supabase
+          .from("comunidades")
+          .select("id")
+          .ilike("nombre", `%${community_id}%`)
+          .single();
+        
+        if (errorByName || !comunidadByName) {
+          console.error("No se encontró la comunidad:", community_id);
+          return;
+        }
+        
+        const { data, error } = await supabase
+          .from("planes_suscripcion")
+          .select("id, nombre, precio, descripcion")
+          .eq("comunidad_id", comunidadByName.id)
+          .eq("activo", true)
+          .order("orden", { ascending: true });
+          
+        if (error) {
+          console.error("Error fetching planes suscripción: ", error);
+        } else {
+          setPlanesSuscripcion(data || []);
+        }
+        return;
+      }
+
+      const { data, error } = await supabase
+        .from("planes_suscripcion")
+        .select("id, nombre, precio, descripcion")
+        .eq("comunidad_id", comunidad.id)
+        .eq("activo", true)
+        .order("orden", { ascending: true });
+        
+      if (error) {
+        console.error("Error fetching planes suscripción: ", error);
+      } else {
+        setPlanesSuscripcion(data || []);
+      }
+    } catch (error) {
+      console.error("Error general en fetchPlanesSuscripcion:", error);
     }
   };
 
