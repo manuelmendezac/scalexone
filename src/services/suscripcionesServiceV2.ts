@@ -22,7 +22,7 @@ export interface Comunidad {
 
 export interface PlanSuscripcion {
   id: string;
-  comunidad_id: string;
+  comunidad_id: string; // ← Cambiado de organizacion_id
   nombre: string;
   descripcion?: string;
   precio: number;
@@ -40,7 +40,7 @@ export interface PlanSuscripcion {
 export interface Suscripcion {
   id: string;
   usuario_id: string;
-  comunidad_id: string;
+  comunidad_id: string; // ← Cambiado de organizacion_id
   plan_id: string;
   estado: 'activa' | 'cancelada' | 'pausada' | 'vencida' | 'trial';
   fecha_inicio: string;
@@ -60,14 +60,14 @@ export interface SuscripcionConDetalles extends Suscripcion {
   usuario_email: string;
   plan_nombre: string;
   plan_precio: number;
-  comunidad_nombre: string;
+  comunidad_nombre: string; // ← Cambiado de organizacion_nombre
   comunidad_slug: string;
 }
 
 export interface TransaccionSuscripcion {
   id: string;
   suscripcion_id: string;
-  comunidad_id: string;
+  comunidad_id: string; // ← Cambiado de organizacion_id
   usuario_id: string;
   monto: number;
   moneda: string;
@@ -81,7 +81,7 @@ export interface TransaccionSuscripcion {
 
 export interface CodigoDescuento {
   id: string;
-  comunidad_id: string;
+  comunidad_id: string; // ← Cambiado de organizacion_id
   codigo: string;
   descripcion?: string;
   tipo: 'porcentaje' | 'monto_fijo';
@@ -167,10 +167,13 @@ export class ComunidadService {
     return data;
   }
 
+  // Función especial para obtener comunidad por community_id (compatibilidad)
   static async obtenerOCrearComunidadPorCommunityId(communityId: string): Promise<Comunidad> {
+    // Primero intentar encontrar por slug
     let comunidad = await this.obtenerComunidadPorSlug(communityId);
     
     if (!comunidad) {
+      // Buscar por nombre
       const { data } = await supabase
         .from('comunidades')
         .select('*')
@@ -181,12 +184,14 @@ export class ComunidadService {
       comunidad = data;
     }
 
+    // Si no existe, usar la función SQL para crear automáticamente
     if (!comunidad) {
       const { data, error } = await supabase
         .rpc('get_comunidad_by_community_id', { community_id_param: communityId });
       
       if (error) throw error;
       
+      // Obtener la comunidad recién creada
       comunidad = await this.obtenerComunidadPorId(data);
     }
 
@@ -259,6 +264,7 @@ export class PlanesService {
   }
 
   static async toggleActivoPlan(id: string): Promise<PlanSuscripcion> {
+    // Primero obtener el estado actual
     const { data: planActual, error: errorGet } = await supabase
       .from('planes_suscripcion')
       .select('activo')
@@ -267,6 +273,7 @@ export class PlanesService {
 
     if (errorGet) throw errorGet;
 
+    // Cambiar el estado
     const { data, error } = await supabase
       .from('planes_suscripcion')
       .update({ activo: !planActual.activo })
@@ -429,6 +436,7 @@ export class EstadisticasService {
 
     if (error) throw error;
 
+    // Agrupar por mes
     const ingresosPorMes: Record<string, number> = {};
     data?.forEach(transaccion => {
       if (transaccion.fecha_procesamiento) {
@@ -437,6 +445,7 @@ export class EstadisticasService {
       }
     });
 
+    // Convertir a array ordenado
     return Object.entries(ingresosPorMes)
       .map(([mes, ingresos]) => ({ mes, ingresos }))
       .sort((a, b) => a.mes.localeCompare(b.mes));
@@ -454,6 +463,7 @@ export class EstadisticasService {
 
     if (error) throw error;
 
+    // Agrupar por plan y estado
     const resultado: Record<string, { plan_nombre: string; activas: number; total: number }> = {};
     
     data?.forEach(suscripcion => {
@@ -584,6 +594,7 @@ export class DescuentosService {
 
     if (error && error.code !== 'PGRST116') throw error;
     
+    // Verificar si aún tiene usos disponibles
     if (data && data.usos_maximos && data.usos_actuales >= data.usos_maximos) {
       return null;
     }
@@ -592,20 +603,10 @@ export class DescuentosService {
   }
 
   static async aplicarCodigoDescuento(id: string): Promise<CodigoDescuento> {
-    // Primero obtener el valor actual
-    const { data: current, error: errorGet } = await supabase
-      .from('codigos_descuento')
-      .select('usos_actuales')
-      .eq('id', id)
-      .single();
-
-    if (errorGet) throw errorGet;
-
-    // Incrementar el contador
     const { data, error } = await supabase
       .from('codigos_descuento')
       .update({ 
-        usos_actuales: (current.usos_actuales || 0) + 1
+        usos_actuales: supabase.sql`usos_actuales + 1`
       })
       .eq('id', id)
       .select()
@@ -649,27 +650,19 @@ export class DescuentosService {
 }
 
 // =====================================================
-// API PRINCIPAL (ACTUALIZADA PARA RETROCOMPATIBILIDAD)
+// API PRINCIPAL (ACTUALIZADA)
 // =====================================================
 
 export const SuscripcionesAPI = {
-  // Servicios de comunidades (nuevo)
-  comunidades: ComunidadService,
+  // Servicios de comunidades
+  Comunidades: ComunidadService,
   
-  // Servicios actualizados
-  planes: PlanesService,
-  suscripciones: SuscripcionesService,
-  transacciones: TransaccionesService,
-  descuentos: DescuentosService,
-  estadisticas: EstadisticasService,
-  
-  // Para retrocompatibilidad temporal
-  organizaciones: {
-    obtenerOrganizaciones: ComunidadService.obtenerComunidades,
-    obtenerOrganizacionPorSlug: ComunidadService.obtenerComunidadPorSlug,
-    crearOrganizacion: ComunidadService.crearComunidad,
-    actualizarOrganizacion: ComunidadService.actualizarComunidad
-  },
+  // Servicios de suscripciones
+  Planes: PlanesService,
+  Suscripciones: SuscripcionesService,
+  Transacciones: TransaccionesService,
+  Descuentos: DescuentosService,
+  Estadisticas: EstadisticasService,
   
   // Métodos de utilidad
   async inicializarComunidadPorCommunityId(communityId: string): Promise<Comunidad> {

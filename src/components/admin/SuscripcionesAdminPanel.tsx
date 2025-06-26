@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Users, DollarSign, CreditCard, TrendingUp, Calendar, Search, Filter, Plus, Edit, Trash2, CheckCircle, XCircle, AlertCircle, Download, Eye, Pause, Play, UserX } from 'lucide-react';
-import { SuscripcionesAPI, type SuscripcionConDetalles, type PlanSuscripcion, type EstadisticasOrganizacion } from '../../services/suscripcionesService';
+import { SuscripcionesAPI, type SuscripcionConDetalles, type PlanSuscripcion, type EstadisticasComunidad } from '../../services/suscripcionesService';
 import useNeuroState from '../../store/useNeuroState';
 import { supabase } from '../../supabase';
 
@@ -19,15 +19,15 @@ const SuscripcionesAdminPanel: React.FC = () => {
 
   const { userInfo } = useNeuroState();
   
-  // Estado para manejar la organización
-  const [organizacionId, setOrganizacionId] = useState<string | null>(null);
+  // Estado para manejar la comunidad
+  const [comunidadId, setComunidadId] = useState<string | null>(null);
   const [intentosInicializacion, setIntentosInicializacion] = useState(0);
 
-  // Función para inicializar o crear la organización
-  const inicializarOrganizacion = async () => {
+  // Función para inicializar o crear la comunidad
+  const inicializarComunidad = async () => {
     if (intentosInicializacion >= 3) {
       console.error('Máximo número de intentos de inicialización alcanzado');
-      setMensaje('Error: No se pudo inicializar la organización después de varios intentos');
+      setMensaje('Error: No se pudo inicializar la comunidad después de varios intentos');
       setLoading(false);
       return;
     }
@@ -36,52 +36,38 @@ const SuscripcionesAdminPanel: React.FC = () => {
 
     try {
       const communityId = userInfo?.community_id || 'default';
-      console.log(`Inicializando organización (intento ${intentosInicializacion + 1}) para community_id:`, communityId);
+      console.log(`Inicializando comunidad (intento ${intentosInicializacion + 1}) para community_id:`, communityId);
       
-      // Buscar si existe una organización con este community_id como slug
-      console.log('Buscando organización existente...');
-      let organizacion = await SuscripcionesAPI.organizaciones.obtenerOrganizacionPorSlug(communityId);
+      // Usar la nueva función para obtener/crear comunidad
+      console.log('Obteniendo o creando comunidad...');
+      const comunidad = await SuscripcionesAPI.inicializarComunidadPorCommunityId(communityId);
       
-      if (!organizacion) {
-        console.log('No se encontró organización, creando nueva...');
-        // Si no existe, crear una nueva organización
-        organizacion = await SuscripcionesAPI.organizaciones.crearOrganizacion({
-          nombre: `Organización ${communityId}`,
-          slug: communityId,
-          descripcion: `Organización para la comunidad ${communityId}`,
-          estado: 'activa',
-          configuracion: {}
-        });
-        console.log('Organización creada exitosamente:', organizacion);
-      } else {
-        console.log('Organización encontrada:', organizacion);
-      }
-      
-      console.log('Estableciendo organizacionId:', organizacion.id);
-      setOrganizacionId(organizacion.id);
+      console.log('Comunidad obtenida/creada exitosamente:', comunidad);
+      console.log('Estableciendo comunidadId:', comunidad.id);
+      setComunidadId(comunidad.id);
     } catch (error) {
-      console.error('Error completo inicializando organización:', error);
-      setMensaje('Error al inicializar organización: ' + (error as Error).message);
+      console.error('Error completo inicializando comunidad:', error);
+      setMensaje('Error al inicializar comunidad: ' + (error as Error).message);
       setLoading(false); // Importante: detener el loading en caso de error
     }
   };
 
   useEffect(() => {
-    if (userInfo?.community_id && !organizacionId) {
-      console.log('Ejecutando inicializarOrganizacion desde useEffect');
-      inicializarOrganizacion();
+    if (userInfo?.community_id && !comunidadId) {
+      console.log('Ejecutando inicializarComunidad desde useEffect');
+      inicializarComunidad();
     }
-  }, [userInfo?.community_id, organizacionId]);
+  }, [userInfo?.community_id, comunidadId]);
 
   useEffect(() => {
-    if (organizacionId) {
+    if (comunidadId) {
       cargarDatos();
     }
-  }, [organizacionId]);
+  }, [comunidadId]);
 
   const cargarDatos = async () => {
-    if (!organizacionId) {
-      console.log('No hay organizacionId, esperando...');
+    if (!comunidadId) {
+      console.log('No hay comunidadId, esperando...');
       return;
     }
 
@@ -90,9 +76,9 @@ const SuscripcionesAdminPanel: React.FC = () => {
       
       // Cargar datos en paralelo
       const [suscripcionesData, planesData, estadisticasData] = await Promise.all([
-        SuscripcionesAPI.suscripciones.obtenerSuscripcionesPorOrganizacion(organizacionId),
-        SuscripcionesAPI.planes.obtenerPlanesPorOrganizacion(organizacionId),
-        SuscripcionesAPI.estadisticas.obtenerEstadisticasOrganizacion(organizacionId)
+        SuscripcionesAPI.suscripciones.obtenerSuscripcionesPorComunidad(comunidadId),
+        SuscripcionesAPI.planes.obtenerPlanesPorComunidad(comunidadId),
+        SuscripcionesAPI.estadisticas.obtenerEstadisticasComunidad(comunidadId)
       ]);
 
       setSuscripciones(suscripcionesData);
@@ -160,8 +146,8 @@ const SuscripcionesAdminPanel: React.FC = () => {
   };
 
   const handleCreateSuscripcion = async (suscripcionData: any) => {
-    if (!organizacionId) {
-      setMensaje('Error: Organización no inicializada');
+    if (!comunidadId) {
+      setMensaje('Error: Comunidad no inicializada');
       return;
     }
 
@@ -180,7 +166,7 @@ const SuscripcionesAdminPanel: React.FC = () => {
       
       const nuevaSuscripcion = {
         ...suscripcionData,
-        organizacion_id: organizacionId,
+        comunidad_id: comunidadId,
         fecha_inicio: fechaInicio.toISOString(),
         fecha_fin: fechaFin.toISOString(),
         precio_pagado: plan.precio,
