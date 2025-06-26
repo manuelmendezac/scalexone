@@ -50,14 +50,20 @@ export const useScaleXone = () => {
       setError(null);
 
       try {
+        console.log('🔍 Iniciando carga de datos ScaleXone...');
+        
         // 1. Obtener UUID de ScaleXone
         const communityUUID = await ensureCommunityUUID('scalexone');
+        console.log('📍 UUID de ScaleXone obtenido:', communityUUID);
         
         if (!communityUUID) {
+          console.error('❌ No se pudo encontrar la comunidad ScaleXone');
           throw new Error('No se pudo encontrar la comunidad ScaleXone');
         }
 
         // 2. Obtener estadísticas en paralelo
+        console.log('📊 Obteniendo datos en paralelo...');
+        
         const [
           miembrosResult,
           canalesResult,
@@ -89,6 +95,12 @@ export const useScaleXone = () => {
             .order('nivel_usuario', { ascending: false })
             .limit(4)
         ]);
+
+        console.log('📈 Resultados obtenidos:');
+        console.log('- Miembros:', miembrosResult);
+        console.log('- Canales:', canalesResult);
+        console.log('- Posts:', postsResult);
+        console.log('- Top Users:', topUsersResult);
 
         // 3. Procesar resultados
         const newData: ScaleXoneData = {
