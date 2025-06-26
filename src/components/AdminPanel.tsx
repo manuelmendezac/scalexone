@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import MiembrosAdminPanel from './MiembrosAdminPanel';
 import AdminSidebar from './admin/AdminSidebar';
-import CommunitySettingsPanel from './admin/CommunitySettingsPanel';
+import CommunitySettingsPanel from './admin/CommunitySettingsPanelFixed';
 
 export default function AdminPanel() {
   const [activeTab, setActiveTab] = useState('community');

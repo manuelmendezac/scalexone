@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import AdminSidebar, { menuItems } from '../../components/admin/AdminSidebar';
 import AdminConfigPanel from '../../components/admin/AdminConfigPanel';
-import CommunitySettingsPanel from '../../components/admin/CommunitySettingsPanel';
+import CommunitySettingsPanel from '../../components/admin/CommunitySettingsPanelFixed';
 import CursosAdminPanel from '../../components/CursosAdminPanel';
 import MiembrosAdminPanel from '../../components/MiembrosAdminPanel';
 import SuscripcionesAdminPanel from '../../components/admin/SuscripcionesAdminPanelFixed';
