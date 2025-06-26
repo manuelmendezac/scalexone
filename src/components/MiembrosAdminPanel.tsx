@@ -405,14 +405,14 @@ export default function MiembrosAdminPanel() {
                     </button>
                     
                     {showActionMenu === miembro.id && (
-                      <div className="absolute right-0 top-full mt-1 w-56 bg-gray-800 border border-gray-600 rounded-lg shadow-xl z-10">
+                      <div className="absolute right-0 top-full mt-1 w-56 bg-gray-200 border border-gray-300 rounded-lg shadow-xl z-10">
                         <div className="py-2">
                           <button
                             onClick={() => {
                               setConfirmAction({ type: 'makeAdmin', miembro });
                               setShowConfirmModal(true);
                             }}
-                            className="w-full flex items-center gap-3 px-4 py-2 text-red-400 hover:bg-gray-700 hover:text-red-300 transition-colors"
+                            className="w-full flex items-center gap-3 px-4 py-2 text-red-600 hover:bg-gray-300 hover:text-red-700 transition-colors"
                           >
                             <Shield size={16} />
                             Hacer Admin
@@ -422,25 +422,25 @@ export default function MiembrosAdminPanel() {
                               setConfirmAction({ type: 'makePartner', miembro });
                               setShowConfirmModal(true);
                             }}
-                            className="w-full flex items-center gap-3 px-4 py-2 text-yellow-400 hover:bg-gray-700 hover:text-yellow-300 transition-colors"
+                            className="w-full flex items-center gap-3 px-4 py-2 text-yellow-600 hover:bg-gray-300 hover:text-yellow-700 transition-colors"
                           >
                             <Crown size={16} />
                             Hacer Partner
                           </button>
                           <button
                             onClick={() => handleGrantAccess(miembro, 'Premium')}
-                            className="w-full flex items-center gap-3 px-4 py-2 text-green-400 hover:bg-gray-700 hover:text-green-300 transition-colors"
+                            className="w-full flex items-center gap-3 px-4 py-2 text-green-600 hover:bg-gray-300 hover:text-green-700 transition-colors"
                           >
                             <CheckCircle size={16} />
                             Otorgar Acceso Premium
                           </button>
-                          <div className="border-t border-gray-600 my-1"></div>
+                          <div className="border-t border-gray-400 my-1"></div>
                           <button
                             onClick={() => {
                               setConfirmAction({ type: 'block', miembro });
                               setShowConfirmModal(true);
                             }}
-                            className="w-full flex items-center gap-3 px-4 py-2 text-orange-400 hover:bg-gray-700 hover:text-orange-300 transition-colors"
+                            className="w-full flex items-center gap-3 px-4 py-2 text-orange-600 hover:bg-gray-300 hover:text-orange-700 transition-colors"
                           >
                             <Ban size={16} />
                             Bloquear Miembro
@@ -450,7 +450,7 @@ export default function MiembrosAdminPanel() {
                               setConfirmAction({ type: 'remove', miembro });
                               setShowConfirmModal(true);
                             }}
-                            className="w-full flex items-center gap-3 px-4 py-2 text-red-500 hover:bg-gray-700 hover:text-red-400 transition-colors"
+                            className="w-full flex items-center gap-3 px-4 py-2 text-red-700 hover:bg-gray-300 hover:text-red-800 transition-colors"
                           >
                             <Trash2 size={16} />
                             Eliminar Miembro
