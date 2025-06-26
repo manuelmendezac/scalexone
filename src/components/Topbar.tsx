@@ -177,11 +177,11 @@ const Topbar: React.FC<TopbarProps> = ({
       <div className="flex items-center h-10 md:h-12 px-4 md:px-8 bg-black w-full justify-between" style={{ minHeight: '40px', maxHeight: '48px' }}>
         <Link to="/comunidad" className="flex items-center">
           {community?.logo_horizontal_url ? (
-            <img src={community.logo_horizontal_url} alt="Logo Horizontal Comunidad" className="sm:w-48 w-32 h-auto object-contain" style={{ maxHeight: '36px' }} />
+            <img src={community.logo_horizontal_url} alt="Logo Horizontal Comunidad" className="sm:w-64 w-40 h-auto object-contain" style={{ maxHeight: '42px', minWidth: '120px' }} />
           ) : community?.logo_url ? (
             <img src={community.logo_url} alt="Logo Comunidad" className="h-12 w-12 rounded-full object-cover" />
           ) : (
-            <img src="/images/logoneuroclonhorizontal.svg" alt="NeuroLink Logo" className="sm:w-48 w-32 h-auto object-contain" style={{ maxHeight: '36px' }} />
+            <img src="/images/logoneuroclonhorizontal.svg" alt="NeuroLink Logo" className="sm:w-64 w-40 h-auto object-contain" style={{ maxHeight: '42px', minWidth: '120px' }} />
           )}
         </Link>
       </div>
