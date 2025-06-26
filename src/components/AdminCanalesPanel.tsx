@@ -50,6 +50,7 @@ export default function AdminCanalesPanel() {
   const [planesSuscripcion, setPlanesSuscripcion] = useState<PlanSuscripcion[]>([]);
   const [mensaje, setMensaje] = useState("");
   const [loading, setLoading] = useState(false);
+  const [communityUUID, setCommunityUUID] = useState<string | null>(null);
   
   // Estados para modales
   const [showCreateForm, setShowCreateForm] = useState(false);
@@ -60,71 +61,88 @@ export default function AdminCanalesPanel() {
   const { userInfo } = useNeuroState();
   const community_id = userInfo?.community_id || 'scalexone';
 
-  // Cargar datos iniciales
+  // Función para obtener el UUID real de la comunidad
+  const getCommunityUUID = async (communitySlug: string): Promise<string | null> => {
+    try {
+      // Primero intentar buscar por slug
+      const { data: comunidad, error: comunidadError } = await supabase
+        .from("comunidades")
+        .select("id")
+        .eq("slug", communitySlug)
+        .single();
+      
+      if (comunidad && !comunidadError) {
+        return comunidad.id;
+      }
+      
+      // Si no encuentra por slug, intentar buscar por nombre
+      const { data: comunidadByName, error: errorByName } = await supabase
+        .from("comunidades")
+        .select("id")
+        .ilike("nombre", `%${communitySlug}%`)
+        .single();
+      
+      if (comunidadByName && !errorByName) {
+        return comunidadByName.id;
+      }
+      
+      console.error("No se encontró la comunidad:", communitySlug);
+      return null;
+    } catch (error) {
+      console.error("Error al obtener UUID de comunidad:", error);
+      return null;
+    }
+  };
+
+  // Cargar UUID de comunidad y luego datos iniciales
   useEffect(() => {
-    if (community_id) {
+    const initializeData = async () => {
+      if (community_id) {
+        const uuid = await getCommunityUUID(community_id);
+        if (uuid) {
+          setCommunityUUID(uuid);
+        } else {
+          setMensaje("Error: No se pudo encontrar la comunidad");
+        }
+      }
+    };
+    
+    initializeData();
+  }, [community_id]);
+
+  // Cargar datos cuando tenemos el UUID
+  useEffect(() => {
+    if (communityUUID) {
       fetchCanales();
       fetchPlanesSuscripcion();
     }
-  }, [community_id]);
+  }, [communityUUID]);
 
   const fetchCanales = async () => {
+    if (!communityUUID) return;
+    
     const { data, error } = await supabase
       .from("canales_comunidad")
       .select("*")
-      .eq("community_id", community_id)
+      .eq("community_id", communityUUID)
       .order("orden", { ascending: true });
     
     if (error) {
       console.error("Error fetching canales: ", error);
-      setMensaje("Error al cargar canales");
+      setMensaje("Error al cargar canales: " + error.message);
     } else {
       setCanales(data || []);
     }
   };
 
   const fetchPlanesSuscripcion = async () => {
+    if (!communityUUID) return;
+    
     try {
-      // Buscar primero el ID de la comunidad
-      const { data: comunidad, error: comunidadError } = await supabase
-        .from("comunidades")
-        .select("id")
-        .eq("slug", community_id)
-        .single();
-      
-      if (comunidadError || !comunidad) {
-        console.error("Error fetching comunidad: ", comunidadError);
-        // Si no encuentra por slug, intentar buscar por nombre
-        const { data: comunidadByName, error: errorByName } = await supabase
-          .from("comunidades")
-          .select("id")
-          .ilike("nombre", `%${community_id}%`)
-          .single();
-        
-        if (errorByName || !comunidadByName) {
-          console.error("No se encontró la comunidad:", community_id);
-          return;
-        }
-        
-        const { data, error } = await supabase
-          .from("planes_suscripcion")
-          .select("id, nombre, precio, descripcion")
-          .eq("comunidad_id", comunidadByName.id)
-          .eq("activo", true)
-          .order("orden", { ascending: true });
-          
-        if (error) {
-          console.error("Error fetching planes suscripción: ", error);
-        } else {
-          setPlanesSuscripcion(data || []);
-        }
-        return;
-      }
-
       const { data, error } = await supabase
         .from("planes_suscripcion")
         .select("id, nombre, precio, descripcion")
-        .eq("comunidad_id", comunidad.id)
+        .eq("comunidad_id", communityUUID)
         .eq("activo", true)
         .order("orden", { ascending: true });
         
@@ -160,6 +178,12 @@ export default function AdminCanalesPanel() {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    
+    if (!communityUUID) {
+      setMensaje("Error: UUID de comunidad no disponible");
+      return;
+    }
+    
     setLoading(true);
     setMensaje("");
 
@@ -168,7 +192,7 @@ export default function AdminCanalesPanel() {
       
       const canalData = {
         ...form,
-        community_id,
+        community_id: communityUUID,
         membresia_requerida: form.membresia_requerida || null,
         orden: maxOrden + 1,
       };
@@ -185,6 +209,7 @@ export default function AdminCanalesPanel() {
       fetchCanales();
     } catch (error: any) {
       setMensaje("Error al crear canal: " + error.message);
+      console.error("Error detallado:", error);
     } finally {
       setLoading(false);
     }
