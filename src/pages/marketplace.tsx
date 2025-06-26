@@ -176,7 +176,7 @@ const Marketplace: React.FC = () => {
       className="bg-gray-900/50 rounded-xl p-6 border border-cyan-500/20 hover:border-cyan-400/40 transition-all group cursor-pointer"
     >
       <div className="relative mb-4">
-        <div className="w-full h-48 bg-gradient-to-br from-cyan-500/20 to-blue-600/20 rounded-lg flex items-center justify-center">
+        <div className="w-full h-48 bg-gray-800 rounded-lg flex items-center justify-center">
           {curso.imagen_url ? (
             <img src={curso.imagen_url} alt={curso.titulo} className="w-full h-full object-cover rounded-lg" />
           ) : (
@@ -230,7 +230,7 @@ const Marketplace: React.FC = () => {
       className="bg-gray-900/50 rounded-xl p-6 border border-green-500/20 hover:border-green-400/40 transition-all group cursor-pointer"
     >
       <div className="relative mb-4">
-        <div className="w-full h-48 bg-gradient-to-br from-green-500/20 to-emerald-600/20 rounded-lg flex items-center justify-center">
+        <div className="w-full h-48 bg-gray-800 rounded-lg flex items-center justify-center">
           {servicio.imagen_url ? (
             <img src={servicio.imagen_url} alt={servicio.nombre} className="w-full h-full object-cover rounded-lg" />
           ) : (
@@ -284,7 +284,7 @@ const Marketplace: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center">
+      <div className="min-h-screen bg-black flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-400 mx-auto mb-4"></div>
           <p className="text-gray-400">Cargando marketplace...</p>
@@ -294,9 +294,9 @@ const Marketplace: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] text-white">
+    <div className="min-h-screen bg-black text-white">
       {/* Header */}
-      <div className="bg-gradient-to-r from-purple-900/20 to-cyan-900/20 border-b border-cyan-500/20">
+      <div className="bg-black border-b border-cyan-500/20">
         <div className="max-w-7xl mx-auto px-4 py-8">
           <div className="text-center mb-8">
             <h1 className="text-4xl md:text-6xl font-bold bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent mb-4">
@@ -392,7 +392,7 @@ const Marketplace: React.FC = () => {
 
         {/* Secciones próximamente */}
         {(categoriaActiva === 'todos' || categoriaActiva === 'productos') && (
-          <div className="mt-12 p-8 bg-gradient-to-r from-orange-900/20 to-red-900/20 rounded-xl border border-orange-500/20">
+          <div className="mt-12 p-8 bg-black rounded-xl border border-orange-500/20">
             <div className="text-center">
               <Package size={48} className="text-orange-400 mx-auto mb-4" />
               <h3 className="text-2xl font-bold text-orange-400 mb-2">Productos Físicos</h3>
@@ -405,7 +405,7 @@ const Marketplace: React.FC = () => {
         )}
 
         {(categoriaActiva === 'todos' || categoriaActiva === 'propiedades') && (
-          <div className="mt-8 p-8 bg-gradient-to-r from-indigo-900/20 to-purple-900/20 rounded-xl border border-indigo-500/20">
+          <div className="mt-8 p-8 bg-black rounded-xl border border-indigo-500/20">
             <div className="text-center">
               <Home size={48} className="text-indigo-400 mx-auto mb-4" />
               <h3 className="text-2xl font-bold text-indigo-400 mb-2">Propiedades Inmobiliarias</h3>
