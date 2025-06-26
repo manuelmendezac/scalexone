@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom';
 import { supabase } from '../../supabase';
 import useNeuroState from '../../store/useNeuroState';
 import { Loader2 } from 'lucide-react';
+import { useScaleXone } from '../../hooks/useScaleXone';
+import { ensureCommunityUUID } from '../../utils/communityHelpers';
 
 interface Community {
   id: string;
@@ -38,11 +40,19 @@ interface TopUser {
 const BarraLateralComunidad = () => {
   const { userInfo } = useNeuroState();
   const [community, setCommunity] = useState<Community | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [stats, setStats] = useState<CommunityStats>({ totalMiembros: 0, totalCursos: 0, totalServicios: 0 });
-  const [canales, setCanales] = useState<Canal[]>([]);
-  const [topUsers, setTopUsers] = useState<TopUser[]>([]);
   const [recentMembers, setRecentMembers] = useState<TopUser[]>([]);
+  
+  // Usar el hook de ScaleXone para obtener todos los datos
+  const {
+    totalMiembros,
+    totalCanales, 
+    topUsers,
+    canalesActivos,
+    loading: scaleXoneLoading,
+    error: scaleXoneError
+  } = useScaleXone();
+  
+  const [loading, setLoading] = useState(true);
 
   // Función para obtener UUID de la comunidad
   const getCommunityUUID = async (): Promise<string | null> => {
@@ -80,63 +90,7 @@ const BarraLateralComunidad = () => {
     }
   };
 
-  // Función para obtener estadísticas de la comunidad
-  const fetchCommunityStats = async (communityId: string) => {
-    try {
-      // Contar miembros totales - usar slug 'scalexone' en lugar de UUID
-      const { count: miembrosCount } = await supabase
-        .from('usuarios')
-        .select('*', { count: 'exact', head: true })
-        .eq('community_id', 'scalexone');
-
-      // Por ahora cursos y servicios son 0 hasta que los implementemos
-      setStats({
-        totalMiembros: miembrosCount || 0,
-        totalCursos: 0, // TODO: Implementar cuando tengamos tabla de cursos
-        totalServicios: 0 // TODO: Implementar cuando tengamos tabla de servicios
-      });
-    } catch (error) {
-      console.error('Error fetching community stats:', error);
-    }
-  };
-
-  // Función para obtener canales
-  const fetchCanales = async (communityId: string) => {
-    try {
-      const { data, error } = await supabase.rpc('get_canales_por_comunidad', {
-        p_community_id: communityId
-      });
-
-      if (!error && data) {
-        setCanales(data);
-      }
-    } catch (error) {
-      console.error('Error fetching canales:', error);
-    }
-  };
-
-  // Función para obtener top usuarios (ranking)
-  const fetchTopUsers = async () => {
-    try {
-      // Obtener usuarios ordenados por XP o puntos
-      const { data, error } = await supabase
-        .from('usuarios')
-        .select('id, nombre, avatar_url, nivel_usuario')
-        .eq('community_id', 'scalexone')
-        .order('nivel_usuario', { ascending: false })
-        .limit(4);
-
-      if (!error && data) {
-        const usersWithPoints = data.map(user => ({
-          ...user,
-          puntos: user.nivel_usuario || 0
-        }));
-        setTopUsers(usersWithPoints);
-      }
-    } catch (error) {
-      console.error('Error fetching top users:', error);
-    }
-  };
+  // Estas funciones ya no son necesarias porque el hook useScaleXone maneja todo
 
   // Función para obtener miembros recientes
   const fetchRecentMembers = async () => {
@@ -215,13 +169,8 @@ const BarraLateralComunidad = () => {
         if (communityData) {
           setCommunity(communityData);
           
-          // Obtener datos adicionales
-          await Promise.all([
-            fetchCommunityStats(communityData.id),
-            fetchCanales(communityData.id),
-            fetchTopUsers(),
-            fetchRecentMembers()
-          ]);
+          // Solo obtener miembros recientes, el resto lo maneja useScaleXone
+          await fetchRecentMembers();
         }
         
       } catch (error) {
@@ -254,7 +203,7 @@ const BarraLateralComunidad = () => {
     return '📁'; // Icono por defecto
   };
 
-  if (loading) {
+  if (loading || scaleXoneLoading) {
     return (
       <div className="flex justify-center items-center h-48 bg-[#23232b] rounded-2xl">
         <Loader2 className="animate-spin h-8 w-8 text-yellow-400" />
@@ -288,15 +237,15 @@ const BarraLateralComunidad = () => {
       <div className="bg-[#23232b] rounded-2xl p-4 flex flex-col items-center gap-2">
         <div className="flex gap-4 mb-2">
           <div className="flex flex-col items-center">
-            <span className="text-white font-bold text-lg">{stats.totalMiembros}</span>
+            <span className="text-white font-bold text-lg">{totalMiembros}</span>
             <span className="text-gray-400 text-xs">Miembros</span>
           </div>
           <div className="flex flex-col items-center">
-            <span className="text-white font-bold text-lg">{stats.totalCursos}</span>
+            <span className="text-white font-bold text-lg">0</span>
             <span className="text-gray-400 text-xs">Cursos</span>
           </div>
           <div className="flex flex-col items-center">
-            <span className="text-white font-bold text-lg">{stats.totalServicios}</span>
+            <span className="text-white font-bold text-lg">0</span>
             <span className="text-gray-400 text-xs">Servicios</span>
           </div>
         </div>
@@ -314,9 +263,9 @@ const BarraLateralComunidad = () => {
               loading="lazy" 
             />
           ))}
-          {stats.totalMiembros > 4 && (
+          {totalMiembros > 4 && (
             <span className="w-8 h-8 rounded-full bg-[#e6a800] text-white flex items-center justify-center text-xs font-bold border-2 border-[#18181b]">
-              +{stats.totalMiembros - 4}
+              +{totalMiembros - 4}
             </span>
           )}
         </div>
@@ -354,9 +303,9 @@ const BarraLateralComunidad = () => {
       {/* Lista de canales/temas */}
       <div className="bg-[#23232b] rounded-2xl p-4">
         <h4 className="text-[#e6a800] font-bold mb-2 text-sm">Canales</h4>
-        {canales.length > 0 ? (
+        {canalesActivos.length > 0 ? (
           <ul className="flex flex-col gap-2">
-            {canales.filter(canal => canal.activo).map((canal) => (
+            {canalesActivos.map((canal) => (
               <li key={canal.id} className="text-white hover:text-[#e6a800] cursor-pointer">
                 {getChannelIcon(canal.nombre)} {canal.nombre}
               </li>
