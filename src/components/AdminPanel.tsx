@@ -2,6 +2,7 @@ import { useState } from 'react';
 import MiembrosAdminPanel from './MiembrosAdminPanel';
 import AdminSidebar from './admin/AdminSidebar';
 import CommunitySettingsPanel from './admin/CommunitySettingsPanelFixed';
+import CursosMarketplacePanel from './admin/CursosMarketplacePanel';
 
 export default function AdminPanel() {
   const [activeTab, setActiveTab] = useState('community');
@@ -13,6 +14,7 @@ export default function AdminPanel() {
         {activeTab === 'miembros' && <MiembrosAdminPanel />}
         {activeTab === 'members' && <MiembrosAdminPanel />}
         {activeTab === 'community' && <CommunitySettingsPanel />}
+        {activeTab === 'marketplace-cursos' && <CursosMarketplacePanel />}
         {/* Render other components based on activeTab */}
       </div>
     </div>
