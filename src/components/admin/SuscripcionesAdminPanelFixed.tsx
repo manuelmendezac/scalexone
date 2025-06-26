@@ -28,10 +28,19 @@ const SuscripcionesAdminPanel: React.FC = () => {
     nombre: '',
     descripcion: '',
     precio: '',
-    duracion_dias: '30',
-    caracteristicas: [],
+    duracion_valor: '1',
+    duracion_tipo: 'mes', // dia, semana, mes, año
+    moneda: 'USD',
+    caracteristicas: [] as string[],
     limite_usuarios: '',
-    activo: true
+    activo: true,
+    prueba_gratis: false,
+    duracion_prueba: '7',
+    tipo_prueba: 'dia',
+    categoria: 'basico', // basico, premium, enterprise
+    orden: 0,
+    destacado: false,
+    color_personalizado: '#3B82F6'
   });
 
   const [nuevaSuscripcion, setNuevaSuscripcion] = useState({
@@ -119,11 +128,36 @@ const SuscripcionesAdminPanel: React.FC = () => {
     try {
       setActionLoading('crear-plan');
       
+      // Calcular duracion_dias basado en tipo y valor
+      const calcularDuracionDias = () => {
+        const valor = parseInt(nuevoPlan.duracion_valor);
+        switch (nuevoPlan.duracion_tipo) {
+          case 'dia': return valor;
+          case 'semana': return valor * 7;
+          case 'mes': return valor * 30;
+          case 'año': return valor * 365;
+          default: return valor * 30;
+        }
+      };
+
       const planData = {
-        ...nuevoPlan,
+        nombre: nuevoPlan.nombre,
+        descripcion: nuevoPlan.descripcion,
         precio: parseFloat(nuevoPlan.precio),
-        duracion_dias: parseInt(nuevoPlan.duracion_dias),
-        limite_usuarios: nuevoPlan.limite_usuarios ? parseInt(nuevoPlan.limite_usuarios) : null,
+        moneda: nuevoPlan.moneda,
+        duracion_dias: calcularDuracionDias(),
+        caracteristicas: nuevoPlan.caracteristicas,
+        limites: nuevoPlan.limite_usuarios ? { usuarios: parseInt(nuevoPlan.limite_usuarios) } : {},
+        configuracion: {
+          prueba_gratis: nuevoPlan.prueba_gratis,
+          duracion_prueba: nuevoPlan.prueba_gratis ? parseInt(nuevoPlan.duracion_prueba) : 0,
+          tipo_prueba: nuevoPlan.tipo_prueba,
+          categoria: nuevoPlan.categoria,
+          destacado: nuevoPlan.destacado,
+          color: nuevoPlan.color_personalizado
+        },
+        activo: nuevoPlan.activo,
+        orden: nuevoPlan.orden,
         comunidad_id: comunidadId
       };
 
@@ -135,10 +169,19 @@ const SuscripcionesAdminPanel: React.FC = () => {
         nombre: '',
         descripcion: '',
         precio: '',
-        duracion_dias: '30',
+        duracion_valor: '1',
+        duracion_tipo: 'mes',
+        moneda: 'USD',
         caracteristicas: [],
         limite_usuarios: '',
-        activo: true
+        activo: true,
+        prueba_gratis: false,
+        duracion_prueba: '7',
+        tipo_prueba: 'dia',
+        categoria: 'basico',
+        orden: 0,
+        destacado: false,
+        color_personalizado: '#3B82F6'
       });
       
       await cargarDatos();
@@ -550,19 +593,38 @@ const SuscripcionesAdminPanel: React.FC = () => {
 
       {/* Modal Crear Plan */}
       {showCreatePlan && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-gray-800 rounded-lg p-6 w-full max-w-md">
-            <h3 className="text-xl font-bold text-white mb-4">Crear Nuevo Plan</h3>
-            <form onSubmit={handleCreatePlan} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">Nombre del Plan</label>
-                <input
-                  type="text"
-                  value={nuevoPlan.nombre}
-                  onChange={(e) => setNuevoPlan({...nuevoPlan, nombre: e.target.value})}
-                  className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:border-yellow-500 focus:outline-none"
-                  required
-                />
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 overflow-y-auto">
+          <div className="bg-gray-800 rounded-lg p-6 w-full max-w-2xl mx-4 my-8">
+            <h3 className="text-xl font-bold text-white mb-6">Crear Nuevo Plan de Suscripción</h3>
+            <form onSubmit={handleCreatePlan} className="space-y-6">
+              
+              {/* Información básica */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Nombre del Plan</label>
+                  <input
+                    type="text"
+                    value={nuevoPlan.nombre}
+                    onChange={(e) => setNuevoPlan({...nuevoPlan, nombre: e.target.value})}
+                    className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:border-yellow-500 focus:outline-none"
+                    placeholder="ej. Plan Básico"
+                    required
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Categoría</label>
+                  <select
+                    value={nuevoPlan.categoria}
+                    onChange={(e) => setNuevoPlan({...nuevoPlan, categoria: e.target.value})}
+                    className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:border-yellow-500 focus:outline-none"
+                  >
+                    <option value="basico">Básico</option>
+                    <option value="premium">Premium</option>
+                    <option value="enterprise">Enterprise</option>
+                    <option value="starter">Starter</option>
+                  </select>
+                </div>
               </div>
               
               <div>
@@ -572,56 +634,176 @@ const SuscripcionesAdminPanel: React.FC = () => {
                   onChange={(e) => setNuevoPlan({...nuevoPlan, descripcion: e.target.value})}
                   className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:border-yellow-500 focus:outline-none"
                   rows={3}
+                  placeholder="Describe las características principales del plan..."
                 />
               </div>
               
-              <div className="grid grid-cols-2 gap-4">
+              {/* Precio y duración */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">Precio ($)</label>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Precio</label>
+                  <div className="flex">
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={nuevoPlan.precio}
+                      onChange={(e) => setNuevoPlan({...nuevoPlan, precio: e.target.value})}
+                      className="flex-1 px-3 py-2 bg-gray-700 border border-gray-600 rounded-l-lg text-white focus:border-yellow-500 focus:outline-none"
+                      placeholder="0.00"
+                      required
+                    />
+                    <select
+                      value={nuevoPlan.moneda}
+                      onChange={(e) => setNuevoPlan({...nuevoPlan, moneda: e.target.value})}
+                      className="px-3 py-2 bg-gray-600 border border-gray-600 rounded-r-lg text-white focus:border-yellow-500 focus:outline-none"
+                    >
+                      <option value="USD">USD</option>
+                      <option value="EUR">EUR</option>
+                      <option value="MXN">MXN</option>
+                      <option value="COP">COP</option>
+                    </select>
+                  </div>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Duración</label>
                   <input
                     type="number"
-                    step="0.01"
-                    value={nuevoPlan.precio}
-                    onChange={(e) => setNuevoPlan({...nuevoPlan, precio: e.target.value})}
+                    min="1"
+                    value={nuevoPlan.duracion_valor}
+                    onChange={(e) => setNuevoPlan({...nuevoPlan, duracion_valor: e.target.value})}
                     className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:border-yellow-500 focus:outline-none"
                     required
                   />
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">Duración (días)</label>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Frecuencia</label>
+                  <select
+                    value={nuevoPlan.duracion_tipo}
+                    onChange={(e) => setNuevoPlan({...nuevoPlan, duracion_tipo: e.target.value})}
+                    className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:border-yellow-500 focus:outline-none"
+                  >
+                    <option value="dia">Día(s)</option>
+                    <option value="semana">Semana(s)</option>
+                    <option value="mes">Mes(es)</option>
+                    <option value="año">Año(s)</option>
+                  </select>
+                </div>
+              </div>
+              
+              {/* Prueba gratis */}
+              <div className="bg-gray-700 rounded-lg p-4">
+                <div className="flex items-center gap-3 mb-4">
+                  <input
+                    type="checkbox"
+                    checked={nuevoPlan.prueba_gratis}
+                    onChange={(e) => setNuevoPlan({...nuevoPlan, prueba_gratis: e.target.checked})}
+                    className="rounded"
+                  />
+                  <label className="text-sm font-medium text-gray-300">¿Habilitar prueba gratis?</label>
+                </div>
+                
+                {nuevoPlan.prueba_gratis && (
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm text-gray-400 mb-2">Duración de prueba</label>
+                      <input
+                        type="number"
+                        min="1"
+                        value={nuevoPlan.duracion_prueba}
+                        onChange={(e) => setNuevoPlan({...nuevoPlan, duracion_prueba: e.target.value})}
+                        className="w-full px-3 py-2 bg-gray-600 border border-gray-500 rounded-lg text-white focus:border-yellow-500 focus:outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm text-gray-400 mb-2">Tipo</label>
+                      <select
+                        value={nuevoPlan.tipo_prueba}
+                        onChange={(e) => setNuevoPlan({...nuevoPlan, tipo_prueba: e.target.value})}
+                        className="w-full px-3 py-2 bg-gray-600 border border-gray-500 rounded-lg text-white focus:border-yellow-500 focus:outline-none"
+                      >
+                        <option value="dia">Día(s)</option>
+                        <option value="semana">Semana(s)</option>
+                        <option value="mes">Mes(es)</option>
+                      </select>
+                    </div>
+                  </div>
+                )}
+              </div>
+              
+              {/* Configuración avanzada */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Límite de Usuarios</label>
                   <input
                     type="number"
-                    value={nuevoPlan.duracion_dias}
-                    onChange={(e) => setNuevoPlan({...nuevoPlan, duracion_dias: e.target.value})}
+                    min="1"
+                    value={nuevoPlan.limite_usuarios}
+                    onChange={(e) => setNuevoPlan({...nuevoPlan, limite_usuarios: e.target.value})}
                     className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:border-yellow-500 focus:outline-none"
-                    required
+                    placeholder="Sin límite"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Orden de visualización</label>
+                  <input
+                    type="number"
+                    min="0"
+                    value={nuevoPlan.orden}
+                    onChange={(e) => setNuevoPlan({...nuevoPlan, orden: parseInt(e.target.value) || 0})}
+                    className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:border-yellow-500 focus:outline-none"
+                    placeholder="0"
                   />
                 </div>
               </div>
               
+              {/* Color personalizado */}
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">Límite de Usuarios (opcional)</label>
-                <input
-                  type="number"
-                  value={nuevoPlan.limite_usuarios}
-                  onChange={(e) => setNuevoPlan({...nuevoPlan, limite_usuarios: e.target.value})}
-                  className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:border-yellow-500 focus:outline-none"
-                  placeholder="Sin límite"
-                />
+                <label className="block text-sm font-medium text-gray-300 mb-2">Color del Plan</label>
+                <div className="flex items-center gap-3">
+                  <input
+                    type="color"
+                    value={nuevoPlan.color_personalizado}
+                    onChange={(e) => setNuevoPlan({...nuevoPlan, color_personalizado: e.target.value})}
+                    className="w-12 h-10 rounded border border-gray-600"
+                  />
+                  <input
+                    type="text"
+                    value={nuevoPlan.color_personalizado}
+                    onChange={(e) => setNuevoPlan({...nuevoPlan, color_personalizado: e.target.value})}
+                    className="flex-1 px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:border-yellow-500 focus:outline-none"
+                    placeholder="#3B82F6"
+                  />
+                </div>
               </div>
               
-              <div className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  checked={nuevoPlan.activo}
-                  onChange={(e) => setNuevoPlan({...nuevoPlan, activo: e.target.checked})}
-                  className="rounded"
-                />
-                <label className="text-sm text-gray-300">Plan activo</label>
+              {/* Opciones adicionales */}
+              <div className="flex flex-wrap gap-4">
+                <div className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    checked={nuevoPlan.activo}
+                    onChange={(e) => setNuevoPlan({...nuevoPlan, activo: e.target.checked})}
+                    className="rounded"
+                  />
+                  <label className="text-sm text-gray-300">Plan activo</label>
+                </div>
+                
+                <div className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    checked={nuevoPlan.destacado}
+                    onChange={(e) => setNuevoPlan({...nuevoPlan, destacado: e.target.checked})}
+                    className="rounded"
+                  />
+                  <label className="text-sm text-gray-300">Plan destacado</label>
+                </div>
               </div>
               
-              <div className="flex gap-3 pt-4">
+              {/* Botones */}
+              <div className="flex gap-3 pt-4 border-t border-gray-700">
                 <button
                   type="button"
                   onClick={() => setShowCreatePlan(false)}
