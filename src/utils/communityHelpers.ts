@@ -10,37 +10,49 @@ const communityUUIDCache = new Map<string, string>();
 export const getCommunityUUID = async (communitySlug: string): Promise<string | null> => {
   // Verificar cache primero
   if (communityUUIDCache.has(communitySlug)) {
-    return communityUUIDCache.get(communitySlug) || null;
+    const cachedValue = communityUUIDCache.get(communitySlug) || null;
+    console.log(`🔍 UUID desde cache para ${communitySlug}:`, cachedValue);
+    return cachedValue;
   }
 
   try {
+    console.log(`🔍 Buscando UUID para comunidad: ${communitySlug}`);
+    
     const { data, error } = await supabase
       .from('comunidades')
-      .select('id')
+      .select('id, nombre, slug')
       .eq('slug', communitySlug)
       .single();
+
+    console.log('📊 Resultado búsqueda por slug:', { data, error });
 
     if (!error && data) {
       // Guardar en cache
       communityUUIDCache.set(communitySlug, data.id);
+      console.log(`✅ UUID encontrado para ${communitySlug}:`, data.id);
       return data.id;
     }
 
     // Si no encuentra por slug, intentar por nombre
+    console.log(`🔍 Buscando por nombre que contenga: ${communitySlug}`);
     const { data: dataByName, error: errorByName } = await supabase
       .from('comunidades')
-      .select('id')
+      .select('id, nombre, slug')
       .ilike('nombre', `%${communitySlug}%`)
       .single();
 
+    console.log('📊 Resultado búsqueda por nombre:', { dataByName, errorByName });
+
     if (!errorByName && dataByName) {
       communityUUIDCache.set(communitySlug, dataByName.id);
+      console.log(`✅ UUID encontrado por nombre para ${communitySlug}:`, dataByName.id);
       return dataByName.id;
     }
 
+    console.warn(`⚠️ No se encontró comunidad para: ${communitySlug}`);
     return null;
   } catch (error) {
-    console.error('Error obteniendo UUID de comunidad:', error);
+    console.error('❌ Error obteniendo UUID de comunidad:', error);
     return null;
   }
 };
