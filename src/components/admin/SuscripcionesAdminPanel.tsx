@@ -19,14 +19,54 @@ const SuscripcionesAdminPanel: React.FC = () => {
 
   const { userInfo } = useNeuroState();
   
-  // Por ahora usamos el community_id del usuario como organizacion_id
-  const organizacionId = userInfo?.community_id || 'scalexone-default';
+  // Estado para manejar la organización
+  const [organizacionId, setOrganizacionId] = useState<string | null>(null);
+
+  // Función para inicializar o crear la organización
+  const inicializarOrganizacion = async () => {
+    try {
+      const communityId = userInfo?.community_id || 'default';
+      
+      // Buscar si existe una organización con este community_id como slug
+      let organizacion = await SuscripcionesAPI.organizaciones.obtenerOrganizacionPorSlug(communityId);
+      
+      if (!organizacion) {
+        // Si no existe, crear una nueva organización
+        organizacion = await SuscripcionesAPI.organizaciones.crearOrganizacion({
+          nombre: `Organización ${communityId}`,
+          slug: communityId,
+          descripcion: `Organización para la comunidad ${communityId}`,
+          estado: 'activa',
+          configuracion: {}
+        });
+        console.log('Organización creada:', organizacion);
+      }
+      
+      setOrganizacionId(organizacion.id);
+    } catch (error) {
+      console.error('Error inicializando organización:', error);
+      setMensaje('Error al inicializar organización: ' + (error as Error).message);
+    }
+  };
 
   useEffect(() => {
-    cargarDatos();
+    if (userInfo?.community_id) {
+      inicializarOrganizacion();
+    }
+  }, [userInfo?.community_id]);
+
+  useEffect(() => {
+    if (organizacionId) {
+      cargarDatos();
+    }
   }, [organizacionId]);
 
   const cargarDatos = async () => {
+    if (!organizacionId) {
+      console.log('No hay organizacionId, esperando...');
+      return;
+    }
+
     try {
       setLoading(true);
       
@@ -102,6 +142,11 @@ const SuscripcionesAdminPanel: React.FC = () => {
   };
 
   const handleCreateSuscripcion = async (suscripcionData: any) => {
+    if (!organizacionId) {
+      setMensaje('Error: Organización no inicializada');
+      return;
+    }
+
     try {
       setActionLoading('create');
       
@@ -136,6 +181,11 @@ const SuscripcionesAdminPanel: React.FC = () => {
   };
 
   const handleCreatePlan = async (planData: any) => {
+    if (!organizacionId) {
+      setMensaje('Error: Organización no inicializada');
+      return;
+    }
+
     try {
       setActionLoading('createPlan');
       
@@ -202,7 +252,7 @@ const SuscripcionesAdminPanel: React.FC = () => {
 
   // Calcular estadísticas desde los datos locales si no tenemos estadísticas de la BD
   const stats = estadisticas || {
-    organizacion_id: organizacionId,
+    organizacion_id: organizacionId || '',
     organizacion_nombre: 'Mi Organización',
     total_suscripciones: suscripciones.length,
     suscripciones_activas: suscripciones.filter(s => s.estado === 'activa').length,
@@ -214,12 +264,14 @@ const SuscripcionesAdminPanel: React.FC = () => {
       : 0
   };
 
-  if (loading) {
+  if (loading || !organizacionId) {
     return (
       <div className="flex-1 p-8 bg-black">
         <div className="w-full bg-gray-900/50 rounded-lg p-6">
           <h1 className="text-3xl font-bold text-yellow-400 mb-4">Portal de Suscripciones</h1>
-          <div className="text-white">Cargando datos...</div>
+          <div className="text-white">
+            {!organizacionId ? 'Inicializando organización...' : 'Cargando datos...'}
+          </div>
         </div>
       </div>
     );
