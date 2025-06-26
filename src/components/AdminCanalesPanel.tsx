@@ -1,5 +1,19 @@
 import { useState, useEffect } from "react";
-// import { supabase } from "../supabase"; // Descomenta y ajusta según tu proyecto
+import { supabase } from "../supabase"; // Asegúrate de que esta ruta sea correcta
+
+interface Canal {
+  id: string;
+  nombre: string;
+  tipo: string;
+  permisos_publicar: string;
+  permisos_comentar: string;
+  membresia_requerida: string | null;
+}
+
+interface Membresia {
+  id: string;
+  nombre: string;
+}
 
 export default function AdminCanalesPanel() {
   // Estado para el formulario
@@ -12,34 +26,68 @@ export default function AdminCanalesPanel() {
     membresia_requerida: "",
   });
   // Estado para la lista de canales y membresías
-  const [canales, setCanales] = useState([]);
-  const [membresias, setMembresias] = useState([]);
+  const [canales, setCanales] = useState<Canal[]>([]);
+  const [membresias, setMembresias] = useState<Membresia[]>([]);
   const [mensaje, setMensaje] = useState("");
   const [loading, setLoading] = useState(false);
 
   // Simula community_id (reemplaza por tu lógica real)
   const community_id = "AQUI_UUID_DE_LA_COMUNIDAD";
 
-  // Cargar canales y membresías (simulado)
+  // Cargar canales y membresías
   useEffect(() => {
-    // Aquí deberías hacer fetch a supabase para canales y membresías
-    // setCanales([...]);
-    // setMembresias([...]);
-  }, []);
+    const fetchCanales = async () => {
+      const { data, error } = await supabase
+        .from("canales_comunidad")
+        .select("*")
+        .eq("community_id", community_id);
+      if (error) console.error("Error fetching canales: ", error);
+      else setCanales(data || []);
+    };
 
-  const handleChange = (e) => {
+    const fetchMembresias = async () => {
+      const { data, error } = await supabase
+        .from("membresias")
+        .select("*")
+        .eq("community_id", community_id);
+      if (error) console.error("Error fetching membresias: ", error);
+      else setMembresias(data || []);
+    };
+
+    fetchCanales();
+    fetchMembresias();
+  }, [community_id]);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
     setMensaje("");
-    // Aquí va la lógica real de inserción en supabase
-    // const { error } = await supabase.from("canales_comunidad").insert([{ ...form, community_id }]);
+    const { error } = await supabase.from("canales_comunidad").insert([
+      { ...form, community_id, membresia_requerida: form.membresia_requerida || null },
+    ]);
     setLoading(false);
-    setMensaje("¡Canal creado exitosamente!");
-    // Recarga la lista de canales aquí
+    if (error) setMensaje("Error al crear canal: " + error.message);
+    else {
+      setMensaje("¡Canal creado exitosamente!");
+      setForm({
+        nombre: "",
+        descripcion: "",
+        tipo: "public",
+        permisos_publicar: "todos",
+        permisos_comentar: "todos",
+        membresia_requerida: "",
+      });
+      // Recargar la lista de canales
+      const { data } = await supabase
+        .from("canales_comunidad")
+        .select("*")
+        .eq("community_id", community_id);
+      setCanales(data || []);
+    }
   };
 
   return (
@@ -100,9 +148,9 @@ export default function AdminCanalesPanel() {
                   onChange={handleChange}
                 >
                   <option value="">Ninguna</option>
-                  {/* {membresias.map(m => (
+                  {membresias.map((m) => (
                     <option key={m.id} value={m.id}>{m.nombre}</option>
-                  ))} */}
+                  ))}
                 </select>
               </div>
             </div>
