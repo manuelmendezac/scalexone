@@ -9,6 +9,7 @@ interface Post {
   media_url: string | null;
   descripcion: string | null;
   created_at: string;
+  canal_id?: string | null;
   orientacion?: 'vertical' | 'horizontal';
   usuario?: {
     avatar_url?: string;

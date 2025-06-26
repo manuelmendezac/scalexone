@@ -4,9 +4,10 @@ import ComunidadComentarios from './ComunidadComentarios';
 import ReaccionesFacebook from './ReaccionesFacebook';
 import ComunidadPostModal from './ComunidadPostModal';
 import useCommunityStore from '../../store/useCommunityStore';
-import LoadingScreen from '../LoadingScreen';
+import SelectorCanales from './SelectorCanales';
 
-interface Post {
+// Importar el tipo Post del store
+type Post = {
   id: string;
   usuario_id: string;
   contenido: string;
@@ -14,13 +15,17 @@ interface Post {
   media_url: string | null;
   descripcion: string | null;
   created_at: string;
+  canal_id?: string | null;
   orientacion?: 'vertical' | 'horizontal';
   usuario?: {
     avatar_url?: string;
     name?: string;
   };
   imagenes_urls?: string[] | null;
-}
+};
+import LoadingScreen from '../LoadingScreen';
+
+
 
 interface FeedComunidadProps {
   canalActivo?: string;
@@ -60,10 +65,18 @@ const FeedComunidad = ({ canalActivo, nombreCanalActivo }: FeedComunidadProps) =
   const [mostrarTodosComentarios, setMostrarTodosComentarios] = useState<Record<string, boolean>>({});
   const [modalPost, setModalPost] = useState<any | null>(null);
   const [showShareMenu, setShowShareMenu] = useState<string | null>(null);
+  const [canalParaPublicar, setCanalParaPublicar] = useState<string>('');
+  const [nombreCanalParaPublicar, setNombreCanalParaPublicar] = useState<string>('');
 
   useEffect(() => {
     fetchPosts();
   }, [fetchPosts]);
+
+  // Filtrar posts por canal activo
+  const postsFiltrados = React.useMemo(() => {
+    if (!canalActivo) return posts;
+    return posts.filter(post => post.canal_id === canalActivo);
+  }, [posts, canalActivo]);
 
   useEffect(() => {
     let mounted = true;
@@ -200,7 +213,8 @@ const FeedComunidad = ({ canalActivo, nombreCanalActivo }: FeedComunidadProps) =
         media_url: mediaUrlFinal || null,
         descripcion: descripcion || null,
         orientacion: orientacion ?? null,
-        imagenes_urls: imagenesUrls.length > 0 ? imagenesUrls : null
+        imagenes_urls: imagenesUrls.length > 0 ? imagenesUrls : null,
+        canal_id: canalParaPublicar || null
       });
       if (insertError) throw insertError;
       setContenido('');
@@ -212,6 +226,8 @@ const FeedComunidad = ({ canalActivo, nombreCanalActivo }: FeedComunidadProps) =
       setOrientacion(undefined);
       setImagenesSeleccionadas([]);
       setImagenesPreview([]);
+      setCanalParaPublicar('');
+      setNombreCanalParaPublicar('');
       if (fileInputRef.current) fileInputRef.current.value = '';
       fetchPosts();
     } catch (err: any) {
@@ -305,25 +321,37 @@ const FeedComunidad = ({ canalActivo, nombreCanalActivo }: FeedComunidadProps) =
           onChange={e => setContenido(e.target.value)}
           disabled={subiendo}
         />
-        <div className="flex gap-2 items-center justify-between">
-          <select
-            className="bg-[#18181b] text-[#e6a800] border border-[#e6a800] rounded-xl px-2 py-1 text-xs focus:outline-none focus:ring-2 focus:ring-[#e6a800] transition"
-            value={tipo}
-            onChange={e => {
-              setTipo(e.target.value as any);
-              setMediaUrl('');
-              setPreviewUrl(null);
-              setArchivoSeleccionado(null);
-              if (fileInputRef.current) fileInputRef.current.value = '';
-            }}
-            disabled={subiendo}
-            style={{ minWidth: 80 }}
-          >
-            <option value="texto">Texto</option>
-            <option value="imagen">Imagen</option>
-            <option value="video">Video</option>
-            <option value="enlace">Enlace</option>
-          </select>
+        <div className="flex gap-2 items-center justify-between flex-wrap">
+          <div className="flex gap-2 items-center">
+            <select
+              className="bg-[#18181b] text-[#e6a800] border border-[#e6a800] rounded-xl px-2 py-1 text-xs focus:outline-none focus:ring-2 focus:ring-[#e6a800] transition"
+              value={tipo}
+              onChange={e => {
+                setTipo(e.target.value as any);
+                setMediaUrl('');
+                setPreviewUrl(null);
+                setArchivoSeleccionado(null);
+                if (fileInputRef.current) fileInputRef.current.value = '';
+              }}
+              disabled={subiendo}
+              style={{ minWidth: 80 }}
+            >
+              <option value="texto">Texto</option>
+              <option value="imagen">Imagen</option>
+              <option value="video">Video</option>
+              <option value="enlace">Enlace</option>
+            </select>
+            
+            <SelectorCanales
+              canalSeleccionado={canalParaPublicar}
+              onCanalChange={(canalId, nombreCanal) => {
+                setCanalParaPublicar(canalId);
+                setNombreCanalParaPublicar(nombreCanal);
+              }}
+              disabled={subiendo}
+            />
+          </div>
+          
           <button
             className={`flex items-center gap-1 bg-[#e6a800] hover:bg-[#ffb300] text-black font-bold px-3 py-1 rounded-full shadow transition text-xs ${subiendo ? 'opacity-50 cursor-not-allowed' : ''}`}
             onClick={handlePublicar}
@@ -407,10 +435,12 @@ const FeedComunidad = ({ canalActivo, nombreCanalActivo }: FeedComunidadProps) =
       <div className="flex flex-col gap-6">
         {loading ? (
           <div className="text-center text-gray-400">Cargando publicaciones...</div>
-        ) : posts.length === 0 ? (
-          <div className="text-center text-gray-400">No hay publicaciones aún.</div>
+        ) : postsFiltrados.length === 0 ? (
+          <div className="text-center text-gray-400">
+            {canalActivo ? `No hay publicaciones en ${nombreCanalActivo || 'este canal'} aún.` : 'No hay publicaciones aún.'}
+          </div>
         ) : (
-          posts.map((post) => {
+          postsFiltrados.map((post) => {
             const comentarios = comentariosPorPost[post.id] || [];
             const totalComentarios = comentarios.length;
             const mostrarTodos = mostrarTodosComentarios[post.id];
