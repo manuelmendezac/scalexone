@@ -31,7 +31,7 @@ const SuscripcionesAdminPanel: React.FC = () => {
     duracion_valor: '1',
     duracion_tipo: 'mes', // dia, semana, mes, año
     moneda: 'USD',
-    caracteristicas: [] as string[],
+    caracteristicas: [''] as string[],
     limite_usuarios: '',
     activo: true,
     prueba_gratis: false,
@@ -172,7 +172,7 @@ const SuscripcionesAdminPanel: React.FC = () => {
         duracion_valor: '1',
         duracion_tipo: 'mes',
         moneda: 'USD',
-        caracteristicas: [],
+        caracteristicas: [''],
         limite_usuarios: '',
         activo: true,
         prueba_gratis: false,
@@ -759,6 +759,47 @@ const SuscripcionesAdminPanel: React.FC = () => {
                 </div>
               </div>
               
+              {/* Características del Plan */}
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">Características del Plan</label>
+                <div className="space-y-2">
+                  {nuevoPlan.caracteristicas.map((caracteristica, index) => (
+                    <div key={index} className="flex items-center gap-2">
+                      <input
+                        type="text"
+                        value={caracteristica}
+                        onChange={(e) => {
+                          const nuevasCaracteristicas = [...nuevoPlan.caracteristicas];
+                          nuevasCaracteristicas[index] = e.target.value;
+                          setNuevoPlan({...nuevoPlan, caracteristicas: nuevasCaracteristicas});
+                        }}
+                        className="flex-1 px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:border-yellow-500 focus:outline-none"
+                        placeholder="ej. Acceso a módulos básicos"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const nuevasCaracteristicas = nuevoPlan.caracteristicas.filter((_, i) => i !== index);
+                          setNuevoPlan({...nuevoPlan, caracteristicas: nuevasCaracteristicas});
+                        }}
+                        className="p-2 text-red-400 hover:bg-red-900 rounded transition-colors"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setNuevoPlan({...nuevoPlan, caracteristicas: [...nuevoPlan.caracteristicas, '']});
+                    }}
+                    className="w-full px-3 py-2 border-2 border-dashed border-gray-600 rounded-lg text-gray-400 hover:border-yellow-500 hover:text-yellow-400 transition-colors"
+                  >
+                    + Agregar Característica
+                  </button>
+                </div>
+              </div>
+
               {/* Color personalizado */}
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">Color del Plan</label>
