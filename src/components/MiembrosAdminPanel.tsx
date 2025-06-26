@@ -412,7 +412,7 @@ export default function MiembrosAdminPanel() {
                               setConfirmAction({ type: 'makeAdmin', miembro });
                               setShowConfirmModal(true);
                             }}
-                            className="w-full flex items-center gap-3 px-4 py-2 text-white hover:bg-gray-700 transition-colors"
+                            className="w-full flex items-center gap-3 px-4 py-2 text-red-400 hover:bg-gray-700 hover:text-red-300 transition-colors"
                           >
                             <Shield size={16} />
                             Hacer Admin
@@ -422,14 +422,14 @@ export default function MiembrosAdminPanel() {
                               setConfirmAction({ type: 'makePartner', miembro });
                               setShowConfirmModal(true);
                             }}
-                            className="w-full flex items-center gap-3 px-4 py-2 text-white hover:bg-gray-700 transition-colors"
+                            className="w-full flex items-center gap-3 px-4 py-2 text-yellow-400 hover:bg-gray-700 hover:text-yellow-300 transition-colors"
                           >
                             <Crown size={16} />
-                            Remover Partner
+                            Hacer Partner
                           </button>
                           <button
                             onClick={() => handleGrantAccess(miembro, 'Premium')}
-                            className="w-full flex items-center gap-3 px-4 py-2 text-white hover:bg-gray-700 transition-colors"
+                            className="w-full flex items-center gap-3 px-4 py-2 text-green-400 hover:bg-gray-700 hover:text-green-300 transition-colors"
                           >
                             <CheckCircle size={16} />
                             Otorgar Acceso Premium
@@ -440,7 +440,7 @@ export default function MiembrosAdminPanel() {
                               setConfirmAction({ type: 'block', miembro });
                               setShowConfirmModal(true);
                             }}
-                            className="w-full flex items-center gap-3 px-4 py-2 text-yellow-400 hover:bg-gray-700 transition-colors"
+                            className="w-full flex items-center gap-3 px-4 py-2 text-orange-400 hover:bg-gray-700 hover:text-orange-300 transition-colors"
                           >
                             <Ban size={16} />
                             Bloquear Miembro
@@ -450,7 +450,7 @@ export default function MiembrosAdminPanel() {
                               setConfirmAction({ type: 'remove', miembro });
                               setShowConfirmModal(true);
                             }}
-                            className="w-full flex items-center gap-3 px-4 py-2 text-red-400 hover:bg-gray-700 transition-colors"
+                            className="w-full flex items-center gap-3 px-4 py-2 text-red-500 hover:bg-gray-700 hover:text-red-400 transition-colors"
                           >
                             <Trash2 size={16} />
                             Eliminar Miembro
