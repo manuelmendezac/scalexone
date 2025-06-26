@@ -15,10 +15,150 @@ interface Community {
   slug?: string;
 }
 
+interface CommunityStats {
+  totalMiembros: number;
+  totalCursos: number;
+  totalServicios: number;
+}
+
+interface Canal {
+  id: string;
+  nombre: string;
+  descripcion: string;
+  activo: boolean;
+}
+
+interface TopUser {
+  id: string;
+  nombre: string;
+  avatar_url: string;
+  puntos: number;
+}
+
 const BarraLateralComunidad = () => {
   const { userInfo } = useNeuroState();
   const [community, setCommunity] = useState<Community | null>(null);
   const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState<CommunityStats>({ totalMiembros: 0, totalCursos: 0, totalServicios: 0 });
+  const [canales, setCanales] = useState<Canal[]>([]);
+  const [topUsers, setTopUsers] = useState<TopUser[]>([]);
+  const [recentMembers, setRecentMembers] = useState<TopUser[]>([]);
+
+  // Función para obtener UUID de la comunidad
+  const getCommunityUUID = async (): Promise<string | null> => {
+    try {
+      if (!userInfo.id) return null;
+
+      // Intentar obtener ScaleXOne primero
+      if (userInfo.community_id === 'scalexone' || userInfo.community_id === 'default') {
+        const { data: scalexoneData, error: scalexoneError } = await supabase
+          .from('comunidades')
+          .select('id')
+          .eq('slug', 'scalexone')
+          .single();
+          
+        if (!scalexoneError && scalexoneData) {
+          return scalexoneData.id;
+        }
+      }
+      
+      // Si no encontró ScaleXOne, buscar por owner_id
+      const { data, error } = await supabase
+        .from('comunidades')
+        .select('id')
+        .eq('owner_id', userInfo.id)
+        .single();
+        
+      if (!error && data) {
+        return data.id;
+      }
+      
+      return null;
+    } catch (error) {
+      console.error('Error obteniendo UUID de comunidad:', error);
+      return null;
+    }
+  };
+
+  // Función para obtener estadísticas de la comunidad
+  const fetchCommunityStats = async (communityId: string) => {
+    try {
+      // Contar miembros totales - usar slug 'scalexone' en lugar de UUID
+      const { count: miembrosCount } = await supabase
+        .from('usuarios')
+        .select('*', { count: 'exact', head: true })
+        .eq('community_id', 'scalexone');
+
+      // Por ahora cursos y servicios son 0 hasta que los implementemos
+      setStats({
+        totalMiembros: miembrosCount || 0,
+        totalCursos: 0, // TODO: Implementar cuando tengamos tabla de cursos
+        totalServicios: 0 // TODO: Implementar cuando tengamos tabla de servicios
+      });
+    } catch (error) {
+      console.error('Error fetching community stats:', error);
+    }
+  };
+
+  // Función para obtener canales
+  const fetchCanales = async (communityId: string) => {
+    try {
+      const { data, error } = await supabase.rpc('get_canales_por_comunidad', {
+        p_community_id: communityId
+      });
+
+      if (!error && data) {
+        setCanales(data);
+      }
+    } catch (error) {
+      console.error('Error fetching canales:', error);
+    }
+  };
+
+  // Función para obtener top usuarios (ranking)
+  const fetchTopUsers = async () => {
+    try {
+      // Obtener usuarios ordenados por XP o puntos
+      const { data, error } = await supabase
+        .from('usuarios')
+        .select('id, nombre, avatar_url, nivel_usuario')
+        .eq('community_id', 'scalexone')
+        .order('nivel_usuario', { ascending: false })
+        .limit(4);
+
+      if (!error && data) {
+        const usersWithPoints = data.map(user => ({
+          ...user,
+          puntos: user.nivel_usuario || 0
+        }));
+        setTopUsers(usersWithPoints);
+      }
+    } catch (error) {
+      console.error('Error fetching top users:', error);
+    }
+  };
+
+  // Función para obtener miembros recientes
+  const fetchRecentMembers = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('usuarios')
+        .select('id, nombre, avatar_url, nivel_usuario')
+        .eq('community_id', 'scalexone')
+        .order('created_at', { ascending: false })
+        .limit(4);
+
+      if (!error && data) {
+        const usersWithPoints = data.map(user => ({
+          ...user,
+          puntos: user.nivel_usuario || 0
+        }));
+        setRecentMembers(usersWithPoints);
+      }
+    } catch (error) {
+      console.error('Error fetching recent members:', error);
+    }
+  };
 
   useEffect(() => {
     const fetchCommunityData = async () => {
@@ -74,6 +214,14 @@ const BarraLateralComunidad = () => {
 
         if (communityData) {
           setCommunity(communityData);
+          
+          // Obtener datos adicionales
+          await Promise.all([
+            fetchCommunityStats(communityData.id),
+            fetchCanales(communityData.id),
+            fetchTopUsers(),
+            fetchRecentMembers()
+          ]);
         }
         
       } catch (error) {
@@ -89,6 +237,21 @@ const BarraLateralComunidad = () => {
   const getLogoFallback = (name: string) => {
     const initials = name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
     return `https://ui-avatars.com/api/?name=${initials}&background=e6a800&color=fff&size=96`;
+  };
+
+  const getChannelIcon = (channelName: string) => {
+    const name = channelName.toLowerCase();
+    if (name.includes('general')) return '🏠';
+    if (name.includes('presentat') || name.includes('presentacion')) return '👋';
+    if (name.includes('recurso')) return '📚';
+    if (name.includes('networking') || name.includes('network')) return '🤝';
+    if (name.includes('idea')) return '💡';
+    if (name.includes('proyecto')) return '🚀';
+    if (name.includes('chat')) return '💬';
+    if (name.includes('anuncio')) return '📢';
+    if (name.includes('soporte') || name.includes('ayuda')) return '🛠️';
+    if (name.includes('vip') || name.includes('premium')) return '⭐';
+    return '📁'; // Icono por defecto
   };
 
   if (loading) {
@@ -125,26 +288,37 @@ const BarraLateralComunidad = () => {
       <div className="bg-[#23232b] rounded-2xl p-4 flex flex-col items-center gap-2">
         <div className="flex gap-4 mb-2">
           <div className="flex flex-col items-center">
-            <span className="text-white font-bold text-lg">134</span>
+            <span className="text-white font-bold text-lg">{stats.totalMiembros}</span>
             <span className="text-gray-400 text-xs">Miembros</span>
           </div>
           <div className="flex flex-col items-center">
-            <span className="text-white font-bold text-lg">8</span>
+            <span className="text-white font-bold text-lg">{stats.totalCursos}</span>
             <span className="text-gray-400 text-xs">Cursos</span>
           </div>
           <div className="flex flex-col items-center">
-            <span className="text-white font-bold text-lg">12</span>
+            <span className="text-white font-bold text-lg">{stats.totalServicios}</span>
             <span className="text-gray-400 text-xs">Servicios</span>
           </div>
         </div>
         
-        {/* Avatares de miembros */}
+        {/* Avatares de miembros recientes */}
         <div className="flex -space-x-3 mb-2">
-          <img className="w-8 h-8 rounded-full border-2 border-[#18181b]" src="https://randomuser.me/api/portraits/men/32.jpg" alt="" width="32" height="32" loading="lazy" />
-          <img className="w-8 h-8 rounded-full border-2 border-[#18181b]" src="https://randomuser.me/api/portraits/women/44.jpg" alt="" width="32" height="32" loading="lazy" />
-          <img className="w-8 h-8 rounded-full border-2 border-[#18181b]" src="https://randomuser.me/api/portraits/men/45.jpg" alt="" width="32" height="32" loading="lazy" />
-          <img className="w-8 h-8 rounded-full border-2 border-[#18181b]" src="https://randomuser.me/api/portraits/women/46.jpg" alt="" width="32" height="32" loading="lazy" />
-          <span className="w-8 h-8 rounded-full bg-[#e6a800] text-white flex items-center justify-center text-xs font-bold border-2 border-[#18181b]">+128</span>
+          {recentMembers.slice(0, 4).map((member, index) => (
+            <img 
+              key={member.id} 
+              className="w-8 h-8 rounded-full border-2 border-[#18181b] object-cover" 
+              src={member.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(member.nombre)}&background=e6a800&color=fff&size=32`} 
+              alt={member.nombre} 
+              width="32" 
+              height="32" 
+              loading="lazy" 
+            />
+          ))}
+          {stats.totalMiembros > 4 && (
+            <span className="w-8 h-8 rounded-full bg-[#e6a800] text-white flex items-center justify-center text-xs font-bold border-2 border-[#18181b]">
+              +{stats.totalMiembros - 4}
+            </span>
+          )}
         </div>
         
         {/* Botones según permisos */}
@@ -164,25 +338,33 @@ const BarraLateralComunidad = () => {
       {/* Leaderboard */}
       <div className="bg-[#23232b] rounded-2xl p-4">
         <h4 className="text-[#e6a800] font-bold mb-2 text-sm">Leaderboard</h4>
-        <ol className="list-decimal list-inside text-white text-sm space-y-1">
-          <li>Manuel Méndez (+1,250)</li>
-          <li>Juan Carlos (+692)</li>
-          <li>Pablo Duhart (+535)</li>
-          <li>York Rodriguez (+400)</li>
-        </ol>
+        {topUsers.length > 0 ? (
+          <ol className="list-decimal list-inside text-white text-sm space-y-1">
+            {topUsers.map((user, index) => (
+              <li key={user.id}>
+                {user.nombre} (+{user.puntos})
+              </li>
+            ))}
+          </ol>
+        ) : (
+          <p className="text-gray-400 text-sm">No hay datos disponibles</p>
+        )}
       </div>
       
       {/* Lista de canales/temas */}
       <div className="bg-[#23232b] rounded-2xl p-4">
         <h4 className="text-[#e6a800] font-bold mb-2 text-sm">Canales</h4>
-        <ul className="flex flex-col gap-2">
-          <li className="text-white hover:text-[#e6a800] cursor-pointer">🏠 General</li>
-          <li className="text-white hover:text-[#e6a800] cursor-pointer">👋 Presentaciones</li>
-          <li className="text-white hover:text-[#e6a800] cursor-pointer">📚 Recursos</li>
-          <li className="text-white hover:text-[#e6a800] cursor-pointer">🤝 Networking</li>
-          <li className="text-white hover:text-[#e6a800] cursor-pointer">💡 Ideas</li>
-          <li className="text-white hover:text-[#e6a800] cursor-pointer">🚀 Proyectos</li>
-        </ul>
+        {canales.length > 0 ? (
+          <ul className="flex flex-col gap-2">
+            {canales.filter(canal => canal.activo).map((canal) => (
+              <li key={canal.id} className="text-white hover:text-[#e6a800] cursor-pointer">
+                {getChannelIcon(canal.nombre)} {canal.nombre}
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="text-gray-400 text-sm">No hay canales disponibles</p>
+        )}
       </div>
     </div>
   );
