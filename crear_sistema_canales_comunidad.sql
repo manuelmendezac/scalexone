@@ -1,75 +1,81 @@
--- SCRIPT PARA CREAR SISTEMA DE CANALES DE COMUNIDAD
--- Versión: 1.0 - Integrado con Sistema de Suscripciones ScaleXone
--- Fecha: 2024
-
 -- ===============================================
--- 1. CREAR TABLA CANALES_COMUNIDAD
--- ===============================================
-
-CREATE TABLE IF NOT EXISTS canales_comunidad (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    community_id VARCHAR(100) NOT NULL, -- Referencia al community_id del usuario (ej: 'scalexone')
-    nombre VARCHAR(255) NOT NULL,
-    descripcion TEXT,
-    tipo VARCHAR(20) DEFAULT 'public' CHECK (tipo IN ('public', 'private')),
-    permisos_publicar VARCHAR(20) DEFAULT 'todos' CHECK (permisos_publicar IN ('todos', 'admin_mod', 'solo_admin')),
-    permisos_comentar VARCHAR(20) DEFAULT 'todos' CHECK (permisos_comentar IN ('todos', 'admin_mod', 'solo_admin')),
-    membresia_requerida UUID REFERENCES planes_suscripcion(id) ON DELETE SET NULL,
-    activo BOOLEAN DEFAULT true,
-    orden INTEGER DEFAULT 0,
-    configuracion JSONB DEFAULT '{}',
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    created_by UUID REFERENCES usuarios(id) ON DELETE SET NULL
-);
-
--- ===============================================
--- 2. CREAR TABLA MENSAJES_CANAL
+-- SCRIPT: Sistema de Canales para Comunidades
+-- Versión: 1.1 - CORREGIDO - UUID community_id 
+-- Descripción: Sistema completo de canales con mensajes, reacciones y membresías
+-- Integrado con Sistema de Suscripciones ScaleXone
 -- ===============================================
 
+-- ===============================================
+-- 1. CREAR TABLAS PRINCIPALES
+-- ===============================================
+
+-- Tabla: canales_comunidad (Ya existe, solo agregar columnas faltantes)
+DO $$
+BEGIN
+    -- Agregar columna activo si no existe
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'canales_comunidad' AND column_name = 'activo') THEN
+        ALTER TABLE canales_comunidad ADD COLUMN activo BOOLEAN DEFAULT true;
+    END IF;
+    
+    -- Agregar columna orden si no existe
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'canales_comunidad' AND column_name = 'orden') THEN
+        ALTER TABLE canales_comunidad ADD COLUMN orden INTEGER DEFAULT 0;
+    END IF;
+    
+    -- Verificar si community_id es VARCHAR y corregir a UUID
+    IF EXISTS (
+        SELECT 1 FROM information_schema.columns 
+        WHERE table_name = 'canales_comunidad' 
+        AND column_name = 'community_id' 
+        AND data_type = 'character varying'
+    ) THEN
+        -- Primero verificar si hay datos
+        IF EXISTS (SELECT 1 FROM canales_comunidad LIMIT 1) THEN
+            RAISE NOTICE 'Advertencia: La tabla canales_comunidad tiene datos. Manteniendo VARCHAR por compatibilidad.';
+        ELSE
+            -- Si no hay datos, cambiar a UUID
+            ALTER TABLE canales_comunidad ALTER COLUMN community_id TYPE UUID USING community_id::uuid;
+            RAISE NOTICE 'Columna community_id convertida de VARCHAR a UUID';
+        END IF;
+    END IF;
+END $$;
+
+-- Crear tabla mensajes_canal
 CREATE TABLE IF NOT EXISTS mensajes_canal (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     canal_id UUID NOT NULL REFERENCES canales_comunidad(id) ON DELETE CASCADE,
     usuario_id UUID NOT NULL REFERENCES usuarios(id) ON DELETE CASCADE,
     contenido TEXT NOT NULL,
-    tipo VARCHAR(20) DEFAULT 'texto' CHECK (tipo IN ('texto', 'imagen', 'archivo', 'video', 'audio')),
-    archivos JSONB DEFAULT '[]', -- Array de URLs de archivos adjuntos
-    respuesta_a UUID REFERENCES mensajes_canal(id) ON DELETE SET NULL, -- Para hilos de respuestas
+    tipo VARCHAR(20) DEFAULT 'texto' CHECK (tipo IN ('texto', 'imagen', 'archivo', 'enlace')),
+    archivos JSONB DEFAULT '[]'::jsonb,
+    respuesta_a UUID REFERENCES mensajes_canal(id) ON DELETE SET NULL,
     editado BOOLEAN DEFAULT false,
-    editado_at TIMESTAMP WITH TIME ZONE,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
 
--- ===============================================
--- 3. CREAR TABLA REACCIONES_MENSAJE
--- ===============================================
-
+-- Crear tabla reacciones_mensaje  
 CREATE TABLE IF NOT EXISTS reacciones_mensaje (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     mensaje_id UUID NOT NULL REFERENCES mensajes_canal(id) ON DELETE CASCADE,
     usuario_id UUID NOT NULL REFERENCES usuarios(id) ON DELETE CASCADE,
-    emoji VARCHAR(10) NOT NULL, -- Emoji de la reacción
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE(mensaje_id, usuario_id, emoji) -- Un usuario solo puede dar una reacción del mismo tipo por mensaje
+    emoji VARCHAR(10) NOT NULL,
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(mensaje_id, usuario_id, emoji)
 );
 
--- ===============================================
--- 4. CREAR TABLA MIEMBROS_CANAL (para canales privados)
--- ===============================================
-
+-- Crear tabla miembros_canal (para canales privados)
 CREATE TABLE IF NOT EXISTS miembros_canal (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     canal_id UUID NOT NULL REFERENCES canales_comunidad(id) ON DELETE CASCADE,
     usuario_id UUID NOT NULL REFERENCES usuarios(id) ON DELETE CASCADE,
     rol VARCHAR(20) DEFAULT 'miembro' CHECK (rol IN ('miembro', 'moderador', 'admin')),
-    joined_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    invited_by UUID REFERENCES usuarios(id) ON DELETE SET NULL,
-    UNIQUE(canal_id, usuario_id) -- Un usuario solo puede estar una vez por canal
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(canal_id, usuario_id)
 );
 
 -- ===============================================
--- 5. CREAR ÍNDICES PARA OPTIMIZACIÓN
+-- 2. CREAR ÍNDICES PARA OPTIMIZACIÓN
 -- ===============================================
 
 -- Índices para canales_comunidad
@@ -94,11 +100,11 @@ CREATE INDEX IF NOT EXISTS idx_miembros_canal_id ON miembros_canal(canal_id);
 CREATE INDEX IF NOT EXISTS idx_miembros_usuario_id ON miembros_canal(usuario_id);
 
 -- ===============================================
--- 6. CREAR FUNCIONES ÚTILES
+-- 3. CREAR FUNCIONES PARA GESTIÓN DE CANALES
 -- ===============================================
 
--- Función para obtener canales por comunidad con información de plan
-CREATE OR REPLACE FUNCTION get_canales_por_comunidad(p_community_id VARCHAR)
+-- Función para obtener canales por comunidad (CORREGIDA PARA UUID)
+CREATE OR REPLACE FUNCTION get_canales_por_comunidad(p_community_id UUID)
 RETURNS TABLE (
     id UUID,
     nombre VARCHAR,
@@ -106,39 +112,51 @@ RETURNS TABLE (
     tipo VARCHAR,
     permisos_publicar VARCHAR,
     permisos_comentar VARCHAR,
+    membresia_requerida UUID,
+    plan_nombre VARCHAR,
+    plan_precio DECIMAL,
     activo BOOLEAN,
     orden INTEGER,
-    plan_requerido VARCHAR,
-    plan_precio DECIMAL,
     total_mensajes BIGINT,
-    ultimo_mensaje TIMESTAMP WITH TIME ZONE
+    ultimo_mensaje_fecha TIMESTAMPTZ,
+    created_at TIMESTAMPTZ,
+    updated_at TIMESTAMPTZ
 ) AS $$
 BEGIN
     RETURN QUERY
     SELECT 
-        c.id,
-        c.nombre,
-        c.descripcion,
-        c.tipo,
-        c.permisos_publicar,
-        c.permisos_comentar,
-        c.activo,
-        c.orden,
-        COALESCE(p.nombre, 'Acceso libre') as plan_requerido,
-        p.precio as plan_precio,
-        COUNT(m.id) as total_mensajes,
-        MAX(m.created_at) as ultimo_mensaje
-    FROM canales_comunidad c
-    LEFT JOIN planes_suscripcion p ON c.membresia_requerida = p.id
-    LEFT JOIN mensajes_canal m ON c.id = m.canal_id
-    WHERE c.community_id = p_community_id
-    AND c.activo = true
-    GROUP BY c.id, c.nombre, c.descripcion, c.tipo, c.permisos_publicar, c.permisos_comentar, c.activo, c.orden, p.nombre, p.precio
-    ORDER BY c.orden ASC, c.created_at ASC;
+        cc.id,
+        cc.nombre,
+        cc.descripcion,
+        cc.tipo,
+        cc.permisos_publicar,
+        cc.permisos_comentar,
+        cc.membresia_requerida,
+        ps.nombre as plan_nombre,
+        ps.precio as plan_precio,
+        cc.activo,
+        cc.orden,
+        COALESCE(stats.total_mensajes, 0) as total_mensajes,
+        stats.ultimo_mensaje_fecha,
+        cc.created_at,
+        cc.updated_at
+    FROM canales_comunidad cc
+    LEFT JOIN planes_suscripcion ps ON cc.membresia_requerida = ps.id
+    LEFT JOIN (
+        SELECT 
+            canal_id,
+            COUNT(*) as total_mensajes,
+            MAX(created_at) as ultimo_mensaje_fecha
+        FROM mensajes_canal
+        GROUP BY canal_id
+    ) stats ON cc.id = stats.canal_id
+    WHERE cc.community_id = p_community_id
+    AND cc.activo = true
+    ORDER BY cc.orden ASC, cc.created_at ASC;
 END;
 $$ LANGUAGE plpgsql;
 
--- Función para obtener mensajes de un canal con verificación de permisos
+-- Función para obtener mensajes de un canal con paginación (CORREGIDA PARA UUID)
 CREATE OR REPLACE FUNCTION get_mensajes_canal(
     p_canal_id UUID,
     p_usuario_id UUID,
@@ -152,17 +170,17 @@ RETURNS TABLE (
     archivos JSONB,
     respuesta_a UUID,
     editado BOOLEAN,
-    created_at TIMESTAMP WITH TIME ZONE,
+    created_at TIMESTAMPTZ,
     usuario_id UUID,
     usuario_nombre VARCHAR,
-    usuario_avatar VARCHAR,
+    usuario_avatar TEXT,
     total_reacciones JSONB
 ) AS $$
 DECLARE
     tiene_acceso BOOLEAN := false;
-    canal_community_id VARCHAR;
+    canal_community_id UUID;
     plan_requerido UUID;
-    usuario_community_id VARCHAR;
+    usuario_community_id UUID;
 BEGIN
     -- Verificar si el usuario tiene acceso al canal
     SELECT cc.community_id, cc.membresia_requerida INTO canal_community_id, plan_requerido
@@ -228,16 +246,16 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- Función para verificar si un usuario puede acceder a un canal
+-- Función para verificar si un usuario puede acceder a un canal (CORREGIDA PARA UUID)
 CREATE OR REPLACE FUNCTION usuario_puede_acceder_canal(
     p_usuario_id UUID,
     p_canal_id UUID
 )
 RETURNS BOOLEAN AS $$
 DECLARE
-    canal_community_id VARCHAR;
+    canal_community_id UUID;
     plan_requerido UUID;
-    usuario_community_id VARCHAR;
+    usuario_community_id UUID;
     usuario_rol VARCHAR;
 BEGIN
     -- Obtener datos del canal
@@ -409,49 +427,50 @@ CREATE TRIGGER update_mensajes_canal_updated_at
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 -- ===============================================
--- 10. INSERTAR CANALES POR DEFECTO PARA SCALEXONE
+-- 10. INSERTAR CANALES POR DEFECTO PARA SCALEXONE (CORREGIDO)
 -- ===============================================
 
 -- Buscar si existe la comunidad ScaleXOne y crear canales por defecto
 DO $$
 DECLARE
-    scalexone_community_exists BOOLEAN;
+    scalexone_community_id UUID;
     admin_user_id UUID;
     plan_basico_id UUID;
     plan_pro_id UUID;
 BEGIN
-    -- Verificar si existe ScaleXOne
-    SELECT EXISTS(
-        SELECT 1 FROM usuarios WHERE community_id = 'scalexone' LIMIT 1
-    ) INTO scalexone_community_exists;
+    -- Buscar el UUID real de ScaleXone
+    SELECT c.id INTO scalexone_community_id
+    FROM comunidades c 
+    WHERE c.slug = 'scalexone' 
+    LIMIT 1;
 
     -- Si existe ScaleXOne, crear canales por defecto
-    IF scalexone_community_exists THEN
+    IF scalexone_community_id IS NOT NULL THEN
         -- Buscar un admin de ScaleXOne
-        SELECT id INTO admin_user_id
-        FROM usuarios 
-        WHERE community_id = 'scalexone' 
-        AND rol IN ('admin', 'superadmin') 
+        SELECT u.id INTO admin_user_id
+        FROM usuarios u
+        WHERE u.community_id = scalexone_community_id 
+        AND u.rol IN ('admin', 'superadmin') 
         LIMIT 1;
         
         -- Buscar IDs de planes para restricciones
         SELECT p.id INTO plan_basico_id
         FROM planes_suscripcion p
-        JOIN comunidades c ON p.comunidad_id = c.id
-        WHERE c.slug = 'scalexone' AND p.nombre ILIKE '%básico%'
+        WHERE p.comunidad_id = scalexone_community_id 
+        AND p.nombre ILIKE '%básico%'
         LIMIT 1;
         
         SELECT p.id INTO plan_pro_id
         FROM planes_suscripcion p
-        JOIN comunidades c ON p.comunidad_id = c.id
-        WHERE c.slug = 'scalexone' AND p.nombre ILIKE '%pro%'
+        WHERE p.comunidad_id = scalexone_community_id 
+        AND p.nombre ILIKE '%pro%'
         LIMIT 1;
 
         -- Canal General (acceso libre)
         INSERT INTO canales_comunidad (
             community_id, nombre, descripcion, tipo, orden, created_by
         ) VALUES (
-            'scalexone',
+            scalexone_community_id,
             'general',
             'Canal principal para conversaciones generales de la comunidad ScaleXone',
             'public',
@@ -463,7 +482,7 @@ BEGIN
         INSERT INTO canales_comunidad (
             community_id, nombre, descripcion, tipo, permisos_publicar, permisos_comentar, orden, created_by
         ) VALUES (
-            'scalexone',
+            scalexone_community_id,
             'anuncios',
             'Canal para anuncios importantes y actualizaciones oficiales de ScaleXone',
             'public',
@@ -477,7 +496,7 @@ BEGIN
         INSERT INTO canales_comunidad (
             community_id, nombre, descripcion, tipo, orden, created_by
         ) VALUES (
-            'scalexone',
+            scalexone_community_id,
             'soporte',
             'Canal para obtener ayuda y soporte técnico',
             'public',
@@ -490,7 +509,7 @@ BEGIN
             INSERT INTO canales_comunidad (
                 community_id, nombre, descripcion, tipo, membresia_requerida, orden, created_by
             ) VALUES (
-                'scalexone',
+                scalexone_community_id,
                 'premium',
                 'Canal exclusivo para miembros con plan Pro o superior',
                 'public',
@@ -504,7 +523,7 @@ BEGIN
         INSERT INTO canales_comunidad (
             community_id, nombre, descripcion, tipo, orden, created_by
         ) VALUES (
-            'scalexone',
+            scalexone_community_id,
             'recursos',
             'Compartir recursos, herramientas y materiales útiles para emprendedores',
             'public',
@@ -512,7 +531,7 @@ BEGIN
             admin_user_id
         ) ON CONFLICT DO NOTHING;
 
-        RAISE NOTICE 'Canales por defecto creados para ScaleXone';
+        RAISE NOTICE 'Canales por defecto creados para ScaleXone (ID: %)', scalexone_community_id;
     ELSE
         RAISE NOTICE 'No se encontró la comunidad ScaleXone, no se crearon canales por defecto';
     END IF;
@@ -523,41 +542,54 @@ END $$;
 -- ===============================================
 
 -- Mostrar resumen de lo creado
-SELECT 'RESUMEN DEL SISTEMA DE CANALES SCALEXONE' as resultado;
+SELECT 'SISTEMA DE CANALES COMPLETADO' as resultado;
 
 SELECT 
-    'Tablas creadas' as tipo,
+    'Tablas verificadas/creadas' as tipo,
     COUNT(*) as cantidad
 FROM information_schema.tables 
 WHERE table_name IN ('canales_comunidad', 'mensajes_canal', 'reacciones_mensaje', 'miembros_canal')
 AND table_schema = 'public';
 
 SELECT 
-    'Funciones creadas' as tipo,
+    'Funciones creadas/actualizadas' as tipo,
     COUNT(*) as cantidad
 FROM information_schema.routines 
 WHERE routine_name IN ('get_canales_por_comunidad', 'get_mensajes_canal', 'usuario_puede_acceder_canal')
 AND routine_schema = 'public';
 
+-- Mostrar información de ScaleXone
 SELECT 
-    'Canales ScaleXone creados' as tipo,
+    'Comunidad ScaleXone' as info,
+    c.id as community_id,
+    c.nombre,
+    c.slug
+FROM comunidades c 
+WHERE c.slug = 'scalexone';
+
+SELECT 
+    'Canales ScaleXone' as tipo,
     COUNT(*) as cantidad
-FROM canales_comunidad 
-WHERE community_id = 'scalexone';
+FROM canales_comunidad cc
+JOIN comunidades c ON cc.community_id = c.id
+WHERE c.slug = 'scalexone';
 
 -- Mostrar canales creados con sus restricciones
 SELECT 
-    'CANALES SCALEXONE - CONFIGURACIÓN' as info;
+    'CONFIGURACIÓN CANALES SCALEXONE' as info;
     
 SELECT 
     cc.nombre as canal,
     cc.tipo,
     cc.permisos_publicar,
     COALESCE(ps.nombre, 'Acceso libre') as plan_requerido,
-    ps.precio
+    ps.precio,
+    cc.activo,
+    cc.orden
 FROM canales_comunidad cc
+JOIN comunidades c ON cc.community_id = c.id
 LEFT JOIN planes_suscripcion ps ON cc.membresia_requerida = ps.id
-WHERE cc.community_id = 'scalexone'
+WHERE c.slug = 'scalexone'
 ORDER BY cc.orden;
 
 -- FIN DEL SCRIPT 
