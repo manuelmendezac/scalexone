@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Users, DollarSign, CreditCard, TrendingUp, Calendar, Search, Filter, Plus, Edit, Trash2, CheckCircle, XCircle, AlertCircle, Download, Eye, Pause, Play, UserX } from 'lucide-react';
-import { SuscripcionesAPI, type SuscripcionConDetalles, type PlanSuscripcion, type EstadisticasComunidad } from '../../services/suscripcionesService';
+import { SuscripcionesAPI, type SuscripcionConDetalles, type PlanSuscripcion, type EstadisticasComunidad } from '../../services/suscripcionesServiceV2';
 import useNeuroState from '../../store/useNeuroState';
 import { supabase } from '../../supabase';
 
 const SuscripcionesAdminPanel: React.FC = () => {
   const [suscripciones, setSuscripciones] = useState<SuscripcionConDetalles[]>([]);
   const [planes, setPlanes] = useState<PlanSuscripcion[]>([]);
-  const [estadisticas, setEstadisticas] = useState<EstadisticasOrganizacion | null>(null);
+  const [estadisticas, setEstadisticas] = useState<EstadisticasComunidad | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedTab, setSelectedTab] = useState<'suscripciones' | 'planes' | 'estadisticas'>('suscripciones');
   const [searchTerm, setSearchTerm] = useState('');
@@ -40,7 +40,7 @@ const SuscripcionesAdminPanel: React.FC = () => {
       
       // Usar la nueva función para obtener/crear comunidad
       console.log('Obteniendo o creando comunidad...');
-      const comunidad = await SuscripcionesAPI.inicializarComunidadPorCommunityId(communityId);
+      const comunidad = await SuscripcionesAPI.comunidades.obtenerOCrearComunidadPorCommunityId(communityId);
       
       console.log('Comunidad obtenida/creada exitosamente:', comunidad);
       console.log('Estableciendo comunidadId:', comunidad.id);
@@ -185,8 +185,8 @@ const SuscripcionesAdminPanel: React.FC = () => {
   };
 
   const handleCreatePlan = async (planData: any) => {
-    if (!organizacionId) {
-      setMensaje('Error: Organización no inicializada');
+    if (!comunidadId) {
+      setMensaje('Error: Comunidad no inicializada');
       return;
     }
 
@@ -195,7 +195,7 @@ const SuscripcionesAdminPanel: React.FC = () => {
       
       const nuevoPlan = {
         ...planData,
-        organizacion_id: organizacionId,
+        comunidad_id: comunidadId,
         activo: true,
         orden: planes.length + 1
       };
@@ -256,25 +256,25 @@ const SuscripcionesAdminPanel: React.FC = () => {
 
   // Calcular estadísticas desde los datos locales si no tenemos estadísticas de la BD
   const stats = estadisticas || {
-    organizacion_id: organizacionId || '',
-    organizacion_nombre: 'Mi Organización',
-    total_suscripciones: suscripciones.length,
-    suscripciones_activas: suscripciones.filter(s => s.estado === 'activa').length,
-    ingresos_mensuales: suscripciones
+    comunidad_id: comunidadId || '',
+    comunidad_nombre: 'Mi Comunidad',
+    total_suscriptores: suscripciones.length,
+    suscriptores_activos: suscripciones.filter(s => s.estado === 'activa').length,
+    ingresos_mes_actual: suscripciones
       .filter(s => s.estado === 'activa')
       .reduce((acc, s) => acc + (s.precio_pagado || 0), 0),
-    tasa_retencion: suscripciones.length > 0 
-      ? Math.round((suscripciones.filter(s => s.estado === 'activa').length / suscripciones.length) * 100 * 100) / 100
-      : 0
+    ingresos_totales: suscripciones
+      .reduce((acc, s) => acc + (s.precio_pagado || 0), 0),
+    total_planes: planes.length
   };
 
-  if (loading || !organizacionId) {
+  if (loading || !comunidadId) {
     return (
       <div className="flex-1 p-8 bg-black">
         <div className="w-full bg-gray-900/50 rounded-lg p-6">
           <h1 className="text-3xl font-bold text-yellow-400 mb-4">Portal de Suscripciones</h1>
           <div className="text-white">
-            {!organizacionId ? 'Inicializando organización...' : 'Cargando datos...'}
+            {!comunidadId ? 'Inicializando comunidad...' : 'Cargando datos...'}
           </div>
         </div>
       </div>
@@ -318,7 +318,7 @@ const SuscripcionesAdminPanel: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-gray-400 text-sm">Total Suscripciones</p>
-                <p className="text-2xl font-bold text-white">{stats.total_suscripciones}</p>
+                <p className="text-2xl font-bold text-white">{stats.total_suscriptores}</p>
               </div>
               <Users className="w-8 h-8 text-blue-500" />
             </div>

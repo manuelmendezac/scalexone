@@ -5,7 +5,7 @@ import AdminConfigPanel from '../../components/admin/AdminConfigPanel';
 import CommunitySettingsPanel from '../../components/admin/CommunitySettingsPanel';
 import CursosAdminPanel from '../../components/CursosAdminPanel';
 import MiembrosAdminPanel from '../../components/MiembrosAdminPanel';
-import SuscripcionesAdminPanel from '../../components/admin/SuscripcionesAdminPanel';
+import SuscripcionesAdminPanel from '../../components/admin/SuscripcionesAdminPanelFixed';
 import LoadingScreen from '../../components/LoadingScreen';
 import { useHydration } from '../../store/useNeuroState';
 import { Menu, X } from 'lucide-react';
