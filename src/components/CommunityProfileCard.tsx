@@ -8,6 +8,7 @@ interface CommunityData {
   nombre: string;
   descripcion: string;
   logo_url: string;
+  logo_horizontal_url: string;
   banner_url: string;
   miembros_count: number;
   cursos_count: number;
@@ -218,21 +219,21 @@ const CommunityProfileCard: React.FC = () => {
         )}
 
         {/* Botones de acción */}
-        <div className="flex gap-3 mb-6">
+        <div className="flex gap-2 mb-6">
           {/* Botón de correo de soporte */}
-          <button className="flex-1 bg-neutral-700 hover:bg-neutral-600 text-white py-3 px-4 rounded-xl transition-colors duration-200 flex items-center justify-center gap-2">
-            <Mail size={18} />
-            <span className="text-sm font-medium">Soporte</span>
+          <button className="flex-1 bg-neutral-700 hover:bg-neutral-600 text-white py-2 px-3 rounded-lg transition-colors duration-200 flex items-center justify-center gap-2">
+            <Mail size={16} />
+            <span className="text-xs font-medium">Soporte</span>
           </button>
 
           {/* Botón de compartir enlace de afiliado */}
           <div className="relative">
             <button 
               onClick={() => setShowShareMenu(!showShareMenu)}
-              className="bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-400 hover:to-orange-400 text-black py-3 px-4 rounded-xl transition-all duration-200 flex items-center justify-center gap-2 font-medium shadow-lg"
+              className="bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-400 hover:to-orange-400 text-black py-2 px-3 rounded-lg transition-all duration-200 flex items-center justify-center gap-2 font-medium shadow-lg"
             >
-              <Share2 size={18} />
-              <span className="text-sm">Compartir</span>
+              <Share2 size={16} />
+              <span className="text-xs">Compartir</span>
             </button>
 
             {/* Menú de compartir */}
@@ -297,16 +298,15 @@ const CommunityProfileCard: React.FC = () => {
         <div className="text-center pt-4 border-t border-neutral-700">
           <div className="flex items-center justify-center gap-2">
             <span className="text-gray-500 text-xs">Creado con</span>
-            <img 
-              src="/images/logoneuroclonhorizontal.svg" 
-              alt="ScaleXone" 
-              className="h-4 opacity-60"
-              onError={(e) => {
-                e.currentTarget.style.display = 'none';
-                e.currentTarget.nextElementSibling.textContent = 'ScaleXone';
-              }}
-            />
-            <span className="text-gray-500 text-xs font-medium hidden">ScaleXone</span>
+            {community.logo_horizontal_url ? (
+              <img 
+                src={community.logo_horizontal_url} 
+                alt="ScaleXone" 
+                className="h-4 opacity-60"
+              />
+            ) : (
+              <span className="text-gray-500 text-xs font-medium">ScaleXone</span>
+            )}
           </div>
         </div>
       </div>
