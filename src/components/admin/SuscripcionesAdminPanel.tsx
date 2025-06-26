@@ -1,120 +1,103 @@
 import React, { useState, useEffect } from 'react';
-import { Users, DollarSign, CreditCard, TrendingUp, Calendar, Search, Filter, Plus, Edit, Trash2, CheckCircle, XCircle, AlertCircle, Download, Eye } from 'lucide-react';
-import { supabase } from '../../supabase';
-
-interface Suscripcion {
-  id: string;
-  usuario_id: string;
-  usuario_nombre: string;
-  usuario_email: string;
-  plan: string;
-  precio: number;
-  estado: 'activa' | 'cancelada' | 'pausada' | 'vencida';
-  fecha_inicio: string;
-  fecha_fin: string;
-  metodo_pago: string;
-  renovacion_automatica: boolean;
-  descuento?: number;
-}
-
-interface Plan {
-  id: string;
-  nombre: string;
-  precio: number;
-  duracion_dias: number;
-  descripcion: string;
-  activo: boolean;
-  caracteristicas: string[];
-}
+import { Users, DollarSign, CreditCard, TrendingUp, Calendar, Search, Filter, Plus, Edit, Trash2, CheckCircle, XCircle, AlertCircle, Download, Eye, Pause, Play, UserX } from 'lucide-react';
+import { SuscripcionesAPI, type SuscripcionConDetalles, type PlanSuscripcion, type EstadisticasOrganizacion } from '../../services/suscripcionesService';
+import useNeuroState from '../../store/useNeuroState';
 
 const SuscripcionesAdminPanel: React.FC = () => {
-  const [suscripciones, setSuscripciones] = useState<Suscripcion[]>([]);
-  const [planes, setPlanes] = useState<Plan[]>([]);
+  const [suscripciones, setSuscripciones] = useState<SuscripcionConDetalles[]>([]);
+  const [planes, setPlanes] = useState<PlanSuscripcion[]>([]);
+  const [estadisticas, setEstadisticas] = useState<EstadisticasOrganizacion | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedTab, setSelectedTab] = useState<'suscripciones' | 'planes' | 'estadisticas'>('suscripciones');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedFilter, setSelectedFilter] = useState('todos');
   const [mensaje, setMensaje] = useState('');
   const [showCreatePlan, setShowCreatePlan] = useState(false);
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
 
-  // Mock data inicial
+  const { userInfo } = useNeuroState();
+  
+  // Por ahora usamos el community_id del usuario como organizacion_id
+  const organizacionId = userInfo?.community_id || 'scalexone-default';
+
   useEffect(() => {
-    const mockSuscripciones: Suscripcion[] = [
-      {
-        id: '1',
-        usuario_id: 'user1',
-        usuario_nombre: 'Manuel Méndez',
-        usuario_email: 'manuel@example.com',
-        plan: 'Premium',
-        precio: 29.99,
-        estado: 'activa',
-        fecha_inicio: '2024-01-01',
-        fecha_fin: '2024-02-01',
-        metodo_pago: 'Tarjeta de Crédito',
-        renovacion_automatica: true
-      },
-      {
-        id: '2',
-        usuario_id: 'user2',
-        usuario_nombre: 'MetaLink3',
-        usuario_email: 'metalink3corp@gmail.com',
-        plan: 'Pro',
-        precio: 19.99,
-        estado: 'activa',
-        fecha_inicio: '2024-01-15',
-        fecha_fin: '2024-02-15',
-        metodo_pago: 'PayPal',
-        renovacion_automatica: false
-      },
-      {
-        id: '3',
-        usuario_id: 'user3',
-        usuario_nombre: 'Hospper Inmobiliaria',
-        usuario_email: 'hospper@example.com',
-        plan: 'Basic',
-        precio: 9.99,
-        estado: 'vencida',
-        fecha_inicio: '2023-12-01',
-        fecha_fin: '2024-01-01',
-        metodo_pago: 'Transferencia',
-        renovacion_automatica: false
-      }
-    ];
+    cargarDatos();
+  }, [organizacionId]);
 
-    const mockPlanes: Plan[] = [
-      {
-        id: '1',
-        nombre: 'Basic',
-        precio: 9.99,
-        duracion_dias: 30,
-        descripcion: 'Plan básico con funcionalidades esenciales',
-        activo: true,
-        caracteristicas: ['Acceso a cursos básicos', 'Soporte por email', '5 GB de almacenamiento']
-      },
-      {
-        id: '2',
-        nombre: 'Pro',
-        precio: 19.99,
-        duracion_dias: 30,
-        descripcion: 'Plan profesional con más funcionalidades',
-        activo: true,
-        caracteristicas: ['Todo de Basic', 'Acceso a cursos avanzados', 'Soporte prioritario', '50 GB de almacenamiento', 'Certificaciones']
-      },
-      {
-        id: '3',
-        nombre: 'Premium',
-        precio: 29.99,
-        duracion_dias: 30,
-        descripcion: 'Plan premium con todas las funcionalidades',
-        activo: true,
-        caracteristicas: ['Todo de Pro', 'Acceso completo', 'Soporte 24/7', 'Almacenamiento ilimitado', 'Mentorías 1:1', 'Contenido exclusivo']
-      }
-    ];
+  const cargarDatos = async () => {
+    try {
+      setLoading(true);
+      
+      // Cargar datos en paralelo
+      const [suscripcionesData, planesData, estadisticasData] = await Promise.all([
+        SuscripcionesAPI.suscripciones.obtenerSuscripcionesPorOrganizacion(organizacionId),
+        SuscripcionesAPI.planes.obtenerPlanesPorOrganizacion(organizacionId),
+        SuscripcionesAPI.estadisticas.obtenerEstadisticasOrganizacion(organizacionId)
+      ]);
 
-    setSuscripciones(mockSuscripciones);
-    setPlanes(mockPlanes);
-    setLoading(false);
-  }, []);
+      setSuscripciones(suscripcionesData);
+      setPlanes(planesData);
+      setEstadisticas(estadisticasData);
+      
+    } catch (error: any) {
+      console.error('Error cargando datos:', error);
+      setMensaje('Error al cargar los datos: ' + error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCancelSubscription = async (suscripcionId: string, razon?: string) => {
+    try {
+      setActionLoading(suscripcionId);
+      await SuscripcionesAPI.suscripciones.cancelarSuscripcion(suscripcionId, razon);
+      setMensaje('Suscripción cancelada exitosamente');
+      await cargarDatos(); // Recargar datos
+    } catch (error: any) {
+      setMensaje('Error al cancelar suscripción: ' + error.message);
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handlePauseSubscription = async (suscripcionId: string) => {
+    try {
+      setActionLoading(suscripcionId);
+      await SuscripcionesAPI.suscripciones.pausarSuscripcion(suscripcionId);
+      setMensaje('Suscripción pausada exitosamente');
+      await cargarDatos();
+    } catch (error: any) {
+      setMensaje('Error al pausar suscripción: ' + error.message);
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleResumeSubscription = async (suscripcionId: string) => {
+    try {
+      setActionLoading(suscripcionId);
+      await SuscripcionesAPI.suscripciones.reanudarSuscripcion(suscripcionId);
+      setMensaje('Suscripción reanudada exitosamente');
+      await cargarDatos();
+    } catch (error: any) {
+      setMensaje('Error al reanudar suscripción: ' + error.message);
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleTogglePlanActive = async (planId: string) => {
+    try {
+      setActionLoading(planId);
+      await SuscripcionesAPI.planes.toggleActivoPlan(planId);
+      setMensaje('Estado del plan actualizado');
+      await cargarDatos();
+    } catch (error: any) {
+      setMensaje('Error al actualizar plan: ' + error.message);
+    } finally {
+      setActionLoading(null);
+    }
+  };
 
   const getEstadoIcon = (estado: string) => {
     switch (estado) {
@@ -123,9 +106,11 @@ const SuscripcionesAdminPanel: React.FC = () => {
       case 'cancelada':
         return <XCircle className="w-4 h-4 text-red-500" />;
       case 'pausada':
-        return <AlertCircle className="w-4 h-4 text-yellow-500" />;
+        return <Pause className="w-4 h-4 text-yellow-500" />;
       case 'vencida':
         return <XCircle className="w-4 h-4 text-gray-500" />;
+      case 'trial':
+        return <AlertCircle className="w-4 h-4 text-blue-500" />;
       default:
         return <AlertCircle className="w-4 h-4 text-gray-400" />;
     }
@@ -136,7 +121,8 @@ const SuscripcionesAdminPanel: React.FC = () => {
       activa: 'bg-green-500',
       cancelada: 'bg-red-500',
       pausada: 'bg-yellow-500',
-      vencida: 'bg-gray-500'
+      vencida: 'bg-gray-500',
+      trial: 'bg-blue-500'
     };
     
     return (
@@ -147,27 +133,28 @@ const SuscripcionesAdminPanel: React.FC = () => {
     );
   };
 
-  const calcularEstadisticas = () => {
-    const total = suscripciones.length;
-    const activas = suscripciones.filter(s => s.estado === 'activa').length;
-    const ingresosMensual = suscripciones
-      .filter(s => s.estado === 'activa')
-      .reduce((acc, s) => acc + s.precio, 0);
-    const tasaRetencion = total > 0 ? (activas / total) * 100 : 0;
-
-    return { total, activas, ingresosMensual, tasaRetencion };
-  };
-
-  const stats = calcularEstadisticas();
-
   const filteredSuscripciones = suscripciones.filter(sub => {
     const matchesSearch = sub.usuario_nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          sub.usuario_email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         sub.plan.toLowerCase().includes(searchTerm.toLowerCase());
+                         sub.plan_nombre.toLowerCase().includes(searchTerm.toLowerCase());
     
     if (selectedFilter === 'todos') return matchesSearch;
     return matchesSearch && sub.estado === selectedFilter;
   });
+
+  // Calcular estadísticas desde los datos locales si no tenemos estadísticas de la BD
+  const stats = estadisticas || {
+    organizacion_id: organizacionId,
+    organizacion_nombre: 'Mi Organización',
+    total_suscripciones: suscripciones.length,
+    suscripciones_activas: suscripciones.filter(s => s.estado === 'activa').length,
+    ingresos_mensuales: suscripciones
+      .filter(s => s.estado === 'activa')
+      .reduce((acc, s) => acc + (s.precio_pagado || 0), 0),
+    tasa_retencion: suscripciones.length > 0 
+      ? Math.round((suscripciones.filter(s => s.estado === 'activa').length / suscripciones.length) * 100 * 100) / 100
+      : 0
+  };
 
   if (loading) {
     return (
@@ -210,7 +197,7 @@ const SuscripcionesAdminPanel: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-gray-400 text-sm">Total Suscripciones</p>
-                <p className="text-2xl font-bold text-white">{stats.total}</p>
+                <p className="text-2xl font-bold text-white">{stats.total_suscripciones}</p>
               </div>
               <Users className="w-8 h-8 text-blue-500" />
             </div>
@@ -220,7 +207,7 @@ const SuscripcionesAdminPanel: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-gray-400 text-sm">Suscripciones Activas</p>
-                <p className="text-2xl font-bold text-green-500">{stats.activas}</p>
+                <p className="text-2xl font-bold text-green-500">{stats.suscripciones_activas}</p>
               </div>
               <CheckCircle className="w-8 h-8 text-green-500" />
             </div>
@@ -230,7 +217,7 @@ const SuscripcionesAdminPanel: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-gray-400 text-sm">Ingresos Mensuales</p>
-                <p className="text-2xl font-bold text-yellow-500">${stats.ingresosMensual.toFixed(2)}</p>
+                <p className="text-2xl font-bold text-yellow-500">${stats.ingresos_mensuales.toFixed(2)}</p>
               </div>
               <DollarSign className="w-8 h-8 text-yellow-500" />
             </div>
@@ -240,7 +227,7 @@ const SuscripcionesAdminPanel: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-gray-400 text-sm">Tasa de Retención</p>
-                <p className="text-2xl font-bold text-purple-500">{stats.tasaRetencion.toFixed(1)}%</p>
+                <p className="text-2xl font-bold text-purple-500">{stats.tasa_retencion.toFixed(1)}%</p>
               </div>
               <TrendingUp className="w-8 h-8 text-purple-500" />
             </div>
@@ -296,6 +283,7 @@ const SuscripcionesAdminPanel: React.FC = () => {
                   <option value="cancelada">Canceladas</option>
                   <option value="pausada">Pausadas</option>
                   <option value="vencida">Vencidas</option>
+                  <option value="trial">Trial</option>
                 </select>
               </div>
             </div>
@@ -310,7 +298,7 @@ const SuscripcionesAdminPanel: React.FC = () => {
                     <th className="text-left p-4 text-gray-300">Precio</th>
                     <th className="text-left p-4 text-gray-300">Estado</th>
                     <th className="text-left p-4 text-gray-300">Vencimiento</th>
-                    <th className="text-left p-4 text-gray-300">Método de Pago</th>
+                    <th className="text-left p-4 text-gray-300">Renovación</th>
                     <th className="text-left p-4 text-gray-300">Acciones</th>
                   </tr>
                 </thead>
@@ -325,27 +313,70 @@ const SuscripcionesAdminPanel: React.FC = () => {
                       </td>
                       <td className="p-4">
                         <span className="bg-blue-500 text-white px-2 py-1 rounded text-sm">
-                          {sub.plan}
+                          {sub.plan_nombre}
                         </span>
                       </td>
-                      <td className="p-4 text-white font-medium">${sub.precio}</td>
+                      <td className="p-4 text-white font-medium">${sub.precio_pagado || sub.plan_precio}</td>
                       <td className="p-4">{getEstadoBadge(sub.estado)}</td>
                       <td className="p-4 text-white">{new Date(sub.fecha_fin).toLocaleDateString()}</td>
-                      <td className="p-4 text-gray-300">{sub.metodo_pago}</td>
+                      <td className="p-4">
+                        <span className={`px-2 py-1 rounded text-xs ${sub.renovacion_automatica ? 'bg-green-600 text-white' : 'bg-gray-600 text-white'}`}>
+                          {sub.renovacion_automatica ? 'Automática' : 'Manual'}
+                        </span>
+                      </td>
                       <td className="p-4">
                         <div className="flex gap-2">
-                          <button className="p-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+                          <button 
+                            className="p-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                            title="Ver detalles"
+                          >
                             <Eye size={16} />
                           </button>
-                          <button className="p-2 bg-yellow-500 text-black rounded hover:bg-yellow-600">
-                            <Edit size={16} />
-                          </button>
+                          
+                          {sub.estado === 'activa' && (
+                            <button 
+                              onClick={() => handlePauseSubscription(sub.id)}
+                              disabled={actionLoading === sub.id}
+                              className="p-2 bg-yellow-500 text-black rounded hover:bg-yellow-600 disabled:opacity-50"
+                              title="Pausar suscripción"
+                            >
+                              <Pause size={16} />
+                            </button>
+                          )}
+                          
+                          {sub.estado === 'pausada' && (
+                            <button 
+                              onClick={() => handleResumeSubscription(sub.id)}
+                              disabled={actionLoading === sub.id}
+                              className="p-2 bg-green-500 text-white rounded hover:bg-green-600 disabled:opacity-50"
+                              title="Reanudar suscripción"
+                            >
+                              <Play size={16} />
+                            </button>
+                          )}
+                          
+                          {(sub.estado === 'activa' || sub.estado === 'pausada') && (
+                            <button 
+                              onClick={() => handleCancelSubscription(sub.id, 'Cancelada por administrador')}
+                              disabled={actionLoading === sub.id}
+                              className="p-2 bg-red-500 text-white rounded hover:bg-red-600 disabled:opacity-50"
+                              title="Cancelar suscripción"
+                            >
+                              <UserX size={16} />
+                            </button>
+                          )}
                         </div>
                       </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
+              
+              {filteredSuscripciones.length === 0 && (
+                <div className="p-8 text-center text-gray-400">
+                  No se encontraron suscripciones con los filtros aplicados.
+                </div>
+              )}
             </div>
           </>
         )}
@@ -379,9 +410,19 @@ const SuscripcionesAdminPanel: React.FC = () => {
                 </ul>
                 
                 <div className="flex gap-2">
-                  <button className="flex-1 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
-                    <Edit size={16} className="inline mr-2" />
-                    Editar
+                  <button 
+                    onClick={() => handleTogglePlanActive(plan.id)}
+                    disabled={actionLoading === plan.id}
+                    className={`flex-1 px-4 py-2 rounded font-medium transition-colors disabled:opacity-50 ${
+                      plan.activo 
+                        ? 'bg-gray-600 text-white hover:bg-gray-700' 
+                        : 'bg-green-600 text-white hover:bg-green-700'
+                    }`}
+                  >
+                    {plan.activo ? 'Desactivar' : 'Activar'}
+                  </button>
+                  <button className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+                    <Edit size={16} />
                   </button>
                   <button className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">
                     <Trash2 size={16} />
@@ -389,6 +430,12 @@ const SuscripcionesAdminPanel: React.FC = () => {
                 </div>
               </div>
             ))}
+            
+            {planes.length === 0 && (
+              <div className="col-span-full p-8 text-center text-gray-400">
+                No hay planes creados aún. ¡Crea tu primer plan!
+              </div>
+            )}
           </div>
         )}
 
@@ -396,9 +443,34 @@ const SuscripcionesAdminPanel: React.FC = () => {
           <div className="space-y-6">
             <div className="bg-gray-800 rounded-lg p-6">
               <h3 className="text-xl font-bold text-white mb-4">Resumen Financiero</h3>
-              <div className="text-gray-300">
-                <p>Funcionalidad de estadísticas en desarrollo...</p>
-                <p>Aquí se mostrarán gráficos y métricas detalladas.</p>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-blue-400">{stats.total_suscripciones}</div>
+                  <div className="text-sm text-gray-400">Total Suscripciones</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-green-400">{stats.suscripciones_activas}</div>
+                  <div className="text-sm text-gray-400">Activas</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-yellow-400">${stats.ingresos_mensuales.toFixed(2)}</div>
+                  <div className="text-sm text-gray-400">Ingresos Mensuales</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-purple-400">{stats.tasa_retencion.toFixed(1)}%</div>
+                  <div className="text-sm text-gray-400">Tasa de Retención</div>
+                </div>
+              </div>
+            </div>
+            
+            <div className="bg-gray-800 rounded-lg p-6">
+              <h3 className="text-xl font-bold text-white mb-4">Próximas Funcionalidades</h3>
+              <div className="text-gray-300 space-y-2">
+                <p>• Gráficos de ingresos por mes</p>
+                <p>• Análisis de churn rate</p>
+                <p>• Comparación entre planes</p>
+                <p>• Predicción de ingresos</p>
+                <p>• Métricas de lifetime value</p>
               </div>
             </div>
           </div>
@@ -406,8 +478,14 @@ const SuscripcionesAdminPanel: React.FC = () => {
 
         {/* Mensajes */}
         {mensaje && (
-          <div className="fixed bottom-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg">
+          <div className="fixed bottom-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg z-50">
             {mensaje}
+            <button 
+              onClick={() => setMensaje('')}
+              className="ml-2 text-white hover:text-gray-200"
+            >
+              ×
+            </button>
           </div>
         )}
       </div>
