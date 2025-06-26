@@ -1,5 +1,5 @@
 import React from 'react';
-import { Home, Settings, BarChart2, Tv, Users, Calendar, MessageSquare, Briefcase, DollarSign, List, CreditCard, Activity, Menu, Image, Wallet, UserCheck } from 'lucide-react';
+import { Home, Settings, BarChart2, Tv, Users, Calendar, MessageSquare, Briefcase, DollarSign, List, CreditCard, Activity, Menu, Image, Wallet, UserCheck, ShoppingBag } from 'lucide-react';
 
 interface AdminSidebarProps {
   selected: string;
@@ -17,6 +17,7 @@ export const menuItems = [
     { key: 'events', label: 'Eventos', icon: <Calendar size={20} />, section: 'general' },
     { key: 'chats', label: 'Chats', icon: <MessageSquare size={20} />, section: 'general' },
     { key: 'affiliates', label: 'Afiliados', icon: <Briefcase size={20} />, section: 'general' },
+    { key: 'marketplace-cursos', label: 'Cursos Marketplace', icon: <ShoppingBag size={20} />, section: 'contenido' },
     { key: 'subscriptions', label: 'Suscripciones', icon: <UserCheck size={20} />, section: 'finanzas' },
     { key: 'payments', label: 'Métodos de Cobro', icon: <DollarSign size={20} />, section: 'finanzas' },
     { key: 'salesHistory', label: 'Historial de Ventas', icon: <List size={20} />, section: 'finanzas' },
@@ -26,6 +27,7 @@ export const menuItems = [
 
 const AdminSidebar: React.FC<AdminSidebarProps> = ({ selected, onSelect }) => {
   const generalItems = menuItems.filter(item => item.section === 'general' && item.key !== 'banners');
+  const contenidoItems = menuItems.filter(item => item.section === 'contenido');
   const finanzasItems = menuItems.filter(item => item.section === 'finanzas');
 
   return (
@@ -51,6 +53,31 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ selected, onSelect }) => {
               <span>{item.label}</span>
             </button>
           ))}
+          
+          {/* Separador y título de Contenido */}
+          <div className="pt-4 mt-4 border-t border-gray-700">
+            <div className="flex items-center mb-3">
+              <ShoppingBag className="w-5 h-5 text-cyan-400 mr-2" />
+              <h2 className="text-sm font-semibold text-cyan-400 uppercase tracking-wide">Contenido</h2>
+            </div>
+            
+            {/* Sección Contenido */}
+            {contenidoItems.map(item => (
+              <button
+                key={item.key}
+                onClick={() => onSelect(item.key)}
+                className={`w-full flex items-center p-3 rounded-md transition-colors text-left mb-1
+                  ${selected === item.key 
+                    ? 'bg-cyan-500 text-black font-bold' 
+                    : 'bg-gray-800 text-white hover:bg-gray-700'
+                  }`
+                }
+              >
+                <div className="mr-3">{item.icon}</div>
+                <span>{item.label}</span>
+              </button>
+            ))}
+          </div>
           
           {/* Separador y título de Finanzas */}
           <div className="pt-4 mt-4 border-t border-gray-700">
