@@ -406,10 +406,10 @@ const defaultButtons = [
   { key: 'launchpad', nombre: 'Launchpad', ruta: '/launchpad', icon: '🚀' },
   { key: 'clasificacion', nombre: 'Clasificación', ruta: '/clasificacion', icon: '📊' },
   { key: 'embudos', nombre: 'Embudos', ruta: '/funnels', icon: '🫧' },
-  { key: 'ia', nombre: 'IA', ruta: '/ia', icon: '🤖' },
+  { key: 'marketplace', nombre: 'Marketplace', ruta: '/marketplace', icon: '🛒' },
   { key: 'automatizaciones', nombre: 'Automatizaciones', ruta: '/automatizaciones', icon: '⚙️' },
   { key: 'whatsappcrm', nombre: 'WhatsApp CRM', ruta: '/whatsapp-crm', icon: '💬' },
-  { key: 'configuracion', nombre: 'Configuración', ruta: '/configuracion', icon: '🔧' },
+  { key: 'configuracion', nombre: 'Configuración', ruta: '/configuracion-admin', icon: '🔧' },
 ];
 
 function isConfigObject(obj: any): obj is { barra_scroll_desktop: any[]; barra_scroll_movil: any[]; barra_inferior_movil: any[] } {

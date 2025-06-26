@@ -30,7 +30,7 @@ values ('default', '[
   {"id": "launchpad", "label": "Launchpad", "icon": "🚀", "path": "/launchpad", "visible": true, "orden": 5},
   {"id": "comunidad", "label": "Comunidad", "icon": "👥", "path": "/comunidad", "visible": true, "orden": 6},
   {"id": "funnels", "label": "Embudos", "icon": "🫧", "path": "/funnels", "visible": true, "orden": 7},
-  {"id": "ia", "label": "IA", "icon": "🤖", "path": "/ia", "visible": true, "orden": 8},
+  {"id": "marketplace", "label": "Marketplace", "icon": "🛒", "path": "/marketplace", "visible": true, "orden": 8},
   {"id": "automatizaciones", "label": "Automatizaciones", "icon": "⚙️", "path": "/automatizaciones", "visible": true, "orden": 9},
   {"id": "whatsapp-crm", "label": "WhatsApp CRM", "icon": "💬", "path": "/whatsapp-crm", "visible": true, "orden": 10},
   {"id": "configuracion", "label": "Configuración", "icon": "🔧", "path": "/configuracion", "visible": true, "orden": 11}
