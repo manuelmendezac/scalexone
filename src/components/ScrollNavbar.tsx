@@ -40,7 +40,7 @@ const ScrollNavbar: React.FC = () => {
       { key: 'launchpad', nombre: 'Launchpad', ruta: '/launchpad', icon: <Rocket size={16} />, visible: true },
       { key: 'comunidad', nombre: 'Comunidad', ruta: '/comunidad', icon: <Users size={16} />, visible: true },
       { key: 'embudos', nombre: 'Embudos', ruta: '/funnels', icon: '🫧', visible: true },
-      { key: 'ia', nombre: 'IA', ruta: '/ia', icon: '🤖', visible: true },
+      { key: 'marketplace', nombre: 'Marketplace', ruta: '/marketplace', icon: '🛒', visible: true },
       { key: 'automatizaciones', nombre: 'Automatizaciones', ruta: '/automatizaciones', icon: '⚙️', visible: true },
       { key: 'whatsappcrm', nombre: 'WhatsApp CRM', ruta: '/whatsapp-crm', icon: '💬', visible: true },
       { key: 'configuracion', nombre: 'Configuración', ruta: '/configuracion-admin', icon: <Settings size={16} />, visible: true },

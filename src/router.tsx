@@ -51,6 +51,7 @@ const ConfiguracionProyecto = lazy(() => import('./components/ConfiguracionProye
 const CursoDetalle = lazy(() => import('./pages/cursos/id'));
 const ModuloDetalle = lazy(() => import('./pages/cursos/modulo'));
 const ModulosCurso = lazy(() => import('./pages/cursos/modulos'));
+const Marketplace = lazy(() => import('./pages/marketplace'));
 
 const SuspenseWrapper = ({ children }: { children: React.ReactNode }) => (
   <Suspense fallback={<div />}>
@@ -90,6 +91,7 @@ export const router = createBrowserRouter([
       },
       { path: 'launchpad', element: <SuspenseWrapper><Launchpad /></SuspenseWrapper> },
       { path: 'comunidad', element: <SuspenseWrapper><ComunidadPage /></SuspenseWrapper> },
+      { path: 'marketplace', element: <SuspenseWrapper><Marketplace /></SuspenseWrapper> },
       { path: 'configuracion-admin', element: <SuspenseWrapper><AdminSettingsPage /></SuspenseWrapper> },
       { path: 'console', element: <div style={{color: 'white', fontSize: 32, textAlign: 'center', marginTop: 40}}>Test Console</div> },
       { path: 'focus', element: <SuspenseWrapper><FocusMode /></SuspenseWrapper> },

@@ -19,7 +19,7 @@ const SecondNavbar: React.FC = () => {
     { key: 'launchpad', label: 'Launchpad', to: '/launchpad', visible: true },
     { key: 'comunidad', label: 'Comunidad', to: '/comunidad', visible: true },
     { key: 'embudos', label: 'Embudos', to: '/funnels', visible: true },
-    { key: 'ia', label: 'IA', to: '/ia', visible: true },
+    { key: 'marketplace', label: 'Marketplace', to: '/marketplace', visible: true },
     { key: 'automatizaciones', label: 'Automatizaciones', to: '/automatizaciones', visible: true },
     { key: 'whatsappcrm', label: 'WhatsApp CRM', to: '/whatsapp-crm', visible: true },
     { key: 'configuracion', label: 'Configuración', to: '/configuracion-admin', visible: true },
