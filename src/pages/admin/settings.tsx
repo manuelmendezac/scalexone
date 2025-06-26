@@ -4,6 +4,7 @@ import AdminSidebar, { menuItems } from '../../components/admin/AdminSidebar';
 import AdminConfigPanel from '../../components/admin/AdminConfigPanel';
 import CommunitySettingsPanel from '../../components/admin/CommunitySettingsPanel';
 import CursosAdminPanel from '../../components/CursosAdminPanel';
+import MiembrosAdminPanel from '../../components/MiembrosAdminPanel';
 import LoadingScreen from '../../components/LoadingScreen';
 import { useHydration } from '../../store/useNeuroState';
 import { Menu, X } from 'lucide-react';
@@ -12,115 +13,164 @@ import ConfiguracionProyecto from '../../components/ConfiguracionProyecto';
 import AdminCanalesPanel from '../../components/AdminCanalesPanel';
 
 export default function AdminSettingsPage() {
-  const [selectedItem, setSelectedItem] = useState('welcome');
+  const [selectedItem, setSelectedItem] = useState('community');
   const [loading, setLoading] = useState(true);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const isHydrated = useHydration();
   const { userInfo } = useNeuroState();
 
   useEffect(() => {
+    console.log('AdminSettingsPage mounted');
+    console.log('isHydrated:', isHydrated);
+    console.log('userInfo:', userInfo);
+    console.log('selectedItem:', selectedItem);
+    
     if (isHydrated) {
       setLoading(false);
     }
-  }, [isHydrated]);
+  }, [isHydrated, userInfo, selectedItem]);
   
   const isAdmin = userInfo?.rol === 'admin' || userInfo?.rol === 'superadmin';
 
   const handleSelect = (key: string) => {
+    console.log('Selected item changed to:', key);
     setSelectedItem(key);
-    setIsMobileMenuOpen(false); // Cierra el menú móvil al seleccionar
+    setIsMobileMenuOpen(false);
+    setError(null);
   };
 
+  const renderContent = () => {
+    console.log('Rendering content for:', selectedItem);
+    
+    try {
+      switch (selectedItem) {
+        case 'welcome':
+          return <AdminConfigPanel selected='welcome' />;
+        case 'community':
+          return <CommunitySettingsPanel />;
+        case 'mainMenu':
+          return <ConfiguracionProyecto />;
+        case 'levels':
+          return <AdminConfigPanel selected='levels' />;
+        case 'channels':
+          return <AdminCanalesPanel />;
+        case 'members':
+        case 'miembros':
+          console.log('Rendering MiembrosAdminPanel');
+          return <MiembrosAdminPanel />;
+        default:
+          return (
+            <div className="w-full p-8">
+              <div className="bg-gray-900/50 rounded-lg p-6">
+                <h2 className="text-2xl font-bold text-yellow-500 mb-4">
+                  {selectedItem}
+                </h2>
+                <div className="text-white">
+                  Contenido para {selectedItem} (en desarrollo)
+                </div>
+              </div>
+            </div>
+          );
+      }
+    } catch (err: any) {
+      console.error('Error rendering content:', err);
+      setError(err.message);
+      return (
+        <div className="w-full p-8">
+          <div className="bg-red-900/50 rounded-lg p-6 border border-red-500">
+            <h2 className="text-2xl font-bold text-red-500 mb-4">Error</h2>
+            <div className="text-white">
+              Error al cargar el contenido: {err.message}
+            </div>
+          </div>
+        </div>
+      );
+    }
+  };
+
+  if (loading) {
+    return <LoadingScreen />;
+  }
+
   return (
-    <div className="bg-black min-h-screen text-white">
-      {/* Botón de Menú Flotante para Móvil (Solo Admins) */}
+    <div className="min-h-screen bg-black text-white">
+      {/* Header móvil con hamburger menu (Solo Admins) */}
       {isAdmin && (
-        <motion.div
-          drag
-          dragConstraints={{
-            top: -250,
-            left: -250,
-            right: 250,
-            bottom: 250,
-          }}
-          className="lg:hidden fixed bottom-6 right-6 z-50 cursor-grab active:cursor-grabbing"
-        >
+        <div className="lg:hidden bg-gray-900/50 p-4 flex justify-between items-center">
+          <h1 className="text-xl font-bold text-yellow-500">Panel Admin</h1>
           <button
-            onClick={() => setIsMobileMenuOpen(true)}
-            className="bg-yellow-500 text-black w-16 h-16 rounded-full flex items-center justify-center shadow-lg transform hover:scale-110 transition-transform"
-            aria-label="Abrir menú"
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            className="text-yellow-500 hover:text-yellow-400"
           >
-            <Menu size={32} />
+            {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
-        </motion.div>
+        </div>
       )}
 
-      {/* Menú Deslizante para Móvil (Solo se puede abrir si el botón es visible) */}
+      {/* Menú móvil (Solo Admins) */}
       <AnimatePresence>
-        {isMobileMenuOpen && (
-          <>
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.3 }}
-              className="fixed inset-0 bg-black/60 z-40 lg:hidden"
-              onClick={() => setIsMobileMenuOpen(false)}
-            />
-            <motion.div
-              initial={{ x: '-100%' }}
-              animate={{ x: 0 }}
-              exit={{ x: '-100%' }}
-              transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-              className="fixed top-0 left-0 h-full w-72 bg-gray-900 p-4 z-50 lg:hidden"
-            >
-              <div className="flex items-center justify-between pb-4 mb-4 border-b border-gray-800">
-                <h1 className="text-xl font-bold text-yellow-500">Panel Admin</h1>
-                <button onClick={() => setIsMobileMenuOpen(false)} className="text-gray-400 hover:text-white">
-                  <X size={24} />
+        {isMobileMenuOpen && isAdmin && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            className="lg:hidden bg-gray-900/50 border-b border-gray-800"
+          >
+            <div className="p-4 space-y-2">
+              {menuItems.filter(item => item.key !== 'banners').map(item => (
+                <button
+                  key={item.key}
+                  onClick={() => handleSelect(item.key)}
+                  className={`w-full flex items-center p-3 rounded-md transition-colors text-left
+                    ${selectedItem === item.key 
+                      ? 'bg-yellow-500 text-black font-bold' 
+                      : 'bg-gray-800 text-white hover:bg-gray-700'
+                    }`
+                  }
+                >
+                  <div className="mr-3">{item.icon}</div>
+                  <span>{item.label}</span>
                 </button>
-              </div>
-              <nav className="flex-1 space-y-1 overflow-y-auto">
-                {menuItems.map(item => (
-                  <button
-                    key={item.key}
-                    onClick={() => handleSelect(item.key)}
-                    className={`w-full flex items-center p-3 rounded-md transition-colors text-left
-                      ${selectedItem === item.key 
-                        ? 'bg-yellow-500 text-black font-bold' 
-                        : 'bg-transparent text-white hover:bg-gray-700'
-                      }`
-                    }
-                  >
-                    <div className="mr-3">{item.icon}</div>
-                    <span>{item.label}</span>
-                  </button>
-                ))}
-              </nav>
-            </motion.div>
-          </>
+              ))}
+            </div>
+          </motion.div>
         )}
       </AnimatePresence>
 
-      <div className="flex flex-row space-x-0 lg:space-x-8 p-4 lg:p-8">
+      <div className="flex w-full">
         {/* Sidebar para Escritorio (Solo Admins) */}
         {isAdmin && (
           <AdminSidebar 
             selected={selectedItem} 
-            onSelect={setSelectedItem} 
+            onSelect={handleSelect} 
           />
         )}
         
         {/* Contenido Principal */}
-        <div className="flex-1 w-full">
-          {/* El perfil es visible para todos */}
-          {selectedItem === 'welcome' && <AdminConfigPanel selected='welcome' />}
+        <div className="flex-1 min-h-screen">
+          {error && (
+            <div className="p-4">
+              <div className="bg-red-900/50 rounded-lg p-4 border border-red-500 text-red-300">
+                Error: {error}
+              </div>
+            </div>
+          )}
           
-          {/* El resto de paneles son solo para admins */}
-          {isAdmin && selectedItem === 'community' && <CommunitySettingsPanel />}
-          {isAdmin && selectedItem === 'mainMenu' && <ConfiguracionProyecto />}
-          {isAdmin && selectedItem === 'levels' && <AdminConfigPanel selected='levels' />}
-          {isAdmin && selectedItem === 'channels' && <AdminCanalesPanel />}
+          {!isAdmin && selectedItem !== 'welcome' ? (
+            <div className="p-8">
+              <div className="bg-gray-900/50 rounded-lg p-6">
+                <h2 className="text-2xl font-bold text-yellow-500 mb-4">
+                  Acceso Restringido
+                </h2>
+                <div className="text-white">
+                  Solo los administradores pueden acceder a esta sección.
+                </div>
+              </div>
+            </div>
+          ) : (
+            renderContent()
+          )}
         </div>
       </div>
     </div>
