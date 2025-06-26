@@ -269,7 +269,7 @@ CREATE OR REPLACE VIEW vista_suscripciones_activas AS
 SELECT 
     s.id,
     s.usuario_id,
-    u.nombre as usuario_nombre,
+    u.name as usuario_nombre,
     u.email as usuario_email,
     s.organizacion_id,
     o.nombre as organizacion_nombre,
