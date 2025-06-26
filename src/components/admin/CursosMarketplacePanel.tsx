@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Plus, Edit, Trash2, Upload, Eye, EyeOff, Save, X } from 'lucide-react';
+import { Plus, Edit, Trash2, Upload, Eye, EyeOff, Save, X, GraduationCap } from 'lucide-react';
 import { supabase } from '../../supabase';
-import useNeuroState from '../../store/useNeuroState';
 
 interface Curso {
   id: string;
@@ -19,13 +18,13 @@ interface Curso {
 }
 
 const CursosMarketplacePanel: React.FC = () => {
-  const { userInfo } = useNeuroState();
   const [cursos, setCursos] = useState<Curso[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingCurso, setEditingCurso] = useState<Curso | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const [formData, setFormData] = useState<Partial<Curso>>({
     titulo: '',
@@ -39,75 +38,52 @@ const CursosMarketplacePanel: React.FC = () => {
     orden: 0
   });
 
-  const isAdmin = userInfo?.rol === 'admin' || userInfo?.rol === 'superadmin';
-
   useEffect(() => {
-    if (isAdmin) {
-      cargarCursos();
-    }
-  }, [isAdmin]);
+    cargarCursos();
+  }, []);
 
   const cargarCursos = async () => {
     setLoading(true);
+    setError(null);
     try {
       const { data, error } = await supabase
         .from('cursos')
         .select('*')
         .order('orden', { ascending: true });
 
-      if (error) throw error;
-      setCursos(data || []);
-    } catch (error) {
+      if (error) {
+        console.error('Error cargando cursos:', error);
+        setError(`Error al cargar cursos: ${error.message}`);
+        setCursos([]);
+      } else {
+        setCursos(data || []);
+      }
+    } catch (error: any) {
       console.error('Error cargando cursos:', error);
-      alert('Error al cargar los cursos');
+      setError(`Error inesperado: ${error.message}`);
+      setCursos([]);
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!e.target.files || e.target.files.length === 0) return;
-    
-    const file = e.target.files[0];
-    setUploadingImage(true);
-
-    try {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `curso_${Date.now()}_${Math.random().toString(36).substring(2)}.${fileExt}`;
-      
-      const { error: uploadError } = await supabase.storage
-        .from('cursos')
-        .upload(fileName, file, { upsert: true });
-
-      if (uploadError) throw uploadError;
-
-      const { data: urlData } = supabase.storage
-        .from('cursos')
-        .getPublicUrl(fileName);
-
-      setFormData({ ...formData, imagen_url: urlData.publicUrl });
-    } catch (error) {
-      console.error('Error subiendo imagen:', error);
-      alert('Error al subir la imagen');
-    } finally {
-      setUploadingImage(false);
     }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
+    setError(null);
 
     try {
+      const cursoData = {
+        ...formData,
+        nombre: formData.titulo, // Para compatibilidad
+        imagen: formData.imagen_url // Para compatibilidad
+      };
+
       if (editingCurso) {
         // Actualizar curso existente
         const { error } = await supabase
           .from('cursos')
-          .update({
-            ...formData,
-            nombre: formData.titulo, // Para compatibilidad
-            imagen: formData.imagen_url // Para compatibilidad
-          })
+          .update(cursoData)
           .eq('id', editingCurso.id);
 
         if (error) throw error;
@@ -115,11 +91,7 @@ const CursosMarketplacePanel: React.FC = () => {
         // Crear nuevo curso
         const { error } = await supabase
           .from('cursos')
-          .insert([{
-            ...formData,
-            nombre: formData.titulo, // Para compatibilidad
-            imagen: formData.imagen_url // Para compatibilidad
-          }]);
+          .insert([cursoData]);
 
         if (error) throw error;
       }
@@ -127,9 +99,9 @@ const CursosMarketplacePanel: React.FC = () => {
       await cargarCursos();
       resetForm();
       alert(editingCurso ? 'Curso actualizado exitosamente' : 'Curso creado exitosamente');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error guardando curso:', error);
-      alert('Error al guardar el curso');
+      setError(`Error al guardar: ${error.message}`);
     } finally {
       setSaving(false);
     }
@@ -154,9 +126,9 @@ const CursosMarketplacePanel: React.FC = () => {
 
       await cargarCursos();
       alert('Curso eliminado exitosamente');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error eliminando curso:', error);
-      alert('Error al eliminar el curso');
+      setError(`Error al eliminar: ${error.message}`);
     }
   };
 
@@ -170,9 +142,9 @@ const CursosMarketplacePanel: React.FC = () => {
       if (error) throw error;
 
       await cargarCursos();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error actualizando estado:', error);
-      alert('Error al actualizar el estado del curso');
+      setError(`Error al actualizar estado: ${error.message}`);
     }
   };
 
@@ -190,42 +162,89 @@ const CursosMarketplacePanel: React.FC = () => {
       community_id: 'default',
       orden: 0
     });
+    setError(null);
   };
 
-  if (!isAdmin) {
-    return (
-      <div className="bg-red-900/20 border border-red-500/20 rounded-lg p-6">
-        <h3 className="text-red-400 font-bold text-lg mb-2">Acceso Denegado</h3>
-        <p className="text-gray-300">No tienes permisos para gestionar cursos del marketplace.</p>
-      </div>
-    );
-  }
+  const crearCursoEjemplo = async () => {
+    const cursoEjemplo = {
+      titulo: 'Curso de Ejemplo',
+      descripcion: 'Este es un curso de ejemplo para probar el marketplace. Puedes editarlo o eliminarlo.',
+      precio: 99.99,
+      instructor: 'ScaleXone Academy',
+      duracion_horas: 10,
+      nivel: 'Principiante' as const,
+      activo: true,
+      community_id: 'default',
+      orden: 1,
+      nombre: 'Curso de Ejemplo',
+      imagen: null
+    };
+
+    try {
+      const { error } = await supabase
+        .from('cursos')
+        .insert([cursoEjemplo]);
+
+      if (error) throw error;
+
+      await cargarCursos();
+      alert('Curso de ejemplo creado exitosamente');
+    } catch (error: any) {
+      console.error('Error creando curso ejemplo:', error);
+      setError(`Error al crear curso ejemplo: ${error.message}`);
+    }
+  };
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-12">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-cyan-400"></div>
-        <span className="ml-3 text-gray-300">Cargando cursos...</span>
+      <div className="p-6">
+        <div className="flex items-center justify-center py-12">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-cyan-400"></div>
+          <span className="ml-3 text-gray-300">Cargando cursos...</span>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
+    <div className="p-6 space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold text-white mb-2">Gestión de Cursos - Marketplace</h2>
           <p className="text-gray-400">Administra los cursos disponibles en el marketplace</p>
         </div>
-        <button
-          onClick={() => setShowForm(true)}
-          className="flex items-center gap-2 bg-cyan-600 hover:bg-cyan-700 text-white px-4 py-2 rounded-lg font-semibold transition-colors"
-        >
-          <Plus size={20} />
-          Nuevo Curso
-        </button>
+        <div className="flex gap-3">
+          <button
+            onClick={crearCursoEjemplo}
+            className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg font-semibold transition-colors"
+          >
+            <GraduationCap size={20} />
+            Curso Ejemplo
+          </button>
+          <button
+            onClick={() => setShowForm(true)}
+            className="flex items-center gap-2 bg-cyan-600 hover:bg-cyan-700 text-white px-4 py-2 rounded-lg font-semibold transition-colors"
+          >
+            <Plus size={20} />
+            Nuevo Curso
+          </button>
+        </div>
       </div>
+
+      {/* Error Message */}
+      {error && (
+        <div className="bg-red-900/20 border border-red-500/20 rounded-lg p-4">
+          <h3 className="text-red-400 font-bold mb-2">Error</h3>
+          <p className="text-gray-300">{error}</p>
+          <button
+            onClick={() => setError(null)}
+            className="mt-2 text-red-400 hover:text-red-300 text-sm underline"
+          >
+            Cerrar
+          </button>
+        </div>
+      )}
 
       {/* Formulario */}
       {showForm && (
@@ -324,33 +343,6 @@ const CursosMarketplacePanel: React.FC = () => {
               />
             </div>
 
-            <div>
-              <label className="block text-gray-300 mb-2">Imagen del Curso</label>
-              <div className="flex items-center gap-4">
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleImageUpload}
-                  className="hidden"
-                  id="image-upload"
-                />
-                <label
-                  htmlFor="image-upload"
-                  className="flex items-center gap-2 bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg cursor-pointer transition-colors"
-                >
-                  <Upload size={16} />
-                  {uploadingImage ? 'Subiendo...' : 'Subir Imagen'}
-                </label>
-                {formData.imagen_url && (
-                  <img
-                    src={formData.imagen_url}
-                    alt="Preview"
-                    className="w-16 h-16 object-cover rounded-lg"
-                  />
-                )}
-              </div>
-            </div>
-
             <div className="flex items-center gap-4">
               <label className="flex items-center gap-2 text-gray-300">
                 <input
@@ -395,7 +387,7 @@ const CursosMarketplacePanel: React.FC = () => {
           >
             {/* Imagen */}
             <div className="relative mb-4">
-              <div className="w-full h-32 bg-gray-800 rounded-lg overflow-hidden">
+              <div className="w-full h-32 bg-gray-800 rounded-lg overflow-hidden flex items-center justify-center">
                 {curso.imagen_url ? (
                   <img
                     src={curso.imagen_url}
@@ -403,9 +395,7 @@ const CursosMarketplacePanel: React.FC = () => {
                     className="w-full h-full object-cover"
                   />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center text-gray-400">
-                    Sin imagen
-                  </div>
+                  <GraduationCap size={32} className="text-cyan-400" />
                 )}
               </div>
               <div className="absolute top-2 right-2 flex gap-1">
@@ -470,17 +460,27 @@ const CursosMarketplacePanel: React.FC = () => {
         ))}
       </div>
 
-      {cursos.length === 0 && (
+      {cursos.length === 0 && !loading && (
         <div className="text-center py-12">
           <div className="text-6xl mb-4">📚</div>
           <h3 className="text-xl font-semibold text-gray-300 mb-2">No hay cursos</h3>
-          <p className="text-gray-400 mb-4">Crea tu primer curso para el marketplace</p>
-          <button
-            onClick={() => setShowForm(true)}
-            className="bg-cyan-600 hover:bg-cyan-700 text-white px-6 py-2 rounded-lg font-semibold transition-colors"
-          >
-            Crear Primer Curso
-          </button>
+          <p className="text-gray-400 mb-4">
+            La tabla 'cursos' está vacía o no existe. Puedes:
+          </p>
+          <div className="flex justify-center gap-4">
+            <button
+              onClick={crearCursoEjemplo}
+              className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-lg font-semibold transition-colors"
+            >
+              Crear Curso de Ejemplo
+            </button>
+            <button
+              onClick={() => setShowForm(true)}
+              className="bg-cyan-600 hover:bg-cyan-700 text-white px-6 py-2 rounded-lg font-semibold transition-colors"
+            >
+              Crear Primer Curso
+            </button>
+          </div>
         </div>
       )}
     </div>
