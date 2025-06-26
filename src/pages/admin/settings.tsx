@@ -5,6 +5,7 @@ import AdminConfigPanel from '../../components/admin/AdminConfigPanel';
 import CommunitySettingsPanel from '../../components/admin/CommunitySettingsPanel';
 import CursosAdminPanel from '../../components/CursosAdminPanel';
 import MiembrosAdminPanel from '../../components/MiembrosAdminPanel';
+import SuscripcionesAdminPanel from '../../components/admin/SuscripcionesAdminPanel';
 import LoadingScreen from '../../components/LoadingScreen';
 import { useHydration } from '../../store/useNeuroState';
 import { Menu, X } from 'lucide-react';
@@ -59,6 +60,9 @@ export default function AdminSettingsPage() {
         case 'miembros':
           console.log('Rendering MiembrosAdminPanel');
           return <MiembrosAdminPanel />;
+        case 'subscriptions':
+          console.log('Rendering SuscripcionesAdminPanel');
+          return <SuscripcionesAdminPanel />;
         default:
           return (
             <div className="w-full p-8">
@@ -118,7 +122,8 @@ export default function AdminSettingsPage() {
             className="lg:hidden bg-gray-900/50 border-b border-gray-800"
           >
             <div className="p-4 space-y-2">
-              {menuItems.filter(item => item.key !== 'banners').map(item => (
+              {/* Sección General */}
+              {menuItems.filter(item => item.section === 'general' && item.key !== 'banners').map(item => (
                 <button
                   key={item.key}
                   onClick={() => handleSelect(item.key)}
@@ -133,6 +138,30 @@ export default function AdminSettingsPage() {
                   <span>{item.label}</span>
                 </button>
               ))}
+              
+              {/* Separador y título de Finanzas */}
+              <div className="pt-2 mt-2 border-t border-gray-700">
+                <div className="text-xs font-semibold text-yellow-400 uppercase tracking-wide mb-2 px-3">
+                  Finanzas
+                </div>
+                
+                {/* Sección Finanzas */}
+                {menuItems.filter(item => item.section === 'finanzas').map(item => (
+                  <button
+                    key={item.key}
+                    onClick={() => handleSelect(item.key)}
+                    className={`w-full flex items-center p-3 rounded-md transition-colors text-left
+                      ${selectedItem === item.key 
+                        ? 'bg-yellow-500 text-black font-bold' 
+                        : 'bg-gray-800 text-white hover:bg-gray-700'
+                      }`
+                    }
+                  >
+                    <div className="mr-3">{item.icon}</div>
+                    <span>{item.label}</span>
+                  </button>
+                ))}
+              </div>
             </div>
           </motion.div>
         )}
