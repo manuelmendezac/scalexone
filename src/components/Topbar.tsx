@@ -143,7 +143,7 @@ const Topbar: React.FC<TopbarProps> = ({
 
   useEffect(() => {
     const fetchCommunityData = async () => {
-      if (!userInfo.id) {
+      if (!userInfo?.community_id) {
         return;
       }
 
@@ -151,7 +151,7 @@ const Topbar: React.FC<TopbarProps> = ({
         const { data, error } = await supabase
           .from('comunidades')
           .select('*')
-          .eq('owner_id', userInfo.id)
+          .eq('slug', userInfo.community_id)
           .single();
 
         if (error && error.code !== 'PGRST116') {
@@ -166,10 +166,10 @@ const Topbar: React.FC<TopbarProps> = ({
       }
     };
 
-    if (userInfo.id) {
+    if (userInfo?.community_id) {
         fetchCommunityData();
     }
-  }, [userInfo.id]);
+  }, [userInfo?.community_id]);
 
   return (
     <header className="w-full text-white font-orbitron px-2 sm:px-4 py-1 sm:py-2 flex items-center justify-between shadow-lg z-50 border-b border-cyan-900 min-h-[44px]" style={{ background: '#000' }}>

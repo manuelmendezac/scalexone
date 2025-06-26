@@ -1,16 +1,58 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import CognitiveProfile from './CognitiveProfile';
 import useNeuroState from '../store/useNeuroState';
 import { BarChart2, Settings } from 'lucide-react';
+import { supabase } from '../supabase';
+
+interface Community {
+  id: string;
+  nombre: string;
+  descripcion: string;
+  logo_url: string;
+  banner_url: string;
+  is_public: boolean;
+  logo_horizontal_url?: string;
+}
 
 const Header = () => {
   const [showProfile, setShowProfile] = useState(false);
-  const { userName, avatarUrl } = useNeuroState();
+  const [community, setCommunity] = useState<Community | null>(null);
+  const { userName, avatarUrl, userInfo } = useNeuroState();
 
   const navLinks = [
     { name: 'Clasificación', href: '/clasificacion', icon: <BarChart2 size={16} /> },
     { name: 'Configuración', href: '/admin/settings', icon: <Settings size={16} /> },
   ];
+
+  useEffect(() => {
+    const fetchCommunityData = async () => {
+      if (!userInfo?.community_id) {
+        return;
+      }
+
+      try {
+        const { data, error } = await supabase
+          .from('comunidades')
+          .select('*')
+          .eq('slug', userInfo.community_id)
+          .single();
+
+        if (error && error.code !== 'PGRST116') {
+          throw error;
+        }
+
+        if (data) {
+          setCommunity(data);
+        }
+      } catch (error) {
+        console.error('Error fetching community logo for header:', error);
+      }
+    };
+
+    if (userInfo?.community_id) {
+        fetchCommunityData();
+    }
+  }, [userInfo?.community_id]);
 
   return (
     <>
@@ -18,7 +60,13 @@ const Header = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
-              <img src="/images/logoneuroclonhorizontal.svg" alt="Logo" className="h-10 w-auto object-contain" />
+              {community?.logo_horizontal_url ? (
+                <img src={community.logo_horizontal_url} alt="Logo Horizontal Comunidad" className="h-10 w-auto object-contain" />
+              ) : community?.logo_url ? (
+                <img src={community.logo_url} alt="Logo Comunidad" className="h-10 w-10 rounded-full object-cover" />
+              ) : (
+                <img src="/images/logoneuroclonhorizontal.svg" alt="NeuroLink Logo" className="h-10 w-auto object-contain" />
+              )}
             </div>
             
             <div className="flex items-center space-x-4">
