@@ -161,9 +161,56 @@ const SuscripcionesAdminPanel: React.FC = () => {
         comunidad_id: comunidadId
       };
 
-      await SuscripcionesAPI.Planes.crearPlan(planData);
+      // Crear el plan de suscripción
+      const planCreado = await SuscripcionesAPI.Planes.crearPlan(planData);
       
-      setMensaje('Plan creado exitosamente');
+      // 🔥 INTEGRACIÓN: Automáticamente agregar al marketplace de servicios
+      try {
+        const servicioMarketplace = {
+          id: crypto.randomUUID(),
+          titulo: `Suscripción ${nuevoPlan.nombre}`,
+          descripcion: nuevoPlan.descripcion || `Plan de suscripción ${nuevoPlan.nombre} con acceso completo a la plataforma`,
+          precio: parseFloat(nuevoPlan.precio),
+          imagen_url: 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=500&h=300&fit=crop', // Imagen por defecto para suscripciones
+          proveedor: 'ScaleXone',
+          categoria: 'Suscripciones',
+          rating: 4.8,
+          reviews: 0,
+          activo: nuevoPlan.activo,
+          // Campos de afiliación - Automáticamente habilitados para suscripciones
+          afilible: true,
+          niveles_comision: 1, // Por defecto 1 nivel para suscripciones
+          comision_nivel1: 30, // 30% de comisión por defecto para suscripciones
+          comision_nivel2: 0,
+          comision_nivel3: 0,
+          fecha_afiliacion: new Date().toISOString(),
+          community_id: comunidadId,
+          // Metadatos específicos de suscripción
+          tipo_producto: 'suscripcion',
+          plan_suscripcion_id: planCreado.id, // Vinculación con el plan original
+          duracion_dias: calcularDuracionDias(),
+          caracteristicas: nuevoPlan.caracteristicas,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        };
+
+        // Insertar en la tabla servicios_marketplace
+        const { error: marketplaceError } = await supabase
+          .from('servicios_marketplace')
+          .insert(servicioMarketplace);
+
+        if (marketplaceError) {
+          console.error('Error agregando al marketplace:', marketplaceError);
+          // No fallar todo el proceso si esto falla
+          setMensaje(`Plan creado exitosamente. Advertencia: No se pudo agregar automáticamente al marketplace: ${marketplaceError.message}`);
+        } else {
+          setMensaje('✅ Plan creado y agregado automáticamente al marketplace para afiliados');
+        }
+      } catch (marketplaceError: any) {
+        console.error('Error en integración marketplace:', marketplaceError);
+        setMensaje(`Plan creado exitosamente. Advertencia: Error en integración marketplace: ${marketplaceError.message}`);
+      }
+      
       setShowCreatePlan(false);
       setNuevoPlan({
         nombre: '',
