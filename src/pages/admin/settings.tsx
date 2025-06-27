@@ -14,6 +14,7 @@ import ConfiguracionProyecto from '../../components/ConfiguracionProyecto';
 import AdminCanalesPanel from '../../components/AdminCanalesPanel';
 import CursosMarketplacePanel from '../../components/admin/CursosMarketplacePanel';
 import ServiciosMarketplacePanel from '../../components/admin/ServiciosMarketplacePanel';
+import ConfigComisionesPanel from '../../components/admin/ConfigComisionesPanel';
 
 export default function AdminSettingsPage() {
   const [selectedItem, setSelectedItem] = useState('community');
@@ -65,6 +66,9 @@ export default function AdminSettingsPage() {
         case 'subscriptions':
           console.log('Rendering SuscripcionesAdminPanel');
           return <SuscripcionesAdminPanel />;
+        case 'config-comisiones':
+          console.log('Rendering ConfigComisionesPanel');
+          return <ConfigComisionesPanel />;
         case 'marketplace-cursos':
           console.log('Rendering CursosMarketplacePanel');
           return <CursosMarketplacePanel />;
