@@ -18,6 +18,12 @@ interface Curso {
   categoria?: string;
   rating?: number;
   estudiantes?: number;
+  // Campos de afiliación
+  afilible?: boolean;
+  niveles_comision?: number;
+  comision_nivel1?: number;
+  comision_nivel2?: number;
+  comision_nivel3?: number;
 }
 
 const CursosMarketplacePanel: React.FC = () => {
@@ -41,7 +47,13 @@ const CursosMarketplacePanel: React.FC = () => {
     orden: 0,
     categoria: 'Curso',
     rating: 4.8,
-    estudiantes: 0
+    estudiantes: 0,
+    // Campos de afiliación por defecto
+    afilible: false,
+    niveles_comision: 1,
+    comision_nivel1: 0,
+    comision_nivel2: 0,
+    comision_nivel3: 0
   });
 
   useEffect(() => {
@@ -53,7 +65,7 @@ const CursosMarketplacePanel: React.FC = () => {
     setError(null);
     try {
       const { data, error } = await supabase
-        .from('cursos_marketplace')
+        .from('cursos')
         .select('*')
         .order('orden', { ascending: true });
 
@@ -121,13 +133,19 @@ const CursosMarketplacePanel: React.FC = () => {
         orden: formData.orden || 0,
         categoria: formData.categoria || 'Curso',
         rating: formData.rating || 4.8,
-        estudiantes: formData.estudiantes || 0
+        estudiantes: formData.estudiantes || 0,
+        // Campos de afiliación
+        afilible: formData.afilible || false,
+        niveles_comision: formData.niveles_comision || 1,
+        comision_nivel1: formData.comision_nivel1 || 0,
+        comision_nivel2: formData.comision_nivel2 || 0,
+        comision_nivel3: formData.comision_nivel3 || 0
       };
 
       if (editingCurso) {
         // Actualizar curso existente
         const { error } = await supabase
-          .from('cursos_marketplace')
+          .from('cursos')
           .update(cursoData)
           .eq('id', editingCurso.id);
 
@@ -135,7 +153,7 @@ const CursosMarketplacePanel: React.FC = () => {
       } else {
         // Crear nuevo curso - agregar campo activo solo al crear
         const { error } = await supabase
-          .from('cursos_marketplace')
+          .from('cursos')
           .insert([{
             ...cursoData,
             activo: true
@@ -166,7 +184,7 @@ const CursosMarketplacePanel: React.FC = () => {
 
     try {
       const { error } = await supabase
-        .from('cursos_marketplace')
+        .from('cursos')
         .delete()
         .eq('id', curso.id);
 
@@ -183,7 +201,7 @@ const CursosMarketplacePanel: React.FC = () => {
   const toggleActivo = async (curso: Curso) => {
     try {
       const { error } = await supabase
-        .from('cursos_marketplace')
+        .from('cursos')
         .update({ activo: !curso.activo })
         .eq('id', curso.id);
 
@@ -215,7 +233,13 @@ const CursosMarketplacePanel: React.FC = () => {
       orden: 0,
       categoria: 'Curso',
       rating: 4.8,
-      estudiantes: 0
+      estudiantes: 0,
+      // Campos de afiliación por defecto
+      afilible: false,
+      niveles_comision: 1,
+      comision_nivel1: 0,
+      comision_nivel2: 0,
+      comision_nivel3: 0
     });
     setError(null);
   };
@@ -238,7 +262,7 @@ const CursosMarketplacePanel: React.FC = () => {
 
     try {
       const { error } = await supabase
-        .from('cursos_marketplace')
+        .from('cursos')
         .insert([cursoEjemplo]);
 
       if (error) throw error;
@@ -476,6 +500,122 @@ const CursosMarketplacePanel: React.FC = () => {
               </div>
             </div>
 
+            {/* Sección de Configuración de Afiliación */}
+            <div className="bg-yellow-900/20 border border-yellow-500/30 rounded-lg p-4">
+              <h4 className="text-yellow-400 font-bold text-lg mb-4 flex items-center gap-2">
+                💰 Configuración de Afiliación
+              </h4>
+              
+              <div className="space-y-4">
+                {/* Activar/Desactivar afiliación */}
+                <div className="flex items-center gap-3">
+                  <input
+                    type="checkbox"
+                    id="afilible"
+                    checked={formData.afilible || false}
+                    onChange={(e) => setFormData({ ...formData, afilible: e.target.checked })}
+                    className="w-4 h-4 text-yellow-600 bg-gray-800 border-gray-600 rounded focus:ring-yellow-500"
+                  />
+                  <label htmlFor="afilible" className="text-gray-300 font-medium">
+                    Disponible para afiliación
+                  </label>
+                </div>
+
+                {/* Configuración solo si está habilitada */}
+                {formData.afilible && (
+                  <div className="space-y-4">
+                    {/* Selector de niveles */}
+                    <div>
+                      <label className="block text-gray-300 mb-2">Sistema de Comisiones</label>
+                      <select
+                        value={formData.niveles_comision || 1}
+                        onChange={(e) => setFormData({ 
+                          ...formData, 
+                          niveles_comision: parseInt(e.target.value),
+                          // Resetear niveles no usados
+                          comision_nivel2: parseInt(e.target.value) < 2 ? 0 : formData.comision_nivel2,
+                          comision_nivel3: parseInt(e.target.value) < 3 ? 0 : formData.comision_nivel3
+                        })}
+                        className="w-full bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-yellow-400"
+                      >
+                        <option value={1}>Un solo nivel (Afiliado directo)</option>
+                        <option value={3}>Tres niveles (Red de afiliados)</option>
+                      </select>
+                    </div>
+
+                    {/* Porcentajes de comisión */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      {/* Nivel 1 */}
+                      <div>
+                        <label className="block text-gray-300 mb-2">
+                          Nivel 1 (%) <span className="text-yellow-400">*</span>
+                        </label>
+                        <input
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          max="100"
+                          value={formData.comision_nivel1 || 0}
+                          onChange={(e) => setFormData({ ...formData, comision_nivel1: parseFloat(e.target.value) || 0 })}
+                          className="w-full bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-yellow-400"
+                          placeholder="Ej: 25"
+                        />
+                        <p className="text-xs text-gray-400 mt-1">Afiliado directo</p>
+                      </div>
+
+                      {/* Nivel 2 */}
+                      <div className={formData.niveles_comision === 1 ? 'opacity-50' : ''}>
+                        <label className="block text-gray-300 mb-2">Nivel 2 (%)</label>
+                        <input
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          max="100"
+                          value={formData.comision_nivel2 || 0}
+                          onChange={(e) => setFormData({ ...formData, comision_nivel2: parseFloat(e.target.value) || 0 })}
+                          className="w-full bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-yellow-400"
+                          placeholder="Ej: 15"
+                          disabled={formData.niveles_comision === 1}
+                        />
+                        <p className="text-xs text-gray-400 mt-1">Quien refirió al afiliado</p>
+                      </div>
+
+                      {/* Nivel 3 */}
+                      <div className={formData.niveles_comision === 1 ? 'opacity-50' : ''}>
+                        <label className="block text-gray-300 mb-2">Nivel 3 (%)</label>
+                        <input
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          max="100"
+                          value={formData.comision_nivel3 || 0}
+                          onChange={(e) => setFormData({ ...formData, comision_nivel3: parseFloat(e.target.value) || 0 })}
+                          className="w-full bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-yellow-400"
+                          placeholder="Ej: 10"
+                          disabled={formData.niveles_comision === 1}
+                        />
+                        <p className="text-xs text-gray-400 mt-1">Nivel superior en la red</p>
+                      </div>
+                    </div>
+
+                    {/* Información adicional */}
+                    <div className="bg-yellow-900/10 border border-yellow-500/20 rounded-lg p-3">
+                      <p className="text-yellow-300 text-sm">
+                        <strong>💡 Información:</strong> Los partners podrán solicitar afiliación a este curso. 
+                        Una vez aprobados, podrán generar enlaces únicos y ganar comisiones por cada venta.
+                      </p>
+                      {formData.niveles_comision === 3 && (
+                        <p className="text-yellow-300 text-sm mt-2">
+                          <strong>🌐 Red multinivel:</strong> Los afiliados también ganarán comisiones por las ventas 
+                          de sus referidos, creando una red de afiliados.
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
             <div className="flex gap-3 pt-4">
               <button
                 type="submit"
@@ -600,7 +740,7 @@ const CursosMarketplacePanel: React.FC = () => {
           <div className="text-6xl mb-4">🛒</div>
           <h3 className="text-xl font-semibold text-gray-300 mb-2">No hay cursos en el marketplace</h3>
           <p className="text-gray-400 mb-4">
-            La tabla 'cursos_marketplace' está vacía. Puedes:
+            La tabla 'cursos' está vacía. Puedes:
           </p>
           <div className="flex justify-center gap-4">
             <button
