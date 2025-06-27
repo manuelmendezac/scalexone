@@ -15,6 +15,9 @@ interface Curso {
   activo: boolean;
   community_id: string;
   orden: number;
+  categoria?: string;
+  rating?: number;
+  estudiantes?: number;
 }
 
 const CursosMarketplacePanel: React.FC = () => {
@@ -35,7 +38,10 @@ const CursosMarketplacePanel: React.FC = () => {
     nivel: 'Principiante',
     activo: true,
     community_id: 'default',
-    orden: 0
+    orden: 0,
+    categoria: 'Curso',
+    rating: 4.8,
+    estudiantes: 0
   });
 
   useEffect(() => {
@@ -47,7 +53,7 @@ const CursosMarketplacePanel: React.FC = () => {
     setError(null);
     try {
       const { data, error } = await supabase
-        .from('cursos')
+        .from('cursos_marketplace')
         .select('*')
         .order('orden', { ascending: true });
 
@@ -67,30 +73,31 @@ const CursosMarketplacePanel: React.FC = () => {
     }
   };
 
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!e.target.files || e.target.files.length === 0) return;
-    
-    const file = e.target.files[0];
-    setUploadingImage(true);
-
+  const uploadImage = async (file: File): Promise<string | null> => {
     try {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `curso_${Date.now()}_${Math.random().toString(36).substring(2)}.${fileExt}`;
+      setUploadingImage(true);
       
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Math.random()}.${fileExt}`;
+      const filePath = `${fileName}`;
+
       const { error: uploadError } = await supabase.storage
-        .from('cursos')
-        .upload(fileName, file, { upsert: true });
+        .from('cursos-marketplace')
+        .upload(filePath, file);
 
-      if (uploadError) throw uploadError;
+      if (uploadError) {
+        throw uploadError;
+      }
 
-      const { data: urlData } = supabase.storage
-        .from('cursos')
-        .getPublicUrl(fileName);
+      const { data } = supabase.storage
+        .from('cursos-marketplace')
+        .getPublicUrl(filePath);
 
-      setFormData({ ...formData, imagen_url: urlData.publicUrl });
+      return data.publicUrl;
     } catch (error: any) {
       console.error('Error subiendo imagen:', error);
       setError(`Error al subir imagen: ${error.message}`);
+      return null;
     } finally {
       setUploadingImage(false);
     }
@@ -112,15 +119,15 @@ const CursosMarketplacePanel: React.FC = () => {
         nivel: formData.nivel,
         community_id: formData.community_id || 'default',
         orden: formData.orden || 0,
-        // Campos de compatibilidad
-        nombre: formData.titulo,
-        imagen: formData.imagen_url
+        categoria: formData.categoria || 'Curso',
+        rating: formData.rating || 4.8,
+        estudiantes: formData.estudiantes || 0
       };
 
       if (editingCurso) {
         // Actualizar curso existente
         const { error } = await supabase
-          .from('cursos')
+          .from('cursos_marketplace')
           .update(cursoData)
           .eq('id', editingCurso.id);
 
@@ -128,7 +135,7 @@ const CursosMarketplacePanel: React.FC = () => {
       } else {
         // Crear nuevo curso - agregar campo activo solo al crear
         const { error } = await supabase
-          .from('cursos')
+          .from('cursos_marketplace')
           .insert([{
             ...cursoData,
             activo: true
@@ -159,7 +166,7 @@ const CursosMarketplacePanel: React.FC = () => {
 
     try {
       const { error } = await supabase
-        .from('cursos')
+        .from('cursos_marketplace')
         .delete()
         .eq('id', curso.id);
 
@@ -175,14 +182,12 @@ const CursosMarketplacePanel: React.FC = () => {
 
   const toggleActivo = async (curso: Curso) => {
     try {
-      // Intentar actualizar solo el campo activo si existe
       const { error } = await supabase
-        .from('cursos')
+        .from('cursos_marketplace')
         .update({ activo: !curso.activo })
         .eq('id', curso.id);
 
       if (error) {
-        // Si falla, mostrar error pero continuar
         console.error('Error actualizando estado activo:', error);
         setError(`No se puede cambiar el estado: ${error.message}`);
         return;
@@ -207,29 +212,33 @@ const CursosMarketplacePanel: React.FC = () => {
       nivel: 'Principiante',
       activo: true,
       community_id: 'default',
-      orden: 0
+      orden: 0,
+      categoria: 'Curso',
+      rating: 4.8,
+      estudiantes: 0
     });
     setError(null);
   };
 
   const crearCursoEjemplo = async () => {
     const cursoEjemplo = {
-      titulo: 'Curso de Ejemplo',
-      descripcion: 'Este es un curso de ejemplo para probar el marketplace. Puedes editarlo o eliminarlo.',
+      titulo: 'Curso de Ejemplo - Marketplace',
+      descripcion: 'Este es un curso de ejemplo para el marketplace de ventas. Puedes editarlo o eliminarlo.',
       precio: 99.99,
       instructor: 'ScaleXone Academy',
       duracion_horas: 10,
       nivel: 'Principiante' as const,
       activo: true,
       community_id: 'default',
-      orden: 1,
-      nombre: 'Curso de Ejemplo',
-      imagen: null
+      orden: 999,
+      categoria: 'Curso',
+      rating: 4.8,
+      estudiantes: 25
     };
 
     try {
       const { error } = await supabase
-        .from('cursos')
+        .from('cursos_marketplace')
         .insert([cursoEjemplo]);
 
       if (error) throw error;
@@ -247,7 +256,7 @@ const CursosMarketplacePanel: React.FC = () => {
       <div className="p-6">
         <div className="flex items-center justify-center py-12">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-cyan-400"></div>
-          <span className="ml-3 text-gray-300">Cargando cursos...</span>
+          <span className="ml-3 text-gray-300">Cargando cursos del marketplace...</span>
         </div>
       </div>
     );
@@ -259,7 +268,7 @@ const CursosMarketplacePanel: React.FC = () => {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold text-white mb-2">Gestión de Cursos - Marketplace</h2>
-          <p className="text-gray-400">Administra los cursos disponibles en el marketplace</p>
+          <p className="text-gray-400">Administra los cursos disponibles en el marketplace independiente</p>
         </div>
         <div className="flex gap-3">
           <button
@@ -378,6 +387,29 @@ const CursosMarketplacePanel: React.FC = () => {
                   className="w-full bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-cyan-400"
                 />
               </div>
+
+              <div>
+                <label className="block text-gray-300 mb-2">Rating</label>
+                <input
+                  type="number"
+                  step="0.1"
+                  min="0"
+                  max="5"
+                  value={formData.rating}
+                  onChange={(e) => setFormData({ ...formData, rating: parseFloat(e.target.value) || 4.8 })}
+                  className="w-full bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-cyan-400"
+                />
+              </div>
+
+              <div>
+                <label className="block text-gray-300 mb-2">Estudiantes</label>
+                <input
+                  type="number"
+                  value={formData.estudiantes}
+                  onChange={(e) => setFormData({ ...formData, estudiantes: parseInt(e.target.value) || 0 })}
+                  className="w-full bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-cyan-400"
+                />
+              </div>
             </div>
 
             <div>
@@ -393,51 +425,74 @@ const CursosMarketplacePanel: React.FC = () => {
             {/* Campo de imagen */}
             <div>
               <label className="block text-gray-300 mb-2">Imagen del Curso</label>
-              <div className="flex items-center gap-4">
+              <div className="space-y-3">
                 <input
                   type="file"
                   accept="image/*"
-                  onChange={handleImageUpload}
-                  className="hidden"
-                  id="image-upload"
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      const imageUrl = await uploadImage(file);
+                      if (imageUrl) {
+                        setFormData({ ...formData, imagen_url: imageUrl });
+                      }
+                    }
+                  }}
+                  className="w-full bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-cyan-400"
+                  disabled={uploadingImage}
                 />
-                <label
-                  htmlFor="image-upload"
-                  className="flex items-center gap-2 bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg cursor-pointer transition-colors"
-                >
-                  <Upload size={16} />
-                  {uploadingImage ? 'Subiendo...' : 'Subir Imagen'}
-                </label>
+                
+                {uploadingImage && (
+                  <div className="flex items-center gap-2 text-cyan-400">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-cyan-400"></div>
+                    <span className="text-sm">Subiendo imagen...</span>
+                  </div>
+                )}
+
                 {formData.imagen_url && (
-                  <div className="flex items-center gap-2">
+                  <div className="relative">
                     <img
                       src={formData.imagen_url}
                       alt="Preview"
-                      className="w-16 h-16 object-cover rounded-lg"
+                      className="w-full h-32 object-cover rounded-lg"
                     />
                     <button
                       type="button"
                       onClick={() => setFormData({ ...formData, imagen_url: '' })}
-                      className="text-red-400 hover:text-red-300 text-sm"
+                      className="absolute top-2 right-2 bg-red-600 hover:bg-red-700 text-white p-1 rounded-full transition-colors"
                     >
-                      Quitar
+                      <X size={16} />
                     </button>
                   </div>
                 )}
+
+                <input
+                  type="url"
+                  placeholder="O pega una URL de imagen"
+                  value={formData.imagen_url || ''}
+                  onChange={(e) => setFormData({ ...formData, imagen_url: e.target.value })}
+                  className="w-full bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-cyan-400"
+                />
               </div>
-              <p className="text-gray-500 text-sm mt-1">
-                Recomendado: 500x300px, formato JPG/PNG
-              </p>
             </div>
 
-            <div className="flex items-center gap-4 pt-4">
+            <div className="flex gap-3 pt-4">
               <button
                 type="submit"
-                disabled={saving}
-                className="flex items-center gap-2 bg-cyan-600 hover:bg-cyan-700 disabled:opacity-50 text-white px-6 py-2 rounded-lg font-semibold transition-colors"
+                disabled={saving || uploadingImage}
+                className="flex items-center gap-2 bg-cyan-600 hover:bg-cyan-700 disabled:bg-gray-600 text-white px-6 py-2 rounded-lg font-semibold transition-colors"
               >
-                <Save size={16} />
-                {saving ? 'Guardando...' : 'Guardar Curso'}
+                {saving ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    Guardando...
+                  </>
+                ) : (
+                  <>
+                    <Save size={20} />
+                    {editingCurso ? 'Actualizar' : 'Crear'} Curso
+                  </>
+                )}
               </button>
               <button
                 type="button"
@@ -451,7 +506,7 @@ const CursosMarketplacePanel: React.FC = () => {
         </motion.div>
       )}
 
-      {/* Lista de Cursos */}
+      {/* Lista de cursos */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {cursos.map((curso) => (
           <motion.div
@@ -499,8 +554,13 @@ const CursosMarketplacePanel: React.FC = () => {
               </div>
             </div>
 
-            <div className="text-gray-400 text-sm mb-4">
-              Por: {curso.instructor}
+            <div className="flex items-center justify-between mb-4">
+              <div className="text-gray-400 text-sm">
+                Por: {curso.instructor}
+              </div>
+              <div className="text-yellow-400 text-sm">
+                ⭐ {curso.rating} ({curso.estudiantes})
+              </div>
             </div>
 
             {/* Acciones */}
@@ -537,10 +597,10 @@ const CursosMarketplacePanel: React.FC = () => {
 
       {cursos.length === 0 && !loading && (
         <div className="text-center py-12">
-          <div className="text-6xl mb-4">📚</div>
-          <h3 className="text-xl font-semibold text-gray-300 mb-2">No hay cursos</h3>
+          <div className="text-6xl mb-4">🛒</div>
+          <h3 className="text-xl font-semibold text-gray-300 mb-2">No hay cursos en el marketplace</h3>
           <p className="text-gray-400 mb-4">
-            La tabla 'cursos' está vacía o no existe. Puedes:
+            La tabla 'cursos_marketplace' está vacía. Puedes:
           </p>
           <div className="flex justify-center gap-4">
             <button
