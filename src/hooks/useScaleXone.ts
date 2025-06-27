@@ -70,11 +70,11 @@ export const useScaleXone = () => {
           postsResult,
           topUsersResult
         ] = await Promise.all([
-          // Contar miembros (usando string community_id)
+          // Contar miembros (usando UUID)
           supabase
             .from('usuarios')
             .select('*', { count: 'exact', head: true })
-            .eq('community_id', 'scalexone'),
+            .eq('community_id', communityUUID),
           
           // Obtener canales activos (usando UUID)
           supabase.rpc('get_canales_por_comunidad', {
@@ -87,11 +87,11 @@ export const useScaleXone = () => {
             .select('*', { count: 'exact', head: true })
             .eq('community_id', communityUUID),
           
-          // Top usuarios por nivel
+          // Top usuarios por nivel (usando UUID)
           supabase
             .from('usuarios')
             .select('id, nombre, avatar_url, nivel_usuario')
-            .eq('community_id', 'scalexone')
+            .eq('community_id', communityUUID)
             .order('nivel_usuario', { ascending: false })
             .limit(4)
         ]);

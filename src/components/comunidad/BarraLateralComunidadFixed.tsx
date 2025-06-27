@@ -95,10 +95,12 @@ const BarraLateralComunidad = () => {
   // Función para obtener miembros recientes
   const fetchRecentMembers = async () => {
     try {
+      // Usar el UUID correcto de ScaleXone
+      const communityUUID = await getCommunityUUID();
       const { data, error } = await supabase
         .from('usuarios')
         .select('id, nombre, avatar_url, nivel_usuario')
-        .eq('community_id', 'scalexone')
+        .eq('community_id', communityUUID || '8fb70d6e-3237-465e-8669-979461cf2bc1')
         .order('created_at', { ascending: false })
         .limit(4);
 
