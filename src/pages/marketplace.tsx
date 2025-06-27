@@ -29,6 +29,8 @@ interface Servicio {
   categoria: string;
   rating: number;
   reviews: number;
+  tipo_producto?: 'servicio' | 'suscripcion';
+  duracion_dias?: number;
 }
 
 const Marketplace: React.FC = () => {
@@ -39,7 +41,7 @@ const Marketplace: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState('Todos');
   const [sortBy, setSortBy] = useState('popularidad');
 
-  const categorias = ['Todos', 'Cursos', 'Servicios', 'Productos Físicos', 'Propiedades'];
+  const categorias = ['Todos', 'Cursos', 'Servicios', 'Software & SaaS', 'Productos Físicos', 'Propiedades'];
 
   useEffect(() => {
     cargarDatos();
@@ -130,7 +132,9 @@ const Marketplace: React.FC = () => {
           proveedor: servicio.proveedor || 'ScaleXone',
           categoria: servicio.categoria || 'Servicios',
           rating: servicio.rating || 4.8,
-          reviews: servicio.reviews || 0
+          reviews: servicio.reviews || 0,
+          tipo_producto: servicio.tipo_producto || 'servicio',
+          duracion_dias: servicio.duracion_dias
         }));
         setServicios(serviciosFormateados);
       }
@@ -150,7 +154,15 @@ const Marketplace: React.FC = () => {
     }
     
     if (selectedCategory === 'Todos' || selectedCategory === 'Servicios') {
-      items = [...items, ...servicios];
+      // Solo servicios tradicionales (no suscripciones)
+      const serviciosTradicionales = servicios.filter(s => s.tipo_producto !== 'suscripcion');
+      items = [...items, ...serviciosTradicionales];
+    }
+
+    if (selectedCategory === 'Todos' || selectedCategory === 'Software & SaaS') {
+      // Solo suscripciones y software
+      const suscripciones = servicios.filter(s => s.tipo_producto === 'suscripcion');
+      items = [...items, ...suscripciones];
     }
 
     // Filtrar por búsqueda
@@ -265,85 +277,118 @@ const Marketplace: React.FC = () => {
     </motion.div>
   );
 
-  const renderServicioCard = (servicio: Servicio) => (
-    <motion.div
-      key={servicio.id}
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      whileHover={{ y: -5, scale: 1.02 }}
-      transition={{ duration: 0.3 }}
-      className="bg-gray-900/50 rounded-xl border border-purple-500/20 hover:border-purple-400/40 transition-all group cursor-pointer overflow-hidden"
-    >
-      {/* Imagen horizontal tipo Netflix/Instagram */}
-      <div className="relative">
-        <div className="w-full h-48 bg-gray-800 relative overflow-hidden">
-          {servicio.imagen_url ? (
-            <img 
-              src={servicio.imagen_url} 
-              alt={servicio.titulo} 
-              className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-            />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-purple-900/30 to-pink-900/30">
-              <Briefcase size={48} className="text-purple-400" />
-            </div>
-          )}
-          
-          {/* Badge de Servicio */}
-          <div className="absolute top-3 left-3">
-            <span className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg">
-              SERVICIO
-            </span>
-          </div>
-          
-          {/* Rating */}
-          <div className="absolute top-3 right-3">
-            <div className="bg-black/70 backdrop-blur-sm rounded-full px-2 py-1 flex items-center gap-1">
-              <Star className="w-3 h-3 text-purple-400 fill-current" />
-              <span className="text-purple-400 text-xs font-semibold">{servicio.rating}</span>
-            </div>
-          </div>
-        </div>
-      </div>
+  const renderServicioCard = (servicio: Servicio) => {
+    const esSuscripcion = servicio.tipo_producto === 'suscripcion';
+    const colorScheme = esSuscripcion 
+      ? { 
+          border: 'border-cyan-500/20 hover:border-cyan-400/40',
+          badge: 'bg-gradient-to-r from-cyan-500 to-blue-500',
+          text: 'text-cyan-400',
+          button: 'bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500',
+          bg: 'from-cyan-900/30 to-blue-900/30',
+          category: 'bg-cyan-500/20 text-cyan-400'
+        }
+      : {
+          border: 'border-purple-500/20 hover:border-purple-400/40',
+          badge: 'bg-gradient-to-r from-purple-500 to-pink-500',
+          text: 'text-purple-400',
+          button: 'bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-400 hover:to-pink-500',
+          bg: 'from-purple-900/30 to-pink-900/30',
+          category: 'bg-purple-500/20 text-purple-400'
+        };
 
-      {/* Información separada debajo */}
-      <div className="p-6">
-        <h3 className="text-white font-bold text-lg mb-2 group-hover:text-purple-300 transition-colors line-clamp-2">
-          {servicio.titulo}
-        </h3>
-        
-        <p className="text-gray-400 text-sm mb-4 line-clamp-2">
-          {servicio.descripcion}
-        </p>
-        
-        {/* Metadata */}
-        <div className="flex items-center gap-4 mb-4 text-xs text-gray-400">
-          <div className="flex items-center gap-1">
-            <Users size={12} />
-            <span>{servicio.reviews} reviews</span>
-          </div>
-          <div className="bg-purple-500/20 text-purple-400 px-2 py-1 rounded-full text-xs">
-            Servicio
+    const formatDuracion = (dias: number) => {
+      if (dias === 30) return '/mes';
+      if (dias === 365) return '/año';
+      if (dias === 7) return '/semana';
+      return `/${dias} días`;
+    };
+
+    return (
+      <motion.div
+        key={servicio.id}
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        whileHover={{ y: -5, scale: 1.02 }}
+        transition={{ duration: 0.3 }}
+        className={`bg-gray-900/50 rounded-xl ${colorScheme.border} transition-all group cursor-pointer overflow-hidden`}
+      >
+        {/* Imagen horizontal tipo Netflix/Instagram */}
+        <div className="relative">
+          <div className="w-full h-48 bg-gray-800 relative overflow-hidden">
+            {servicio.imagen_url ? (
+              <img 
+                src={servicio.imagen_url} 
+                alt={servicio.titulo} 
+                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+              />
+            ) : (
+              <div className={`w-full h-full flex items-center justify-center bg-gradient-to-br ${colorScheme.bg}`}>
+                <Briefcase size={48} className={colorScheme.text} />
+              </div>
+            )}
+            
+            {/* Badge de tipo */}
+            <div className="absolute top-3 left-3 flex gap-2">
+              <span className={`${colorScheme.badge} text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg`}>
+                {esSuscripcion ? 'SOFTWARE & SAAS' : 'SERVICIO'}
+              </span>
+            </div>
+            
+            {/* Rating */}
+            <div className="absolute top-3 right-3">
+              <div className="bg-black/70 backdrop-blur-sm rounded-full px-2 py-1 flex items-center gap-1">
+                <Star className={`w-3 h-3 ${colorScheme.text} fill-current`} />
+                <span className={`${colorScheme.text} text-xs font-semibold`}>{servicio.rating}</span>
+              </div>
+            </div>
           </div>
         </div>
-        
-        {/* Proveedor */}
-        <div className="text-sm text-gray-400 mb-4">
-          Por: <span className="text-purple-400 font-semibold">{servicio.proveedor}</span>
-        </div>
-        
-        {/* Precio y Botón */}
-        <div className="flex items-center justify-between">
-          <div className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-pink-500 bg-clip-text text-transparent">
-            ${servicio.precio}
+
+        {/* Información separada debajo */}
+        <div className="p-6">
+          <h3 className={`text-white font-bold text-lg mb-2 group-hover:${colorScheme.text} transition-colors line-clamp-2`}>
+            {servicio.titulo}
+          </h3>
+          
+          <p className="text-gray-400 text-sm mb-4 line-clamp-2">
+            {servicio.descripcion}
+          </p>
+          
+          {/* Metadata */}
+          <div className="flex items-center gap-4 mb-4 text-xs text-gray-400">
+            <div className="flex items-center gap-1">
+              <Users size={12} />
+              <span>{servicio.reviews} reviews</span>
+            </div>
+            <div className={`${colorScheme.category} px-2 py-1 rounded-full text-xs`}>
+              {esSuscripcion ? 'Suscripción' : 'Servicio'}
+            </div>
           </div>
-          <button className="bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-400 hover:to-pink-500 text-white font-bold px-6 py-2 rounded-lg text-sm shadow-lg transform transition-all duration-200 hover:scale-105">
-            Contratar
-          </button>
+          
+          {/* Proveedor */}
+          <div className="text-sm text-gray-400 mb-4">
+            Por: <span className={`${colorScheme.text} font-semibold`}>{servicio.proveedor}</span>
+          </div>
+          
+          {/* Precio y Botón */}
+          <div className="flex items-center justify-between">
+            <div className={`text-2xl font-bold bg-gradient-to-r ${esSuscripcion ? 'from-cyan-400 to-blue-500' : 'from-purple-400 to-pink-500'} bg-clip-text text-transparent`}>
+              ${servicio.precio}
+              {esSuscripcion && servicio.duracion_dias && (
+                <span className="text-sm text-gray-400 font-normal">
+                  {formatDuracion(servicio.duracion_dias)}
+                </span>
+              )}
+            </div>
+            <button className={`${colorScheme.button} text-white font-bold px-6 py-2 rounded-lg text-sm shadow-lg transform transition-all duration-200 hover:scale-105`}>
+              {esSuscripcion ? 'Suscribirse' : 'Contratar'}
+            </button>
+          </div>
         </div>
-      </div>
-    </motion.div>
-  );
+      </motion.div>
+    );
+  };
 
   const renderCard = (item: Curso | Servicio) => {
     if ('duracion_horas' in item) {
@@ -427,14 +472,18 @@ const Marketplace: React.FC = () => {
 
       {/* Estadísticas rápidas */}
       <div className="max-w-7xl mx-auto px-6 py-8">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-12">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-6 mb-12">
           <div className="bg-gradient-to-br from-amber-900/20 to-yellow-900/20 rounded-2xl p-6 text-center border border-amber-500/20">
             <div className="text-3xl font-bold text-amber-400 mb-2">{cursos.length}</div>
             <div className="text-sm text-gray-400">Cursos Premium</div>
           </div>
           <div className="bg-gradient-to-br from-purple-900/20 to-pink-900/20 rounded-2xl p-6 text-center border border-purple-500/20">
-            <div className="text-3xl font-bold text-purple-400 mb-2">{servicios.length}</div>
+            <div className="text-3xl font-bold text-purple-400 mb-2">{servicios.filter(s => s.tipo_producto !== 'suscripcion').length}</div>
             <div className="text-sm text-gray-400">Servicios Expert</div>
+          </div>
+          <div className="bg-gradient-to-br from-cyan-900/20 to-blue-900/20 rounded-2xl p-6 text-center border border-cyan-500/20">
+            <div className="text-3xl font-bold text-cyan-400 mb-2">{servicios.filter(s => s.tipo_producto === 'suscripcion').length}</div>
+            <div className="text-sm text-gray-400">Software & SaaS</div>
           </div>
           <div className="bg-gradient-to-br from-green-900/20 to-emerald-900/20 rounded-2xl p-6 text-center border border-green-500/20">
             <div className="text-3xl font-bold text-green-400 mb-2">0</div>
