@@ -66,8 +66,8 @@ const SuscripcionesAdminPanel: React.FC = () => {
     if (!userInfo?.id) return;
 
     try {
-      // Usar el UUID real de la comunidad ScaleXone existente
-      const communityId = userInfo?.community_id || '8fb70d6e-3237-465e-8669-979461cf2bc1';
+      // Usar siempre el UUID real de la comunidad ScaleXone
+      const communityId = '8fb70d6e-3237-465e-8669-979461cf2bc1';
       console.log(`Usando community_id: ${communityId}`);
       
       setComunidadId(communityId);
