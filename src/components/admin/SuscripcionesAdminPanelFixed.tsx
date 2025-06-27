@@ -176,17 +176,7 @@ const SuscripcionesAdminPanel: React.FC = () => {
         moneda: nuevoPlan.moneda,
         duracion_dias: calcularDuracionDias(),
         caracteristicas: nuevoPlan.caracteristicas.filter(c => c.trim() !== ''),
-        limites: nuevoPlan.limite_usuarios ? { usuarios: parseInt(nuevoPlan.limite_usuarios) } : {},
-        configuracion: {
-          prueba_gratis: nuevoPlan.prueba_gratis,
-          duracion_prueba: nuevoPlan.prueba_gratis ? parseInt(nuevoPlan.duracion_prueba) : 0,
-          tipo_prueba: nuevoPlan.tipo_prueba,
-          categoria: nuevoPlan.categoria,
-          destacado: nuevoPlan.destacado,
-          color: nuevoPlan.color_personalizado
-        },
         activo: nuevoPlan.activo,
-        orden: nuevoPlan.orden,
         comunidad_id: comunidadId
       };
 
