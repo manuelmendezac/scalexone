@@ -470,29 +470,126 @@ const Marketplace: React.FC = () => {
         </div>
       </div>
 
-      {/* Estadísticas rápidas */}
+      {/* Indicador de filtro activo */}
+      {selectedCategory !== 'Todos' && (
+        <div className="max-w-7xl mx-auto px-6 mb-6">
+          <div className="bg-gradient-to-r from-amber-900/20 to-yellow-900/20 border border-amber-500/30 rounded-lg p-4 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-3 h-3 bg-amber-400 rounded-full animate-pulse"></div>
+              <span className="text-amber-200 font-medium">
+                Mostrando <span className="text-amber-400 font-bold">{itemsFiltrados.length}</span> productos de: 
+                <span className="text-amber-400 font-bold ml-1">{selectedCategory}</span>
+              </span>
+            </div>
+            <button
+              onClick={() => setSelectedCategory('Todos')}
+              className="text-amber-400 hover:text-amber-300 text-sm font-medium flex items-center gap-2 transition-colors"
+            >
+              <span>Quitar filtro</span>
+              <span className="text-xs">✕</span>
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Estadísticas de categorías - Ahora clickeables como filtros */}
       <div className="max-w-7xl mx-auto px-6 py-8">
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-6 mb-12">
-          <div className="bg-gradient-to-br from-amber-900/20 to-yellow-900/20 rounded-2xl p-6 text-center border border-amber-500/20">
-            <div className="text-3xl font-bold text-amber-400 mb-2">{cursos.length}</div>
-            <div className="text-sm text-gray-400">Cursos Premium</div>
-          </div>
-          <div className="bg-gradient-to-br from-purple-900/20 to-pink-900/20 rounded-2xl p-6 text-center border border-purple-500/20">
-            <div className="text-3xl font-bold text-purple-400 mb-2">{servicios.filter(s => s.tipo_producto !== 'suscripcion').length}</div>
-            <div className="text-sm text-gray-400">Servicios Expert</div>
-          </div>
-          <div className="bg-gradient-to-br from-cyan-900/20 to-blue-900/20 rounded-2xl p-6 text-center border border-cyan-500/20">
-            <div className="text-3xl font-bold text-cyan-400 mb-2">{servicios.filter(s => s.tipo_producto === 'suscripcion').length}</div>
-            <div className="text-sm text-gray-400">Software & SaaS</div>
-          </div>
-          <div className="bg-gradient-to-br from-green-900/20 to-emerald-900/20 rounded-2xl p-6 text-center border border-green-500/20">
-            <div className="text-3xl font-bold text-green-400 mb-2">0</div>
-            <div className="text-sm text-gray-400">Productos</div>
-          </div>
-          <div className="bg-gradient-to-br from-blue-900/20 to-indigo-900/20 rounded-2xl p-6 text-center border border-blue-500/20">
-            <div className="text-3xl font-bold text-blue-400 mb-2">0</div>
-            <div className="text-sm text-gray-400">Propiedades</div>
-          </div>
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-12">
+          {/* Cursos Premium */}
+          <motion.div 
+            onClick={() => setSelectedCategory('Cursos')}
+            whileHover={{ scale: 1.05, y: -5 }}
+            whileTap={{ scale: 0.95 }}
+            className={`bg-gradient-to-br from-amber-900/20 to-yellow-900/20 rounded-2xl p-4 text-center border transition-all duration-300 cursor-pointer
+              ${selectedCategory === 'Cursos' 
+                ? 'border-amber-400 ring-2 ring-amber-400/50 shadow-lg shadow-amber-400/20' 
+                : 'border-amber-500/20 hover:border-amber-400/60'
+              }`}
+          >
+            <div className="text-2xl lg:text-3xl font-bold text-amber-400 mb-1">{cursos.length}</div>
+            <div className="text-xs lg:text-sm text-gray-400">Cursos Premium</div>
+            <div className="text-xs text-amber-500/70 mt-1">Click para filtrar</div>
+          </motion.div>
+
+          {/* Servicios Expert */}
+          <motion.div 
+            onClick={() => setSelectedCategory('Servicios')}
+            whileHover={{ scale: 1.05, y: -5 }}
+            whileTap={{ scale: 0.95 }}
+            className={`bg-gradient-to-br from-purple-900/20 to-pink-900/20 rounded-2xl p-4 text-center border transition-all duration-300 cursor-pointer
+              ${selectedCategory === 'Servicios' 
+                ? 'border-purple-400 ring-2 ring-purple-400/50 shadow-lg shadow-purple-400/20' 
+                : 'border-purple-500/20 hover:border-purple-400/60'
+              }`}
+          >
+            <div className="text-2xl lg:text-3xl font-bold text-purple-400 mb-1">{servicios.filter(s => s.tipo_producto !== 'suscripcion').length}</div>
+            <div className="text-xs lg:text-sm text-gray-400">Servicios Expert</div>
+            <div className="text-xs text-purple-500/70 mt-1">Click para filtrar</div>
+          </motion.div>
+
+          {/* Software & SaaS */}
+          <motion.div 
+            onClick={() => setSelectedCategory('Software & SaaS')}
+            whileHover={{ scale: 1.05, y: -5 }}
+            whileTap={{ scale: 0.95 }}
+            className={`bg-gradient-to-br from-cyan-900/20 to-blue-900/20 rounded-2xl p-4 text-center border transition-all duration-300 cursor-pointer
+              ${selectedCategory === 'Software & SaaS' 
+                ? 'border-cyan-400 ring-2 ring-cyan-400/50 shadow-lg shadow-cyan-400/20' 
+                : 'border-cyan-500/20 hover:border-cyan-400/60'
+              }`}
+          >
+            <div className="text-2xl lg:text-3xl font-bold text-cyan-400 mb-1">{servicios.filter(s => s.tipo_producto === 'suscripcion').length}</div>
+            <div className="text-xs lg:text-sm text-gray-400">Software & SaaS</div>
+            <div className="text-xs text-cyan-500/70 mt-1">Click para filtrar</div>
+          </motion.div>
+
+          {/* Productos */}
+          <motion.div 
+            onClick={() => setSelectedCategory('Productos Físicos')}
+            whileHover={{ scale: 1.05, y: -5 }}
+            whileTap={{ scale: 0.95 }}
+            className={`bg-gradient-to-br from-green-900/20 to-emerald-900/20 rounded-2xl p-4 text-center border transition-all duration-300 cursor-pointer
+              ${selectedCategory === 'Productos Físicos' 
+                ? 'border-green-400 ring-2 ring-green-400/50 shadow-lg shadow-green-400/20' 
+                : 'border-green-500/20 hover:border-green-400/60'
+              }`}
+          >
+            <div className="text-2xl lg:text-3xl font-bold text-green-400 mb-1">0</div>
+            <div className="text-xs lg:text-sm text-gray-400">Productos</div>
+            <div className="text-xs text-green-500/70 mt-1">Click para filtrar</div>
+          </motion.div>
+
+          {/* Propiedades */}
+          <motion.div 
+            onClick={() => setSelectedCategory('Propiedades')}
+            whileHover={{ scale: 1.05, y: -5 }}
+            whileTap={{ scale: 0.95 }}
+            className={`bg-gradient-to-br from-blue-900/20 to-indigo-900/20 rounded-2xl p-4 text-center border transition-all duration-300 cursor-pointer
+              ${selectedCategory === 'Propiedades' 
+                ? 'border-blue-400 ring-2 ring-blue-400/50 shadow-lg shadow-blue-400/20' 
+                : 'border-blue-500/20 hover:border-blue-400/60'
+              }`}
+          >
+            <div className="text-2xl lg:text-3xl font-bold text-blue-400 mb-1">0</div>
+            <div className="text-xs lg:text-sm text-gray-400">Propiedades</div>
+            <div className="text-xs text-blue-500/70 mt-1">Click para filtrar</div>
+          </motion.div>
+
+          {/* Botón para mostrar todos */}
+          <motion.div 
+            onClick={() => setSelectedCategory('Todos')}
+            whileHover={{ scale: 1.05, y: -5 }}
+            whileTap={{ scale: 0.95 }}
+            className={`bg-gradient-to-br from-gray-900/40 to-gray-800/40 rounded-2xl p-4 text-center border transition-all duration-300 cursor-pointer
+              ${selectedCategory === 'Todos' 
+                ? 'border-gray-400 ring-2 ring-gray-400/50 shadow-lg shadow-gray-400/20' 
+                : 'border-gray-600/20 hover:border-gray-400/60'
+              }`}
+          >
+            <div className="text-2xl lg:text-3xl font-bold text-gray-400 mb-1">🌟</div>
+            <div className="text-xs lg:text-sm text-gray-400">Ver Todos</div>
+            <div className="text-xs text-gray-500/70 mt-1">Mostrar todo</div>
+          </motion.div>
         </div>
 
         {/* Grid de productos */}
