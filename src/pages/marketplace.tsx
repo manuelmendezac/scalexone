@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { ShoppingBag, GraduationCap, Briefcase, Package, Home, Search, Filter, Star, Users, Play, Clock, DollarSign, ChevronDown } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { Search, Filter, Star, Users, Clock, GraduationCap, ShoppingCart, Briefcase, Home, MapPin, ChevronDown } from 'lucide-react';
 import { supabase } from '../supabase';
-import useNeuroState from '../store/useNeuroState';
 
 interface Curso {
   id: string;
@@ -12,10 +11,10 @@ interface Curso {
   imagen_url?: string;
   instructor: string;
   duracion_horas: number;
-  nivel: 'Principiante' | 'Intermedio' | 'Avanzado';
+  nivel: string;
   rating: number;
   estudiantes: number;
-  community_id?: string;
+  community_id: string;
   activo: boolean;
   categoria?: string;
 }
@@ -32,24 +31,15 @@ interface Servicio {
   reviews: number;
 }
 
-type Categoria = 'todos' | 'cursos' | 'servicios' | 'productos' | 'propiedades';
-
 const Marketplace: React.FC = () => {
-  const { userInfo } = useNeuroState();
-  const [categoriaActiva, setCategoriaActiva] = useState<Categoria>('todos');
   const [cursos, setCursos] = useState<Curso[]>([]);
   const [servicios, setServicios] = useState<Servicio[]>([]);
   const [loading, setLoading] = useState(true);
-  const [busqueda, setBusqueda] = useState('');
-  const [filtroOrden, setFiltroOrden] = useState<'precio' | 'rating' | 'popularidad'>('popularidad');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('Todos');
+  const [sortBy, setSortBy] = useState('popularidad');
 
-  const categorias = [
-    { key: 'todos', label: 'Todos', icon: <ShoppingBag size={20} />, color: 'from-purple-500 to-pink-500' },
-    { key: 'cursos', label: 'Cursos', icon: <GraduationCap size={20} />, color: 'from-blue-500 to-cyan-500' },
-    { key: 'servicios', label: 'Servicios', icon: <Briefcase size={20} />, color: 'from-green-500 to-emerald-500' },
-    { key: 'productos', label: 'Productos Físicos', icon: <Package size={20} />, color: 'from-orange-500 to-red-500' },
-    { key: 'propiedades', label: 'Propiedades', icon: <Home size={20} />, color: 'from-indigo-500 to-purple-500' },
-  ];
+  const categorias = ['Todos', 'Cursos', 'Servicios', 'Productos Físicos', 'Propiedades'];
 
   useEffect(() => {
     cargarDatos();
@@ -122,99 +112,139 @@ const Marketplace: React.FC = () => {
       ];
 
       setServicios(serviciosSimulados);
-    } catch (error) {
-      console.error('Error cargando datos del marketplace:', error);
+
+    } catch (error: any) {
+      console.error('Error cargando datos:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  const filtrarElementos = () => {
-    let elementos: any[] = [];
+  const itemsFiltrados = React.useMemo(() => {
+    let items: (Curso | Servicio)[] = [];
     
-    if (categoriaActiva === 'todos' || categoriaActiva === 'cursos') {
-      elementos = [...elementos, ...cursos.map(c => ({ ...c, tipo: 'curso' }))];
+    if (selectedCategory === 'Todos' || selectedCategory === 'Cursos') {
+      items = [...items, ...cursos];
     }
     
-    if (categoriaActiva === 'todos' || categoriaActiva === 'servicios') {
-      elementos = [...elementos, ...servicios.map(s => ({ ...s, tipo: 'servicio' }))];
+    if (selectedCategory === 'Todos' || selectedCategory === 'Servicios') {
+      items = [...items, ...servicios];
     }
 
     // Filtrar por búsqueda
-    if (busqueda) {
-      elementos = elementos.filter(item => 
-        item.titulo?.toLowerCase().includes(busqueda.toLowerCase()) ||
-        item.descripcion?.toLowerCase().includes(busqueda.toLowerCase())
+    if (searchTerm) {
+      items = items.filter(item =>
+        item.titulo.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.descripcion.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
 
     // Ordenar
-    elementos.sort((a, b) => {
-      switch (filtroOrden) {
-        case 'precio':
+    items.sort((a, b) => {
+      switch (sortBy) {
+        case 'precio-asc':
           return a.precio - b.precio;
+        case 'precio-desc':
+          return b.precio - a.precio;
         case 'rating':
           return b.rating - a.rating;
         case 'popularidad':
-          return (b.estudiantes || b.reviews || 0) - (a.estudiantes || a.reviews || 0);
         default:
-          return 0;
+          const aPopularidad = 'estudiantes' in a ? a.estudiantes : a.reviews;
+          const bPopularidad = 'estudiantes' in b ? b.estudiantes : b.reviews;
+          return bPopularidad - aPopularidad;
       }
     });
 
-    return elementos;
-  };
+    return items;
+  }, [cursos, servicios, searchTerm, selectedCategory, sortBy]);
 
   const renderCursoCard = (curso: Curso) => (
     <motion.div
       key={curso.id}
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="bg-gray-900/50 rounded-xl p-6 border border-cyan-500/20 hover:border-cyan-400/40 transition-all group cursor-pointer"
+      whileHover={{ y: -8, scale: 1.02 }}
+      transition={{ duration: 0.3 }}
+      className="group cursor-pointer"
     >
-      <div className="relative mb-4">
-        <div className="w-full h-48 bg-gray-800 rounded-lg flex items-center justify-center">
+      {/* Imagen Principal */}
+      <div className="relative overflow-hidden rounded-2xl shadow-2xl">
+        <div className="aspect-video bg-gradient-to-br from-gray-900 to-black relative">
           {curso.imagen_url ? (
-            <img src={curso.imagen_url} alt={curso.titulo} className="w-full h-full object-cover rounded-lg" />
+            <img 
+              src={curso.imagen_url} 
+              alt={curso.titulo} 
+              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+            />
           ) : (
-            <GraduationCap size={48} className="text-cyan-400" />
+            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-amber-900/20 to-yellow-900/20">
+              <GraduationCap size={64} className="text-amber-400" />
+            </div>
           )}
+          
+          {/* Overlay Gradient */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-60 group-hover:opacity-80 transition-opacity duration-300" />
+          
+          {/* Badge de Curso */}
+          <div className="absolute top-4 left-4">
+            <span className="bg-gradient-to-r from-amber-400 to-yellow-500 text-black px-3 py-1.5 rounded-full text-xs font-bold shadow-lg">
+              CURSO
+            </span>
+          </div>
+          
+          {/* Rating y Estudiantes */}
+          <div className="absolute top-4 right-4 flex items-center gap-2">
+            <div className="bg-black/60 backdrop-blur-sm rounded-full px-2 py-1 flex items-center gap-1">
+              <Star className="w-3 h-3 text-amber-400 fill-current" />
+              <span className="text-amber-400 text-xs font-semibold">{curso.rating}</span>
+            </div>
+          </div>
+          
+          {/* Información en la parte inferior */}
+          <div className="absolute bottom-0 left-0 right-0 p-6">
+            <h3 className="text-white font-bold text-xl mb-2 line-clamp-2 group-hover:text-amber-300 transition-colors">
+              {curso.titulo}
+            </h3>
+            
+            <p className="text-gray-300 text-sm mb-4 line-clamp-2 opacity-90">
+              {curso.descripcion}
+            </p>
+            
+            {/* Metadata */}
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-4 text-xs text-gray-400">
+                <div className="flex items-center gap-1">
+                  <Users size={12} />
+                  <span>{curso.estudiantes}</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <Clock size={12} />
+                  <span>{curso.duracion_horas}h</span>
+                </div>
+                <div className="bg-amber-500/20 text-amber-400 px-2 py-0.5 rounded-full">
+                  {curso.nivel}
+                </div>
+              </div>
+            </div>
+            
+            {/* Precio y Botón */}
+            <div className="flex items-center justify-between">
+              <div className="text-left">
+                <div className="text-2xl font-bold bg-gradient-to-r from-amber-400 to-yellow-500 bg-clip-text text-transparent">
+                  ${curso.precio}
+                </div>
+                <div className="text-xs text-gray-400">
+                  por {curso.instructor}
+                </div>
+              </div>
+              
+              <button className="bg-gradient-to-r from-amber-500 to-yellow-600 hover:from-amber-400 hover:to-yellow-500 text-black font-bold px-6 py-2.5 rounded-full text-sm shadow-lg transform transition-all duration-200 hover:scale-105 hover:shadow-xl">
+                Ver
+              </button>
+            </div>
+          </div>
         </div>
-        <div className="absolute top-2 right-2 bg-cyan-500 text-black px-2 py-1 rounded-full text-xs font-bold">
-          CURSO
-        </div>
-      </div>
-      
-      <h3 className="text-white font-bold text-lg mb-2 group-hover:text-cyan-300 transition-colors">
-        {curso.titulo}
-      </h3>
-      
-      <p className="text-gray-400 text-sm mb-3 line-clamp-2">
-        {curso.descripcion}
-      </p>
-      
-      <div className="flex items-center gap-2 mb-3">
-        <div className="flex items-center gap-1">
-          <Star className="w-4 h-4 text-yellow-400 fill-current" />
-          <span className="text-yellow-400 text-sm font-semibold">{curso.rating}</span>
-        </div>
-        <div className="flex items-center gap-1 text-gray-400 text-sm">
-          <Users size={14} />
-          <span>{curso.estudiantes} estudiantes</span>
-        </div>
-        <div className="flex items-center gap-1 text-gray-400 text-sm">
-          <Clock size={14} />
-          <span>{curso.duracion_horas}h</span>
-        </div>
-      </div>
-      
-      <div className="flex items-center justify-between">
-        <div className="text-2xl font-bold text-cyan-400">
-          ${curso.precio}
-        </div>
-        <button className="bg-gradient-to-r from-cyan-500 to-blue-600 text-white px-4 py-2 rounded-lg font-semibold hover:scale-105 transition-transform">
-          Ver Curso
-        </button>
       </div>
     </motion.div>
   );
@@ -224,63 +254,101 @@ const Marketplace: React.FC = () => {
       key={servicio.id}
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="bg-gray-900/50 rounded-xl p-6 border border-green-500/20 hover:border-green-400/40 transition-all group cursor-pointer"
+      whileHover={{ y: -8, scale: 1.02 }}
+      transition={{ duration: 0.3 }}
+      className="group cursor-pointer"
     >
-      <div className="relative mb-4">
-        <div className="w-full h-48 bg-gray-800 rounded-lg flex items-center justify-center">
+      {/* Imagen Principal */}
+      <div className="relative overflow-hidden rounded-2xl shadow-2xl">
+        <div className="aspect-video bg-gradient-to-br from-gray-900 to-black relative">
           {servicio.imagen_url ? (
-            <img src={servicio.imagen_url} alt={servicio.titulo} className="w-full h-full object-cover rounded-lg" />
+            <img 
+              src={servicio.imagen_url} 
+              alt={servicio.titulo} 
+              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+            />
           ) : (
-            <Briefcase size={48} className="text-green-400" />
+            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-purple-900/20 to-pink-900/20">
+              <Briefcase size={64} className="text-purple-400" />
+            </div>
           )}
+          
+          {/* Overlay Gradient */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-60 group-hover:opacity-80 transition-opacity duration-300" />
+          
+          {/* Badge de Servicio */}
+          <div className="absolute top-4 left-4">
+            <span className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-3 py-1.5 rounded-full text-xs font-bold shadow-lg">
+              SERVICIO
+            </span>
+          </div>
+          
+          {/* Rating y Reviews */}
+          <div className="absolute top-4 right-4 flex items-center gap-2">
+            <div className="bg-black/60 backdrop-blur-sm rounded-full px-2 py-1 flex items-center gap-1">
+              <Star className="w-3 h-3 text-purple-400 fill-current" />
+              <span className="text-purple-400 text-xs font-semibold">{servicio.rating}</span>
+            </div>
+          </div>
+          
+          {/* Información en la parte inferior */}
+          <div className="absolute bottom-0 left-0 right-0 p-6">
+            <h3 className="text-white font-bold text-xl mb-2 line-clamp-2 group-hover:text-purple-300 transition-colors">
+              {servicio.titulo}
+            </h3>
+            
+            <p className="text-gray-300 text-sm mb-4 line-clamp-2 opacity-90">
+              {servicio.descripcion}
+            </p>
+            
+            {/* Metadata */}
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-4 text-xs text-gray-400">
+                <div className="flex items-center gap-1">
+                  <Users size={12} />
+                  <span>{servicio.reviews} reviews</span>
+                </div>
+                <div className="bg-purple-500/20 text-purple-400 px-2 py-0.5 rounded-full">
+                  Servicio
+                </div>
+              </div>
+            </div>
+            
+            {/* Precio y Botón */}
+            <div className="flex items-center justify-between">
+              <div className="text-left">
+                <div className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-pink-500 bg-clip-text text-transparent">
+                  ${servicio.precio}
+                </div>
+                <div className="text-xs text-gray-400">
+                  por {servicio.proveedor}
+                </div>
+              </div>
+              
+              <button className="bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-400 hover:to-pink-500 text-white font-bold px-6 py-2.5 rounded-full text-sm shadow-lg transform transition-all duration-200 hover:scale-105 hover:shadow-xl">
+                Contratar
+              </button>
+            </div>
+          </div>
         </div>
-        <div className="absolute top-2 right-2 bg-green-500 text-black px-2 py-1 rounded-full text-xs font-bold">
-          SERVICIO
-        </div>
-      </div>
-      
-      <h3 className="text-white font-bold text-lg mb-2 group-hover:text-green-300 transition-colors">
-        {servicio.titulo}
-      </h3>
-      
-      <p className="text-gray-400 text-sm mb-3 line-clamp-2">
-        {servicio.descripcion}
-      </p>
-      
-      <div className="flex items-center gap-2 mb-3">
-        <div className="flex items-center gap-1">
-          <Star className="w-4 h-4 text-yellow-400 fill-current" />
-          <span className="text-yellow-400 text-sm font-semibold">{servicio.rating}</span>
-        </div>
-        <div className="flex items-center gap-1 text-gray-400 text-sm">
-          <Users size={14} />
-          <span>{servicio.reviews} reviews</span>
-        </div>
-      </div>
-      
-      <div className="text-sm text-gray-400 mb-3">
-        Por: <span className="text-green-400 font-semibold">{servicio.proveedor}</span>
-      </div>
-      
-      <div className="flex items-center justify-between">
-        <div className="text-2xl font-bold text-green-400">
-          ${servicio.precio}
-        </div>
-        <button className="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-4 py-2 rounded-lg font-semibold hover:scale-105 transition-transform">
-          Contratar
-        </button>
       </div>
     </motion.div>
   );
 
-  const elementosFiltrados = filtrarElementos();
+  const renderCard = (item: Curso | Servicio) => {
+    if ('duracion_horas' in item) {
+      return renderCursoCard(item as Curso);
+    } else {
+      return renderServicioCard(item as Servicio);
+    }
+  };
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
+      <div className="min-h-screen bg-black text-white flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-400 mx-auto mb-4"></div>
-          <p className="text-gray-400">Cargando marketplace...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-amber-400 mx-auto mb-4"></div>
+          <p className="text-gray-300">Cargando marketplace...</p>
         </div>
       </div>
     );
@@ -289,123 +357,126 @@ const Marketplace: React.FC = () => {
   return (
     <div className="min-h-screen bg-black text-white">
       {/* Header */}
-      <div className="bg-black border-b border-cyan-500/20">
-        <div className="max-w-7xl mx-auto px-4 py-8">
+      <div className="bg-gradient-to-r from-amber-900/10 to-yellow-900/10 border-b border-amber-500/20">
+        <div className="max-w-7xl mx-auto px-6 py-12">
           <div className="text-center mb-8">
-            <h1 className="text-4xl md:text-6xl font-bold bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent mb-4">
-              ScaleXone Marketplace
+            <h1 className="text-5xl md:text-7xl font-bold bg-gradient-to-r from-amber-400 via-yellow-500 to-amber-600 bg-clip-text text-transparent mb-6">
+              🛒 Marketplace ScaleXone
             </h1>
-            <p className="text-xl text-gray-300 max-w-2xl mx-auto">
-              Descubre cursos, servicios y productos que impulsan tu crecimiento
+            <p className="text-xl text-gray-300 max-w-3xl mx-auto leading-relaxed">
+              Descubre cursos premium, servicios especializados y herramientas para escalar tu negocio al siguiente nivel
             </p>
           </div>
 
-          {/* Barra de búsqueda */}
-          <div className="max-w-2xl mx-auto mb-6">
-            <div className="relative">
+          {/* Barra de búsqueda y filtros */}
+          <div className="flex flex-col md:flex-row gap-4 items-center justify-between max-w-4xl mx-auto">
+            <div className="relative flex-1 max-w-md">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
               <input
                 type="text"
-                placeholder="Buscar en el marketplace..."
-                value={busqueda}
-                onChange={(e) => setBusqueda(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 bg-gray-900/50 border border-cyan-500/30 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-cyan-400"
+                placeholder="Buscar cursos, servicios..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-10 pr-4 py-3 bg-gray-900/50 border border-amber-500/30 rounded-xl text-white focus:outline-none focus:border-amber-400 transition-colors backdrop-blur-sm"
               />
             </div>
-          </div>
 
-          {/* Filtros */}
-          <div className="flex flex-wrap justify-center gap-4 mb-8">
-            <select
-              value={filtroOrden}
-              onChange={(e) => setFiltroOrden(e.target.value as any)}
-              className="bg-gray-900/50 border border-cyan-500/30 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-cyan-400"
-            >
-              <option value="popularidad">Más Popular</option>
-              <option value="precio">Menor Precio</option>
-              <option value="rating">Mejor Valorado</option>
-            </select>
+            <div className="flex gap-3">
+              {/* Filtro de categoría */}
+              <div className="relative">
+                <select
+                  value={selectedCategory}
+                  onChange={(e) => setSelectedCategory(e.target.value)}
+                  className="appearance-none bg-gray-900/50 border border-amber-500/30 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-amber-400 cursor-pointer backdrop-blur-sm"
+                >
+                  {categorias.map(categoria => (
+                    <option key={categoria} value={categoria}>{categoria}</option>
+                  ))}
+                </select>
+                <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" size={16} />
+              </div>
+
+              {/* Ordenamiento */}
+              <div className="relative">
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value)}
+                  className="appearance-none bg-gray-900/50 border border-amber-500/30 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-amber-400 cursor-pointer backdrop-blur-sm"
+                >
+                  <option value="popularidad">Más Popular</option>
+                  <option value="rating">Mejor Rating</option>
+                  <option value="precio-asc">Precio: Menor a Mayor</option>
+                  <option value="precio-desc">Precio: Mayor a Menor</option>
+                </select>
+                <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" size={16} />
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Categorías */}
-      <div className="max-w-7xl mx-auto px-4 py-6">
-        <div className="flex flex-wrap justify-center gap-4 mb-8">
-          {categorias.map((categoria) => (
-            <motion.button
-              key={categoria.key}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => setCategoriaActiva(categoria.key as Categoria)}
-              className={`flex items-center gap-2 px-6 py-3 rounded-xl font-semibold transition-all ${
-                categoriaActiva === categoria.key
-                  ? `bg-gradient-to-r ${categoria.color} text-white shadow-lg`
-                  : 'bg-gray-900/50 text-gray-400 hover:text-white border border-gray-700 hover:border-gray-600'
-              }`}
-            >
-              {categoria.icon}
-              <span>{categoria.label}</span>
-              {categoria.key === 'productos' || categoria.key === 'propiedades' ? (
-                <span className="text-xs bg-yellow-500 text-black px-2 py-0.5 rounded-full">PRÓXIMAMENTE</span>
-              ) : null}
-            </motion.button>
-          ))}
-        </div>
-
-        {/* Resultados */}
-        <div className="mb-6">
-          <p className="text-gray-400">
-            Mostrando {elementosFiltrados.length} resultado{elementosFiltrados.length !== 1 ? 's' : ''}
-            {categoriaActiva !== 'todos' && ` en ${categorias.find(c => c.key === categoriaActiva)?.label}`}
-          </p>
-        </div>
-
-        {/* Grid de elementos */}
-        {elementosFiltrados.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {elementosFiltrados.map((elemento) => 
-              elemento.tipo === 'curso' 
-                ? renderCursoCard(elemento)
-                : renderServicioCard(elemento)
-            )}
+      {/* Estadísticas rápidas */}
+      <div className="max-w-7xl mx-auto px-6 py-8">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-12">
+          <div className="bg-gradient-to-br from-amber-900/20 to-yellow-900/20 rounded-2xl p-6 text-center border border-amber-500/20">
+            <div className="text-3xl font-bold text-amber-400 mb-2">{cursos.length}</div>
+            <div className="text-sm text-gray-400">Cursos Premium</div>
           </div>
-        ) : (
-          <div className="text-center py-12">
-            <div className="text-6xl mb-4">🔍</div>
-            <h3 className="text-xl font-semibold text-gray-300 mb-2">No se encontraron resultados</h3>
-            <p className="text-gray-400">
-              {busqueda 
-                ? `No hay elementos que coincidan con "${busqueda}"`
-                : `No hay elementos disponibles en ${categorias.find(c => c.key === categoriaActiva)?.label}`
-              }
+          <div className="bg-gradient-to-br from-purple-900/20 to-pink-900/20 rounded-2xl p-6 text-center border border-purple-500/20">
+            <div className="text-3xl font-bold text-purple-400 mb-2">{servicios.length}</div>
+            <div className="text-sm text-gray-400">Servicios Expert</div>
+          </div>
+          <div className="bg-gradient-to-br from-green-900/20 to-emerald-900/20 rounded-2xl p-6 text-center border border-green-500/20">
+            <div className="text-3xl font-bold text-green-400 mb-2">0</div>
+            <div className="text-sm text-gray-400">Productos</div>
+          </div>
+          <div className="bg-gradient-to-br from-blue-900/20 to-indigo-900/20 rounded-2xl p-6 text-center border border-blue-500/20">
+            <div className="text-3xl font-bold text-blue-400 mb-2">0</div>
+            <div className="text-sm text-gray-400">Propiedades</div>
+          </div>
+        </div>
+
+        {/* Grid de productos */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 mb-16">
+          {itemsFiltrados.map(renderCard)}
+        </div>
+
+        {/* Estado vacío */}
+        {itemsFiltrados.length === 0 && (
+          <div className="text-center py-16">
+            <div className="text-6xl mb-6">🔍</div>
+            <h3 className="text-2xl font-semibold text-gray-300 mb-4">No se encontraron resultados</h3>
+            <p className="text-gray-400 text-lg">
+              Intenta con otros términos de búsqueda o cambia los filtros
             </p>
           </div>
         )}
 
-        {/* Secciones próximamente */}
-        {(categoriaActiva === 'todos' || categoriaActiva === 'productos') && (
-          <div className="mt-12 p-8 bg-black rounded-xl border border-orange-500/20">
-            <div className="text-center">
-              <Package size={48} className="text-orange-400 mx-auto mb-4" />
-              <h3 className="text-2xl font-bold text-orange-400 mb-2">Productos Físicos</h3>
-              <p className="text-gray-300 mb-4">
-                Próximamente: Libros, merchandising, equipos y más productos físicos
+        {/* Secciones futuras (Fase 3 y 4) */}
+        {selectedCategory === 'Todos' && (
+          <div className="mt-16 space-y-8">
+            {/* Fase 3: Productos Físicos */}
+            <div className="bg-gradient-to-r from-green-900/20 to-emerald-900/20 rounded-2xl p-12 border border-green-500/20 text-center">
+              <div className="text-6xl mb-6">📦</div>
+              <h3 className="text-3xl font-bold text-green-400 mb-4">Productos Físicos</h3>
+              <p className="text-gray-300 mb-6 text-lg max-w-2xl mx-auto">
+                Próximamente: Herramientas, libros exclusivos y productos físicos que potencian tu crecimiento
               </p>
-              <div className="text-sm text-orange-300">🚀 Fase 3 - En desarrollo</div>
+              <div className="inline-flex items-center gap-2 bg-green-500/20 text-green-400 px-6 py-3 rounded-full font-semibold">
+                🚀 Fase 3 - En Desarrollo
+              </div>
             </div>
-          </div>
-        )}
 
-        {(categoriaActiva === 'todos' || categoriaActiva === 'propiedades') && (
-          <div className="mt-8 p-8 bg-black rounded-xl border border-indigo-500/20">
-            <div className="text-center">
-              <Home size={48} className="text-indigo-400 mx-auto mb-4" />
-              <h3 className="text-2xl font-bold text-indigo-400 mb-2">Propiedades Inmobiliarias</h3>
-              <p className="text-gray-300 mb-4">
-                Próximamente: Inversiones inmobiliarias, propiedades en renta y más
+            {/* Fase 4: Propiedades */}
+            <div className="bg-gradient-to-r from-blue-900/20 to-indigo-900/20 rounded-2xl p-12 border border-blue-500/20 text-center">
+              <div className="text-6xl mb-6">🏡</div>
+              <h3 className="text-3xl font-bold text-blue-400 mb-4">Propiedades Inmobiliarias</h3>
+              <p className="text-gray-300 mb-6 text-lg max-w-2xl mx-auto">
+                Próximamente: Inversiones inmobiliarias, propiedades en renta y oportunidades únicas de inversión
               </p>
-              <div className="text-sm text-indigo-300">🏠 Fase 4 - En desarrollo</div>
+              <div className="inline-flex items-center gap-2 bg-blue-500/20 text-blue-400 px-6 py-3 rounded-full font-semibold">
+                🏠 Fase 4 - Planificado
+              </div>
             </div>
           </div>
         )}
