@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+// Sistema de afiliados actualizado - v1.1
 import {
   Link,
   Copy,
