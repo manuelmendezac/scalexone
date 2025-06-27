@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Users, DollarSign, CreditCard, TrendingUp, Calendar, Search, Filter, Plus, Edit, Trash2, CheckCircle, XCircle, AlertCircle, Download, Eye, Pause, Play, UserX } from 'lucide-react';
+import { Users, DollarSign, CreditCard, TrendingUp, Calendar, Search, Filter, Plus, Edit, Trash2, CheckCircle, XCircle, AlertCircle, Download, Eye, Pause, Play, UserX, Upload, Save, X, Info } from 'lucide-react';
 import { SuscripcionesAPI, type SuscripcionConDetalles, type PlanSuscripcion, type EstadisticasComunidad } from '../../services/suscripcionesServiceV2';
 import useNeuroState from '../../store/useNeuroState';
 import { supabase } from '../../supabase';
@@ -16,6 +16,8 @@ const SuscripcionesAdminPanel: React.FC = () => {
   const [showCreatePlan, setShowCreatePlan] = useState(false);
   const [showCreateSuscripcion, setShowCreateSuscripcion] = useState(false);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [editingPlan, setEditingPlan] = useState<PlanSuscripcion | null>(null);
+  const [uploadingImage, setUploadingImage] = useState(false);
 
   const { userInfo } = useNeuroState();
   
@@ -28,19 +30,28 @@ const SuscripcionesAdminPanel: React.FC = () => {
     nombre: '',
     descripcion: '',
     precio: '',
-    duracion_valor: '1',
-    duracion_tipo: 'mes', // dia, semana, mes, año
     moneda: 'USD',
-    caracteristicas: [''] as string[],
+    duracion_valor: '1',
+    duracion_tipo: 'mes',
+    caracteristicas: [''],
     limite_usuarios: '',
-    activo: true,
     prueba_gratis: false,
     duracion_prueba: '7',
-    tipo_prueba: 'dia',
-    categoria: 'basico', // basico, premium, enterprise
-    orden: 0,
+    tipo_prueba: 'dias',
+    categoria: 'premium',
     destacado: false,
-    color_personalizado: '#3B82F6'
+    color_personalizado: '#3B82F6',
+    activo: true,
+    orden: 0,
+    // Campos de marketplace e imagen
+    imagen_url: '',
+    agregar_marketplace: true,
+    // Campos de afiliación
+    afilible: true,
+    niveles_comision: 3,
+    comision_nivel1: 30,
+    comision_nivel2: 20,
+    comision_nivel3: 10
   });
 
   const [nuevaSuscripcion, setNuevaSuscripcion] = useState({
@@ -51,57 +62,70 @@ const SuscripcionesAdminPanel: React.FC = () => {
     renovacion_automatica: true
   });
 
-  // Función para inicializar o crear la comunidad
   const inicializarComunidad = async () => {
-    if (intentosInicializacion >= 3) {
-      console.error('Máximo número de intentos de inicialización alcanzado');
-      setMensaje('Error: No se pudo inicializar la comunidad después de varios intentos');
-      setLoading(false);
-      return;
-    }
-
-    setIntentosInicializacion(prev => prev + 1);
+    if (!userInfo?.id) return;
 
     try {
-      const communityId = userInfo?.community_id || 'default';
-      console.log(`Inicializando comunidad (intento ${intentosInicializacion + 1}) para community_id:`, communityId);
+      // Buscar si el usuario ya tiene una comunidad
+      const { data: usuarioData, error: usuarioError } = await supabase
+        .from('usuarios')
+        .select('community_id')
+        .eq('auth_user_id', userInfo.id)
+        .single();
+
+      if (usuarioError && usuarioError.code !== 'PGRST116') {
+        throw usuarioError;
+      }
+
+      let communityId = usuarioData?.community_id;
+
+      if (!communityId) {
+        // Crear comunidad por defecto para ScaleXone
+        const { data: nuevaComunidad, error: comunidadError } = await supabase
+          .from('comunidades')
+          .insert([{
+            nombre: 'ScaleXone',
+            descripcion: 'Comunidad principal de ScaleXone',
+            configuracion: {},
+            activa: true
+          }])
+          .select()
+          .single();
+
+        if (comunidadError) throw comunidadError;
+        communityId = nuevaComunidad.id;
+
+        // Actualizar el usuario con la nueva comunidad
+        const { error: updateError } = await supabase
+          .from('usuarios')
+          .update({ community_id: communityId })
+          .eq('auth_user_id', userInfo.id);
+
+        if (updateError && updateError.code !== 'PGRST116') {
+          console.warn('No se pudo actualizar community_id del usuario:', updateError);
+        }
+      }
+
+      setComunidadId(communityId);
+    } catch (error: any) {
+      console.error('Error inicializando comunidad:', error);
+      setMensaje(`Error inicializando: ${error.message}`);
       
-      // Usar la nueva función para obtener/crear comunidad
-      console.log('Obteniendo o creando comunidad...');
-      const comunidad = await SuscripcionesAPI.inicializarComunidadPorCommunityId(communityId);
-      
-      console.log('Comunidad obtenida/creada exitosamente:', comunidad);
-      setComunidadId(comunidad.id);
-    } catch (error) {
-      console.error('Error completo inicializando comunidad:', error);
-      setMensaje('Error al inicializar comunidad: ' + (error as Error).message);
-      setLoading(false);
+      // Reintentar hasta 3 veces
+      if (intentosInicializacion < 3) {
+        setIntentosInicializacion(prev => prev + 1);
+        setTimeout(() => inicializarComunidad(), 2000);
+      }
     }
   };
 
-  useEffect(() => {
-    if (userInfo?.community_id && !comunidadId) {
-      console.log('Ejecutando inicializarComunidad desde useEffect');
-      inicializarComunidad();
-    }
-  }, [userInfo?.community_id, comunidadId]);
-
-  useEffect(() => {
-    if (comunidadId) {
-      cargarDatos();
-    }
-  }, [comunidadId]);
-
   const cargarDatos = async () => {
-    if (!comunidadId) {
-      console.log('No hay comunidadId, esperando...');
-      return;
-    }
+    if (!comunidadId) return;
 
     try {
       setLoading(true);
       
-      // Cargar datos en paralelo
+      // Cargar suscripciones y planes en paralelo
       const [suscripcionesData, planesData, estadisticasData] = await Promise.all([
         SuscripcionesAPI.Suscripciones.obtenerSuscripcionesPorComunidad(comunidadId),
         SuscripcionesAPI.Planes.obtenerPlanesPorComunidad(comunidadId),
@@ -111,12 +135,52 @@ const SuscripcionesAdminPanel: React.FC = () => {
       setSuscripciones(suscripcionesData);
       setPlanes(planesData);
       setEstadisticas(estadisticasData);
-      
     } catch (error: any) {
       console.error('Error cargando datos:', error);
-      setMensaje('Error al cargar los datos: ' + error.message);
+      setMensaje(`Error cargando datos: ${error.message}`);
     } finally {
       setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (userInfo?.id && !comunidadId) {
+      inicializarComunidad();
+    }
+  }, [userInfo?.id]);
+
+  useEffect(() => {
+    if (comunidadId) {
+      cargarDatos();
+    }
+  }, [comunidadId]);
+
+  // Función para subir imagen
+  const uploadImage = async (file: File): Promise<string | null> => {
+    try {
+      setUploadingImage(true);
+      
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${crypto.randomUUID()}.${fileExt}`;
+      const filePath = `suscripciones/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('servicios-marketplace')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data } = supabase.storage
+        .from('servicios-marketplace')
+        .getPublicUrl(filePath);
+
+      return data.publicUrl;
+    } catch (error: any) {
+      console.error('Error subiendo imagen:', error);
+      setMensaje(`Error al subir imagen: ${error.message}`);
+      return null;
+    } finally {
+      setUploadingImage(false);
     }
   };
 
@@ -146,7 +210,7 @@ const SuscripcionesAdminPanel: React.FC = () => {
         precio: parseFloat(nuevoPlan.precio),
         moneda: nuevoPlan.moneda,
         duracion_dias: calcularDuracionDias(),
-        caracteristicas: nuevoPlan.caracteristicas,
+        caracteristicas: nuevoPlan.caracteristicas.filter(c => c.trim() !== ''),
         limites: nuevoPlan.limite_usuarios ? { usuarios: parseInt(nuevoPlan.limite_usuarios) } : {},
         configuracion: {
           prueba_gratis: nuevoPlan.prueba_gratis,
@@ -164,79 +228,198 @@ const SuscripcionesAdminPanel: React.FC = () => {
       // Crear el plan de suscripción
       const planCreado = await SuscripcionesAPI.Planes.crearPlan(planData);
       
-      // 🔥 INTEGRACIÓN: Automáticamente agregar al marketplace de servicios
-      try {
-        const servicioMarketplace = {
-          id: crypto.randomUUID(),
-          titulo: `Suscripción ${nuevoPlan.nombre}`,
-          descripcion: nuevoPlan.descripcion || `Plan de suscripción ${nuevoPlan.nombre} con acceso completo a la plataforma`,
-          precio: parseFloat(nuevoPlan.precio),
-          imagen_url: 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=500&h=300&fit=crop', // Imagen por defecto para suscripciones
-          proveedor: 'ScaleXone',
-          categoria: 'Suscripciones',
-          rating: 4.8,
-          reviews: 0,
-          activo: nuevoPlan.activo,
-          // Campos de afiliación - Automáticamente habilitados para suscripciones
-          afilible: true,
-          niveles_comision: 1, // Por defecto 1 nivel para suscripciones
-          comision_nivel1: 30, // 30% de comisión por defecto para suscripciones
-          comision_nivel2: 0,
-          comision_nivel3: 0,
-          fecha_afiliacion: new Date().toISOString(),
-          community_id: comunidadId,
-          // Metadatos específicos de suscripción
-          tipo_producto: 'suscripcion',
-          plan_suscripcion_id: planCreado.id, // Vinculación con el plan original
-          duracion_dias: calcularDuracionDias(),
-          caracteristicas: nuevoPlan.caracteristicas,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        };
-
-        // Insertar en la tabla servicios_marketplace
-        const { error: marketplaceError } = await supabase
-          .from('servicios_marketplace')
-          .insert(servicioMarketplace);
-
-        if (marketplaceError) {
-          console.error('Error agregando al marketplace:', marketplaceError);
-          // No fallar todo el proceso si esto falla
-          setMensaje(`Plan creado exitosamente. Advertencia: No se pudo agregar automáticamente al marketplace: ${marketplaceError.message}`);
-        } else {
-          setMensaje('✅ Plan creado y agregado automáticamente al marketplace para afiliados');
-        }
-      } catch (marketplaceError: any) {
-        console.error('Error en integración marketplace:', marketplaceError);
-        setMensaje(`Plan creado exitosamente. Advertencia: Error en integración marketplace: ${marketplaceError.message}`);
+      // Si está marcado para agregar al marketplace, agregarlo automáticamente
+      if (nuevoPlan.agregar_marketplace && planCreado) {
+        await agregarPlanAlMarketplace(planCreado);
       }
       
+      setMensaje('Plan creado exitosamente');
       setShowCreatePlan(false);
-      setNuevoPlan({
-        nombre: '',
-        descripcion: '',
-        precio: '',
-        duracion_valor: '1',
-        duracion_tipo: 'mes',
-        moneda: 'USD',
-        caracteristicas: [''],
-        limite_usuarios: '',
-        activo: true,
-        prueba_gratis: false,
-        duracion_prueba: '7',
-        tipo_prueba: 'dia',
-        categoria: 'basico',
-        orden: 0,
-        destacado: false,
-        color_personalizado: '#3B82F6'
-      });
-      
+      resetFormPlan();
       await cargarDatos();
     } catch (error: any) {
       setMensaje('Error al crear plan: ' + error.message);
     } finally {
       setActionLoading(null);
     }
+  };
+
+  // Función para agregar plan al marketplace
+  const agregarPlanAlMarketplace = async (plan: PlanSuscripcion) => {
+    try {
+      const servicioData = {
+        titulo: `Suscripción ${plan.nombre}`,
+        descripcion: plan.descripcion || `Plan de suscripción ${plan.nombre} con acceso completo a la plataforma`,
+        precio: plan.precio,
+        imagen_url: nuevoPlan.imagen_url || 'https://images.unsplash.com/photo-1559526324-4b87b5e36e44?w=500&h=300&fit=crop',
+        proveedor: 'ScaleXone',
+        categoria: 'Suscripción Premium',
+        rating: 4.8,
+        reviews: 0,
+        activo: plan.activo,
+        tipo_producto: 'suscripcion',
+        plan_suscripcion_id: plan.id,
+        duracion_dias: plan.duracion_dias,
+        caracteristicas: plan.caracteristicas || [],
+        afilible: nuevoPlan.afilible,
+        niveles_comision: nuevoPlan.niveles_comision,
+        comision_nivel1: nuevoPlan.comision_nivel1,
+        comision_nivel2: nuevoPlan.comision_nivel2,
+        comision_nivel3: nuevoPlan.comision_nivel3,
+        fecha_afiliacion: new Date().toISOString(),
+        community_id: comunidadId
+      };
+
+      const { error } = await supabase
+        .from('servicios_marketplace')
+        .insert([servicioData]);
+
+      if (error) throw error;
+    } catch (error: any) {
+      console.error('Error agregando al marketplace:', error);
+      setMensaje('Plan creado, pero error agregando al marketplace: ' + error.message);
+    }
+  };
+
+  // Función para editar plan
+  const handleEditPlan = (plan: PlanSuscripcion) => {
+    setEditingPlan(plan);
+    setNuevoPlan({
+      nombre: plan.nombre,
+      descripcion: plan.descripcion || '',
+      precio: plan.precio.toString(),
+      moneda: plan.moneda || 'USD',
+      duracion_valor: '1',
+      duracion_tipo: plan.duracion_dias === 30 ? 'mes' : plan.duracion_dias === 365 ? 'año' : 'dia',
+      caracteristicas: plan.caracteristicas?.length ? plan.caracteristicas : [''],
+      limite_usuarios: plan.limites?.usuarios?.toString() || '',
+      prueba_gratis: plan.configuracion?.prueba_gratis || false,
+      duracion_prueba: plan.configuracion?.duracion_prueba?.toString() || '7',
+      tipo_prueba: plan.configuracion?.tipo_prueba || 'dias',
+      categoria: plan.configuracion?.categoria || 'premium',
+      destacado: plan.configuracion?.destacado || false,
+      color_personalizado: plan.configuracion?.color || '#3B82F6',
+      activo: plan.activo,
+      orden: plan.orden || 0,
+      imagen_url: '',
+      agregar_marketplace: false,
+      afilible: true,
+      niveles_comision: 3,
+      comision_nivel1: 30,
+      comision_nivel2: 20,
+      comision_nivel3: 10
+    });
+    setShowCreatePlan(true);
+  };
+
+  // Función para eliminar plan
+  const handleDeletePlan = async (planId: string, planNombre: string) => {
+    if (!confirm(`¿Estás seguro de eliminar el plan "${planNombre}"? Esta acción no se puede deshacer.`)) {
+      return;
+    }
+
+    try {
+      setActionLoading(`delete-${planId}`);
+      
+      // Eliminar del marketplace primero (si existe)
+      await supabase
+        .from('servicios_marketplace')
+        .delete()
+        .eq('plan_suscripcion_id', planId);
+
+      // Eliminar el plan
+      await SuscripcionesAPI.Planes.eliminarPlan(planId);
+      
+      setMensaje('Plan eliminado exitosamente');
+      await cargarDatos();
+    } catch (error: any) {
+      setMensaje('Error al eliminar plan: ' + error.message);
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  // Función para actualizar plan
+  const handleUpdatePlan = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!comunidadId || !editingPlan) return;
+
+    try {
+      setActionLoading('actualizar-plan');
+      
+      const calcularDuracionDias = () => {
+        const valor = parseInt(nuevoPlan.duracion_valor);
+        switch (nuevoPlan.duracion_tipo) {
+          case 'dia': return valor;
+          case 'semana': return valor * 7;
+          case 'mes': return valor * 30;
+          case 'año': return valor * 365;
+          default: return valor * 30;
+        }
+      };
+
+      const planData = {
+        nombre: nuevoPlan.nombre,
+        descripcion: nuevoPlan.descripcion,
+        precio: parseFloat(nuevoPlan.precio),
+        moneda: nuevoPlan.moneda,
+        duracion_dias: calcularDuracionDias(),
+        caracteristicas: nuevoPlan.caracteristicas.filter(c => c.trim() !== ''),
+        limites: nuevoPlan.limite_usuarios ? { usuarios: parseInt(nuevoPlan.limite_usuarios) } : {},
+        configuracion: {
+          prueba_gratis: nuevoPlan.prueba_gratis,
+          duracion_prueba: nuevoPlan.prueba_gratis ? parseInt(nuevoPlan.duracion_prueba) : 0,
+          tipo_prueba: nuevoPlan.tipo_prueba,
+          categoria: nuevoPlan.categoria,
+          destacado: nuevoPlan.destacado,
+          color: nuevoPlan.color_personalizado
+        },
+        activo: nuevoPlan.activo,
+        orden: nuevoPlan.orden
+      };
+
+      await SuscripcionesAPI.Planes.actualizarPlan(editingPlan.id, planData);
+      
+      setMensaje('Plan actualizado exitosamente');
+      setShowCreatePlan(false);
+      setEditingPlan(null);
+      resetFormPlan();
+      await cargarDatos();
+    } catch (error: any) {
+      setMensaje('Error al actualizar plan: ' + error.message);
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  // Función para resetear formulario
+  const resetFormPlan = () => {
+    setNuevoPlan({
+      nombre: '',
+      descripcion: '',
+      precio: '',
+      moneda: 'USD',
+      duracion_valor: '1',
+      duracion_tipo: 'mes',
+      caracteristicas: [''],
+      limite_usuarios: '',
+      prueba_gratis: false,
+      duracion_prueba: '7',
+      tipo_prueba: 'dias',
+      categoria: 'premium',
+      destacado: false,
+      color_personalizado: '#3B82F6',
+      activo: true,
+      orden: 0,
+      imagen_url: '',
+      agregar_marketplace: true,
+      afilible: true,
+      niveles_comision: 3,
+      comision_nivel1: 30,
+      comision_nivel2: 20,
+      comision_nivel3: 10
+    });
+    setEditingPlan(null);
   };
 
   // Función para crear suscripción
@@ -571,11 +754,24 @@ const SuscripcionesAdminPanel: React.FC = () => {
                     )}
                   </div>
                   <div className="flex gap-2">
-                    <button className="p-2 text-blue-400 hover:bg-blue-900 rounded transition-colors">
+                    <button 
+                      onClick={() => handleEditPlan(plan)}
+                      className="p-2 text-blue-400 hover:bg-blue-900 rounded transition-colors"
+                      title="Editar plan"
+                    >
                       <Edit size={16} />
                     </button>
-                    <button className="p-2 text-red-400 hover:bg-red-900 rounded transition-colors">
-                      <Trash2 size={16} />
+                    <button 
+                      onClick={() => handleDeletePlan(plan.id, plan.nombre)}
+                      disabled={actionLoading === `delete-${plan.id}`}
+                      className="p-2 text-red-400 hover:bg-red-900 rounded transition-colors disabled:opacity-50"
+                      title="Eliminar plan"
+                    >
+                      {actionLoading === `delete-${plan.id}` ? (
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-400"></div>
+                      ) : (
+                        <Trash2 size={16} />
+                      )}
                     </button>
                   </div>
                 </div>
@@ -638,12 +834,26 @@ const SuscripcionesAdminPanel: React.FC = () => {
         )}
       </div>
 
-      {/* Modal Crear Plan */}
+      {/* Modal Crear/Editar Plan */}
       {showCreatePlan && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 overflow-y-auto">
-          <div className="bg-gray-800 rounded-lg p-6 w-full max-w-2xl mx-4 my-8">
-            <h3 className="text-xl font-bold text-white mb-6">Crear Nuevo Plan de Suscripción</h3>
-            <form onSubmit={handleCreatePlan} className="space-y-6">
+          <div className="bg-gray-800 rounded-lg p-6 w-full max-w-4xl mx-4 my-8 max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-xl font-bold text-white">
+                {editingPlan ? 'Editar Plan de Suscripción' : 'Crear Nuevo Plan de Suscripción'}
+              </h3>
+              <button
+                onClick={() => {
+                  setShowCreatePlan(false);
+                  resetFormPlan();
+                }}
+                className="text-gray-400 hover:text-white"
+              >
+                <X size={24} />
+              </button>
+            </div>
+            
+            <form onSubmit={editingPlan ? handleUpdatePlan : handleCreatePlan} className="space-y-6">
               
               {/* Información básica */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -654,7 +864,7 @@ const SuscripcionesAdminPanel: React.FC = () => {
                     value={nuevoPlan.nombre}
                     onChange={(e) => setNuevoPlan({...nuevoPlan, nombre: e.target.value})}
                     className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:border-yellow-500 focus:outline-none"
-                    placeholder="ej. Plan Básico"
+                    placeholder="ej. Plan Premium"
                     required
                   />
                 </div>
@@ -684,6 +894,60 @@ const SuscripcionesAdminPanel: React.FC = () => {
                   placeholder="Describe las características principales del plan..."
                 />
               </div>
+
+              {/* Imagen del Plan */}
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">Imagen del Plan</label>
+                <div className="space-y-3">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        const imageUrl = await uploadImage(file);
+                        if (imageUrl) {
+                          setNuevoPlan({ ...nuevoPlan, imagen_url: imageUrl });
+                        }
+                      }
+                    }}
+                    className="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-yellow-500"
+                    disabled={uploadingImage}
+                  />
+                  
+                  {uploadingImage && (
+                    <div className="flex items-center gap-2 text-yellow-400">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-yellow-400"></div>
+                      <span className="text-sm">Subiendo imagen...</span>
+                    </div>
+                  )}
+
+                  {nuevoPlan.imagen_url && (
+                    <div className="relative">
+                      <img
+                        src={nuevoPlan.imagen_url}
+                        alt="Preview"
+                        className="w-full h-32 object-cover rounded-lg"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setNuevoPlan({ ...nuevoPlan, imagen_url: '' })}
+                        className="absolute top-2 right-2 bg-red-600 hover:bg-red-700 text-white p-1 rounded-full transition-colors"
+                      >
+                        <X size={16} />
+                      </button>
+                    </div>
+                  )}
+
+                  <input
+                    type="url"
+                    placeholder="O pega una URL de imagen"
+                    value={nuevoPlan.imagen_url || ''}
+                    onChange={(e) => setNuevoPlan({ ...nuevoPlan, imagen_url: e.target.value })}
+                    className="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-yellow-500"
+                  />
+                </div>
+              </div>
               
               {/* Precio y duración */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -702,12 +966,11 @@ const SuscripcionesAdminPanel: React.FC = () => {
                     <select
                       value={nuevoPlan.moneda}
                       onChange={(e) => setNuevoPlan({...nuevoPlan, moneda: e.target.value})}
-                      className="px-3 py-2 bg-gray-600 border border-gray-600 rounded-r-lg text-white focus:border-yellow-500 focus:outline-none"
+                      className="px-3 py-2 bg-gray-700 border-l-0 border border-gray-600 rounded-r-lg text-white focus:border-yellow-500 focus:outline-none"
                     >
                       <option value="USD">USD</option>
                       <option value="EUR">EUR</option>
                       <option value="MXN">MXN</option>
-                      <option value="COP">COP</option>
                     </select>
                   </div>
                 </div>
@@ -725,7 +988,7 @@ const SuscripcionesAdminPanel: React.FC = () => {
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">Frecuencia</label>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Período</label>
                   <select
                     value={nuevoPlan.duracion_tipo}
                     onChange={(e) => setNuevoPlan({...nuevoPlan, duracion_tipo: e.target.value})}
@@ -738,51 +1001,192 @@ const SuscripcionesAdminPanel: React.FC = () => {
                   </select>
                 </div>
               </div>
-              
-              {/* Prueba gratis */}
-              <div className="bg-gray-700 rounded-lg p-4">
-                <div className="flex items-center gap-3 mb-4">
-                  <input
-                    type="checkbox"
-                    checked={nuevoPlan.prueba_gratis}
-                    onChange={(e) => setNuevoPlan({...nuevoPlan, prueba_gratis: e.target.checked})}
-                    className="rounded"
-                  />
-                  <label className="text-sm font-medium text-gray-300">¿Habilitar prueba gratis?</label>
-                </div>
-                
-                {nuevoPlan.prueba_gratis && (
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm text-gray-400 mb-2">Duración de prueba</label>
-                      <input
-                        type="number"
-                        min="1"
-                        value={nuevoPlan.duracion_prueba}
-                        onChange={(e) => setNuevoPlan({...nuevoPlan, duracion_prueba: e.target.value})}
-                        className="w-full px-3 py-2 bg-gray-600 border border-gray-500 rounded-lg text-white focus:border-yellow-500 focus:outline-none"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm text-gray-400 mb-2">Tipo</label>
-                      <select
-                        value={nuevoPlan.tipo_prueba}
-                        onChange={(e) => setNuevoPlan({...nuevoPlan, tipo_prueba: e.target.value})}
-                        className="w-full px-3 py-2 bg-gray-600 border border-gray-500 rounded-lg text-white focus:border-yellow-500 focus:outline-none"
-                      >
-                        <option value="dia">Día(s)</option>
-                        <option value="semana">Semana(s)</option>
-                        <option value="mes">Mes(es)</option>
-                      </select>
-                    </div>
+
+              {/* Integración con Marketplace */}
+              {!editingPlan && (
+                <div className="bg-blue-900/20 border border-blue-500/30 rounded-lg p-4">
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="checkbox"
+                      id="agregar_marketplace"
+                      checked={nuevoPlan.agregar_marketplace}
+                      onChange={(e) => setNuevoPlan({...nuevoPlan, agregar_marketplace: e.target.checked})}
+                      className="rounded"
+                    />
+                    <label htmlFor="agregar_marketplace" className="text-blue-200 font-medium">
+                      🚀 Agregar automáticamente al Marketplace
+                    </label>
                   </div>
-                )}
+                  <p className="text-blue-300 text-sm mt-2">
+                    Si activas esta opción, el plan se agregará automáticamente al marketplace de servicios 
+                    para que los afiliados puedan promocionarlo y generar comisiones.
+                  </p>
+                </div>
+              )}
+
+              {/* 💰 Configuración de Afiliación */}
+              {nuevoPlan.agregar_marketplace && (
+                <div className="bg-yellow-900/10 border border-yellow-500/20 rounded-lg p-4">
+                  <h4 className="text-yellow-300 font-semibold mb-4 flex items-center gap-2">
+                    💰 Configuración de Afiliación
+                  </h4>
+                  
+                  <div className="flex items-center gap-3 mb-4">
+                    <input
+                      type="checkbox"
+                      id="afilible"
+                      checked={nuevoPlan.afilible}
+                      onChange={(e) => setNuevoPlan({...nuevoPlan, afilible: e.target.checked})}
+                      className="rounded"
+                    />
+                    <label htmlFor="afilible" className="text-yellow-200 font-medium">
+                      Permitir afiliación a este plan
+                    </label>
+                  </div>
+
+                  {nuevoPlan.afilible && (
+                    <div className="space-y-4">
+                      {/* Selector de niveles */}
+                      <div>
+                        <label className="block text-gray-300 mb-2">Sistema de Comisiones</label>
+                        <select
+                          value={nuevoPlan.niveles_comision || 1}
+                          onChange={(e) => setNuevoPlan({ 
+                            ...nuevoPlan, 
+                            niveles_comision: parseInt(e.target.value),
+                            // Resetear niveles no usados
+                            comision_nivel2: parseInt(e.target.value) < 2 ? 0 : nuevoPlan.comision_nivel2,
+                            comision_nivel3: parseInt(e.target.value) < 3 ? 0 : nuevoPlan.comision_nivel3
+                          })}
+                          className="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-yellow-400"
+                        >
+                          <option value={1}>Un solo nivel (Afiliado directo)</option>
+                          <option value={3}>Tres niveles (Red de afiliados)</option>
+                        </select>
+                      </div>
+
+                      {/* Porcentajes de comisión */}
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        {/* Nivel 1 */}
+                        <div>
+                          <label className="block text-gray-300 mb-2">
+                            Nivel 1 (%) <span className="text-yellow-400">*</span>
+                          </label>
+                          <input
+                            type="number"
+                            step="0.01"
+                            min="0"
+                            max="100"
+                            value={nuevoPlan.comision_nivel1 || 0}
+                            onChange={(e) => setNuevoPlan({ ...nuevoPlan, comision_nivel1: parseFloat(e.target.value) || 0 })}
+                            className="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-yellow-400"
+                            placeholder="Ej: 30"
+                          />
+                          <p className="text-xs text-gray-400 mt-1">Afiliado directo</p>
+                        </div>
+
+                        {/* Nivel 2 */}
+                        <div className={nuevoPlan.niveles_comision === 1 ? 'opacity-50' : ''}>
+                          <label className="block text-gray-300 mb-2">Nivel 2 (%)</label>
+                          <input
+                            type="number"
+                            step="0.01"
+                            min="0"
+                            max="100"
+                            value={nuevoPlan.comision_nivel2 || 0}
+                            onChange={(e) => setNuevoPlan({ ...nuevoPlan, comision_nivel2: parseFloat(e.target.value) || 0 })}
+                            className="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-yellow-400"
+                            placeholder="Ej: 20"
+                            disabled={nuevoPlan.niveles_comision === 1}
+                          />
+                          <p className="text-xs text-gray-400 mt-1">Quien refirió al afiliado</p>
+                        </div>
+
+                        {/* Nivel 3 */}
+                        <div className={nuevoPlan.niveles_comision === 1 ? 'opacity-50' : ''}>
+                          <label className="block text-gray-300 mb-2">Nivel 3 (%)</label>
+                          <input
+                            type="number"
+                            step="0.01"
+                            min="0"
+                            max="100"
+                            value={nuevoPlan.comision_nivel3 || 0}
+                            onChange={(e) => setNuevoPlan({ ...nuevoPlan, comision_nivel3: parseFloat(e.target.value) || 0 })}
+                            className="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-yellow-400"
+                            placeholder="Ej: 10"
+                            disabled={nuevoPlan.niveles_comision === 1}
+                          />
+                          <p className="text-xs text-gray-400 mt-1">Nivel superior en la red</p>
+                        </div>
+                      </div>
+
+                      {/* Información de comisiones calculadas */}
+                      <div className="bg-yellow-900/10 border border-yellow-500/20 rounded-lg p-3">
+                        <div className="flex items-start gap-2">
+                          <Info className="text-yellow-400 mt-0.5" size={16} />
+                          <div className="text-sm text-yellow-200">
+                            <p className="font-medium mb-1">Cálculo de Comisiones Recurrentes:</p>
+                            <p>• <strong>Nivel 1:</strong> {nuevoPlan.comision_nivel1}% de ${nuevoPlan.precio} = ${((parseFloat(nuevoPlan.precio) * nuevoPlan.comision_nivel1) / 100).toFixed(2)} por período</p>
+                            {nuevoPlan.niveles_comision >= 2 && (
+                              <p>• <strong>Nivel 2:</strong> {nuevoPlan.comision_nivel2}% de ${nuevoPlan.precio} = ${((parseFloat(nuevoPlan.precio) * nuevoPlan.comision_nivel2) / 100).toFixed(2)} por período</p>
+                            )}
+                            {nuevoPlan.niveles_comision >= 3 && (
+                              <p>• <strong>Nivel 3:</strong> {nuevoPlan.comision_nivel3}% de ${nuevoPlan.precio} = ${((parseFloat(nuevoPlan.precio) * nuevoPlan.comision_nivel3) / 100).toFixed(2)} por período</p>
+                            )}
+                            <p className="mt-2 text-xs text-yellow-300">
+                              💡 Las comisiones se generan cada vez que el usuario renueva su suscripción.
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+              
+              {/* Características */}
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">Características del Plan</label>
+                <div className="space-y-2">
+                  {nuevoPlan.caracteristicas.map((caracteristica, index) => (
+                    <div key={index} className="flex gap-2">
+                      <input
+                        type="text"
+                        value={caracteristica}
+                        onChange={(e) => {
+                          const newCaracteristicas = [...nuevoPlan.caracteristicas];
+                          newCaracteristicas[index] = e.target.value;
+                          setNuevoPlan({...nuevoPlan, caracteristicas: newCaracteristicas});
+                        }}
+                        className="flex-1 px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:border-yellow-500 focus:outline-none"
+                        placeholder="ej. Acceso completo a la plataforma"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const newCaracteristicas = nuevoPlan.caracteristicas.filter((_, i) => i !== index);
+                          setNuevoPlan({...nuevoPlan, caracteristicas: newCaracteristicas});
+                        }}
+                        className="px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={() => setNuevoPlan({...nuevoPlan, caracteristicas: [...nuevoPlan.caracteristicas, '']})}
+                    className="w-full px-3 py-2 border-2 border-dashed border-gray-600 rounded-lg text-gray-400 hover:border-yellow-500 hover:text-yellow-400 transition-colors"
+                  >
+                    + Agregar característica
+                  </button>
+                </div>
               </div>
               
-              {/* Configuración avanzada */}
+              {/* Configuraciones adicionales */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">Límite de Usuarios</label>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Límite de Usuarios (opcional)</label>
                   <input
                     type="number"
                     min="1"
@@ -794,80 +1198,56 @@ const SuscripcionesAdminPanel: React.FC = () => {
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">Orden de visualización</label>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Orden de Visualización</label>
                   <input
                     type="number"
-                    min="0"
                     value={nuevoPlan.orden}
                     onChange={(e) => setNuevoPlan({...nuevoPlan, orden: parseInt(e.target.value) || 0})}
                     className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:border-yellow-500 focus:outline-none"
-                    placeholder="0"
                   />
                 </div>
               </div>
               
-              {/* Características del Plan */}
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">Características del Plan</label>
-                <div className="space-y-2">
-                  {nuevoPlan.caracteristicas.map((caracteristica, index) => (
-                    <div key={index} className="flex items-center gap-2">
-                      <input
-                        type="text"
-                        value={caracteristica}
-                        onChange={(e) => {
-                          const nuevasCaracteristicas = [...nuevoPlan.caracteristicas];
-                          nuevasCaracteristicas[index] = e.target.value;
-                          setNuevoPlan({...nuevoPlan, caracteristicas: nuevasCaracteristicas});
-                        }}
-                        className="flex-1 px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:border-yellow-500 focus:outline-none"
-                        placeholder="ej. Acceso a módulos básicos"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const nuevasCaracteristicas = nuevoPlan.caracteristicas.filter((_, i) => i !== index);
-                          setNuevoPlan({...nuevoPlan, caracteristicas: nuevasCaracteristicas});
-                        }}
-                        className="p-2 text-red-400 hover:bg-red-900 rounded transition-colors"
-                      >
-                        ✕
-                      </button>
-                    </div>
-                  ))}
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setNuevoPlan({...nuevoPlan, caracteristicas: [...nuevoPlan.caracteristicas, '']});
-                    }}
-                    className="w-full px-3 py-2 border-2 border-dashed border-gray-600 rounded-lg text-gray-400 hover:border-yellow-500 hover:text-yellow-400 transition-colors"
-                  >
-                    + Agregar Característica
-                  </button>
-                </div>
-              </div>
-
-              {/* Color personalizado */}
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">Color del Plan</label>
+              {/* Prueba gratuita */}
+              <div className="space-y-4">
                 <div className="flex items-center gap-3">
                   <input
-                    type="color"
-                    value={nuevoPlan.color_personalizado}
-                    onChange={(e) => setNuevoPlan({...nuevoPlan, color_personalizado: e.target.value})}
-                    className="w-12 h-10 rounded border border-gray-600"
+                    type="checkbox"
+                    checked={nuevoPlan.prueba_gratis}
+                    onChange={(e) => setNuevoPlan({...nuevoPlan, prueba_gratis: e.target.checked})}
+                    className="rounded"
                   />
-                  <input
-                    type="text"
-                    value={nuevoPlan.color_personalizado}
-                    onChange={(e) => setNuevoPlan({...nuevoPlan, color_personalizado: e.target.value})}
-                    className="flex-1 px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:border-yellow-500 focus:outline-none"
-                    placeholder="#3B82F6"
-                  />
+                  <label className="text-sm text-gray-300">Incluir período de prueba gratuita</label>
                 </div>
+                
+                {nuevoPlan.prueba_gratis && (
+                  <div className="grid grid-cols-2 gap-4 ml-6">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-2">Duración de la prueba</label>
+                      <input
+                        type="number"
+                        min="1"
+                        value={nuevoPlan.duracion_prueba}
+                        onChange={(e) => setNuevoPlan({...nuevoPlan, duracion_prueba: e.target.value})}
+                        className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:border-yellow-500 focus:outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-2">Tipo</label>
+                      <select
+                        value={nuevoPlan.tipo_prueba}
+                        onChange={(e) => setNuevoPlan({...nuevoPlan, tipo_prueba: e.target.value})}
+                        className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:border-yellow-500 focus:outline-none"
+                      >
+                        <option value="dias">Días</option>
+                        <option value="semanas">Semanas</option>
+                      </select>
+                    </div>
+                  </div>
+                )}
               </div>
               
-              {/* Opciones adicionales */}
+              {/* Opciones finales */}
               <div className="flex flex-wrap gap-4">
                 <div className="flex items-center gap-2">
                   <input
@@ -894,17 +1274,30 @@ const SuscripcionesAdminPanel: React.FC = () => {
               <div className="flex gap-3 pt-4 border-t border-gray-700">
                 <button
                   type="button"
-                  onClick={() => setShowCreatePlan(false)}
+                  onClick={() => {
+                    setShowCreatePlan(false);
+                    resetFormPlan();
+                  }}
                   className="flex-1 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
-                  disabled={actionLoading === 'crear-plan'}
-                  className="flex-1 px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors disabled:opacity-50"
+                  disabled={actionLoading === 'crear-plan' || actionLoading === 'actualizar-plan' || uploadingImage}
+                  className="flex-1 px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
                 >
-                  {actionLoading === 'crear-plan' ? 'Creando...' : 'Crear Plan'}
+                  {(actionLoading === 'crear-plan' || actionLoading === 'actualizar-plan') ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                      {editingPlan ? 'Actualizando...' : 'Creando...'}
+                    </>
+                  ) : (
+                    <>
+                      <Save size={16} />
+                      {editingPlan ? 'Actualizar Plan' : 'Crear Plan'}
+                    </>
+                  )}
                 </button>
               </div>
             </form>
@@ -954,7 +1347,7 @@ const SuscripcionesAdminPanel: React.FC = () => {
                   value={nuevaSuscripcion.precio_personalizado}
                   onChange={(e) => setNuevaSuscripcion({...nuevaSuscripcion, precio_personalizado: e.target.value})}
                   className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:border-yellow-500 focus:outline-none"
-                  placeholder="Usar precio del plan"
+                  placeholder="Dejar vacío para usar precio del plan"
                 />
               </div>
               
