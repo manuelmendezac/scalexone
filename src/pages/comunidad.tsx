@@ -31,8 +31,8 @@ const ComunidadPage = () => {
       try {
         let communityData = null;
         
-        // Primero intentar obtener ScaleXOne si es community_id default o scalexone
-        if (userInfo.community_id === 'scalexone' || userInfo.community_id === 'default') {
+          // Primero intentar obtener ScaleXOne si es community_id default o scalexone
+  if (userInfo.community_id === '8fb70d6e-3237-465e-8669-979461cf2bc1' || userInfo.community_id === 'scalexone' || userInfo.community_id === 'default') {
           const { data: scalexoneData, error: scalexoneError } = await supabase
             .from('comunidades')
             .select('nombre')

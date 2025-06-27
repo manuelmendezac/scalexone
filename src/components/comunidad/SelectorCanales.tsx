@@ -31,7 +31,7 @@ const SelectorCanales: React.FC<SelectorCanalesProps> = ({
       if (!userInfo.id) return null;
 
       // Intentar obtener ScaleXOne primero
-      if (userInfo.community_id === 'scalexone' || userInfo.community_id === 'default') {
+      if (userInfo.community_id === '8fb70d6e-3237-465e-8669-979461cf2bc1' || userInfo.community_id === 'scalexone' || userInfo.community_id === 'default') {
         const { data: scalexoneData, error: scalexoneError } = await supabase
           .from('comunidades')
           .select('id')
@@ -41,6 +41,9 @@ const SelectorCanales: React.FC<SelectorCanalesProps> = ({
         if (!scalexoneError && scalexoneData) {
           return scalexoneData.id;
         }
+        
+        // Fallback directo al UUID de ScaleXone
+        return '8fb70d6e-3237-465e-8669-979461cf2bc1';
       }
       
       // Si no encontró ScaleXOne, buscar por owner_id
