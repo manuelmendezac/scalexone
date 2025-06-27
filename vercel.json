@@ -33,6 +33,5 @@
     "pages/api/**/*.ts": {
       "runtime": "nodejs18.x"
     }
-  },
-  "_comment": "Forzando redeploy - 2024-12-19 16:30"
+  }
 } 
