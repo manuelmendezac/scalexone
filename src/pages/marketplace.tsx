@@ -164,86 +164,80 @@ const Marketplace: React.FC = () => {
       key={curso.id}
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      whileHover={{ y: -8, scale: 1.02 }}
+      whileHover={{ y: -5, scale: 1.02 }}
       transition={{ duration: 0.3 }}
-      className="group cursor-pointer"
+      className="bg-gray-900/50 rounded-xl border border-amber-500/20 hover:border-amber-400/40 transition-all group cursor-pointer overflow-hidden"
     >
-      {/* Imagen Principal */}
-      <div className="relative overflow-hidden rounded-2xl shadow-2xl">
-        <div className="aspect-video bg-gradient-to-br from-gray-900 to-black relative">
+      {/* Imagen horizontal tipo Netflix/Instagram */}
+      <div className="relative">
+        <div className="w-full h-48 bg-gray-800 relative overflow-hidden">
           {curso.imagen_url ? (
             <img 
               src={curso.imagen_url} 
               alt={curso.titulo} 
-              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+              className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
             />
           ) : (
-            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-amber-900/20 to-yellow-900/20">
-              <GraduationCap size={64} className="text-amber-400" />
+            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-amber-900/30 to-yellow-900/30">
+              <GraduationCap size={48} className="text-amber-400" />
             </div>
           )}
           
-          {/* Overlay Gradient */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-60 group-hover:opacity-80 transition-opacity duration-300" />
-          
           {/* Badge de Curso */}
-          <div className="absolute top-4 left-4">
-            <span className="bg-gradient-to-r from-amber-400 to-yellow-500 text-black px-3 py-1.5 rounded-full text-xs font-bold shadow-lg">
+          <div className="absolute top-3 left-3">
+            <span className="bg-gradient-to-r from-amber-400 to-yellow-500 text-black px-3 py-1 rounded-full text-xs font-bold shadow-lg">
               CURSO
             </span>
           </div>
           
-          {/* Rating y Estudiantes */}
-          <div className="absolute top-4 right-4 flex items-center gap-2">
-            <div className="bg-black/60 backdrop-blur-sm rounded-full px-2 py-1 flex items-center gap-1">
+          {/* Rating */}
+          <div className="absolute top-3 right-3">
+            <div className="bg-black/70 backdrop-blur-sm rounded-full px-2 py-1 flex items-center gap-1">
               <Star className="w-3 h-3 text-amber-400 fill-current" />
               <span className="text-amber-400 text-xs font-semibold">{curso.rating}</span>
             </div>
           </div>
-          
-          {/* Información en la parte inferior */}
-          <div className="absolute bottom-0 left-0 right-0 p-6">
-            <h3 className="text-white font-bold text-xl mb-2 line-clamp-2 group-hover:text-amber-300 transition-colors">
-              {curso.titulo}
-            </h3>
-            
-            <p className="text-gray-300 text-sm mb-4 line-clamp-2 opacity-90">
-              {curso.descripcion}
-            </p>
-            
-            {/* Metadata */}
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-4 text-xs text-gray-400">
-                <div className="flex items-center gap-1">
-                  <Users size={12} />
-                  <span>{curso.estudiantes}</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <Clock size={12} />
-                  <span>{curso.duracion_horas}h</span>
-                </div>
-                <div className="bg-amber-500/20 text-amber-400 px-2 py-0.5 rounded-full">
-                  {curso.nivel}
-                </div>
-              </div>
-            </div>
-            
-            {/* Precio y Botón */}
-            <div className="flex items-center justify-between">
-              <div className="text-left">
-                <div className="text-2xl font-bold bg-gradient-to-r from-amber-400 to-yellow-500 bg-clip-text text-transparent">
-                  ${curso.precio}
-                </div>
-                <div className="text-xs text-gray-400">
-                  por {curso.instructor}
-                </div>
-              </div>
-              
-              <button className="bg-gradient-to-r from-amber-500 to-yellow-600 hover:from-amber-400 hover:to-yellow-500 text-black font-bold px-6 py-2.5 rounded-full text-sm shadow-lg transform transition-all duration-200 hover:scale-105 hover:shadow-xl">
-                Ver
-              </button>
-            </div>
+        </div>
+      </div>
+
+      {/* Información separada debajo */}
+      <div className="p-6">
+        <h3 className="text-white font-bold text-lg mb-2 group-hover:text-amber-300 transition-colors line-clamp-2">
+          {curso.titulo}
+        </h3>
+        
+        <p className="text-gray-400 text-sm mb-4 line-clamp-2">
+          {curso.descripcion}
+        </p>
+        
+        {/* Metadata */}
+        <div className="flex items-center gap-4 mb-4 text-xs text-gray-400">
+          <div className="flex items-center gap-1">
+            <Users size={12} />
+            <span>{curso.estudiantes} estudiantes</span>
           </div>
+          <div className="flex items-center gap-1">
+            <Clock size={12} />
+            <span>{curso.duracion_horas}h</span>
+          </div>
+          <div className="bg-amber-500/20 text-amber-400 px-2 py-1 rounded-full text-xs">
+            {curso.nivel}
+          </div>
+        </div>
+        
+        {/* Instructor */}
+        <div className="text-sm text-gray-400 mb-4">
+          Por: <span className="text-amber-400 font-semibold">{curso.instructor}</span>
+        </div>
+        
+        {/* Precio y Botón */}
+        <div className="flex items-center justify-between">
+          <div className="text-2xl font-bold bg-gradient-to-r from-amber-400 to-yellow-500 bg-clip-text text-transparent">
+            ${curso.precio}
+          </div>
+          <button className="bg-gradient-to-r from-amber-500 to-yellow-600 hover:from-amber-400 hover:to-yellow-500 text-black font-bold px-6 py-2 rounded-lg text-sm shadow-lg transform transition-all duration-200 hover:scale-105">
+            Ver
+          </button>
         </div>
       </div>
     </motion.div>
@@ -254,82 +248,76 @@ const Marketplace: React.FC = () => {
       key={servicio.id}
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      whileHover={{ y: -8, scale: 1.02 }}
+      whileHover={{ y: -5, scale: 1.02 }}
       transition={{ duration: 0.3 }}
-      className="group cursor-pointer"
+      className="bg-gray-900/50 rounded-xl border border-purple-500/20 hover:border-purple-400/40 transition-all group cursor-pointer overflow-hidden"
     >
-      {/* Imagen Principal */}
-      <div className="relative overflow-hidden rounded-2xl shadow-2xl">
-        <div className="aspect-video bg-gradient-to-br from-gray-900 to-black relative">
+      {/* Imagen horizontal tipo Netflix/Instagram */}
+      <div className="relative">
+        <div className="w-full h-48 bg-gray-800 relative overflow-hidden">
           {servicio.imagen_url ? (
             <img 
               src={servicio.imagen_url} 
               alt={servicio.titulo} 
-              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+              className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
             />
           ) : (
-            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-purple-900/20 to-pink-900/20">
-              <Briefcase size={64} className="text-purple-400" />
+            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-purple-900/30 to-pink-900/30">
+              <Briefcase size={48} className="text-purple-400" />
             </div>
           )}
           
-          {/* Overlay Gradient */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-60 group-hover:opacity-80 transition-opacity duration-300" />
-          
           {/* Badge de Servicio */}
-          <div className="absolute top-4 left-4">
-            <span className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-3 py-1.5 rounded-full text-xs font-bold shadow-lg">
+          <div className="absolute top-3 left-3">
+            <span className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg">
               SERVICIO
             </span>
           </div>
           
-          {/* Rating y Reviews */}
-          <div className="absolute top-4 right-4 flex items-center gap-2">
-            <div className="bg-black/60 backdrop-blur-sm rounded-full px-2 py-1 flex items-center gap-1">
+          {/* Rating */}
+          <div className="absolute top-3 right-3">
+            <div className="bg-black/70 backdrop-blur-sm rounded-full px-2 py-1 flex items-center gap-1">
               <Star className="w-3 h-3 text-purple-400 fill-current" />
               <span className="text-purple-400 text-xs font-semibold">{servicio.rating}</span>
             </div>
           </div>
-          
-          {/* Información en la parte inferior */}
-          <div className="absolute bottom-0 left-0 right-0 p-6">
-            <h3 className="text-white font-bold text-xl mb-2 line-clamp-2 group-hover:text-purple-300 transition-colors">
-              {servicio.titulo}
-            </h3>
-            
-            <p className="text-gray-300 text-sm mb-4 line-clamp-2 opacity-90">
-              {servicio.descripcion}
-            </p>
-            
-            {/* Metadata */}
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-4 text-xs text-gray-400">
-                <div className="flex items-center gap-1">
-                  <Users size={12} />
-                  <span>{servicio.reviews} reviews</span>
-                </div>
-                <div className="bg-purple-500/20 text-purple-400 px-2 py-0.5 rounded-full">
-                  Servicio
-                </div>
-              </div>
-            </div>
-            
-            {/* Precio y Botón */}
-            <div className="flex items-center justify-between">
-              <div className="text-left">
-                <div className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-pink-500 bg-clip-text text-transparent">
-                  ${servicio.precio}
-                </div>
-                <div className="text-xs text-gray-400">
-                  por {servicio.proveedor}
-                </div>
-              </div>
-              
-              <button className="bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-400 hover:to-pink-500 text-white font-bold px-6 py-2.5 rounded-full text-sm shadow-lg transform transition-all duration-200 hover:scale-105 hover:shadow-xl">
-                Contratar
-              </button>
-            </div>
+        </div>
+      </div>
+
+      {/* Información separada debajo */}
+      <div className="p-6">
+        <h3 className="text-white font-bold text-lg mb-2 group-hover:text-purple-300 transition-colors line-clamp-2">
+          {servicio.titulo}
+        </h3>
+        
+        <p className="text-gray-400 text-sm mb-4 line-clamp-2">
+          {servicio.descripcion}
+        </p>
+        
+        {/* Metadata */}
+        <div className="flex items-center gap-4 mb-4 text-xs text-gray-400">
+          <div className="flex items-center gap-1">
+            <Users size={12} />
+            <span>{servicio.reviews} reviews</span>
           </div>
+          <div className="bg-purple-500/20 text-purple-400 px-2 py-1 rounded-full text-xs">
+            Servicio
+          </div>
+        </div>
+        
+        {/* Proveedor */}
+        <div className="text-sm text-gray-400 mb-4">
+          Por: <span className="text-purple-400 font-semibold">{servicio.proveedor}</span>
+        </div>
+        
+        {/* Precio y Botón */}
+        <div className="flex items-center justify-between">
+          <div className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-pink-500 bg-clip-text text-transparent">
+            ${servicio.precio}
+          </div>
+          <button className="bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-400 hover:to-pink-500 text-white font-bold px-6 py-2 rounded-lg text-sm shadow-lg transform transition-all duration-200 hover:scale-105">
+            Contratar
+          </button>
         </div>
       </div>
     </motion.div>
