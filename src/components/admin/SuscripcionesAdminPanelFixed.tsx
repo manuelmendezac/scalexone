@@ -66,8 +66,8 @@ const SuscripcionesAdminPanel: React.FC = () => {
     if (!userInfo?.id) return;
 
     try {
-      // Usar un community_id por defecto simple
-      const communityId = userInfo?.community_id || 'default';
+      // Usar un UUID válido por defecto o el community_id del usuario
+      const communityId = userInfo?.community_id || '00000000-0000-0000-0000-000000000001';
       console.log(`Usando community_id: ${communityId}`);
       
       setComunidadId(communityId);
