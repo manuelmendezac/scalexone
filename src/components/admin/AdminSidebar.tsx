@@ -18,6 +18,7 @@ export const menuItems = [
     { key: 'chats', label: 'Chats', icon: <MessageSquare size={20} />, section: 'general' },
     { key: 'affiliates', label: 'Afiliados', icon: <Briefcase size={20} />, section: 'general' },
     { key: 'marketplace-cursos', label: 'Cursos Marketplace', icon: <ShoppingBag size={20} />, section: 'contenido' },
+    { key: 'marketplace-servicios', label: 'Servicios Marketplace', icon: <Briefcase size={20} />, section: 'contenido' },
     { key: 'subscriptions', label: 'Suscripciones', icon: <UserCheck size={20} />, section: 'finanzas' },
     { key: 'payments', label: 'Métodos de Cobro', icon: <DollarSign size={20} />, section: 'finanzas' },
     { key: 'salesHistory', label: 'Historial de Ventas', icon: <List size={20} />, section: 'finanzas' },

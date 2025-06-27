@@ -13,6 +13,7 @@ import useNeuroState from '../../store/useNeuroState';
 import ConfiguracionProyecto from '../../components/ConfiguracionProyecto';
 import AdminCanalesPanel from '../../components/AdminCanalesPanel';
 import CursosMarketplacePanel from '../../components/admin/CursosMarketplacePanel';
+import ServiciosMarketplacePanel from '../../components/admin/ServiciosMarketplacePanel';
 
 export default function AdminSettingsPage() {
   const [selectedItem, setSelectedItem] = useState('community');
@@ -67,6 +68,9 @@ export default function AdminSettingsPage() {
         case 'marketplace-cursos':
           console.log('Rendering CursosMarketplacePanel');
           return <CursosMarketplacePanel />;
+        case 'marketplace-servicios':
+          console.log('Rendering ServiciosMarketplacePanel');
+          return <ServiciosMarketplacePanel />;
         default:
           return (
             <div className="w-full p-8">
