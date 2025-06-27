@@ -15,6 +15,7 @@ import AdminCanalesPanel from '../../components/AdminCanalesPanel';
 import CursosMarketplacePanel from '../../components/admin/CursosMarketplacePanel';
 import ServiciosMarketplacePanel from '../../components/admin/ServiciosMarketplacePanel';
 import ConfigComisionesPanel from '../../components/admin/ConfigComisionesPanel';
+import GestionAfiliadosPanel from '../../components/admin/GestionAfiliadosPanel';
 
 export default function AdminSettingsPage() {
   const [selectedItem, setSelectedItem] = useState('community');
@@ -75,6 +76,9 @@ export default function AdminSettingsPage() {
         case 'marketplace-servicios':
           console.log('Rendering ServiciosMarketplacePanel');
           return <ServiciosMarketplacePanel />;
+        case 'gestion-afiliados':
+          console.log('Rendering GestionAfiliadosPanel');
+          return <GestionAfiliadosPanel />;
         default:
           return (
             <div className="w-full p-8">

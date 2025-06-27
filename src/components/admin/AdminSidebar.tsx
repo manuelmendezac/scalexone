@@ -1,5 +1,5 @@
 import React from 'react';
-import { Home, Settings, BarChart2, Tv, Users, Calendar, MessageSquare, Briefcase, DollarSign, List, CreditCard, Activity, Menu, Image, Wallet, UserCheck, ShoppingBag, Percent } from 'lucide-react';
+import { Home, Settings, BarChart2, Tv, Users, Calendar, MessageSquare, Briefcase, DollarSign, List, CreditCard, Activity, Menu, Image, Wallet, UserCheck, ShoppingBag, Percent, UsersIcon } from 'lucide-react';
 
 interface AdminSidebarProps {
   selected: string;
@@ -16,7 +16,8 @@ export const menuItems = [
     { key: 'members', label: 'Miembros', icon: <Users size={20} />, section: 'general' },
     { key: 'events', label: 'Eventos', icon: <Calendar size={20} />, section: 'general' },
     { key: 'chats', label: 'Chats', icon: <MessageSquare size={20} />, section: 'general' },
-    { key: 'config-comisiones', label: 'Afiliados', icon: <Percent size={20} />, section: 'general' },
+    { key: 'gestion-afiliados', label: 'Gestión Afiliados', icon: <Percent size={20} />, section: 'general' },
+    { key: 'config-comisiones', label: 'Config. Comisiones', icon: <DollarSign size={20} />, section: 'general' },
     { key: 'marketplace-cursos', label: 'Cursos Marketplace', icon: <ShoppingBag size={20} />, section: 'contenido' },
     { key: 'marketplace-servicios', label: 'Servicios Marketplace', icon: <Briefcase size={20} />, section: 'contenido' },
     { key: 'subscriptions', label: 'Suscripciones', icon: <UserCheck size={20} />, section: 'finanzas' },
