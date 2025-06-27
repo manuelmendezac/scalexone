@@ -59,7 +59,7 @@ export default function AdminCanalesPanel() {
 
   // Obtener community_id dinámicamente
   const { userInfo } = useNeuroState();
-  const community_id = userInfo?.community_id || 'scalexone';
+  const community_id = userInfo?.community_id || '8fb70d6e-3237-465e-8669-979461cf2bc1';
 
   // Función para obtener el UUID real de la comunidad
   const getCommunityUUID = async (communitySlug: string): Promise<string | null> => {
