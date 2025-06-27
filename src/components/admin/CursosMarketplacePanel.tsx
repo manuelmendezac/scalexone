@@ -65,7 +65,7 @@ const CursosMarketplacePanel: React.FC = () => {
     setError(null);
     try {
       const { data, error } = await supabase
-        .from('cursos')
+        .from('cursos_marketplace')
         .select('*')
         .order('orden', { ascending: true });
 
@@ -145,7 +145,7 @@ const CursosMarketplacePanel: React.FC = () => {
       if (editingCurso) {
         // Actualizar curso existente
         const { error } = await supabase
-          .from('cursos')
+          .from('cursos_marketplace')
           .update(cursoData)
           .eq('id', editingCurso.id);
 
@@ -153,7 +153,7 @@ const CursosMarketplacePanel: React.FC = () => {
       } else {
         // Crear nuevo curso - agregar campo activo solo al crear
         const { error } = await supabase
-          .from('cursos')
+          .from('cursos_marketplace')
           .insert([{
             ...cursoData,
             activo: true
@@ -184,7 +184,7 @@ const CursosMarketplacePanel: React.FC = () => {
 
     try {
       const { error } = await supabase
-        .from('cursos')
+        .from('cursos_marketplace')
         .delete()
         .eq('id', curso.id);
 
@@ -201,7 +201,7 @@ const CursosMarketplacePanel: React.FC = () => {
   const toggleActivo = async (curso: Curso) => {
     try {
       const { error } = await supabase
-        .from('cursos')
+        .from('cursos_marketplace')
         .update({ activo: !curso.activo })
         .eq('id', curso.id);
 
@@ -262,7 +262,7 @@ const CursosMarketplacePanel: React.FC = () => {
 
     try {
       const { error } = await supabase
-        .from('cursos')
+        .from('cursos_marketplace')
         .insert([cursoEjemplo]);
 
       if (error) throw error;
@@ -740,7 +740,7 @@ const CursosMarketplacePanel: React.FC = () => {
           <div className="text-6xl mb-4">🛒</div>
           <h3 className="text-xl font-semibold text-gray-300 mb-2">No hay cursos en el marketplace</h3>
           <p className="text-gray-400 mb-4">
-            La tabla 'cursos' está vacía. Puedes:
+            La tabla 'cursos_marketplace' está vacía. Puedes:
           </p>
           <div className="flex justify-center gap-4">
             <button
