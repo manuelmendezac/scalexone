@@ -132,6 +132,11 @@ export const getCommunityUUIDForUser = async (userInfo: any): Promise<string | n
       if (scalexoneUUID) return scalexoneUUID;
     }
 
+    // Fallback directo al UUID de ScaleXone si no se encuentra por slug
+    if (!userInfo?.community_id || userInfo.community_id === 'scalexone' || userInfo.community_id === 'default') {
+      return '8fb70d6e-3237-465e-8669-979461cf2bc1';
+    }
+
     // 2. Si no encontró ScaleXone, buscar por owner_id (lógica existente)
     if (userInfo?.id) {
       const { data, error } = await supabase
