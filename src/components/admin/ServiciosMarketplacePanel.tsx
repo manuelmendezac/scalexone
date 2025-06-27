@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Plus, Edit, Trash2, Save, X, Upload, Star, Users, Briefcase, Eye } from 'lucide-react';
+import { Plus, Edit, Trash2, Save, X, Upload, Star, Users, Briefcase, Eye, DollarSign, Info } from 'lucide-react';
 import { supabase } from '../../supabase';
 
 interface Servicio {
@@ -14,6 +14,14 @@ interface Servicio {
   rating: number;
   reviews: number;
   activo: boolean;
+  // Campos de afiliación
+  afilible?: boolean;
+  niveles_comision?: number;
+  comision_nivel1?: number;
+  comision_nivel2?: number;
+  comision_nivel3?: number;
+  fecha_afiliacion?: string;
+  community_id?: string;
   created_at?: string;
   updated_at?: string;
 }
@@ -34,7 +42,13 @@ const ServiciosMarketplacePanel: React.FC = () => {
     categoria: 'Consultoría',
     rating: 4.8,
     reviews: 0,
-    activo: true
+    activo: true,
+    // Campos de afiliación
+    afilible: false,
+    niveles_comision: 1,
+    comision_nivel1: 20,
+    comision_nivel2: 10,
+    comision_nivel3: 5
   });
 
   const categorias = [
@@ -122,7 +136,13 @@ const ServiciosMarketplacePanel: React.FC = () => {
       categoria: servicio.categoria,
       rating: servicio.rating,
       reviews: servicio.reviews,
-      activo: servicio.activo
+      activo: servicio.activo,
+      // Campos de afiliación
+      afilible: servicio.afilible || false,
+      niveles_comision: servicio.niveles_comision || 1,
+      comision_nivel1: servicio.comision_nivel1 || 20,
+      comision_nivel2: servicio.comision_nivel2 || 10,
+      comision_nivel3: servicio.comision_nivel3 || 5
     });
     setShowModal(true);
   };
@@ -199,7 +219,13 @@ const ServiciosMarketplacePanel: React.FC = () => {
       categoria: 'Consultoría',
       rating: 4.8,
       reviews: 0,
-      activo: true
+      activo: true,
+      // Campos de afiliación
+      afilible: false,
+      niveles_comision: 1,
+      comision_nivel1: 20,
+      comision_nivel2: 10,
+      comision_nivel3: 5
     });
     setEditingServicio(null);
   };
@@ -214,7 +240,13 @@ const ServiciosMarketplacePanel: React.FC = () => {
       categoria: 'Consultoría',
       rating: 4.9,
       reviews: 127,
-      activo: true
+      activo: true,
+      // Campos de afiliación
+      afilible: true,
+      niveles_comision: 3,
+      comision_nivel1: 25,
+      comision_nivel2: 15,
+      comision_nivel3: 8
     });
     setShowModal(true);
   };
@@ -325,6 +357,14 @@ const ServiciosMarketplacePanel: React.FC = () => {
                 <div className="text-xl font-bold bg-gradient-to-r from-purple-400 to-pink-500 bg-clip-text text-transparent">
                   ${servicio.precio}
                 </div>
+                {servicio.afilible && (
+                  <div className="bg-gradient-to-r from-green-500/20 to-emerald-500/20 border border-green-500/30 rounded-full px-2 py-1 flex items-center gap-1">
+                    <DollarSign className="w-3 h-3 text-green-400" />
+                    <span className="text-green-400 text-xs font-semibold">
+                      {servicio.comision_nivel1 || 20}%
+                    </span>
+                  </div>
+                )}
               </div>
 
               {/* Acciones */}
@@ -535,6 +575,121 @@ const ServiciosMarketplacePanel: React.FC = () => {
                           className="w-full h-32 object-cover rounded-lg"
                         />
                       </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* 💰 Configuración de Afiliación */}
+                <div className="bg-gray-800/50 rounded-lg p-4 border border-purple-500/20">
+                  <div className="flex items-center gap-2 mb-4">
+                    <DollarSign className="text-purple-400" size={20} />
+                    <h4 className="text-lg font-semibold text-white">💰 Configuración de Afiliación</h4>
+                  </div>
+
+                  <div className="space-y-4">
+                    {/* Activar Afiliación */}
+                    <div className="flex items-center">
+                      <input
+                        type="checkbox"
+                        id="afilible"
+                        checked={formData.afilible}
+                        onChange={(e) => setFormData(prev => ({ ...prev, afilible: e.target.checked }))}
+                        className="w-4 h-4 text-purple-600 bg-gray-800 border-gray-600 rounded focus:ring-purple-500"
+                      />
+                      <label htmlFor="afilible" className="ml-2 text-sm text-gray-300">
+                        Activar programa de afiliación para este servicio
+                      </label>
+                    </div>
+
+                    {formData.afilible && (
+                      <>
+                        {/* Selector de Niveles */}
+                        <div>
+                          <label className="block text-sm font-medium text-gray-300 mb-2">
+                            Estructura de Comisiones
+                          </label>
+                          <select
+                            value={formData.niveles_comision}
+                            onChange={(e) => setFormData(prev => ({ ...prev, niveles_comision: parseInt(e.target.value) }))}
+                            className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-purple-400"
+                          >
+                            <option value={1}>1 Nivel (Directo)</option>
+                            <option value={3}>3 Niveles (Multinivel)</option>
+                          </select>
+                        </div>
+
+                        {/* Comisiones por Nivel */}
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                          <div>
+                            <label className="block text-sm font-medium text-gray-300 mb-2">
+                              Comisión Nivel 1 (%)
+                            </label>
+                            <input
+                              type="number"
+                              min="0"
+                              max="100"
+                              step="0.1"
+                              value={formData.comision_nivel1}
+                              onChange={(e) => setFormData(prev => ({ ...prev, comision_nivel1: parseFloat(e.target.value) || 0 }))}
+                              className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-purple-400"
+                            />
+                          </div>
+
+                          {formData.niveles_comision >= 2 && (
+                            <div>
+                              <label className="block text-sm font-medium text-gray-300 mb-2">
+                                Comisión Nivel 2 (%)
+                              </label>
+                              <input
+                                type="number"
+                                min="0"
+                                max="100"
+                                step="0.1"
+                                value={formData.comision_nivel2}
+                                onChange={(e) => setFormData(prev => ({ ...prev, comision_nivel2: parseFloat(e.target.value) || 0 }))}
+                                className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-purple-400"
+                              />
+                            </div>
+                          )}
+
+                          {formData.niveles_comision >= 3 && (
+                            <div>
+                              <label className="block text-sm font-medium text-gray-300 mb-2">
+                                Comisión Nivel 3 (%)
+                              </label>
+                              <input
+                                type="number"
+                                min="0"
+                                max="100"
+                                step="0.1"
+                                value={formData.comision_nivel3}
+                                onChange={(e) => setFormData(prev => ({ ...prev, comision_nivel3: parseFloat(e.target.value) || 0 }))}
+                                className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-purple-400"
+                              />
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Información explicativa */}
+                        <div className="bg-purple-900/20 border border-purple-500/30 rounded-lg p-3">
+                          <div className="flex items-start gap-2">
+                            <Info className="text-purple-400 mt-0.5" size={16} />
+                            <div className="text-sm text-purple-200">
+                              <p className="font-medium mb-1">Cálculo de Comisiones:</p>
+                              <p>• <strong>Nivel 1:</strong> {formData.comision_nivel1}% de ${formData.precio} = ${((formData.precio * formData.comision_nivel1) / 100).toFixed(2)}</p>
+                              {formData.niveles_comision >= 2 && (
+                                <p>• <strong>Nivel 2:</strong> {formData.comision_nivel2}% de ${formData.precio} = ${((formData.precio * formData.comision_nivel2) / 100).toFixed(2)}</p>
+                              )}
+                              {formData.niveles_comision >= 3 && (
+                                <p>• <strong>Nivel 3:</strong> {formData.comision_nivel3}% de ${formData.precio} = ${((formData.precio * formData.comision_nivel3) / 100).toFixed(2)}</p>
+                              )}
+                              <p className="mt-2 text-xs text-purple-300">
+                                Los afiliados recibirán estas comisiones por cada venta generada en su red.
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      </>
                     )}
                   </div>
                 </div>
