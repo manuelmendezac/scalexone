@@ -67,6 +67,35 @@ const CursosMarketplacePanel: React.FC = () => {
     }
   };
 
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || e.target.files.length === 0) return;
+    
+    const file = e.target.files[0];
+    setUploadingImage(true);
+
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `curso_${Date.now()}_${Math.random().toString(36).substring(2)}.${fileExt}`;
+      
+      const { error: uploadError } = await supabase.storage
+        .from('cursos')
+        .upload(fileName, file, { upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      const { data: urlData } = supabase.storage
+        .from('cursos')
+        .getPublicUrl(fileName);
+
+      setFormData({ ...formData, imagen_url: urlData.publicUrl });
+    } catch (error: any) {
+      console.error('Error subiendo imagen:', error);
+      setError(`Error al subir imagen: ${error.message}`);
+    } finally {
+      setUploadingImage(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
@@ -74,9 +103,18 @@ const CursosMarketplacePanel: React.FC = () => {
 
     try {
       const cursoData = {
-        ...formData,
-        nombre: formData.titulo, // Para compatibilidad
-        imagen: formData.imagen_url // Para compatibilidad
+        titulo: formData.titulo,
+        descripcion: formData.descripcion,
+        precio: formData.precio,
+        imagen_url: formData.imagen_url,
+        instructor: formData.instructor,
+        duracion_horas: formData.duracion_horas,
+        nivel: formData.nivel,
+        community_id: formData.community_id || 'default',
+        orden: formData.orden || 0,
+        // Campos de compatibilidad
+        nombre: formData.titulo,
+        imagen: formData.imagen_url
       };
 
       if (editingCurso) {
@@ -88,10 +126,13 @@ const CursosMarketplacePanel: React.FC = () => {
 
         if (error) throw error;
       } else {
-        // Crear nuevo curso
+        // Crear nuevo curso - agregar campo activo solo al crear
         const { error } = await supabase
           .from('cursos')
-          .insert([cursoData]);
+          .insert([{
+            ...cursoData,
+            activo: true
+          }]);
 
         if (error) throw error;
       }
@@ -134,12 +175,18 @@ const CursosMarketplacePanel: React.FC = () => {
 
   const toggleActivo = async (curso: Curso) => {
     try {
+      // Intentar actualizar solo el campo activo si existe
       const { error } = await supabase
         .from('cursos')
         .update({ activo: !curso.activo })
         .eq('id', curso.id);
 
-      if (error) throw error;
+      if (error) {
+        // Si falla, mostrar error pero continuar
+        console.error('Error actualizando estado activo:', error);
+        setError(`No se puede cambiar el estado: ${error.message}`);
+        return;
+      }
 
       await cargarCursos();
     } catch (error: any) {
@@ -343,16 +390,44 @@ const CursosMarketplacePanel: React.FC = () => {
               />
             </div>
 
-            <div className="flex items-center gap-4">
-              <label className="flex items-center gap-2 text-gray-300">
+            {/* Campo de imagen */}
+            <div>
+              <label className="block text-gray-300 mb-2">Imagen del Curso</label>
+              <div className="flex items-center gap-4">
                 <input
-                  type="checkbox"
-                  checked={formData.activo}
-                  onChange={(e) => setFormData({ ...formData, activo: e.target.checked })}
-                  className="rounded"
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                  className="hidden"
+                  id="image-upload"
                 />
-                Curso activo
-              </label>
+                <label
+                  htmlFor="image-upload"
+                  className="flex items-center gap-2 bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg cursor-pointer transition-colors"
+                >
+                  <Upload size={16} />
+                  {uploadingImage ? 'Subiendo...' : 'Subir Imagen'}
+                </label>
+                {formData.imagen_url && (
+                  <div className="flex items-center gap-2">
+                    <img
+                      src={formData.imagen_url}
+                      alt="Preview"
+                      className="w-16 h-16 object-cover rounded-lg"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setFormData({ ...formData, imagen_url: '' })}
+                      className="text-red-400 hover:text-red-300 text-sm"
+                    >
+                      Quitar
+                    </button>
+                  </div>
+                )}
+              </div>
+              <p className="text-gray-500 text-sm mt-1">
+                Recomendado: 500x300px, formato JPG/PNG
+              </p>
             </div>
 
             <div className="flex items-center gap-4 pt-4">
