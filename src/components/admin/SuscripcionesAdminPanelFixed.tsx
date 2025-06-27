@@ -66,21 +66,17 @@ const SuscripcionesAdminPanel: React.FC = () => {
     if (!userInfo?.id) return;
 
     try {
-      // Buscar si el usuario ya tiene una comunidad
-      const { data: usuarioData, error: usuarioError } = await supabase
-        .from('usuarios')
-        .select('community_id')
-        .eq('auth_user_id', userInfo.id)
+      // Usar una comunidad por defecto o crear una si no existe
+      let { data: comunidadExistente, error: buscarError } = await supabase
+        .from('comunidades')
+        .select('id')
+        .eq('nombre', 'ScaleXone')
         .single();
 
-      if (usuarioError && usuarioError.code !== 'PGRST116') {
-        throw usuarioError;
-      }
+      let communityId;
 
-      let communityId = usuarioData?.community_id;
-
-      if (!communityId) {
-        // Crear comunidad por defecto para ScaleXone
+      if (buscarError && buscarError.code === 'PGRST116') {
+        // No existe, crear comunidad por defecto
         const { data: nuevaComunidad, error: comunidadError } = await supabase
           .from('comunidades')
           .insert([{
@@ -94,16 +90,12 @@ const SuscripcionesAdminPanel: React.FC = () => {
 
         if (comunidadError) throw comunidadError;
         communityId = nuevaComunidad.id;
-
-        // Actualizar el usuario con la nueva comunidad
-        const { error: updateError } = await supabase
-          .from('usuarios')
-          .update({ community_id: communityId })
-          .eq('auth_user_id', userInfo.id);
-
-        if (updateError && updateError.code !== 'PGRST116') {
-          console.warn('No se pudo actualizar community_id del usuario:', updateError);
-        }
+      } else if (buscarError) {
+        throw buscarError;
+      } else if (comunidadExistente) {
+        communityId = comunidadExistente.id;
+      } else {
+        throw new Error('No se pudo obtener la comunidad');
       }
 
       setComunidadId(communityId);
