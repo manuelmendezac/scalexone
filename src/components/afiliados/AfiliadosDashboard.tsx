@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   CurrencyDollarIcon,
   UserGroupIcon,
@@ -17,6 +17,11 @@ import {
   Legend,
   ArcElement,
 } from 'chart.js';
+import { motion } from 'framer-motion';
+import { Copy, Share2, Plus, Users2, Target, TrendingUp } from 'lucide-react';
+import { supabase } from '../../supabase';
+import { toast } from 'react-hot-toast';
+import AfiliadosComunidadPanel from './AfiliadosComunidadPanel';
 
 ChartJS.register(
   CategoryScale,
@@ -30,6 +35,50 @@ ChartJS.register(
 );
 
 const AfiliadosDashboard = () => {
+  const [activeTab, setActiveTab] = useState('comunidad');
+  const [userStats, setUserStats] = useState({
+    totalComisiones: 0,
+    comisionesPendientes: 0,
+    referidosActivos: 0,
+    tasaConversion: 0
+  });
+
+  useEffect(() => {
+    fetchUserStats();
+  }, []);
+
+  const fetchUserStats = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      // Obtener estadísticas del usuario
+      const { data: stats } = await supabase
+        .from('estadisticas_afiliado')
+        .select('*')
+        .eq('user_id', user.id);
+
+      if (stats && stats.length > 0) {
+        const totals = stats.reduce((acc, stat) => ({
+          totalComisiones: acc.totalComisiones + stat.total_comisiones,
+          comisionesPendientes: acc.comisionesPendientes + stat.comisiones_pendientes,
+          referidosActivos: acc.referidosActivos + stat.usuarios_referidos,
+          tasaConversion: acc.tasaConversion + stat.tasa_conversion
+        }), { totalComisiones: 0, comisionesPendientes: 0, referidosActivos: 0, tasaConversion: 0 });
+
+        setUserStats({
+          ...totals,
+          tasaConversion: stats.length > 0 ? totals.tasaConversion / stats.length : 0
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching user stats:', error);
+    }
+  };
+
+  if (activeTab === 'comunidad') {
+    return <AfiliadosComunidadPanel />;
+  }
   // Datos de ejemplo para los gráficos
   const lineChartData = {
     labels: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun'],
@@ -94,6 +143,34 @@ const AfiliadosDashboard = () => {
 
   return (
     <div className="space-y-6">
+      {/* Tab Navigation */}
+      <div className="border-b border-gray-200">
+        <nav className="flex space-x-8">
+          <button
+            onClick={() => setActiveTab('comunidad')}
+            className={`flex items-center gap-2 py-4 px-1 border-b-2 font-medium text-sm ${
+              activeTab === 'comunidad'
+                ? 'border-blue-500 text-blue-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+            }`}
+          >
+            <Users2 className="w-5 h-5" />
+            Marketing Comunidad
+          </button>
+          <button
+            onClick={() => setActiveTab('trading')}
+            className={`flex items-center gap-2 py-4 px-1 border-b-2 font-medium text-sm ${
+              activeTab === 'trading'
+                ? 'border-blue-500 text-blue-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+            }`}
+          >
+            <TrendingUp className="w-5 h-5" />
+            Trading IB
+          </button>
+        </nav>
+      </div>
+
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {stats.map((stat) => (
