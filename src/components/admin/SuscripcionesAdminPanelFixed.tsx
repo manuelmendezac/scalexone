@@ -66,39 +66,12 @@ const SuscripcionesAdminPanel: React.FC = () => {
     if (!userInfo?.id) return;
 
     try {
-      // Usar una comunidad por defecto o crear una si no existe
-      let { data: comunidadExistente, error: buscarError } = await supabase
-        .from('comunidades')
-        .select('id')
-        .eq('nombre', 'ScaleXone')
-        .single();
-
-      let communityId;
-
-      if (buscarError && buscarError.code === 'PGRST116') {
-        // No existe, crear comunidad por defecto
-        const { data: nuevaComunidad, error: comunidadError } = await supabase
-          .from('comunidades')
-          .insert([{
-            nombre: 'ScaleXone',
-            descripcion: 'Comunidad principal de ScaleXone',
-            configuracion: {},
-            activa: true
-          }])
-          .select()
-          .single();
-
-        if (comunidadError) throw comunidadError;
-        communityId = nuevaComunidad.id;
-      } else if (buscarError) {
-        throw buscarError;
-      } else if (comunidadExistente) {
-        communityId = comunidadExistente.id;
-      } else {
-        throw new Error('No se pudo obtener la comunidad');
-      }
-
+      // Usar un community_id por defecto simple
+      const communityId = userInfo?.community_id || 'default';
+      console.log(`Usando community_id: ${communityId}`);
+      
       setComunidadId(communityId);
+      setMensaje('Comunidad inicializada correctamente');
     } catch (error: any) {
       console.error('Error inicializando comunidad:', error);
       setMensaje(`Error inicializando: ${error.message}`);
