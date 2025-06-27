@@ -46,6 +46,12 @@ const SuscripcionesAdminPanel: React.FC = () => {
     // Campos de marketplace e imagen
     imagen_url: '',
     agregar_marketplace: true,
+    // Categorías específicas del marketplace
+    categorias_marketplace: {
+      software: true,
+      saas: true,
+      suscripcion: true
+    },
     // Campos de afiliación
     afilible: true,
     niveles_comision: 3,
@@ -202,13 +208,12 @@ const SuscripcionesAdminPanel: React.FC = () => {
   // Función para agregar plan al marketplace
   const agregarPlanAlMarketplace = async (plan: PlanSuscripcion) => {
     try {
-      const servicioData = {
-        titulo: `Suscripción ${plan.nombre}`,
-        descripcion: plan.descripcion || `Plan de suscripción ${plan.nombre} con acceso completo a la plataforma`,
+      const baseData = {
+        titulo: `${plan.nombre}`,
+        descripcion: plan.descripcion || `Plan de suscripción ${plan.nombre} con acceso completo a la plataforma ScaleXone`,
         precio: plan.precio,
         imagen_url: nuevoPlan.imagen_url || 'https://images.unsplash.com/photo-1559526324-4b87b5e36e44?w=500&h=300&fit=crop',
         proveedor: 'ScaleXone',
-        categoria: 'Suscripción Premium',
         rating: 4.8,
         reviews: 0,
         activo: plan.activo,
@@ -225,11 +230,54 @@ const SuscripcionesAdminPanel: React.FC = () => {
         community_id: comunidadId
       };
 
-      const { error } = await supabase
-        .from('servicios_marketplace')
-        .insert([servicioData]);
+      // Crear entradas solo para las categorías seleccionadas
+      const categoriasDisponibles = [
+        {
+          key: 'software',
+          categoria: 'Software',
+          titulo: `Software ${plan.nombre}`,
+          descripcion: `Acceso a software premium ${plan.nombre} - Herramientas avanzadas para tu negocio`
+        },
+        {
+          key: 'saas',
+          categoria: 'SaaS',
+          titulo: `SaaS ${plan.nombre}`,
+          descripcion: `Suscripción SaaS ${plan.nombre} - Solución en la nube completa`
+        },
+        {
+          key: 'suscripcion',
+          categoria: 'Suscripción Premium',
+          titulo: `Membresía ${plan.nombre}`,
+          descripcion: `Plan de membresía ${plan.nombre} - Acceso completo a la plataforma`
+        }
+      ];
 
-      if (error) throw error;
+      // Filtrar solo las categorías seleccionadas
+      const categoriasSeleccionadas = categoriasDisponibles.filter(cat => 
+        nuevoPlan.categorias_marketplace[cat.key as keyof typeof nuevoPlan.categorias_marketplace]
+      );
+
+      // Insertar en paralelo todas las categorías seleccionadas
+      const insertPromises = categoriasSeleccionadas.map((cat: any) => 
+        supabase.from('servicios_marketplace').insert([{
+          ...baseData,
+          categoria: cat.categoria,
+          titulo: cat.titulo,
+          descripcion: cat.descripcion
+        }])
+      );
+
+      const results = await Promise.allSettled(insertPromises);
+      
+      // Verificar resultados
+      const errores = results.filter((result: any) => result.status === 'rejected');
+      const exitosos = results.filter((result: any) => result.status === 'fulfilled');
+      
+      console.log(`✅ Plan agregado al marketplace: ${exitosos.length} categorías creadas`);
+      if (errores.length > 0) {
+        console.warn(`⚠️ ${errores.length} categorías fallaron al crear`);
+      }
+
     } catch (error: any) {
       console.error('Error agregando al marketplace:', error);
       setMensaje('Plan creado, pero error agregando al marketplace: ' + error.message);
@@ -258,6 +306,11 @@ const SuscripcionesAdminPanel: React.FC = () => {
       orden: plan.orden || 0,
       imagen_url: '',
       agregar_marketplace: false,
+      categorias_marketplace: {
+        software: true,
+        saas: true,
+        suscripcion: true
+      },
       afilible: true,
       niveles_comision: 3,
       comision_nivel1: 30,
@@ -368,6 +421,11 @@ const SuscripcionesAdminPanel: React.FC = () => {
       orden: 0,
       imagen_url: '',
       agregar_marketplace: true,
+      categorias_marketplace: {
+        software: true,
+        saas: true,
+        suscripcion: true
+      },
       afilible: true,
       niveles_comision: 3,
       comision_nivel1: 30,
@@ -960,7 +1018,7 @@ const SuscripcionesAdminPanel: React.FC = () => {
               {/* Integración con Marketplace */}
               {!editingPlan && (
                 <div className="bg-blue-900/20 border border-blue-500/30 rounded-lg p-4">
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-3 mb-4">
                     <input
                       type="checkbox"
                       id="agregar_marketplace"
@@ -972,7 +1030,80 @@ const SuscripcionesAdminPanel: React.FC = () => {
                       🚀 Agregar automáticamente al Marketplace
                     </label>
                   </div>
-                  <p className="text-blue-300 text-sm mt-2">
+
+                  {/* Selección de Categorías del Marketplace */}
+                  {nuevoPlan.agregar_marketplace && (
+                    <div className="border-t border-blue-500/20 pt-4">
+                      <h5 className="text-blue-200 font-medium mb-3">📂 Categorías del Marketplace</h5>
+                      <div className="space-y-3">
+                        <div className="flex items-center gap-3">
+                          <input
+                            type="checkbox"
+                            id="cat_software"
+                            checked={nuevoPlan.categorias_marketplace.software}
+                            onChange={(e) => setNuevoPlan({
+                              ...nuevoPlan, 
+                              categorias_marketplace: {
+                                ...nuevoPlan.categorias_marketplace,
+                                software: e.target.checked
+                              }
+                            })}
+                            className="rounded"
+                          />
+                          <label htmlFor="cat_software" className="text-cyan-300 font-medium">
+                            💻 Software - Herramientas avanzadas
+                          </label>
+                        </div>
+
+                        <div className="flex items-center gap-3">
+                          <input
+                            type="checkbox"
+                            id="cat_saas"
+                            checked={nuevoPlan.categorias_marketplace.saas}
+                            onChange={(e) => setNuevoPlan({
+                              ...nuevoPlan, 
+                              categorias_marketplace: {
+                                ...nuevoPlan.categorias_marketplace,
+                                saas: e.target.checked
+                              }
+                            })}
+                            className="rounded"
+                          />
+                          <label htmlFor="cat_saas" className="text-purple-300 font-medium">
+                            ☁️ SaaS - Solución en la nube
+                          </label>
+                        </div>
+
+                        <div className="flex items-center gap-3">
+                          <input
+                            type="checkbox"
+                            id="cat_suscripcion"
+                            checked={nuevoPlan.categorias_marketplace.suscripcion}
+                            onChange={(e) => setNuevoPlan({
+                              ...nuevoPlan, 
+                              categorias_marketplace: {
+                                ...nuevoPlan.categorias_marketplace,
+                                suscripcion: e.target.checked
+                              }
+                            })}
+                            className="rounded"
+                          />
+                          <label htmlFor="cat_suscripcion" className="text-amber-300 font-medium">
+                            🎯 Suscripción Premium - Membresía completa
+                          </label>
+                        </div>
+                      </div>
+                      
+                      <div className="mt-3 p-3 bg-blue-800/20 rounded-lg">
+                        <p className="text-blue-300 text-sm">
+                          💡 <strong>Tip:</strong> Cada categoría seleccionada creará una tarjeta separada en el marketplace. 
+                          Esto permite que tu plan aparezca en múltiples secciones y llegue a diferentes audiencias.
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  <p className="text-blue-300 text-sm mt-3">
                     Si activas esta opción, el plan se agregará automáticamente al marketplace de servicios 
                     para que los afiliados puedan promocionarlo y generar comisiones.
                   </p>
