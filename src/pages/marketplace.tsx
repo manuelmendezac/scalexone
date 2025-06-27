@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ShoppingBag, GraduationCap, Briefcase, Package, Home, Search, Filter, Star, Users, Play, Clock, DollarSign } from 'lucide-react';
+import { ShoppingBag, GraduationCap, Briefcase, Package, Home, Search, Filter, Star, Users, Play, Clock, DollarSign, ChevronDown } from 'lucide-react';
 import { supabase } from '../supabase';
 import useNeuroState from '../store/useNeuroState';
 
@@ -17,19 +17,19 @@ interface Curso {
   estudiantes: number;
   community_id?: string;
   activo: boolean;
+  categoria?: string;
 }
 
 interface Servicio {
   id: string;
-  nombre: string;
+  titulo: string;
   descripcion: string;
   precio: number;
   imagen_url?: string;
   proveedor: string;
   categoria: string;
   rating: number;
-  clientes: number;
-  duracion_estimada: string;
+  reviews: number;
 }
 
 type Categoria = 'todos' | 'cursos' | 'servicios' | 'productos' | 'propiedades';
@@ -58,9 +58,9 @@ const Marketplace: React.FC = () => {
   const cargarDatos = async () => {
     setLoading(true);
     try {
-      // Cargar cursos
+      // Cargar cursos desde la nueva tabla
       const { data: cursosData, error: cursosError } = await supabase
-        .from('cursos')
+        .from('cursos_marketplace')
         .select('*')
         .eq('activo', true);
 
@@ -75,51 +75,49 @@ const Marketplace: React.FC = () => {
         instructor: curso.instructor || 'ScaleXone',
         duracion_horas: curso.duracion_horas || 0,
         nivel: curso.nivel || 'Principiante',
-        rating: 4.8, // Hardcodeado por ahora
-        estudiantes: Math.floor(Math.random() * 500) + 50, // Simulado
+        rating: curso.rating || 4.8,
+        estudiantes: curso.estudiantes || 0,
         community_id: curso.community_id,
-        activo: curso.activo
+        activo: curso.activo,
+        categoria: 'Cursos'
       }));
 
       setCursos(cursosFormateados);
 
-      // Servicios simulados para Fase 2
+      // Datos simulados para servicios (Fase 2)
       const serviciosSimulados: Servicio[] = [
         {
-          id: '1',
-          nombre: 'Consultoría Estratégica 1:1',
-          descripcion: 'Sesión personalizada de estrategia de negocio con experto certificado',
+          id: 'srv-1',
+          titulo: 'Consultoría Estratégica 1:1',
+          descripcion: 'Sesión personalizada de estrategia empresarial con expertos en escalabilidad.',
           precio: 150,
-          imagen_url: '/images/servicio-consultoria.jpg',
-          proveedor: 'ScaleXone Experts',
-          categoria: 'Consultoría',
+          imagen_url: 'https://images.unsplash.com/photo-1556761175-b413da4baf72?w=500&h=300&fit=crop',
+          proveedor: 'ScaleXone Consulting',
+          categoria: 'Servicios',
           rating: 4.9,
-          clientes: 127,
-          duracion_estimada: '2 horas'
+          reviews: 127
         },
         {
-          id: '2',
-          nombre: 'Diseño de Funnel Completo',
-          descripcion: 'Diseño y configuración completa de funnel de ventas optimizado',
-          precio: 300,
-          imagen_url: '/images/servicio-funnel.jpg',
-          proveedor: 'Digital Funnels Pro',
-          categoria: 'Marketing',
-          rating: 4.7,
-          clientes: 89,
-          duracion_estimada: '1 semana'
-        },
-        {
-          id: '3',
-          nombre: 'Automatización WhatsApp',
-          descripcion: 'Configuración completa de chatbot y automatizaciones en WhatsApp',
-          precio: 200,
-          imagen_url: '/images/servicio-whatsapp.jpg',
-          proveedor: 'AutoChat Solutions',
-          categoria: 'Automatización',
+          id: 'srv-2',
+          titulo: 'Diseño de Funnel Completo',
+          descripcion: 'Creación de funnel de ventas optimizado desde landing hasta checkout.',
+          precio: 500,
+          imagen_url: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=500&h=300&fit=crop',
+          proveedor: 'Funnel Masters',
+          categoria: 'Servicios',
           rating: 4.8,
-          clientes: 156,
-          duracion_estimada: '3-5 días'
+          reviews: 89
+        },
+        {
+          id: 'srv-3',
+          titulo: 'Automatización WhatsApp Business',
+          descripcion: 'Setup completo de chatbot y automatización para WhatsApp Business.',
+          precio: 300,
+          imagen_url: 'https://images.unsplash.com/photo-1611224923853-80b023f02d71?w=500&h=300&fit=crop',
+          proveedor: 'AutoBot Pro',
+          categoria: 'Servicios',
+          rating: 4.7,
+          reviews: 156
         }
       ];
 
@@ -146,7 +144,6 @@ const Marketplace: React.FC = () => {
     if (busqueda) {
       elementos = elementos.filter(item => 
         item.titulo?.toLowerCase().includes(busqueda.toLowerCase()) ||
-        item.nombre?.toLowerCase().includes(busqueda.toLowerCase()) ||
         item.descripcion?.toLowerCase().includes(busqueda.toLowerCase())
       );
     }
@@ -159,7 +156,7 @@ const Marketplace: React.FC = () => {
         case 'rating':
           return b.rating - a.rating;
         case 'popularidad':
-          return (b.estudiantes || b.clientes || 0) - (a.estudiantes || a.clientes || 0);
+          return (b.estudiantes || b.reviews || 0) - (a.estudiantes || a.reviews || 0);
         default:
           return 0;
       }
@@ -232,7 +229,7 @@ const Marketplace: React.FC = () => {
       <div className="relative mb-4">
         <div className="w-full h-48 bg-gray-800 rounded-lg flex items-center justify-center">
           {servicio.imagen_url ? (
-            <img src={servicio.imagen_url} alt={servicio.nombre} className="w-full h-full object-cover rounded-lg" />
+            <img src={servicio.imagen_url} alt={servicio.titulo} className="w-full h-full object-cover rounded-lg" />
           ) : (
             <Briefcase size={48} className="text-green-400" />
           )}
@@ -243,7 +240,7 @@ const Marketplace: React.FC = () => {
       </div>
       
       <h3 className="text-white font-bold text-lg mb-2 group-hover:text-green-300 transition-colors">
-        {servicio.nombre}
+        {servicio.titulo}
       </h3>
       
       <p className="text-gray-400 text-sm mb-3 line-clamp-2">
@@ -257,11 +254,7 @@ const Marketplace: React.FC = () => {
         </div>
         <div className="flex items-center gap-1 text-gray-400 text-sm">
           <Users size={14} />
-          <span>{servicio.clientes} clientes</span>
-        </div>
-        <div className="flex items-center gap-1 text-gray-400 text-sm">
-          <Clock size={14} />
-          <span>{servicio.duracion_estimada}</span>
+          <span>{servicio.reviews} reviews</span>
         </div>
       </div>
       
