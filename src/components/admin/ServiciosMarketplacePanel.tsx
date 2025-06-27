@@ -22,6 +22,11 @@ interface Servicio {
   comision_nivel3?: number;
   fecha_afiliacion?: string;
   community_id?: string;
+  // Campos para suscripciones
+  tipo_producto?: 'servicio' | 'suscripcion';
+  plan_suscripcion_id?: string;
+  duracion_dias?: number;
+  caracteristicas?: string[];
   created_at?: string;
   updated_at?: string;
 }
@@ -32,6 +37,7 @@ const ServiciosMarketplacePanel: React.FC = () => {
   const [showModal, setShowModal] = useState(false);
   const [editingServicio, setEditingServicio] = useState<Servicio | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [filtroTipo, setFiltroTipo] = useState<string>('todos');
 
   const [formData, setFormData] = useState({
     titulo: '',
@@ -265,8 +271,8 @@ const ServiciosMarketplacePanel: React.FC = () => {
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-2xl font-bold text-white mb-2">Servicios Marketplace</h2>
-          <p className="text-gray-400">Gestiona los servicios disponibles en el marketplace</p>
+          <h2 className="text-2xl font-bold text-white mb-2">Servicios & Suscripciones</h2>
+          <p className="text-gray-400">Gestiona servicios y suscripciones del marketplace</p>
         </div>
         <div className="flex gap-3">
           <button
@@ -286,9 +292,51 @@ const ServiciosMarketplacePanel: React.FC = () => {
         </div>
       </div>
 
+      {/* Filtros */}
+      <div className="flex gap-4 items-center">
+        <div className="flex gap-2">
+          <button
+            onClick={() => setFiltroTipo('todos')}
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+              filtroTipo === 'todos'
+                ? 'bg-purple-600 text-white'
+                : 'bg-gray-800 text-gray-400 hover:text-white'
+            }`}
+          >
+            Todos ({servicios.length})
+          </button>
+          <button
+            onClick={() => setFiltroTipo('servicio')}
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+              filtroTipo === 'servicio'
+                ? 'bg-purple-600 text-white'
+                : 'bg-gray-800 text-gray-400 hover:text-white'
+            }`}
+          >
+            Servicios ({servicios.filter(s => s.tipo_producto !== 'suscripcion').length})
+          </button>
+          <button
+            onClick={() => setFiltroTipo('suscripcion')}
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+              filtroTipo === 'suscripcion'
+                ? 'bg-blue-600 text-white'
+                : 'bg-gray-800 text-gray-400 hover:text-white'
+            }`}
+          >
+            Suscripciones ({servicios.filter(s => s.tipo_producto === 'suscripcion').length})
+          </button>
+        </div>
+      </div>
+
       {/* Lista de servicios */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {servicios.map((servicio) => (
+        {servicios
+          .filter(servicio => {
+            if (filtroTipo === 'todos') return true;
+            if (filtroTipo === 'suscripcion') return servicio.tipo_producto === 'suscripcion';
+            return servicio.tipo_producto !== 'suscripcion';
+          })
+          .map((servicio) => (
           <motion.div
             key={servicio.id}
             initial={{ opacity: 0, y: 20 }}
@@ -310,7 +358,7 @@ const ServiciosMarketplacePanel: React.FC = () => {
               )}
               
               {/* Badge de estado */}
-              <div className="absolute top-3 left-3">
+              <div className="absolute top-3 left-3 flex gap-2">
                 <span className={`px-2 py-1 rounded-full text-xs font-bold ${
                   servicio.activo 
                     ? 'bg-green-500 text-white' 
@@ -318,6 +366,11 @@ const ServiciosMarketplacePanel: React.FC = () => {
                 }`}>
                   {servicio.activo ? 'ACTIVO' : 'INACTIVO'}
                 </span>
+                {servicio.tipo_producto === 'suscripcion' && (
+                  <span className="px-2 py-1 rounded-full text-xs font-bold bg-blue-500 text-white">
+                    SUSCRIPCIÓN
+                  </span>
+                )}
               </div>
 
               {/* Rating */}
@@ -344,7 +397,11 @@ const ServiciosMarketplacePanel: React.FC = () => {
                   <Users size={12} />
                   <span>{servicio.reviews} reviews</span>
                 </div>
-                <div className="bg-purple-500/20 text-purple-400 px-2 py-1 rounded-full">
+                <div className={`px-2 py-1 rounded-full ${
+                  servicio.tipo_producto === 'suscripcion' 
+                    ? 'bg-blue-500/20 text-blue-400' 
+                    : 'bg-purple-500/20 text-purple-400'
+                }`}>
                   {servicio.categoria}
                 </div>
               </div>
@@ -356,6 +413,11 @@ const ServiciosMarketplacePanel: React.FC = () => {
               <div className="flex items-center justify-between mb-4">
                 <div className="text-xl font-bold bg-gradient-to-r from-purple-400 to-pink-500 bg-clip-text text-transparent">
                   ${servicio.precio}
+                  {servicio.tipo_producto === 'suscripcion' && servicio.duracion_dias && (
+                    <span className="text-sm text-gray-400 font-normal">
+                      /{servicio.duracion_dias === 30 ? 'mes' : servicio.duracion_dias === 365 ? 'año' : `${servicio.duracion_dias} días`}
+                    </span>
+                  )}
                 </div>
                 {servicio.afilible && (
                   <div className="bg-gradient-to-r from-green-500/20 to-emerald-500/20 border border-green-500/30 rounded-full px-2 py-1 flex items-center gap-1">
