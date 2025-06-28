@@ -331,7 +331,7 @@ const MarketplaceAfiliados: React.FC = () => {
           <img src={producto.imagen_url} alt={producto.titulo} className="w-full h-48 object-cover" />
           <div className="absolute top-3 right-3">
             <span className={`px-3 py-1 rounded-full text-sm font-semibold ${getBadgeColor()}`}>
-              {categoriaDisplay.replace(/[📚🔧💻💎🏃‍♂️📈⚙️��📊]/g, '').trim()}
+              {categoriaDisplay.replace(/[📚🔧💻💎🏃‍♂️📈⚙️📊]/g, '').trim()}
             </span>
           </div>
         </div>
@@ -351,22 +351,21 @@ const MarketplaceAfiliados: React.FC = () => {
             <div><strong className="block text-gray-700">★ {producto.rating.toFixed(1)}</strong> Rating</div>
           </div>
           
-          <div className="mt-auto">
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <p className="text-sm text-gray-500">{tipoInfo.tipo} {tipoInfo.tipo === 'Curso' ? 'Completo' : 'Profesional'}</p>
-                <p className="text-2xl font-bold text-gray-800">${producto.precio.toLocaleString()}</p>
-              </div>
-              <button
-                onClick={() => enviarSolicitudAfiliacion(producto)}
-                className="bg-blue-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-blue-700 transition-colors duration-300 text-center"
-              >
-                Solicitar Afiliación
-              </button>
+          <div className="mt-auto pt-5 border-t border-gray-100">
+            <div className="mb-4">
+              <p className="text-sm text-gray-500">Comisión de hasta</p>
+              <p className="text-3xl font-bold text-green-600">${((producto.precio * (producto.comision_nivel1 || 0)) / 100).toFixed(2)} US$</p>
+              <p className="text-sm text-gray-500 mt-1">Precio del producto: ${producto.precio.toFixed(2)} US$</p>
             </div>
+            <button
+              onClick={() => enviarSolicitudAfiliacion(producto)}
+              className="w-full bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-700 transition-colors duration-300 text-center"
+            >
+              Solicitar Afiliación
+            </button>
 
             {producto.niveles_comision && producto.niveles_comision > 1 && (
-              <div className="bg-gray-50 rounded-lg p-3 text-center">
+              <div className="bg-gray-50 rounded-lg p-3 text-center mt-4">
                 <p className="text-sm font-semibold text-gray-700 mb-2">Estructura de Comisiones</p>
                 <div className="flex justify-around text-xs">
                   <div className="text-green-700"><strong className="block text-lg">{producto.comision_nivel1}%</strong> Nivel 1</div>
@@ -397,7 +396,7 @@ const MarketplaceAfiliados: React.FC = () => {
         <p className="text-gray-600 mt-2">Encuentra los mejores productos y servicios para promocionar.</p>
         <div className="mt-4 flex justify-center items-center space-x-6 text-sm text-gray-500">
           <span className="flex items-center"><CheckCircle className="w-4 h-4 text-green-500 mr-1.5"/> Pagos garantizados</span>
-          <span className="flex items-center"><TrendingUp className="w-4 h-4 text-blue-500 mr-1.5"/> Comisiones hasta 30%</span>
+          <span className="flex items-center"><TrendingUp className="w-4 h-4 text-blue-500 mr-1.5"/> Comisiones hasta 80%</span>
           <span className="flex items-center"><Shield className="w-4 h-4 text-purple-500 mr-1.5"/> Productos verificados</span>
         </div>
       </div>
