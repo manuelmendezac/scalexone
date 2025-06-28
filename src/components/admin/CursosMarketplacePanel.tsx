@@ -313,13 +313,46 @@ const CursosMarketplacePanel: React.FC = () => {
     setError(null);
 
     try {
-      // Crear nueva suscripción de curso
-      const { error } = await supabase
+      // 🔥 PASO 1: Crear el plan de suscripción PRIMERO
+      const planData = {
+        comunidad_id: '8fb70d6e-3237-465e-8669-979461cf2bc1', // ScaleXone UUID
+        nombre: `Plan: ${suscripcionCursoData.titulo}`,
+        descripcion: suscripcionCursoData.descripcion,
+        precio: suscripcionCursoData.precio,
+        moneda: 'USD',
+        duracion_dias: suscripcionCursoData.duracion_dias || 30,
+        caracteristicas: suscripcionCursoData.caracteristicas.filter(c => c.trim() !== ''),
+        activo: true,
+        orden: 0,
+        limites: {},
+        configuracion: {
+          tipo: 'curso_suscripcion',
+          afiliacion: {
+            habilitada: suscripcionCursoData.afilible,
+            niveles: suscripcionCursoData.niveles_comision,
+            comision_nivel1: suscripcionCursoData.comision_nivel1,
+            comision_nivel2: suscripcionCursoData.comision_nivel2,
+            comision_nivel3: suscripcionCursoData.comision_nivel3
+          }
+        }
+      };
+
+      const { data: planCreated, error: planError } = await supabase
+        .from('planes_suscripcion')
+        .insert([planData])
+        .select()
+        .single();
+
+      if (planError) throw planError;
+
+      // 🔥 PASO 2: Crear el curso marketplace con referencia al plan
+      const { error: cursoError } = await supabase
         .from('cursos_marketplace')
         .insert([{
           ...suscripcionCursoData,
           id: crypto.randomUUID(),
           community_id: 'default',
+          plan_suscripcion_id: planCreated.id, // ✅ CONECTAR CON EL PLAN
           orden: 0,
           duracion_horas: 0, // No aplica para suscripciones
           nivel: 'Principiante', // Valor por defecto
@@ -327,12 +360,12 @@ const CursosMarketplacePanel: React.FC = () => {
           updated_at: new Date().toISOString()
         }]);
 
-      if (error) throw error;
+      if (cursoError) throw cursoError;
 
       await cargarCursos();
       resetSuscripcionCursoForm();
       setShowSuscripcionModal(false);
-      alert('Suscripción de curso creada exitosamente');
+      alert('✅ Suscripción creada exitosamente\n\n🎯 Ahora aparecerá en:\n• Marketplace de Cursos\n• Portal de Suscripciones');
     } catch (error: any) {
       console.error('Error guardando suscripción de curso:', error);
       setError(`Error al guardar la suscripción: ${error.message}`);
