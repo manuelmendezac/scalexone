@@ -181,8 +181,8 @@ const MarketingAfiliadosPanel: React.FC = () => {
       <div className="bg-white rounded-xl p-6 border border-gray-200">
         <div className="flex items-center justify-between">
             <div>
-                <h1 className="text-3xl font-bold text-blue-700 flex items-center">
-                    🚀 Portal de Afiliados ScaleXone
+                <h1 className="text-3xl font-bold text-blue-700">
+                    Portal de Afiliados ScaleXone
                 </h1>
                 <p className="text-gray-800 text-lg mt-2">
                     Dashboard profesional para maximizar tus ganancias como afiliado
