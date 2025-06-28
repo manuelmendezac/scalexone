@@ -53,6 +53,10 @@ export interface Suscripcion {
   metadata: Record<string, any>;
   fecha_creacion: string;
   fecha_actualizacion: string;
+  // Campos de personalización
+  titulo_personalizado?: string;
+  descripcion?: string;
+  imagen_url?: string;
 }
 
 export interface SuscripcionConDetalles extends Suscripcion {
