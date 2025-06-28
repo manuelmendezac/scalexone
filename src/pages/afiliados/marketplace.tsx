@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Search, Filter, Star, Users, Clock, GraduationCap, Briefcase, ChevronDown, Send, Heart, DollarSign, TrendingUp, Settings, Shield, Award, Eye, Zap, Calendar, BarChart3, Target, MousePointer, ShoppingCart, Percent, RefreshCw, Download, Filter as FilterIcon } from 'lucide-react';
+import { Search, Filter, Star, Users, Clock, GraduationCap, Briefcase, ChevronDown, Send, Heart, DollarSign, TrendingUp, Settings, Shield, Award, Eye, Zap, Calendar, BarChart3, Target, MousePointer, ShoppingCart, Percent, RefreshCw, Download, Filter as FilterIcon, CheckCircle, Package } from 'lucide-react';
 import { supabase } from '../../supabase';
 import { toast } from 'react-hot-toast';
 
@@ -326,113 +326,58 @@ const MarketplaceAfiliados: React.FC = () => {
     const tipoInfo = getTipoInfo();
 
     return (
-      <motion.div
-        key={producto.id}
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        whileHover={{ y: -5 }}
-        className={`bg-gradient-to-br ${getColorScheme()} rounded-xl overflow-hidden hover:shadow-xl transition-all duration-300 border cursor-pointer group`}
-      >
+      <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm hover:shadow-lg hover:border-blue-400 transition-all duration-300 flex flex-col h-full">
         <div className="relative">
-          <div className="h-48 bg-gradient-to-r from-gray-700 to-gray-900 flex items-center justify-center">
-            {producto.imagen_url ? (
-              <img 
-                src={producto.imagen_url} 
-                alt={producto.titulo}
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <div className="text-center text-gray-300">
-                {producto.tabla_origen === 'cursos' ? (
-                  <GraduationCap className="w-16 h-16 mx-auto mb-2" />
-                ) : (
-                  <Briefcase className="w-16 h-16 mx-auto mb-2" />
-                )}
-                <span className="text-sm">Imagen próximamente</span>
+          <img src={producto.imagen_url} alt={producto.titulo} className="w-full h-48 object-cover" />
+          <div className="absolute top-3 right-3">
+            <span className={`px-3 py-1 rounded-full text-sm font-semibold ${getBadgeColor()}`}>
+              {categoriaDisplay.replace(/[📚🔧💻💎🏃‍♂️📈⚙️��📊]/g, '').trim()}
+            </span>
+          </div>
+        </div>
+
+        <div className="p-5 flex-grow flex flex-col">
+          <span className={`text-xs font-bold uppercase px-2 py-1 rounded-md self-start mb-2 ${getBadgeColor()}`}>
+            {categoriaDisplay}
+          </span>
+          <h3 className="text-xl font-bold text-gray-900 mb-2 flex-grow">{producto.titulo}</h3>
+          <p className="text-gray-600 text-sm mb-4">
+            {getDescripcionHotmart()}
+          </p>
+
+          <div className="grid grid-cols-3 gap-2 text-center text-sm text-gray-500 mb-4 border-t border-b border-gray-100 py-3">
+            <div><strong className="block text-gray-700">{tipoInfo.duracion}</strong> Duración</div>
+            <div><strong className="block text-gray-700">{tipoInfo.nivel}</strong> Nivel</div>
+            <div><strong className="block text-gray-700">★ {producto.rating.toFixed(1)}</strong> Rating</div>
+          </div>
+          
+          <div className="mt-auto">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <p className="text-sm text-gray-500">{tipoInfo.tipo} {tipoInfo.tipo === 'Curso' ? 'Completo' : 'Profesional'}</p>
+                <p className="text-2xl font-bold text-gray-800">${producto.precio.toLocaleString()}</p>
+              </div>
+              <button
+                onClick={() => enviarSolicitudAfiliacion(producto)}
+                className="bg-blue-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-blue-700 transition-colors duration-300 text-center"
+              >
+                Solicitar Afiliación
+              </button>
+            </div>
+
+            {producto.niveles_comision && producto.niveles_comision > 1 && (
+              <div className="bg-gray-50 rounded-lg p-3 text-center">
+                <p className="text-sm font-semibold text-gray-700 mb-2">Estructura de Comisiones</p>
+                <div className="flex justify-around text-xs">
+                  <div className="text-green-700"><strong className="block text-lg">{producto.comision_nivel1}%</strong> Nivel 1</div>
+                  <div className="text-blue-700"><strong className="block text-lg">{producto.comision_nivel2}%</strong> Nivel 2</div>
+                  <div className="text-purple-700"><strong className="block text-lg">{producto.comision_nivel3}%</strong> Nivel 3</div>
+                </div>
               </div>
             )}
           </div>
-          
-          <div className={`absolute top-3 left-3 px-2 py-1 ${getBadgeColor()} rounded-full text-xs font-medium`}>
-            {categoriaDisplay.replace(/[📚🔧💻💎🏃‍♂️📈⚙️🎨📊]/g, '').trim()}
-          </div>
-          
-          <div className="absolute top-3 right-3 bg-green-500/20 text-green-300 px-2 py-1 rounded-full text-xs font-bold border border-green-500/30">
-            {producto.comision_nivel1}% comisión
-          </div>
         </div>
-
-        <div className="p-6 space-y-4">
-          <div>
-            <h3 className="text-white text-lg font-bold mb-2 group-hover:text-amber-300 transition-colors">
-              {producto.titulo}
-            </h3>
-            <p className="text-gray-300 text-sm leading-relaxed">
-              {getDescripcionHotmart()}
-            </p>
-          </div>
-
-          <div className="flex items-center justify-between text-sm">
-            <div className="flex items-center gap-4 text-gray-400">
-              <div className="flex items-center gap-1">
-                <Clock className="w-4 h-4" />
-                <span>{tipoInfo.duracion}</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <Users className="w-4 h-4" />
-                <span>{tipoInfo.nivel}</span>
-              </div>
-            </div>
-            <div className="flex items-center gap-1 text-yellow-400">
-              <Star className="w-4 h-4 fill-current" />
-              <span className="font-medium">{producto.rating.toFixed(1)}</span>
-            </div>
-          </div>
-
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="text-2xl font-bold text-white">${producto.precio.toLocaleString()}</div>
-              <div className="text-gray-400 text-sm">
-                por {producto.tabla_origen === 'cursos' ? 
-                  (producto as CursoMarketplace).instructor : 
-                  (producto as ServicioMarketplace).proveedor}
-              </div>
-            </div>
-
-            <button
-              onClick={() => enviarSolicitudAfiliacion(producto)}
-              className="bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white px-6 py-3 rounded-lg font-semibold transition-all duration-200 transform hover:scale-105 flex items-center gap-2"
-            >
-              <Send className="w-4 h-4" />
-              Solicitar Afiliación
-            </button>
-          </div>
-
-          {producto.niveles_comision && producto.niveles_comision > 1 && (
-            <div className="mt-4 bg-gray-800/50 rounded-lg p-3">
-              <div className="text-gray-300 text-xs font-medium mb-2">Estructura de Comisiones:</div>
-              <div className="grid grid-cols-3 gap-2 text-xs">
-                <div className="text-center">
-                  <div className="text-green-400 font-bold">{producto.comision_nivel1}%</div>
-                  <div className="text-gray-500">Nivel 1</div>
-                </div>
-                {producto.comision_nivel2 && (
-                  <div className="text-center">
-                    <div className="text-blue-400 font-bold">{producto.comision_nivel2}%</div>
-                    <div className="text-gray-500">Nivel 2</div>
-                  </div>
-                )}
-                {producto.comision_nivel3 && (
-                  <div className="text-center">
-                    <div className="text-purple-400 font-bold">{producto.comision_nivel3}%</div>
-                    <div className="text-gray-500">Nivel 3</div>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-        </div>
-      </motion.div>
+      </div>
     );
   };
 
@@ -445,37 +390,20 @@ const MarketplaceAfiliados: React.FC = () => {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header estilo Hotmart para Marketplace */}
-      <div className="bg-gradient-to-r from-amber-900/20 via-yellow-900/20 to-orange-900/20 rounded-xl p-6 border border-amber-500/20">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-amber-400 via-yellow-500 to-orange-500 bg-clip-text text-transparent mb-2">
-              🛒 Marketplace de Afiliados
-            </h1>
-            <p className="text-gray-300 text-lg">
-              Descubre productos premium con las mejores comisiones del mercado. Gana dinero promocionando lo que realmente funciona.
-            </p>
-            <div className="flex items-center gap-4 mt-3 text-sm">
-              <div className="flex items-center gap-2 text-green-400">
-                <Shield className="w-4 h-4" />
-                <span>Pagos garantizados</span>
-              </div>
-              <div className="flex items-center gap-2 text-blue-400">
-                <Zap className="w-4 h-4" />
-                <span>Comisiones hasta 30%</span>
-              </div>
-              <div className="flex items-center gap-2 text-purple-400">
-                <Award className="w-4 h-4" />
-                <span>Productos verificados</span>
-              </div>
-            </div>
-          </div>
+    <div className="p-4 sm:p-6 bg-gray-50">
+      {/* Header */}
+      <div className="bg-white rounded-xl p-6 border border-gray-200 mb-6 text-center shadow-sm">
+        <h1 className="text-3xl font-bold text-gray-900">Marketplace de Afiliados</h1>
+        <p className="text-gray-600 mt-2">Encuentra los mejores productos y servicios para promocionar.</p>
+        <div className="mt-4 flex justify-center items-center space-x-6 text-sm text-gray-500">
+          <span className="flex items-center"><CheckCircle className="w-4 h-4 text-green-500 mr-1.5"/> Pagos garantizados</span>
+          <span className="flex items-center"><TrendingUp className="w-4 h-4 text-blue-500 mr-1.5"/> Comisiones hasta 30%</span>
+          <span className="flex items-center"><Shield className="w-4 h-4 text-purple-500 mr-1.5"/> Productos verificados</span>
         </div>
       </div>
 
-      {/* Filtros y búsqueda mejorados */}
-      <div className="bg-gray-900/50 rounded-xl p-6 border border-gray-700">
+      {/* Filtros */}
+      <div className="bg-white rounded-xl p-4 border border-gray-200 mb-6 shadow-sm">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
           {/* Búsqueda */}
           <div className="relative flex-1 max-w-md">
@@ -516,87 +444,49 @@ const MarketplaceAfiliados: React.FC = () => {
         </div>
       </div>
 
-      {/* Estadísticas mejoradas */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-gradient-to-r from-blue-500/20 to-cyan-600/20 rounded-lg p-4 border border-blue-500/30">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-blue-300 text-sm font-medium">Productos Disponibles</p>
-              <p className="text-white text-2xl font-bold">{productos.length}</p>
-              <p className="text-blue-200 text-xs mt-1">Listos para promocionar</p>
-            </div>
-            <TrendingUp className="w-8 h-8 text-blue-400" />
+      {/* Stats */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+        <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm flex items-center">
+          <div className="bg-blue-100 rounded-lg p-3 mr-4"><Package className="w-6 h-6 text-blue-600"/></div>
+          <div>
+            <p className="text-sm text-gray-500">Productos Disponibles</p>
+            <p className="text-2xl font-bold text-gray-900">{productos.length}</p>
           </div>
         </div>
-
-        <div className="bg-gradient-to-r from-green-500/20 to-emerald-600/20 rounded-lg p-4 border border-green-500/30">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-green-300 text-sm font-medium">Comisión Promedio</p>
-              <p className="text-white text-2xl font-bold">
-                {productos.length > 0 ? Math.round(productos.reduce((acc, p) => acc + (p.comision_nivel1 || 0), 0) / productos.length) : 0}%
-              </p>
-              <p className="text-green-200 text-xs mt-1">Por venta directa</p>
-            </div>
-            <DollarSign className="w-8 h-8 text-green-400" />
+        <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm flex items-center">
+          <div className="bg-green-100 rounded-lg p-3 mr-4"><DollarSign className="w-6 h-6 text-green-600"/></div>
+          <div>
+            <p className="text-sm text-gray-500">Comisión Promedio</p>
+            <p className="text-2xl font-bold text-gray-900">
+              {productos.length > 0 ? Math.round(productos.reduce((acc, p) => acc + (p.comision_nivel1 || 0), 0) / productos.length) : 0}%
+            </p>
           </div>
         </div>
-
-        <div className="bg-gradient-to-r from-purple-500/20 to-indigo-600/20 rounded-lg p-4 border border-purple-500/30">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-purple-300 text-sm font-medium">Mis Solicitudes</p>
-              <p className="text-white text-2xl font-bold">{solicitudes.length}</p>
-              <p className="text-purple-200 text-xs mt-1">En total</p>
-            </div>
-            <Send className="w-8 h-8 text-purple-400" />
+        <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm flex items-center">
+          <div className="bg-purple-100 rounded-lg p-3 mr-4"><Send className="w-6 h-6 text-purple-600"/></div>
+          <div>
+            <p className="text-sm text-gray-500">Mis Solicitudes</p>
+            <p className="text-2xl font-bold text-gray-900">{solicitudes.length}</p>
           </div>
         </div>
-
-        <div className="bg-gradient-to-r from-amber-500/20 to-yellow-600/20 rounded-lg p-4 border border-amber-500/30">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-amber-300 text-sm font-medium">Aprobadas</p>
-              <p className="text-white text-2xl font-bold">
-                {solicitudes.filter(s => s.estado === 'aprobada').length}
-              </p>
-              <p className="text-amber-200 text-xs mt-1">Listas para vender</p>
-            </div>
-            <Star className="w-8 h-8 text-amber-400" />
+        <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm flex items-center">
+          <div className="bg-amber-100 rounded-lg p-3 mr-4"><Star className="w-6 h-6 text-amber-600"/></div>
+          <div>
+            <p className="text-sm text-gray-500">Aprobadas</p>
+            <p className="text-2xl font-bold text-gray-900">
+              {solicitudes.filter(s => s.estado === 'aprobada').length}
+            </p>
           </div>
         </div>
       </div>
 
-      {/* Grid de productos estilo Hotmart */}
-      <div>
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-semibold text-white">
-            {selectedCategory === 'Todos' ? 'Todos los Productos' : selectedCategory}
-          </h2>
-          <div className="text-gray-400 text-sm">
-            {productosFiltrados.length} producto{productosFiltrados.length !== 1 ? 's' : ''} encontrado{productosFiltrados.length !== 1 ? 's' : ''}
+      {/* Productos */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {productosFiltrados.map((p) => (
+          <div key={`${p.tabla_origen}-${p.id}`}>
+            {renderProductoCard(p)}
           </div>
-        </div>
-        
-        {productosFiltrados.length === 0 ? (
-          <div className="col-span-full text-center py-16">
-            <div className="text-gray-400 text-xl mb-3">🔍 No se encontraron productos</div>
-            <p className="text-gray-500 mb-4">Intenta ajustar tus filtros de búsqueda o explora otras categorías</p>
-            <button
-              onClick={() => {
-                setSelectedCategory('Todos');
-                setSearchTerm('');
-              }}
-              className="bg-gradient-to-r from-amber-500 to-yellow-600 text-white px-6 py-3 rounded-lg font-medium hover:from-amber-600 hover:to-yellow-700 transition-all"
-            >
-              Ver todos los productos
-            </button>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {productosFiltrados.map(renderProductoCard)}
-          </div>
-        )}
+        ))}
       </div>
     </div>
   );
