@@ -35,29 +35,8 @@ interface Servicio {
 const ServiciosMarketplacePanel: React.FC = () => {
   const [servicios, setServicios] = useState<Servicio[]>([]);
   const [loading, setLoading] = useState(true);
-  const [showModal, setShowModal] = useState(false);
   const [showSuscripcionModal, setShowSuscripcionModal] = useState(false);
-  const [editingServicio, setEditingServicio] = useState<Servicio | null>(null);
   const [uploading, setUploading] = useState(false);
-
-  const [formData, setFormData] = useState({
-    titulo: '',
-    descripcion: '',
-    precio: 0,
-    imagen_url: '',
-    proveedor: '',
-    categoria: 'Consultoría',
-    rating: 4.8,
-    reviews: 0,
-    activo: true,
-    tipo_pago: 'pago_unico' as 'pago_unico' | 'suscripcion',
-    // Campos de afiliación
-    afilible: false,
-    niveles_comision: 1,
-    comision_nivel1: 20,
-    comision_nivel2: 10,
-    comision_nivel3: 5
-  });
 
   const [suscripcionData, setSuscripcionData] = useState({
     titulo: '',
@@ -70,6 +49,7 @@ const ServiciosMarketplacePanel: React.FC = () => {
     reviews: 0,
     activo: true,
     tipo_producto: 'suscripcion' as const,
+    tipo_pago: 'pago_unico' as 'pago_unico' | 'suscripcion',
     duracion_dias: 30,
     caracteristicas: [''],
     // Campos de afiliación
@@ -113,70 +93,6 @@ const ServiciosMarketplacePanel: React.FC = () => {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-
-    try {
-      if (editingServicio) {
-        // Actualizar servicio existente
-        const { error } = await supabase
-          .from('servicios_marketplace')
-          .update({
-            ...formData,
-            updated_at: new Date().toISOString()
-          })
-          .eq('id', editingServicio.id);
-
-        if (error) throw error;
-      } else {
-        // Crear nuevo servicio
-        const { error } = await supabase
-          .from('servicios_marketplace')
-          .insert([{
-            ...formData,
-            id: crypto.randomUUID(),
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          }]);
-
-        if (error) throw error;
-      }
-
-      await cargarServicios();
-      resetForm();
-      setShowModal(false);
-    } catch (error: any) {
-      console.error('Error guardando servicio:', error);
-      alert('Error al guardar el servicio: ' + error.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleEdit = (servicio: Servicio) => {
-    setEditingServicio(servicio);
-    setFormData({
-      titulo: servicio.titulo,
-      descripcion: servicio.descripcion,
-      precio: servicio.precio,
-      imagen_url: servicio.imagen_url || '',
-      proveedor: servicio.proveedor,
-      categoria: servicio.categoria,
-      rating: servicio.rating,
-      reviews: servicio.reviews,
-      activo: servicio.activo,
-      tipo_pago: servicio.tipo_pago || 'pago_unico',
-      // Campos de afiliación
-      afilible: servicio.afilible || false,
-      niveles_comision: servicio.niveles_comision || 1,
-      comision_nivel1: servicio.comision_nivel1 || 20,
-      comision_nivel2: servicio.comision_nivel2 || 10,
-      comision_nivel3: servicio.comision_nivel3 || 5
-    });
-    setShowModal(true);
-  };
-
   const handleDelete = async (id: string) => {
     if (!confirm('¿Estás seguro de que quieres eliminar este servicio?')) return;
 
@@ -211,34 +127,6 @@ const ServiciosMarketplacePanel: React.FC = () => {
     }
   };
 
-  const handleImageUpload = async (file: File) => {
-    if (!file) return;
-
-    setUploading(true);
-    try {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${crypto.randomUUID()}.${fileExt}`;
-      const filePath = `servicios/${fileName}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from('servicios-marketplace')
-        .upload(filePath, file);
-
-      if (uploadError) throw uploadError;
-
-      const { data } = supabase.storage
-        .from('servicios-marketplace')
-        .getPublicUrl(filePath);
-
-      setFormData(prev => ({ ...prev, imagen_url: data.publicUrl }));
-    } catch (error: any) {
-      console.error('Error subiendo imagen:', error);
-      alert('Error al subir la imagen');
-    } finally {
-      setUploading(false);
-    }
-  };
-
   const handleSuscripcionImageUpload = async (file: File) => {
     if (!file) return;
 
@@ -267,120 +155,6 @@ const ServiciosMarketplacePanel: React.FC = () => {
     }
   };
 
-  const resetForm = () => {
-    setFormData({
-      titulo: '',
-      descripcion: '',
-      precio: 0,
-      imagen_url: '',
-      proveedor: '',
-      categoria: 'Consultoría',
-      rating: 4.8,
-      reviews: 0,
-      activo: true,
-      tipo_pago: 'pago_unico' as 'pago_unico' | 'suscripcion',
-      // Campos de afiliación
-      afilible: false,
-      niveles_comision: 1,
-      comision_nivel1: 20,
-      comision_nivel2: 10,
-      comision_nivel3: 5
-    });
-    setEditingServicio(null);
-  };
-
-  const crearServicioEjemplo = () => {
-    setFormData({
-      titulo: 'Consultoría Estratégica Premium',
-      descripcion: 'Sesión personalizada de estrategia empresarial con expertos en escalabilidad y crecimiento de negocios digitales.',
-      precio: 250,
-      imagen_url: 'https://images.unsplash.com/photo-1556761175-b413da4baf72?w=500&h=300&fit=crop',
-      proveedor: 'ScaleXone Consulting',
-      categoria: 'Consultoría',
-      rating: 4.9,
-      reviews: 127,
-      activo: true,
-      tipo_pago: 'pago_unico',
-      // Campos de afiliación
-      afilible: true,
-      niveles_comision: 3,
-      comision_nivel1: 25,
-      comision_nivel2: 15,
-      comision_nivel3: 8
-    });
-    setShowModal(true);
-  };
-
-  // Funciones para manejar suscripciones
-  const handleSuscripcionSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-
-    try {
-      // 🔥 PASO 1: Crear el plan de suscripción PRIMERO
-      const planData = {
-        comunidad_id: '8fb70d6e-3237-465e-8669-979461cf2bc1', // ScaleXone UUID como text
-        nombre: `Plan: ${suscripcionData.titulo}`,
-        descripcion: suscripcionData.descripcion,
-        precio: suscripcionData.precio,
-        moneda: 'USD',
-        duracion_dias: suscripcionData.duracion_dias || 30,
-        caracteristicas: suscripcionData.caracteristicas.filter(c => c.trim() !== ''), // ✅ JS Array (Supabase lo convierte automáticamente)
-        activo: true,
-        orden: 0,
-        limites: {},
-        configuracion: {
-          tipo: 'servicio_suscripcion',
-          afiliacion: {
-            habilitada: suscripcionData.afilible,
-            niveles: suscripcionData.niveles_comision,
-            comision_nivel1: suscripcionData.comision_nivel1,
-            comision_nivel2: suscripcionData.comision_nivel2,
-            comision_nivel3: suscripcionData.comision_nivel3
-          }
-        }
-      };
-
-      console.log('📋 Datos del plan servicio a crear:', planData);
-
-      const { data: planCreated, error: planError } = await supabase
-        .from('planes_suscripcion')
-        .insert([planData])
-        .select()
-        .single();
-
-      if (planError) {
-        console.error('❌ Error específico creando plan servicio:', planError);
-        throw new Error(`Error creando plan: ${planError.message}`);
-      }
-
-      console.log('✅ Plan servicio creado exitosamente:', planCreated);
-
-      // 🔥 PASO 2: Crear el servicio marketplace con referencia al plan
-      const { error: servicioError } = await supabase
-        .from('servicios_marketplace')
-        .insert([{
-          ...suscripcionData,
-          id: crypto.randomUUID(),
-          plan_suscripcion_id: planCreated.id, // ✅ CONECTAR CON EL PLAN
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        }]);
-
-      if (servicioError) throw servicioError;
-
-      await cargarServicios();
-      resetSuscripcionForm();
-      setShowSuscripcionModal(false);
-      alert('✅ Suscripción de servicio creada exitosamente\n\n🎯 Ahora aparecerá en:\n• Marketplace de Servicios\n• Portal de Suscripciones');
-    } catch (error: any) {
-      console.error('Error guardando suscripción de servicio:', error);
-      alert('Error al guardar la suscripción: ' + error.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const resetSuscripcionForm = () => {
     setSuscripcionData({
       titulo: '',
@@ -393,6 +167,7 @@ const ServiciosMarketplacePanel: React.FC = () => {
       reviews: 0,
       activo: true,
       tipo_producto: 'suscripcion' as const,
+      tipo_pago: 'pago_unico' as 'pago_unico' | 'suscripcion',
       duracion_dias: 30,
       caracteristicas: [''],
       // Campos de afiliación
@@ -425,6 +200,115 @@ const ServiciosMarketplacePanel: React.FC = () => {
     }));
   };
 
+  const handleSuscripcionSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      // 🔥 PASO 1: Crear el plan SIEMPRE (tanto pago único como suscripción)
+      const esPagoUnico = suscripcionData.tipo_pago === 'pago_unico';
+      
+      const planData = {
+        comunidad_id: '8fb70d6e-3237-465e-8669-979461cf2bc1', // ScaleXone UUID como text
+        nombre: `${esPagoUnico ? 'Servicio' : 'Plan'}: ${suscripcionData.titulo}`,
+        descripcion: suscripcionData.descripcion,
+        precio: suscripcionData.precio,
+        moneda: 'USD',
+        duracion_dias: esPagoUnico ? null : (suscripcionData.duracion_dias || 30), // ✅ Null para pago único
+        caracteristicas: suscripcionData.caracteristicas.filter(c => c.trim() !== ''), // ✅ JS Array
+        activo: true,
+        orden: 0,
+        limites: {},
+        configuracion: {
+          tipo: esPagoUnico ? 'servicio_pago_unico' : 'servicio_suscripcion', // ✅ Diferenciamos el tipo
+          pago_unico: esPagoUnico, // ✅ Flag para identificar
+          afiliacion: {
+            habilitada: suscripcionData.afilible,
+            niveles: suscripcionData.niveles_comision,
+            comision_nivel1: suscripcionData.comision_nivel1,
+            comision_nivel2: suscripcionData.comision_nivel2,
+            comision_nivel3: suscripcionData.comision_nivel3
+          }
+        }
+      };
+
+      console.log(`📋 Datos del ${esPagoUnico ? 'servicio pago único' : 'servicio suscripción'} a crear:`, planData);
+
+      const { data: planCreated, error: planError } = await supabase
+        .from('planes_suscripcion')
+        .insert([planData])
+        .select()
+        .single();
+
+      if (planError) {
+        console.error('❌ Error específico creando plan:', planError);
+        throw new Error(`Error creando plan: ${planError.message}`);
+      }
+
+      console.log('✅ Plan creado exitosamente:', planCreated);
+
+      // 🔥 PASO 2: Crear el servicio marketplace con referencia al plan
+      const servicioData = {
+        ...suscripcionData,
+        id: crypto.randomUUID(),
+        plan_suscripcion_id: planCreated.id, // ✅ SIEMPRE conectar con el plan
+        tipo_producto: esPagoUnico ? 'servicio' : 'suscripcion', // ✅ Ajustar tipo_producto
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      };
+
+      const { error: servicioError } = await supabase
+        .from('servicios_marketplace')
+        .insert([servicioData]);
+
+      if (servicioError) throw servicioError;
+
+      await cargarServicios();
+      resetSuscripcionForm();
+      setShowSuscripcionModal(false);
+      
+      // ✅ Mensaje de éxito diferenciado
+      const tipoServicio = esPagoUnico ? 'Servicio de pago único' : 'Servicio de suscripción';
+      alert(`✅ ${tipoServicio} creado exitosamente\n\n🎯 Ahora aparecerá en:\n• Marketplace de Servicios\n• Portal de Suscripciones (para gestión)`);
+    } catch (error: any) {
+      console.error('Error guardando servicio:', error);
+      alert('Error al guardar el servicio: ' + error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const crearServicioEjemplo = () => {
+    setSuscripcionData({
+      titulo: 'Consultoría Estratégica Premium',
+      descripcion: 'Sesión personalizada de estrategia empresarial con expertos en escalabilidad y crecimiento de negocios digitales.',
+      precio: 250,
+      imagen_url: 'https://images.unsplash.com/photo-1556761175-b413da4baf72?w=500&h=300&fit=crop',
+      proveedor: 'ScaleXone Consulting',
+      categoria: 'Consultoría',
+      rating: 4.9,
+      reviews: 127,
+      activo: true,
+      tipo_producto: 'suscripcion' as const,
+      tipo_pago: 'pago_unico' as 'pago_unico' | 'suscripcion',
+      duracion_dias: 30,
+      caracteristicas: [
+        'Análisis completo de tu negocio actual',
+        'Plan estratégico personalizado',
+        'Sesión de consultoría 1:1 de 90 minutos',
+        'Documento con recomendaciones',
+        'Seguimiento durante 30 días'
+      ],
+      // Campos de afiliación
+      afilible: true,
+      niveles_comision: 3,
+      comision_nivel1: 25,
+      comision_nivel2: 15,
+      comision_nivel3: 8
+    });
+    setShowSuscripcionModal(true);
+  };
+
   if (loading && servicios.length === 0) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -444,13 +328,6 @@ const ServiciosMarketplacePanel: React.FC = () => {
         </div>
         <div className="flex gap-3">
           <button
-            onClick={() => setShowSuscripcionModal(true)}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
-          >
-            <Plus size={16} />
-            Suscripción Servicio
-          </button>
-          <button
             onClick={crearServicioEjemplo}
             className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
           >
@@ -458,7 +335,7 @@ const ServiciosMarketplacePanel: React.FC = () => {
             Servicio Ejemplo
           </button>
           <button
-            onClick={() => setShowModal(true)}
+            onClick={() => setShowSuscripcionModal(true)}
             className="bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-400 hover:to-pink-500 text-white px-6 py-2 rounded-lg flex items-center gap-2 transition-all"
           >
             <Plus size={16} />
@@ -582,13 +459,6 @@ const ServiciosMarketplacePanel: React.FC = () => {
               {/* Acciones */}
               <div className="flex gap-2">
                 <button
-                  onClick={() => handleEdit(servicio)}
-                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg flex items-center justify-center gap-2 text-sm transition-colors"
-                >
-                  <Edit size={14} />
-                  Editar
-                </button>
-                <button
                   onClick={() => toggleActivo(servicio.id, servicio.activo)}
                   className={`flex-1 px-3 py-2 rounded-lg flex items-center justify-center gap-2 text-sm transition-colors ${
                     servicio.activo
@@ -617,386 +487,11 @@ const ServiciosMarketplacePanel: React.FC = () => {
           <h3 className="text-xl font-semibold text-gray-300 mb-2">No hay servicios</h3>
           <p className="text-gray-400 mb-4">Crea tu primer servicio para el marketplace</p>
           <button
-            onClick={() => setShowModal(true)}
+            onClick={() => setShowSuscripcionModal(true)}
             className="bg-gradient-to-r from-purple-500 to-pink-600 text-white px-6 py-3 rounded-lg hover:from-purple-400 hover:to-pink-500 transition-all"
           >
             Crear Primer Servicio
           </button>
-        </div>
-      )}
-
-      {/* Modal de crear/editar */}
-      {showModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="bg-gray-900 rounded-xl border border-purple-500/20 w-full max-w-2xl max-h-[90vh] overflow-y-auto"
-          >
-            <div className="p-6">
-              <div className="flex justify-between items-center mb-6">
-                <h3 className="text-xl font-bold text-white">
-                  {editingServicio ? 'Editar Servicio' : 'Nuevo Servicio'}
-                </h3>
-                <button
-                  onClick={() => {
-                    setShowModal(false);
-                    resetForm();
-                  }}
-                  className="text-gray-400 hover:text-white"
-                >
-                  <X size={24} />
-                </button>
-              </div>
-
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">
-                      Título *
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      value={formData.titulo}
-                      onChange={(e) => setFormData(prev => ({ ...prev, titulo: e.target.value }))}
-                      className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-purple-400"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">
-                      Proveedor *
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      value={formData.proveedor}
-                      onChange={(e) => setFormData(prev => ({ ...prev, proveedor: e.target.value }))}
-                      className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-purple-400"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Descripción *
-                  </label>
-                  <textarea
-                    required
-                    rows={3}
-                    value={formData.descripcion}
-                    onChange={(e) => setFormData(prev => ({ ...prev, descripcion: e.target.value }))}
-                    className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-purple-400"
-                  />
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">
-                      Precio ($) *
-                    </label>
-                    <input
-                      type="number"
-                      required
-                      min="0"
-                      step="0.01"
-                      value={formData.precio}
-                      onChange={(e) => setFormData(prev => ({ ...prev, precio: parseFloat(e.target.value) || 0 }))}
-                      className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-purple-400"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">
-                      Rating
-                    </label>
-                    <input
-                      type="number"
-                      min="1"
-                      max="5"
-                      step="0.1"
-                      value={formData.rating}
-                      onChange={(e) => setFormData(prev => ({ ...prev, rating: parseFloat(e.target.value) || 4.8 }))}
-                      className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-purple-400"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">
-                      Reviews
-                    </label>
-                    <input
-                      type="number"
-                      min="0"
-                      value={formData.reviews}
-                      onChange={(e) => setFormData(prev => ({ ...prev, reviews: parseInt(e.target.value) || 0 }))}
-                      className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-purple-400"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Categoría
-                  </label>
-                  <select
-                    value={formData.categoria}
-                    onChange={(e) => setFormData(prev => ({ ...prev, categoria: e.target.value }))}
-                    className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-purple-400"
-                  >
-                    {categorias.map(categoria => (
-                      <option key={categoria} value={categoria}>{categoria}</option>
-                    ))}
-                  </select>
-                </div>
-
-                {/* 💰 Tipo de Pago */}
-                <div className="bg-blue-900/20 rounded-lg p-4 border border-blue-500/30">
-                  <div className="flex items-center gap-2 mb-3">
-                    <DollarSign className="text-blue-400" size={18} />
-                    <h4 className="text-base font-semibold text-blue-200">💰 Tipo de Pago</h4>
-                  </div>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-300 mb-2">
-                        Modelo de Facturación *
-                      </label>
-                      <select
-                        value={formData.tipo_pago}
-                        onChange={(e) => setFormData(prev => ({ ...prev, tipo_pago: e.target.value as 'pago_unico' | 'suscripcion' }))}
-                        className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-400"
-                      >
-                        <option value="pago_unico">💵 Pago Único - Una sola vez</option>
-                        <option value="suscripcion">🔄 Suscripción - Recurrente</option>
-                      </select>
-                    </div>
-
-                    <div className="flex items-center">
-                      <div className={`p-3 rounded-lg border ${
-                        formData.tipo_pago === 'pago_unico' 
-                          ? 'bg-green-900/30 border-green-500/40 text-green-300' 
-                          : 'bg-blue-900/30 border-blue-500/40 text-blue-300'
-                      }`}>
-                        <div className="text-xs font-medium">
-                          {formData.tipo_pago === 'pago_unico' ? '✅ Pago único' : '🔄 Suscripción'}
-                        </div>
-                        <div className="text-xs opacity-75 mt-1">
-                          {formData.tipo_pago === 'pago_unico' 
-                            ? 'El cliente paga una vez y tiene acceso permanente' 
-                            : 'El cliente paga mensual/anualmente de forma recurrente'
-                          }
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {formData.tipo_pago === 'suscripcion' && (
-                    <div className="mt-4 p-3 bg-yellow-900/20 border border-yellow-500/30 rounded-lg">
-                      <div className="flex items-center gap-2 text-yellow-300">
-                        <Info size={16} />
-                        <span className="text-sm font-medium">💡 Nota para Suscripciones</span>
-                      </div>
-                      <p className="text-xs text-yellow-200/80 mt-1">
-                        Para servicios de suscripción avanzados con características personalizadas, 
-                        usa el botón "Suscripción Servicio" que crea automáticamente el plan en el Portal de Suscripciones.
-                      </p>
-                    </div>
-                  )}
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Imagen del Servicio
-                  </label>
-                  <div className="space-y-2">
-                    <input
-                      type="url"
-                      placeholder="URL de la imagen"
-                      value={formData.imagen_url}
-                      onChange={(e) => setFormData(prev => ({ ...prev, imagen_url: e.target.value }))}
-                      className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-purple-400"
-                    />
-                    <div className="text-center">
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={(e) => e.target.files?.[0] && handleImageUpload(e.target.files[0])}
-                        className="hidden"
-                        id="image-upload"
-                      />
-                      <label
-                        htmlFor="image-upload"
-                        className="inline-flex items-center gap-2 bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg cursor-pointer transition-colors"
-                      >
-                        <Upload size={16} />
-                        {uploading ? 'Subiendo...' : 'Subir Imagen'}
-                      </label>
-                    </div>
-                    {formData.imagen_url && (
-                      <div className="mt-2">
-                        <img
-                          src={formData.imagen_url}
-                          alt="Preview"
-                          className="w-full h-32 object-cover rounded-lg"
-                        />
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* 💰 Configuración de Afiliación */}
-                <div className="bg-gray-800/50 rounded-lg p-4 border border-purple-500/20">
-                  <div className="flex items-center gap-2 mb-4">
-                    <DollarSign className="text-purple-400" size={20} />
-                    <h4 className="text-lg font-semibold text-white">💰 Configuración de Afiliación</h4>
-                  </div>
-
-                  <div className="space-y-4">
-                    {/* Activar Afiliación */}
-                    <div className="flex items-center">
-                      <input
-                        type="checkbox"
-                        id="afilible"
-                        checked={formData.afilible}
-                        onChange={(e) => setFormData(prev => ({ ...prev, afilible: e.target.checked }))}
-                        className="w-4 h-4 text-purple-600 bg-gray-800 border-gray-600 rounded focus:ring-purple-500"
-                      />
-                      <label htmlFor="afilible" className="ml-2 text-sm text-gray-300">
-                        Activar programa de afiliación para este servicio
-                      </label>
-                    </div>
-
-                    {formData.afilible && (
-                      <>
-                        {/* Selector de Niveles */}
-                        <div>
-                          <label className="block text-sm font-medium text-gray-300 mb-2">
-                            Estructura de Comisiones
-                          </label>
-                          <select
-                            value={formData.niveles_comision}
-                            onChange={(e) => setFormData(prev => ({ ...prev, niveles_comision: parseInt(e.target.value) }))}
-                            className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-purple-400"
-                          >
-                            <option value={1}>1 Nivel (Directo)</option>
-                            <option value={3}>3 Niveles (Multinivel)</option>
-                          </select>
-                        </div>
-
-                        {/* Comisiones por Nivel */}
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                          <div>
-                            <label className="block text-sm font-medium text-gray-300 mb-2">
-                              Comisión Nivel 1 (%)
-                            </label>
-                            <input
-                              type="number"
-                              min="0"
-                              max="100"
-                              step="0.1"
-                              value={formData.comision_nivel1}
-                              onChange={(e) => setFormData(prev => ({ ...prev, comision_nivel1: parseFloat(e.target.value) || 0 }))}
-                              className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-purple-400"
-                            />
-                          </div>
-
-                          {formData.niveles_comision >= 2 && (
-                            <div>
-                              <label className="block text-sm font-medium text-gray-300 mb-2">
-                                Comisión Nivel 2 (%)
-                              </label>
-                              <input
-                                type="number"
-                                min="0"
-                                max="100"
-                                step="0.1"
-                                value={formData.comision_nivel2}
-                                onChange={(e) => setFormData(prev => ({ ...prev, comision_nivel2: parseFloat(e.target.value) || 0 }))}
-                                className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-purple-400"
-                              />
-                            </div>
-                          )}
-
-                          {formData.niveles_comision >= 3 && (
-                            <div>
-                              <label className="block text-sm font-medium text-gray-300 mb-2">
-                                Comisión Nivel 3 (%)
-                              </label>
-                              <input
-                                type="number"
-                                min="0"
-                                max="100"
-                                step="0.1"
-                                value={formData.comision_nivel3}
-                                onChange={(e) => setFormData(prev => ({ ...prev, comision_nivel3: parseFloat(e.target.value) || 0 }))}
-                                className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-purple-400"
-                              />
-                            </div>
-                          )}
-                        </div>
-
-                        {/* Información explicativa */}
-                        <div className="bg-purple-900/20 border border-purple-500/30 rounded-lg p-3">
-                          <div className="flex items-start gap-2">
-                            <Info className="text-purple-400 mt-0.5" size={16} />
-                            <div className="text-sm text-purple-200">
-                              <p className="font-medium mb-1">Cálculo de Comisiones:</p>
-                              <p>• <strong>Nivel 1:</strong> {formData.comision_nivel1}% de ${formData.precio} = ${((formData.precio * formData.comision_nivel1) / 100).toFixed(2)}</p>
-                              {formData.niveles_comision >= 2 && (
-                                <p>• <strong>Nivel 2:</strong> {formData.comision_nivel2}% de ${formData.precio} = ${((formData.precio * formData.comision_nivel2) / 100).toFixed(2)}</p>
-                              )}
-                              {formData.niveles_comision >= 3 && (
-                                <p>• <strong>Nivel 3:</strong> {formData.comision_nivel3}% de ${formData.precio} = ${((formData.precio * formData.comision_nivel3) / 100).toFixed(2)}</p>
-                              )}
-                              <p className="mt-2 text-xs text-purple-300">
-                                Los afiliados recibirán estas comisiones por cada venta generada en su red.
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                      </>
-                    )}
-                  </div>
-                </div>
-
-                <div className="flex items-center">
-                  <input
-                    type="checkbox"
-                    id="activo"
-                    checked={formData.activo}
-                    onChange={(e) => setFormData(prev => ({ ...prev, activo: e.target.checked }))}
-                    className="w-4 h-4 text-purple-600 bg-gray-800 border-gray-600 rounded focus:ring-purple-500"
-                  />
-                  <label htmlFor="activo" className="ml-2 text-sm text-gray-300">
-                    Servicio activo
-                  </label>
-                </div>
-
-                <div className="flex gap-3 pt-4">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setShowModal(false);
-                      resetForm();
-                    }}
-                    className="flex-1 bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition-colors"
-                  >
-                    Cancelar
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={loading}
-                    className="flex-1 bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-400 hover:to-pink-500 text-white px-4 py-2 rounded-lg flex items-center justify-center gap-2 transition-all disabled:opacity-50"
-                  >
-                    <Save size={16} />
-                    {loading ? 'Guardando...' : 'Guardar'}
-                  </button>
-                </div>
-              </form>
-            </div>
-          </motion.div>
         </div>
       )}
 
@@ -1011,7 +506,7 @@ const ServiciosMarketplacePanel: React.FC = () => {
             <div className="p-6">
               <div className="flex justify-between items-center mb-6">
                 <h3 className="text-xl font-bold text-white">
-                  🔷 Nueva Suscripción de Servicio
+                  🎯 Nuevo Servicio
                 </h3>
                 <button
                   onClick={() => {
@@ -1029,7 +524,7 @@ const ServiciosMarketplacePanel: React.FC = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-300 mb-2">
-                      Nombre de la Suscripción *
+                      Nombre del Servicio *
                     </label>
                     <input
                       type="text"
@@ -1037,7 +532,7 @@ const ServiciosMarketplacePanel: React.FC = () => {
                       value={suscripcionData.titulo}
                       onChange={(e) => setSuscripcionData(prev => ({ ...prev, titulo: e.target.value }))}
                       className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-400"
-                      placeholder="ej. ScaleXone Premium"
+                      placeholder="ej. Consultoría Estratégica Premium"
                     />
                   </div>
 
@@ -1064,7 +559,7 @@ const ServiciosMarketplacePanel: React.FC = () => {
                     onChange={(e) => setSuscripcionData(prev => ({ ...prev, descripcion: e.target.value }))}
                     className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-400"
                     rows={3}
-                    placeholder="Describe los beneficios y características de la suscripción..."
+                    placeholder="Describe los beneficios y características del servicio..."
                   />
                 </div>
 
@@ -1084,6 +579,48 @@ const ServiciosMarketplacePanel: React.FC = () => {
                   </select>
                 </div>
 
+                {/* 💰 Tipo de Pago */}
+                <div className="bg-blue-900/20 rounded-lg p-4 border border-blue-500/30">
+                  <div className="flex items-center gap-2 mb-3">
+                    <DollarSign className="text-blue-400" size={18} />
+                    <h4 className="text-base font-semibold text-blue-200">💰 Modelo de Facturación</h4>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-2">
+                        Tipo de Pago *
+                      </label>
+                      <select
+                        value={suscripcionData.tipo_pago}
+                        onChange={(e) => setSuscripcionData(prev => ({ ...prev, tipo_pago: e.target.value as 'pago_unico' | 'suscripcion' }))}
+                        className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-400"
+                      >
+                        <option value="pago_unico">💵 Pago Único - Una sola vez</option>
+                        <option value="suscripcion">🔄 Suscripción - Recurrente</option>
+                      </select>
+                    </div>
+
+                    <div className="flex items-center">
+                      <div className={`p-3 rounded-lg border ${
+                        suscripcionData.tipo_pago === 'pago_unico' 
+                          ? 'bg-green-900/30 border-green-500/40 text-green-300' 
+                          : 'bg-blue-900/30 border-blue-500/40 text-blue-300'
+                      }`}>
+                        <div className="text-xs font-medium">
+                          {suscripcionData.tipo_pago === 'pago_unico' ? '✅ Pago único' : '🔄 Suscripción'}
+                        </div>
+                        <div className="text-xs opacity-75 mt-1">
+                          {suscripcionData.tipo_pago === 'pago_unico' 
+                            ? 'El cliente paga una vez y tiene acceso permanente' 
+                            : 'El cliente paga mensual/anualmente de forma recurrente'
+                          }
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
                 {/* Precio y duración */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
@@ -1101,27 +638,30 @@ const ServiciosMarketplacePanel: React.FC = () => {
                     />
                   </div>
 
-                  <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">
-                      Duración
-                    </label>
-                    <select
-                      value={suscripcionData.duracion_dias}
-                      onChange={(e) => setSuscripcionData(prev => ({ ...prev, duracion_dias: parseInt(e.target.value) }))}
-                      className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-400"
-                    >
-                      <option value={7}>Semanal (7 días)</option>
-                      <option value={30}>Mensual (30 días)</option>
-                      <option value={90}>Trimestral (90 días)</option>
-                      <option value={365}>Anual (365 días)</option>
-                    </select>
-                  </div>
+                  {/* ✅ DURACIÓN SOLO PARA SUSCRIPCIONES */}
+                  {suscripcionData.tipo_pago === 'suscripcion' && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-2">
+                        Duración *
+                      </label>
+                      <select
+                        value={suscripcionData.duracion_dias}
+                        onChange={(e) => setSuscripcionData(prev => ({ ...prev, duracion_dias: parseInt(e.target.value) }))}
+                        className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-400"
+                      >
+                        <option value={7}>Semanal (7 días)</option>
+                        <option value={30}>Mensual (30 días)</option>
+                        <option value={90}>Trimestral (90 días)</option>
+                        <option value={365}>Anual (365 días)</option>
+                      </select>
+                    </div>
+                  )}
                 </div>
 
                 {/* Imagen */}
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Imagen de la Suscripción
+                    Imagen del Servicio
                   </label>
                   <div className="space-y-2">
                     <input
@@ -1212,7 +752,7 @@ const ServiciosMarketplacePanel: React.FC = () => {
                         className="w-4 h-4 text-blue-600 bg-gray-800 border-gray-600 rounded focus:ring-blue-500"
                       />
                       <label htmlFor="suscripcion-afilible" className="ml-2 text-sm text-gray-300">
-                        Activar programa de afiliación para esta suscripción
+                        Activar programa de afiliación para este servicio
                       </label>
                     </div>
 
