@@ -349,11 +349,6 @@ const Marketplace: React.FC = () => {
               <span className={`${colorScheme.badge} text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg`}>
                 {esSoftwareSaaS ? 'SOFTWARE & SAAS' : 'SERVICIO'}
               </span>
-              {esSuscripcion && (
-                <span className="bg-blue-600 text-white px-2 py-1 rounded-full text-xs font-bold shadow-lg">
-                  SUSCRIPCIÓN
-                </span>
-              )}
             </div>
             
             {/* Rating */}
