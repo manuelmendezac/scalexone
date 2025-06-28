@@ -154,15 +154,23 @@ const Marketplace: React.FC = () => {
     }
     
     if (selectedCategory === 'Todos' || selectedCategory === 'Servicios') {
-      // Solo servicios tradicionales (no suscripciones)
-      const serviciosTradicionales = servicios.filter(s => s.tipo_producto !== 'suscripcion');
-      items = [...items, ...serviciosTradicionales];
+      // Servicios tradicionales + servicios de suscripción con categorías de servicios
+      const categoriasServicios = ['Consultoría', 'Diseño', 'Marketing', 'Automatización', 'Desarrollo', 'Coaching', 'Otros'];
+      const serviciosReales = servicios.filter(s => 
+        s.tipo_producto !== 'suscripcion' || 
+        (s.tipo_producto === 'suscripcion' && categoriasServicios.includes(s.categoria))
+      );
+      items = [...items, ...serviciosReales];
     }
 
     if (selectedCategory === 'Todos' || selectedCategory === 'Software & SaaS') {
-      // Solo suscripciones y software
-      const suscripciones = servicios.filter(s => s.tipo_producto === 'suscripcion');
-      items = [...items, ...suscripciones];
+      // Solo suscripciones con categorías específicas de software/tecnología
+      const categoriasSoftware = ['Software', 'SaaS', 'Herramientas', 'Tecnología', 'Plataforma'];
+      const suscripcionesSoftware = servicios.filter(s => 
+        s.tipo_producto === 'suscripcion' && 
+        (categoriasSoftware.includes(s.categoria) || s.categoria.toLowerCase().includes('software') || s.categoria.toLowerCase().includes('saas'))
+      );
+      items = [...items, ...suscripcionesSoftware];
     }
 
     // Filtrar por búsqueda
@@ -279,7 +287,13 @@ const Marketplace: React.FC = () => {
 
   const renderServicioCard = (servicio: Servicio) => {
     const esSuscripcion = servicio.tipo_producto === 'suscripcion';
-    const colorScheme = esSuscripcion 
+    
+    // ✅ DETERMINAR CATEGORÍA REAL BASADA EN LA CATEGORÍA DEL SERVICIO
+    const categoriasServicios = ['Consultoría', 'Diseño', 'Marketing', 'Automatización', 'Desarrollo', 'Coaching', 'Otros'];
+    const esServicioReal = categoriasServicios.includes(servicio.categoria);
+    const esSoftwareSaaS = !esServicioReal && (esSuscripcion || servicio.categoria.toLowerCase().includes('software') || servicio.categoria.toLowerCase().includes('saas'));
+    
+    const colorScheme = esSoftwareSaaS 
       ? { 
           border: 'border-cyan-500/20 hover:border-cyan-400/40',
           badge: 'bg-gradient-to-r from-cyan-500 to-blue-500',
@@ -328,11 +342,16 @@ const Marketplace: React.FC = () => {
               </div>
             )}
             
-            {/* Badge de tipo */}
+            {/* Badge de tipo - ✅ CORREGIDO PARA MOSTRAR CATEGORÍA REAL */}
             <div className="absolute top-3 left-3 flex gap-2">
               <span className={`${colorScheme.badge} text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg`}>
-                {esSuscripcion ? 'SOFTWARE & SAAS' : 'SERVICIO'}
+                {esSoftwareSaaS ? 'SOFTWARE & SAAS' : 'SERVICIO'}
               </span>
+              {esSuscripcion && (
+                <span className="bg-blue-600 text-white px-2 py-1 rounded-full text-xs font-bold shadow-lg">
+                  SUSCRIPCIÓN
+                </span>
+              )}
             </div>
             
             {/* Rating */}
@@ -522,7 +541,15 @@ const Marketplace: React.FC = () => {
                 : 'border-purple-500/20 hover:border-purple-400/60'
               }`}
           >
-            <div className="text-2xl lg:text-3xl font-bold text-purple-400 mb-1">{servicios.filter(s => s.tipo_producto !== 'suscripcion').length}</div>
+            <div className="text-2xl lg:text-3xl font-bold text-purple-400 mb-1">
+              {(() => {
+                const categoriasServicios = ['Consultoría', 'Diseño', 'Marketing', 'Automatización', 'Desarrollo', 'Coaching', 'Otros'];
+                return servicios.filter(s => 
+                  s.tipo_producto !== 'suscripcion' || 
+                  (s.tipo_producto === 'suscripcion' && categoriasServicios.includes(s.categoria))
+                ).length;
+              })()}
+            </div>
             <div className="text-xs lg:text-sm text-gray-400">Servicios Expert</div>
             <div className="text-xs text-purple-500/70 mt-1">Click para filtrar</div>
           </motion.div>
@@ -538,7 +565,15 @@ const Marketplace: React.FC = () => {
                 : 'border-cyan-500/20 hover:border-cyan-400/60'
               }`}
           >
-            <div className="text-2xl lg:text-3xl font-bold text-cyan-400 mb-1">{servicios.filter(s => s.tipo_producto === 'suscripcion').length}</div>
+            <div className="text-2xl lg:text-3xl font-bold text-cyan-400 mb-1">
+              {(() => {
+                const categoriasSoftware = ['Software', 'SaaS', 'Herramientas', 'Tecnología', 'Plataforma'];
+                return servicios.filter(s => 
+                  s.tipo_producto === 'suscripcion' && 
+                  (categoriasSoftware.includes(s.categoria) || s.categoria.toLowerCase().includes('software') || s.categoria.toLowerCase().includes('saas'))
+                ).length;
+              })()}
+            </div>
             <div className="text-xs lg:text-sm text-gray-400">Software & SaaS</div>
             <div className="text-xs text-cyan-500/70 mt-1">Click para filtrar</div>
           </motion.div>
