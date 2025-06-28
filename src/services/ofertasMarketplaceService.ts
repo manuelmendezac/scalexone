@@ -1,32 +1,30 @@
 import { supabase } from '../supabase';
 
 // =====================================================
-// INTERFACES Y TIPOS
+// INTERFACES Y TIPOS ACTUALIZADOS PARA LA VISTA
 // =====================================================
 
 export interface OfertaMarketplace {
   id: string;
   titulo: string;
   descripcion?: string;
-  tipo_producto: 'curso' | 'servicio' | 'producto_fisico' | 'herramienta';
+  tipo_producto: 'curso' | 'servicio' | 'suscripcion';
   precio: number;
   precio_original?: number;
-  moneda: string;
+  moneda?: string;
   
   // Información del producto
   imagen_url?: string;
   proveedor: string;
   categoria: string;
-  subcategoria?: string;
   
   // Métricas y rating
   rating: number;
   reviews: number;
   ventas_totales: number;
   
-  // Características específicas por tipo
-  caracteristicas: string[];
-  especificaciones: Record<string, any>;
+  // Características específicas
+  caracteristicas?: any;
   
   // Para cursos
   duracion_horas?: number;
@@ -39,15 +37,9 @@ export interface OfertaMarketplace {
   incluye_soporte?: boolean;
   tipo_entrega?: string;
   
-  // Para productos físicos
-  peso_kg?: number;
-  dimensiones?: Record<string, number>;
-  stock_disponible?: number;
-  requiere_envio?: boolean;
-  
   // Sistema de afiliación
   afilible: boolean;
-  niveles_comision: number;
+  niveles_comision?: number;
   comision_nivel1: number;
   comision_nivel2: number;
   comision_nivel3: number;
@@ -57,13 +49,14 @@ export interface OfertaMarketplace {
   destacado: boolean;
   orden: number;
   
-  // Configuración adicional
-  configuracion: Record<string, any>;
-  metadata: Record<string, any>;
-  
   // Timestamps
   fecha_creacion: string;
   fecha_actualizacion: string;
+  
+  // Campos adicionales de compatibilidad
+  community_id?: string;
+  plan_suscripcion_id?: string;
+  plan_duracion_dias?: number;
 }
 
 export interface FiltrosOfertas {
@@ -81,15 +74,15 @@ export interface FiltrosOfertas {
 }
 
 // =====================================================
-// SERVICIOS DE OFERTAS MARKETPLACE
+// SERVICIOS DE OFERTAS MARKETPLACE - USANDO VISTA
 // =====================================================
 
 export class OfertasMarketplaceService {
   
-  // Obtener todas las ofertas con filtros
+  // Obtener todas las ofertas con filtros (usando vista)
   static async obtenerOfertas(filtros: FiltrosOfertas = {}): Promise<OfertaMarketplace[]> {
     let query = supabase
-      .from('ofertas_marketplace')
+      .from('ofertas_marketplace_vista')
       .select('*')
       .eq('activo', true);
 
@@ -161,10 +154,10 @@ export class OfertasMarketplaceService {
     return data || [];
   }
 
-  // Obtener ofertas afiliables
+  // Obtener ofertas afiliables (usando vista)
   static async obtenerOfertasAfiliables(): Promise<OfertaMarketplace[]> {
     const { data, error } = await supabase
-      .from('ofertas_marketplace')
+      .from('ofertas_marketplace_vista')
       .select('*')
       .eq('activo', true)
       .eq('afilible', true)
@@ -174,10 +167,10 @@ export class OfertasMarketplaceService {
     return data || [];
   }
 
-  // Obtener una oferta por ID
+  // Obtener una oferta por ID (usando vista)
   static async obtenerOfertaPorId(id: string): Promise<OfertaMarketplace | null> {
     const { data, error } = await supabase
-      .from('ofertas_marketplace')
+      .from('ofertas_marketplace_vista')
       .select('*')
       .eq('id', id)
       .eq('activo', true)
@@ -190,10 +183,10 @@ export class OfertasMarketplaceService {
     return data;
   }
 
-  // Buscar ofertas por texto
+  // Buscar ofertas por texto (usando vista)
   static async buscarOfertas(termino: string, limite: number = 20): Promise<OfertaMarketplace[]> {
     const { data, error } = await supabase
-      .from('ofertas_marketplace')
+      .from('ofertas_marketplace_vista')
       .select('*')
       .eq('activo', true)
       .or(`titulo.ilike.%${termino}%,descripcion.ilike.%${termino}%,proveedor.ilike.%${termino}%`)
@@ -202,6 +195,83 @@ export class OfertasMarketplaceService {
 
     if (error) throw error;
     return data || [];
+  }
+
+  // Obtener ofertas destacadas (usando vista)
+  static async obtenerOfertasDestacadas(limite: number = 10): Promise<OfertaMarketplace[]> {
+    const { data, error } = await supabase
+      .from('ofertas_marketplace_vista')
+      .select('*')
+      .eq('activo', true)
+      .eq('destacado', true)
+      .order('orden', { ascending: true })
+      .order('fecha_creacion', { ascending: false })
+      .limit(limite);
+
+    if (error) throw error;
+    return data || [];
+  }
+
+  // Obtener ofertas por categoría (usando vista)
+  static async obtenerOfertasPorCategoria(categoria: string, limite: number = 20): Promise<OfertaMarketplace[]> {
+    const { data, error } = await supabase
+      .from('ofertas_marketplace_vista')
+      .select('*')
+      .eq('activo', true)
+      .eq('categoria', categoria)
+      .order('ventas_totales', { ascending: false })
+      .limit(limite);
+
+    if (error) throw error;
+    return data || [];
+  }
+
+  // Obtener ofertas por tipo de producto (usando vista)
+  static async obtenerOfertasPorTipo(tipo: string, limite: number = 20): Promise<OfertaMarketplace[]> {
+    const { data, error } = await supabase
+      .from('ofertas_marketplace_vista')
+      .select('*')
+      .eq('activo', true)
+      .eq('tipo_producto', tipo)
+      .order('ventas_totales', { ascending: false })
+      .limit(limite);
+
+    if (error) throw error;
+    return data || [];
+  }
+
+  // Obtener estadísticas generales (usando vista)
+  static async obtenerEstadisticas(): Promise<{
+    total_ofertas: number;
+    ofertas_activas: number;
+    ofertas_afiliables: number;
+    ofertas_destacadas: number;
+    ofertas_por_tipo: Record<string, number>;
+    ofertas_por_categoria: Record<string, number>;
+  }> {
+    const { data, error } = await supabase
+      .from('ofertas_marketplace_vista')
+      .select('*');
+
+    if (error) throw error;
+
+    const ofertas = data || [];
+    const activas = ofertas.filter(o => o.activo);
+    
+    return {
+      total_ofertas: ofertas.length,
+      ofertas_activas: activas.length,
+      ofertas_afiliables: activas.filter(o => o.afilible).length,
+      ofertas_destacadas: activas.filter(o => o.destacado).length,
+      ofertas_por_tipo: activas.reduce((acc, o) => {
+        acc[o.tipo_producto] = (acc[o.tipo_producto] || 0) + 1;
+        return acc;
+      }, {} as Record<string, number>),
+      ofertas_por_categoria: activas.reduce((acc, o) => {
+        acc[o.categoria] = (acc[o.categoria] || 0) + 1;
+        return acc;
+      }, {} as Record<string, number>)
+    };
   }
 }
 
