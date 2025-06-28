@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
-import { Heart, DollarSign, TrendingUp, Target, MousePointer, Percent, RefreshCw, Download, GraduationCap, Briefcase } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Heart, DollarSign, TrendingUp, Target, MousePointer, Percent, RefreshCw, Download, GraduationCap, Briefcase, Award, Star, Trophy, Shield, Zap, Gift, HelpCircle } from 'lucide-react';
 import { supabase } from '../../supabase';
 import { toast } from 'react-hot-toast';
 
@@ -38,6 +39,11 @@ interface SolicitudAfiliacion {
   tabla_producto: string;
   estado: 'pendiente' | 'aprobada' | 'rechazada';
   fecha_solicitud: string;
+}
+
+interface Profile {
+  full_name: string | null;
+  avatar_url: string | null;
 }
 
 const MarketingAfiliadosPanel: React.FC = () => {
@@ -80,26 +86,41 @@ const MarketingAfiliadosPanel: React.FC = () => {
     { id: '5', name: 'Sofia Torres', avatar: '👩‍🎨', earnings: 1247.85, rank: 5 }
   ]);
 
+  const [profile, setProfile] = useState<Profile | null>(null);
+
   useEffect(() => {
+    const cargarDatos = async () => {
+      setLoading(true);
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+          setLoading(false);
+          return;
+        }
+
+        const { data: profileData, error: profileError } = await supabase
+          .from('profiles')
+          .select('full_name, avatar_url')
+          .eq('id', user.id)
+          .single();
+
+        if (profileError) {
+          console.error('Error fetching profile:', profileError);
+        }
+        setProfile(profileData);
+
+        // Cargar solicitudes del usuario
+        await cargarSolicitudes(user.id);
+        
+      } catch (error) {
+        console.error('Error cargando datos:', error);
+        toast.error('Error al cargar los datos del dashboard');
+      } finally {
+        setLoading(false);
+      }
+    };
     cargarDatos();
   }, []);
-
-  const cargarDatos = async () => {
-    setLoading(true);
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
-      // Cargar solicitudes del usuario
-      await cargarSolicitudes(user.id);
-      
-    } catch (error) {
-      console.error('Error cargando datos:', error);
-      toast.error('Error al cargar los datos del dashboard');
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const cargarSolicitudes = async (userId: string) => {
     try {
@@ -176,9 +197,67 @@ const MarketingAfiliadosPanel: React.FC = () => {
     );
   };
 
-  const renderDashboard = () => (
-    <div className="space-y-6">
-      <div className="bg-white rounded-xl p-6 border border-gray-200">
+  const RightSidebar = ({ profile }: { profile: Profile | null }) => {
+    const availableForWithdrawal = 472.41;
+    const achievements = [
+        { icon: Award, name: 'Vendedor Iniciante' },
+        { icon: Star, name: 'Primera Venta' },
+        { icon: Trophy, name: 'Top Afiliado' },
+        { icon: Target, name: 'Misión Cumplida' },
+        { icon: Shield, name: 'Vendedor Seguro' },
+        { icon: Zap, name: 'Venta Rápida' },
+        { icon: Gift, name: 'Bonus' },
+        { icon: HelpCircle, name: '?' },
+    ];
+  
+    return (
+        <div className="space-y-6">
+            <div className="bg-white rounded-xl p-6 border border-gray-200 text-center">
+                <img
+                    src={profile?.avatar_url || `https://api.dicebear.com/7.x/thumbs/svg?seed=${profile?.full_name || 'placeholder'}`}
+                    alt="Foto de perfil"
+                    className="w-24 h-24 rounded-full mx-auto mb-4 border-4 border-gray-100 shadow-sm"
+                />
+                <h2 className="text-xl font-bold text-gray-800">{profile?.full_name || 'Cargando...'}</h2>
+                <p className="text-sm text-gray-500">Afiliado desde 2023</p>
+            </div>
+
+            <div className="bg-white rounded-xl p-6 border border-gray-200">
+                <p className="text-gray-500 text-sm mb-2">Monto disponible para retiro</p>
+                <p className="text-3xl font-bold text-green-600 mb-4">${availableForWithdrawal.toFixed(2)}</p>
+                <Link to="/afiliados/retiros" className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg text-center inline-block transition-colors">
+                    Retirar Saldo
+                </Link>
+            </div>
+
+            <div className="bg-white rounded-xl p-6 border border-gray-200">
+                <h3 className="text-lg font-semibold text-gray-800 mb-4">Logros</h3>
+                <div className="grid grid-cols-4 gap-4">
+                    {achievements.map((ach, index) => (
+                        <div key={index} className="aspect-square bg-gray-100 hover:bg-gray-200 transition-colors rounded-lg flex items-center justify-center" title={ach.name}>
+                            <ach.icon className="w-6 h-6 text-gray-500" />
+                        </div>
+                    ))}
+                </div>
+            </div>
+        </div>
+    );
+  };
+
+  if (loading) {
+    return (
+      <div className="p-6 bg-gray-50 min-h-screen">
+        <div className="flex items-center justify-center py-12">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+          <span className="ml-3 text-gray-600">Cargando dashboard de afiliados...</span>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="p-4 sm:p-6 bg-gray-50 min-h-screen">
+       <div className="bg-white rounded-xl p-6 border border-gray-200 mb-6">
         <div className="flex items-center justify-between">
             <div>
                 <h1 className="text-3xl font-bold text-blue-700">
@@ -196,185 +275,71 @@ const MarketingAfiliadosPanel: React.FC = () => {
             </div>
         </div>
       </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-white rounded-xl p-6 border border-gray-200">
-          <p className="text-gray-500 text-sm font-medium flex items-center">
-            Total <InfoIcon />
-          </p>
-          <p className="text-gray-900 text-3xl font-bold mt-2">${dashboardMetrics.totalEarnings.toLocaleString()} US$</p>
-        </div>
-
-        <div className="bg-white rounded-xl p-6 border border-gray-200">
-          <p className="text-gray-500 text-sm font-medium flex items-center">
-            Reembolsada <InfoIcon />
-          </p>
-          <p className="text-gray-900 text-3xl font-bold mt-2">${dashboardMetrics.refunds.toFixed(2)} US$</p>
-        </div>
-
-        <div className="bg-white rounded-xl p-6 border border-gray-200">
-          <p className="text-gray-500 text-sm font-medium flex items-center">
-            % Reembolso <InfoIcon />
-          </p>
-          <p className="text-gray-900 text-3xl font-bold mt-2">{dashboardMetrics.refundPercentage}%</p>
-        </div>
-      </div>
       
-      {renderEarningsChart()}
-
-      <div className="bg-white rounded-xl border border-gray-200 p-6">
-        <h3 className="text-lg font-semibold text-gray-800 mb-6">
-          Desempeño
-        </h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
-          <div>
-            <p className="text-gray-500 text-sm mb-1 flex items-center justify-center">Ventas <InfoIcon /></p>
-            <p className="text-3xl font-bold text-gray-900">{dashboardMetrics.totalSales}</p>
-            <p className="text-green-500 text-sm font-medium mt-1">▲ 450%</p>
-          </div>
-          <div>
-            <p className="text-gray-500 text-sm mb-1 flex items-center justify-center">Clics <InfoIcon /></p>
-            <p className="text-3xl font-bold text-gray-900">{dashboardMetrics.totalClicks.toLocaleString()}</p>
-          </div>
-          <div>
-            <p className="text-gray-500 text-sm mb-1 flex items-center justify-center">Leads <InfoIcon /></p>
-            <p className="text-3xl font-bold text-gray-900">{dashboardMetrics.totalLeads}</p>
-          </div>
-        </div>
-      </div>
-
-      <div className="bg-white rounded-xl border border-gray-200 p-6">
-        <h3 className="text-lg font-semibold text-gray-800 mb-6">
-          Pagos en efectivo
-        </h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
-          <div>
-            <p className="text-gray-500 text-sm mb-1">Generados</p>
-            <p className="text-2xl font-bold text-gray-900">{dashboardMetrics.paymentsGenerated}</p>
-          </div>
-          <div>
-            <p className="text-gray-500 text-sm mb-1">Pagados</p>
-            <p className="text-2xl font-bold text-gray-900">{dashboardMetrics.paymentsReceived}</p>
-          </div>
-          <div>
-            <p className="text-gray-500 text-sm mb-1">% Conversión</p>
-            <p className="text-2xl font-bold text-gray-900">{dashboardMetrics.conversionRate}%</p>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-
-  if (loading) {
-    return (
-      <div className="p-6">
-        <div className="flex items-center justify-center py-12">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-400"></div>
-          <span className="ml-3 text-gray-300">Cargando dashboard de afiliados...</span>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="space-y-6">
-      {/* Header Principal Simplificado */}
-      <div className="bg-white/5 rounded-xl border border-gray-700/50">
-        <div className="p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-white">
-                🚀 Portal de Afiliados ScaleXone
-              </h1>
-              <p className="text-gray-300 text-lg mt-2">
-                Dashboard profesional para maximizar tus ganancias como afiliado
-              </p>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+        <div className="lg:col-span-2 space-y-6">
+          {renderEarningsChart()}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="bg-white rounded-xl p-6 border border-gray-200">
+                <p className="text-gray-500 text-sm font-medium flex items-center">
+                    Total <InfoIcon />
+                </p>
+                <p className="text-gray-900 text-3xl font-bold mt-2">${dashboardMetrics.totalEarnings.toLocaleString()} US$</p>
             </div>
-            <div className="bg-blue-500/20 text-blue-300 px-6 py-3 rounded-lg border border-blue-500/30">
-              <div className="text-center">
-                <div className="text-2xl font-bold">${dashboardMetrics.totalEarnings.toLocaleString()}</div>
-                <div className="text-xs opacity-80">Ganancias Totales</div>
-              </div>
+            <div className="bg-white rounded-xl p-6 border border-gray-200">
+                <p className="text-gray-500 text-sm font-medium flex items-center">
+                    Reembolsada <InfoIcon />
+                </p>
+                <p className="text-gray-900 text-3xl font-bold mt-2">${dashboardMetrics.refunds.toFixed(2)} US$</p>
+            </div>
+            <div className="bg-white rounded-xl p-6 border border-gray-200">
+                <p className="text-gray-500 text-sm font-medium flex items-center">
+                    % Reembolso <InfoIcon />
+                </p>
+                <p className="text-gray-900 text-3xl font-bold mt-2">{dashboardMetrics.refundPercentage}%</p>
+            </div>
+          </div>
+          <div className="bg-white rounded-xl border border-gray-200 p-6">
+            <h3 className="text-lg font-semibold text-gray-800 mb-6">Desempeño</h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
+                <div>
+                    <p className="text-gray-500 text-sm mb-1 flex items-center justify-center">Ventas <InfoIcon /></p>
+                    <p className="text-3xl font-bold text-gray-900">{dashboardMetrics.totalSales}</p>
+                    <p className="text-green-500 text-sm font-medium mt-1">▲ 450%</p>
+                </div>
+                <div>
+                    <p className="text-gray-500 text-sm mb-1 flex items-center justify-center">Clics <InfoIcon /></p>
+                    <p className="text-3xl font-bold text-gray-900">{dashboardMetrics.totalClicks.toLocaleString()}</p>
+                </div>
+                <div>
+                    <p className="text-gray-500 text-sm mb-1 flex items-center justify-center">Leads <InfoIcon /></p>
+                    <p className="text-3xl font-bold text-gray-900">{dashboardMetrics.totalLeads}</p>
+                </div>
+            </div>
+          </div>
+          <div className="bg-white rounded-xl border border-gray-200 p-6">
+            <h3 className="text-lg font-semibold text-gray-800 mb-6">Pagos en efectivo</h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
+                <div>
+                    <p className="text-gray-500 text-sm mb-1">Generados</p>
+                    <p className="text-2xl font-bold text-gray-900">{dashboardMetrics.paymentsGenerated}</p>
+                </div>
+                <div>
+                    <p className="text-gray-500 text-sm mb-1">Pagados</p>
+                    <p className="text-2xl font-bold text-gray-900">{dashboardMetrics.paymentsReceived}</p>
+                </div>
+                <div>
+                    <p className="text-gray-500 text-sm mb-1">% Conversión</p>
+                    <p className="text-2xl font-bold text-gray-900">{dashboardMetrics.conversionRate}%</p>
+                </div>
             </div>
           </div>
         </div>
+        
+        <div className="lg:col-span-1">
+          <RightSidebar profile={profile} />
+        </div>
       </div>
-
-      {/* Dashboard Principal */}
-      {renderDashboard()}
-
-      {/* Panel de solicitudes - Botón flotante */}
-      <div className="fixed bottom-6 right-6 z-50">
-        <button
-          onClick={() => setShowSolicitudes(!showSolicitudes)}
-          className="bg-blue-600 hover:bg-blue-700 text-white p-4 rounded-full shadow-lg transition-all duration-200 flex items-center gap-2"
-        >
-          <Heart className="w-5 h-5" />
-          <span className="text-sm font-medium">Solicitudes ({solicitudes.length})</span>
-        </button>
-      </div>
-
-      {/* Panel de solicitudes */}
-      {showSolicitudes && (
-        <motion.div
-          initial={{ opacity: 0, height: 0 }}
-          animate={{ opacity: 1, height: 'auto' }}
-          exit={{ opacity: 0, height: 0 }}
-          className="bg-white/5 rounded-xl border border-gray-700/50"
-        >
-          <div className="p-6">
-            <h2 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
-              <Heart className="w-5 h-5 text-blue-400" />
-              Mis Solicitudes de Afiliación
-            </h2>
-            {solicitudes.length === 0 ? (
-              <div className="text-center py-8">
-                <div className="text-gray-400 text-lg mb-2">¡Comienza tu journey como afiliado!</div>
-                <p className="text-gray-500">Solicita afiliación a los productos que te interesen y empieza a ganar comisiones</p>
-              </div>
-            ) : (
-              <div className="grid gap-3">
-                {solicitudes.map((solicitud) => (
-                  <div key={solicitud.id} className="bg-gray-800/30 rounded-lg p-4 flex items-center justify-between border border-gray-700/50">
-                    <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 bg-blue-500/20 rounded-lg flex items-center justify-center">
-                        {solicitud.tabla_producto === 'cursos' ? (
-                          <GraduationCap className="w-6 h-6 text-blue-400" />
-                        ) : (
-                          <Briefcase className="w-6 h-6 text-blue-400" />
-                        )}
-                      </div>
-                      <div>
-                        <h3 className="text-white font-medium">
-                          {solicitud.tabla_producto === 'cursos' ? 'Curso' : 'Servicio'} • ID: {solicitud.producto_id.slice(-8)}
-                        </h3>
-                        <p className="text-gray-400 text-sm">
-                          Solicitado el {new Date(solicitud.fecha_solicitud).toLocaleDateString('es-ES', {
-                            day: 'numeric',
-                            month: 'long',
-                            year: 'numeric'
-                          })}
-                        </p>
-                      </div>
-                    </div>
-                    <div className={`px-4 py-2 rounded-full text-sm font-medium ${
-                      solicitud.estado === 'pendiente' 
-                        ? 'bg-yellow-500/20 text-yellow-300 border border-yellow-500/30' 
-                        : solicitud.estado === 'aprobada'
-                        ? 'bg-green-500/20 text-green-300 border border-green-500/30'
-                        : 'bg-red-500/20 text-red-300 border border-red-500/30'
-                    }`}>
-                      {solicitud.estado === 'pendiente' && '⏳ En revisión'}
-                      {solicitud.estado === 'aprobada' && '✅ Aprobada'}
-                      {solicitud.estado === 'rechazada' && '❌ Rechazada'}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </motion.div>
-      )}
     </div>
   );
 };
