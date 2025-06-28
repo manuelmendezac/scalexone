@@ -38,7 +38,6 @@ const ServiciosMarketplacePanel: React.FC = () => {
   const [showSuscripcionModal, setShowSuscripcionModal] = useState(false);
   const [editingServicio, setEditingServicio] = useState<Servicio | null>(null);
   const [uploading, setUploading] = useState(false);
-  const [filtroTipo, setFiltroTipo] = useState<string>('todos');
 
   const [formData, setFormData] = useState({
     titulo: '',
@@ -407,8 +406,8 @@ const ServiciosMarketplacePanel: React.FC = () => {
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-2xl font-bold text-white mb-2">Servicios & Suscripciones</h2>
-          <p className="text-gray-400">Gestiona servicios y suscripciones del marketplace</p>
+          <h2 className="text-2xl font-bold text-white mb-2">Servicios Marketplace</h2>
+          <p className="text-gray-400">Gestiona servicios del marketplace. Las suscripciones se crean aquí pero se administran desde el Portal de Suscripciones.</p>
         </div>
         <div className="flex gap-3">
           <button
@@ -416,7 +415,7 @@ const ServiciosMarketplacePanel: React.FC = () => {
             className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
           >
             <Plus size={16} />
-            Nueva Suscripción
+            Suscripción Servicio
           </button>
           <button
             onClick={crearServicioEjemplo}
@@ -435,51 +434,26 @@ const ServiciosMarketplacePanel: React.FC = () => {
         </div>
       </div>
 
-      {/* Filtros */}
+      {/* Estadísticas simples */}
       <div className="flex gap-4 items-center">
-        <div className="flex gap-2">
-          <button
-            onClick={() => setFiltroTipo('todos')}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-              filtroTipo === 'todos'
-                ? 'bg-purple-600 text-white'
-                : 'bg-gray-800 text-gray-400 hover:text-white'
-            }`}
-          >
-            Todos ({servicios.length})
-          </button>
-          <button
-            onClick={() => setFiltroTipo('servicio')}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-              filtroTipo === 'servicio'
-                ? 'bg-purple-600 text-white'
-                : 'bg-gray-800 text-gray-400 hover:text-white'
-            }`}
-          >
-            Servicios ({servicios.filter(s => s.tipo_producto !== 'suscripcion').length})
-          </button>
-          <button
-            onClick={() => setFiltroTipo('suscripcion')}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-              filtroTipo === 'suscripcion'
-                ? 'bg-blue-600 text-white'
-                : 'bg-gray-800 text-gray-400 hover:text-white'
-            }`}
-          >
-            Suscripciones ({servicios.filter(s => s.tipo_producto === 'suscripcion').length})
-          </button>
+        <div className="bg-gray-800/50 rounded-lg px-4 py-2 border border-purple-500/20">
+          <span className="text-gray-400 text-sm">Total Servicios: </span>
+          <span className="text-white font-semibold">{servicios.filter(s => s.tipo_producto !== 'suscripcion').length}</span>
+        </div>
+        <div className="bg-gray-800/50 rounded-lg px-4 py-2 border border-blue-500/20">
+          <span className="text-gray-400 text-sm">Suscripciones Creadas: </span>
+          <span className="text-blue-400 font-semibold">{servicios.filter(s => s.tipo_producto === 'suscripcion').length}</span>
+          <span className="text-gray-500 text-xs ml-1">(Se gestionan en Portal)</span>
+        </div>
+        <div className="bg-gray-800/50 rounded-lg px-4 py-2 border border-green-500/20">
+          <span className="text-gray-400 text-sm">Activos: </span>
+          <span className="text-green-400 font-semibold">{servicios.filter(s => s.activo).length}</span>
         </div>
       </div>
 
       {/* Lista de servicios */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {servicios
-          .filter(servicio => {
-            if (filtroTipo === 'todos') return true;
-            if (filtroTipo === 'suscripcion') return servicio.tipo_producto === 'suscripcion';
-            return servicio.tipo_producto !== 'suscripcion';
-          })
-          .map((servicio) => (
+        {servicios.map((servicio) => (
           <motion.div
             key={servicio.id}
             initial={{ opacity: 0, y: 20 }}
@@ -949,7 +923,7 @@ const ServiciosMarketplacePanel: React.FC = () => {
             <div className="p-6">
               <div className="flex justify-between items-center mb-6">
                 <h3 className="text-xl font-bold text-white">
-                  🔷 Nueva Suscripción Premium
+                  🔷 Nueva Suscripción de Servicio
                 </h3>
                 <button
                   onClick={() => {
