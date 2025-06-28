@@ -285,23 +285,64 @@ const ServiciosMarketplacePanel: React.FC = () => {
     setLoading(true);
 
     try {
-      // Crear nueva suscripción
-      const { error } = await supabase
+      // 🔥 PASO 1: Crear el plan de suscripción PRIMERO
+      const planData = {
+        comunidad_id: '8fb70d6e-3237-465e-8669-979461cf2bc1', // ScaleXone UUID como text
+        nombre: `Plan: ${suscripcionData.titulo}`,
+        descripcion: suscripcionData.descripcion,
+        precio: suscripcionData.precio,
+        moneda: 'USD',
+        duracion_dias: suscripcionData.duracion_dias || 30,
+        caracteristicas: suscripcionData.caracteristicas.filter(c => c.trim() !== ''), // ✅ JS Array (Supabase lo convierte automáticamente)
+        activo: true,
+        orden: 0,
+        limites: {},
+        configuracion: {
+          tipo: 'servicio_suscripcion',
+          afiliacion: {
+            habilitada: suscripcionData.afilible,
+            niveles: suscripcionData.niveles_comision,
+            comision_nivel1: suscripcionData.comision_nivel1,
+            comision_nivel2: suscripcionData.comision_nivel2,
+            comision_nivel3: suscripcionData.comision_nivel3
+          }
+        }
+      };
+
+      console.log('📋 Datos del plan servicio a crear:', planData);
+
+      const { data: planCreated, error: planError } = await supabase
+        .from('planes_suscripcion')
+        .insert([planData])
+        .select()
+        .single();
+
+      if (planError) {
+        console.error('❌ Error específico creando plan servicio:', planError);
+        throw new Error(`Error creando plan: ${planError.message}`);
+      }
+
+      console.log('✅ Plan servicio creado exitosamente:', planCreated);
+
+      // 🔥 PASO 2: Crear el servicio marketplace con referencia al plan
+      const { error: servicioError } = await supabase
         .from('servicios_marketplace')
         .insert([{
           ...suscripcionData,
           id: crypto.randomUUID(),
+          plan_suscripcion_id: planCreated.id, // ✅ CONECTAR CON EL PLAN
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
         }]);
 
-      if (error) throw error;
+      if (servicioError) throw servicioError;
 
       await cargarServicios();
       resetSuscripcionForm();
       setShowSuscripcionModal(false);
+      alert('✅ Suscripción de servicio creada exitosamente\n\n🎯 Ahora aparecerá en:\n• Marketplace de Servicios\n• Portal de Suscripciones');
     } catch (error: any) {
-      console.error('Error guardando suscripción:', error);
+      console.error('Error guardando suscripción de servicio:', error);
       alert('Error al guardar la suscripción: ' + error.message);
     } finally {
       setLoading(false);
