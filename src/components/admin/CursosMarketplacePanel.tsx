@@ -315,13 +315,13 @@ const CursosMarketplacePanel: React.FC = () => {
     try {
       // 🔥 PASO 1: Crear el plan de suscripción PRIMERO
       const planData = {
-        comunidad_id: '8fb70d6e-3237-465e-8669-979461cf2bc1', // ScaleXone UUID
+        comunidad_id: '8fb70d6e-3237-465e-8669-979461cf2bc1', // ScaleXone UUID como text
         nombre: `Plan: ${suscripcionCursoData.titulo}`,
         descripcion: suscripcionCursoData.descripcion,
         precio: suscripcionCursoData.precio,
         moneda: 'USD',
         duracion_dias: suscripcionCursoData.duracion_dias || 30,
-        caracteristicas: suscripcionCursoData.caracteristicas.filter(c => c.trim() !== ''),
+        caracteristicas: suscripcionCursoData.caracteristicas.filter(c => c.trim() !== ''), // ✅ JS Array (Supabase lo convierte automáticamente)
         activo: true,
         orden: 0,
         limites: {},
@@ -337,13 +337,20 @@ const CursosMarketplacePanel: React.FC = () => {
         }
       };
 
+      console.log('📋 Datos del plan a crear:', planData);
+
       const { data: planCreated, error: planError } = await supabase
         .from('planes_suscripcion')
         .insert([planData])
         .select()
         .single();
 
-      if (planError) throw planError;
+      if (planError) {
+        console.error('❌ Error específico creando plan:', planError);
+        throw new Error(`Error creando plan: ${planError.message}`);
+      }
+
+      console.log('✅ Plan creado exitosamente:', planCreated);
 
       // 🔥 PASO 2: Crear el curso marketplace con referencia al plan
       const { error: cursoError } = await supabase
