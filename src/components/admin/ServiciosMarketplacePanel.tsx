@@ -24,6 +24,7 @@ interface Servicio {
   community_id?: string;
   // Campos para suscripciones
   tipo_producto?: 'servicio' | 'suscripcion';
+  tipo_pago?: 'pago_unico' | 'suscripcion';
   plan_suscripcion_id?: string;
   duracion_dias?: number;
   caracteristicas?: string[];
@@ -49,6 +50,7 @@ const ServiciosMarketplacePanel: React.FC = () => {
     rating: 4.8,
     reviews: 0,
     activo: true,
+    tipo_pago: 'pago_unico' as 'pago_unico' | 'suscripcion',
     // Campos de afiliación
     afilible: false,
     niveles_comision: 1,
@@ -164,6 +166,7 @@ const ServiciosMarketplacePanel: React.FC = () => {
       rating: servicio.rating,
       reviews: servicio.reviews,
       activo: servicio.activo,
+      tipo_pago: servicio.tipo_pago || 'pago_unico',
       // Campos de afiliación
       afilible: servicio.afilible || false,
       niveles_comision: servicio.niveles_comision || 1,
@@ -275,6 +278,7 @@ const ServiciosMarketplacePanel: React.FC = () => {
       rating: 4.8,
       reviews: 0,
       activo: true,
+      tipo_pago: 'pago_unico' as 'pago_unico' | 'suscripcion',
       // Campos de afiliación
       afilible: false,
       niveles_comision: 1,
@@ -296,6 +300,7 @@ const ServiciosMarketplacePanel: React.FC = () => {
       rating: 4.9,
       reviews: 127,
       activo: true,
+      tipo_pago: 'pago_unico',
       // Campos de afiliación
       afilible: true,
       niveles_comision: 3,
@@ -744,6 +749,61 @@ const ServiciosMarketplacePanel: React.FC = () => {
                       <option key={categoria} value={categoria}>{categoria}</option>
                     ))}
                   </select>
+                </div>
+
+                {/* 💰 Tipo de Pago */}
+                <div className="bg-blue-900/20 rounded-lg p-4 border border-blue-500/30">
+                  <div className="flex items-center gap-2 mb-3">
+                    <DollarSign className="text-blue-400" size={18} />
+                    <h4 className="text-base font-semibold text-blue-200">💰 Tipo de Pago</h4>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-2">
+                        Modelo de Facturación *
+                      </label>
+                      <select
+                        value={formData.tipo_pago}
+                        onChange={(e) => setFormData(prev => ({ ...prev, tipo_pago: e.target.value as 'pago_unico' | 'suscripcion' }))}
+                        className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-400"
+                      >
+                        <option value="pago_unico">💵 Pago Único - Una sola vez</option>
+                        <option value="suscripcion">🔄 Suscripción - Recurrente</option>
+                      </select>
+                    </div>
+
+                    <div className="flex items-center">
+                      <div className={`p-3 rounded-lg border ${
+                        formData.tipo_pago === 'pago_unico' 
+                          ? 'bg-green-900/30 border-green-500/40 text-green-300' 
+                          : 'bg-blue-900/30 border-blue-500/40 text-blue-300'
+                      }`}>
+                        <div className="text-xs font-medium">
+                          {formData.tipo_pago === 'pago_unico' ? '✅ Pago único' : '🔄 Suscripción'}
+                        </div>
+                        <div className="text-xs opacity-75 mt-1">
+                          {formData.tipo_pago === 'pago_unico' 
+                            ? 'El cliente paga una vez y tiene acceso permanente' 
+                            : 'El cliente paga mensual/anualmente de forma recurrente'
+                          }
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {formData.tipo_pago === 'suscripcion' && (
+                    <div className="mt-4 p-3 bg-yellow-900/20 border border-yellow-500/30 rounded-lg">
+                      <div className="flex items-center gap-2 text-yellow-300">
+                        <Info size={16} />
+                        <span className="text-sm font-medium">💡 Nota para Suscripciones</span>
+                      </div>
+                      <p className="text-xs text-yellow-200/80 mt-1">
+                        Para servicios de suscripción avanzados con características personalizadas, 
+                        usa el botón "Suscripción Servicio" que crea automáticamente el plan en el Portal de Suscripciones.
+                      </p>
+                    </div>
+                  )}
                 </div>
 
                 <div>

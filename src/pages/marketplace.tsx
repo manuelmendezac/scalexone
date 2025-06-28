@@ -30,6 +30,7 @@ interface Servicio {
   rating: number;
   reviews: number;
   tipo_producto?: 'servicio' | 'suscripcion';
+  tipo_pago?: 'pago_unico' | 'suscripcion';
   duracion_dias?: number;
 }
 
@@ -134,6 +135,7 @@ const Marketplace: React.FC = () => {
           rating: servicio.rating || 4.8,
           reviews: servicio.reviews || 0,
           tipo_producto: servicio.tipo_producto || 'servicio',
+          tipo_pago: servicio.tipo_pago || 'pago_unico',
           duracion_dias: servicio.duracion_dias
         }));
         setServicios(serviciosFormateados);
@@ -380,8 +382,18 @@ const Marketplace: React.FC = () => {
               <Users size={12} />
               <span>{servicio.reviews} reviews</span>
             </div>
-            <div className={`${colorScheme.category} px-2 py-1 rounded-full text-xs`}>
-              {esSuscripcion ? 'Suscripción' : 'Servicio'}
+            
+            {/* ✅ BADGES MEJORADOS SEGÚN TIPO_PAGO */}
+            <div className="flex gap-2">
+              <div className={`${colorScheme.category} px-2 py-1 rounded-full text-xs font-medium`}>
+                {servicio.tipo_pago === 'suscripcion' ? '🔄 Suscripción' : '💵 Pago Único'}
+              </div>
+              
+              {servicio.tipo_pago === 'pago_unico' && (
+                <div className="bg-green-500/20 text-green-400 px-2 py-1 rounded-full text-xs font-medium">
+                  ✅ Acceso Permanente
+                </div>
+              )}
             </div>
           </div>
           
@@ -394,14 +406,20 @@ const Marketplace: React.FC = () => {
           <div className="flex items-center justify-between">
             <div className={`text-2xl font-bold bg-gradient-to-r ${esSuscripcion ? 'from-cyan-400 to-blue-500' : 'from-purple-400 to-pink-500'} bg-clip-text text-transparent`}>
               ${servicio.precio}
-              {esSuscripcion && servicio.duracion_dias && (
+              {/* ✅ MOSTRAR SUFIJO SEGÚN TIPO_PAGO */}
+              {servicio.tipo_pago === 'suscripcion' && servicio.duracion_dias && (
                 <span className="text-sm text-gray-400 font-normal">
                   {formatDuracion(servicio.duracion_dias)}
                 </span>
               )}
+              {servicio.tipo_pago === 'pago_unico' && (
+                <span className="text-sm text-gray-400 font-normal"> único</span>
+              )}
             </div>
+            
+            {/* ✅ BOTÓN SEGÚN TIPO_PAGO */}
             <button className={`${colorScheme.button} text-white font-bold px-6 py-2 rounded-lg text-sm shadow-lg transform transition-all duration-200 hover:scale-105`}>
-              {esSuscripcion ? 'Suscribirse' : 'Contratar'}
+              {servicio.tipo_pago === 'suscripcion' ? 'Suscribirse' : 'Contratar'}
             </button>
           </div>
         </div>
