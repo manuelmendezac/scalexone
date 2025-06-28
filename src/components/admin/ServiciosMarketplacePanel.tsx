@@ -236,6 +236,34 @@ const ServiciosMarketplacePanel: React.FC = () => {
     }
   };
 
+  const handleSuscripcionImageUpload = async (file: File) => {
+    if (!file) return;
+
+    setUploading(true);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${crypto.randomUUID()}.${fileExt}`;
+      const filePath = `servicios/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('servicios-marketplace')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data } = supabase.storage
+        .from('servicios-marketplace')
+        .getPublicUrl(filePath);
+
+      setSuscripcionData(prev => ({ ...prev, imagen_url: data.publicUrl }));
+    } catch (error: any) {
+      console.error('Error subiendo imagen de suscripción:', error);
+      alert('Error al subir la imagen');
+    } finally {
+      setUploading(false);
+    }
+  };
+
   const resetForm = () => {
     setFormData({
       titulo: '',
@@ -1019,22 +1047,40 @@ const ServiciosMarketplacePanel: React.FC = () => {
                   <label className="block text-sm font-medium text-gray-300 mb-2">
                     Imagen de la Suscripción
                   </label>
-                  <input
-                    type="url"
-                    placeholder="URL de la imagen"
-                    value={suscripcionData.imagen_url}
-                    onChange={(e) => setSuscripcionData(prev => ({ ...prev, imagen_url: e.target.value }))}
-                    className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-400"
-                  />
-                  {suscripcionData.imagen_url && (
-                    <div className="mt-2">
-                      <img
-                        src={suscripcionData.imagen_url}
-                        alt="Preview"
-                        className="w-full h-32 object-cover rounded-lg"
+                  <div className="space-y-2">
+                    <input
+                      type="url"
+                      placeholder="URL de la imagen"
+                      value={suscripcionData.imagen_url}
+                      onChange={(e) => setSuscripcionData(prev => ({ ...prev, imagen_url: e.target.value }))}
+                      className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-400"
+                    />
+                    <div className="text-center">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => e.target.files?.[0] && handleSuscripcionImageUpload(e.target.files[0])}
+                        className="hidden"
+                        id="suscripcion-image-upload"
                       />
+                      <label
+                        htmlFor="suscripcion-image-upload"
+                        className="inline-flex items-center gap-2 bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg cursor-pointer transition-colors"
+                      >
+                        <Upload size={16} />
+                        {uploading ? 'Subiendo...' : 'Subir Imagen'}
+                      </label>
                     </div>
-                  )}
+                    {suscripcionData.imagen_url && (
+                      <div className="mt-2">
+                        <img
+                          src={suscripcionData.imagen_url}
+                          alt="Preview"
+                          className="w-full h-32 object-cover rounded-lg"
+                        />
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 {/* Características */}
