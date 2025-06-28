@@ -4,7 +4,6 @@ import App from './App';
 import Error404 from './components/Error404';
 import GlobalLoadingSpinner from './components/GlobalLoadingSpinner';
 import AfiliadosLayout from './components/afiliados/AfiliadosLayout';
-import AfiliadosDashboard from './components/afiliados/AfiliadosDashboard';
 import InformeIBMarcaBlanca from './components/afiliados/InformeIBMarcaBlanca';
 import InformeIBScalexOne from './components/afiliados/InformeIBScalexOne';
 import MultinivelIBPage from './pages/afiliados/multinivel';
@@ -122,7 +121,7 @@ export const router = createBrowserRouter([
     path: '/afiliados',
     element: <AfiliadosLayout />,
     children: [
-      { index: true, element: <AfiliadosDashboard /> },
+      { index: true, element: <SuspenseWrapper><AfiliadosPage /></SuspenseWrapper> },
       { path: 'ib-marca-blanca', element: <InformeIBMarcaBlanca /> },
       { path: 'ib-scalexone', element: <InformeIBScalexOne /> },
       { path: 'multinivel', element: <MultinivelIBPage /> },
