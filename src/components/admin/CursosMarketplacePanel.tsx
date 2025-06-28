@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Plus, Edit, Trash2, Upload, Eye, EyeOff, Save, X, GraduationCap } from 'lucide-react';
+import { Plus, Edit, Trash2, Upload, Eye, EyeOff, Save, X, GraduationCap, Info } from 'lucide-react';
 import { supabase } from '../../supabase';
 
 interface Curso {
@@ -681,9 +681,9 @@ const CursosMarketplacePanel: React.FC = () => {
                 {/* Configuración solo si está habilitada */}
                 {formData.afilible && (
                   <div className="space-y-4">
-                    {/* Selector de niveles */}
+                    {/* Selector de Estructura de Comisiones */}
                     <div>
-                      <label className="block text-gray-300 mb-2">Sistema de Comisiones</label>
+                      <label className="block text-gray-300 mb-2">Estructura de Comisiones</label>
                       <select
                         value={formData.niveles_comision || 1}
                         onChange={(e) => setFormData({ 
@@ -695,18 +695,15 @@ const CursosMarketplacePanel: React.FC = () => {
                         })}
                         className="w-full bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-yellow-400"
                       >
-                        <option value={1}>Un solo nivel (Afiliado directo)</option>
-                        <option value={3}>Tres niveles (Red de afiliados)</option>
+                        <option value={1}>1 Nivel (Directo)</option>
+                        <option value={3}>3 Niveles (Multinivel)</option>
                       </select>
                     </div>
 
-                    {/* Porcentajes de comisión */}
+                    {/* Comisiones por Nivel */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      {/* Nivel 1 */}
                       <div>
-                        <label className="block text-gray-300 mb-2">
-                          Nivel 1 (%) <span className="text-yellow-400">*</span>
-                        </label>
+                        <label className="block text-gray-300 mb-2">Comisión Nivel 1 (%)</label>
                         <input
                           type="number"
                           step="0.01"
@@ -715,9 +712,7 @@ const CursosMarketplacePanel: React.FC = () => {
                           value={formData.comision_nivel1 || 0}
                           onChange={(e) => setFormData({ ...formData, comision_nivel1: parseFloat(e.target.value) || 0 })}
                           className="w-full bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-yellow-400"
-                          placeholder="Ej: 25"
                         />
-                        <p className="text-xs text-gray-400 mt-1">Afiliado directo</p>
                       </div>
 
                       {/* Nivel 2 */}
@@ -755,18 +750,24 @@ const CursosMarketplacePanel: React.FC = () => {
                       </div>
                     </div>
 
-                    {/* Información adicional */}
-                    <div className="bg-yellow-900/10 border border-yellow-500/20 rounded-lg p-3">
-                      <p className="text-yellow-300 text-sm">
-                        <strong>💡 Información:</strong> Los partners podrán solicitar afiliación a este curso. 
-                        Una vez aprobados, podrán generar enlaces únicos y ganar comisiones por cada venta.
-                      </p>
-                      {formData.niveles_comision === 3 && (
-                        <p className="text-yellow-300 text-sm mt-2">
-                          <strong>🌐 Red multinivel:</strong> Los afiliados también ganarán comisiones por las ventas 
-                          de sus referidos, creando una red de afiliados.
-                        </p>
-                      )}
+                    {/* Información de Cálculo */}
+                    <div className="bg-yellow-900/20 border border-yellow-500/30 rounded-lg p-3">
+                      <div className="flex items-start gap-2">
+                        <Info className="text-yellow-400 mt-0.5" size={16} />
+                        <div className="text-sm text-yellow-200">
+                          <p className="font-medium mb-1">💡 Comisiones Recurrentes:</p>
+                          <p>• <strong>Nivel 1:</strong> {formData.comision_nivel1 || 0}% de ${formData.precio || 0} = ${(((formData.precio || 0) * (formData.comision_nivel1 || 0)) / 100).toFixed(2)} cada mes</p>
+                          {(formData.niveles_comision || 0) >= 2 && (
+                            <p>• <strong>Nivel 2:</strong> {formData.comision_nivel2 || 0}% de ${formData.precio || 0} = ${(((formData.precio || 0) * (formData.comision_nivel2 || 0)) / 100).toFixed(2)} cada mes</p>
+                          )}
+                          {(formData.niveles_comision || 0) >= 3 && (
+                            <p>• <strong>Nivel 3:</strong> {formData.comision_nivel3 || 0}% de ${formData.precio || 0} = ${(((formData.precio || 0) * (formData.comision_nivel3 || 0)) / 100).toFixed(2)} cada mes</p>
+                          )}
+                          <p className="mt-2 text-xs text-yellow-300">
+                            ⚡ Los afiliados reciben comisiones recurrentes mientras la suscripción esté activa
+                          </p>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 )}
@@ -1110,44 +1111,86 @@ const CursosMarketplacePanel: React.FC = () => {
                   </div>
 
                   {suscripcionCursoData.afilible && (
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <>
+                      {/* Selector de Estructura de Comisiones */}
                       <div>
-                        <label className="block text-gray-300 mb-2">Nivel 1 (%)</label>
-                        <input
-                          type="number"
-                          step="0.01"
-                          min="0"
-                          max="100"
-                          value={suscripcionCursoData.comision_nivel1}
-                          onChange={(e) => setSuscripcionCursoData(prev => ({ ...prev, comision_nivel1: parseFloat(e.target.value) || 0 }))}
+                        <label className="block text-gray-300 mb-2">Estructura de Comisiones</label>
+                        <select
+                          value={suscripcionCursoData.niveles_comision}
+                          onChange={(e) => setSuscripcionCursoData(prev => ({ ...prev, niveles_comision: parseInt(e.target.value) }))}
                           className="w-full bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-yellow-400"
-                        />
+                        >
+                          <option value={1}>1 Nivel (Directo)</option>
+                          <option value={3}>3 Niveles (Multinivel)</option>
+                        </select>
                       </div>
-                      <div>
-                        <label className="block text-gray-300 mb-2">Nivel 2 (%)</label>
-                        <input
-                          type="number"
-                          step="0.01"
-                          min="0"
-                          max="100"
-                          value={suscripcionCursoData.comision_nivel2}
-                          onChange={(e) => setSuscripcionCursoData(prev => ({ ...prev, comision_nivel2: parseFloat(e.target.value) || 0 }))}
-                          className="w-full bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-yellow-400"
-                        />
+
+                      {/* Comisiones por Nivel */}
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                          <label className="block text-gray-300 mb-2">Comisión Nivel 1 (%)</label>
+                          <input
+                            type="number"
+                            step="0.01"
+                            min="0"
+                            max="100"
+                            value={suscripcionCursoData.comision_nivel1}
+                            onChange={(e) => setSuscripcionCursoData(prev => ({ ...prev, comision_nivel1: parseFloat(e.target.value) || 0 }))}
+                            className="w-full bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-yellow-400"
+                          />
+                        </div>
+
+                        {suscripcionCursoData.niveles_comision >= 2 && (
+                          <div>
+                            <label className="block text-gray-300 mb-2">Comisión Nivel 2 (%)</label>
+                            <input
+                              type="number"
+                              step="0.01"
+                              min="0"
+                              max="100"
+                              value={suscripcionCursoData.comision_nivel2}
+                              onChange={(e) => setSuscripcionCursoData(prev => ({ ...prev, comision_nivel2: parseFloat(e.target.value) || 0 }))}
+                              className="w-full bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-yellow-400"
+                            />
+                          </div>
+                        )}
+
+                        {suscripcionCursoData.niveles_comision >= 3 && (
+                          <div>
+                            <label className="block text-gray-300 mb-2">Comisión Nivel 3 (%)</label>
+                            <input
+                              type="number"
+                              step="0.01"
+                              min="0"
+                              max="100"
+                              value={suscripcionCursoData.comision_nivel3}
+                              onChange={(e) => setSuscripcionCursoData(prev => ({ ...prev, comision_nivel3: parseFloat(e.target.value) || 0 }))}
+                              className="w-full bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-yellow-400"
+                            />
+                          </div>
+                        )}
                       </div>
-                      <div>
-                        <label className="block text-gray-300 mb-2">Nivel 3 (%)</label>
-                        <input
-                          type="number"
-                          step="0.01"
-                          min="0"
-                          max="100"
-                          value={suscripcionCursoData.comision_nivel3}
-                          onChange={(e) => setSuscripcionCursoData(prev => ({ ...prev, comision_nivel3: parseFloat(e.target.value) || 0 }))}
-                          className="w-full bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-yellow-400"
-                        />
+
+                      {/* Información de Cálculo */}
+                      <div className="bg-yellow-900/20 border border-yellow-500/30 rounded-lg p-3">
+                        <div className="flex items-start gap-2">
+                          <Info className="text-yellow-400 mt-0.5" size={16} />
+                          <div className="text-sm text-yellow-200">
+                            <p className="font-medium mb-1">💡 Comisiones Recurrentes:</p>
+                            <p>• <strong>Nivel 1:</strong> {suscripcionCursoData.comision_nivel1}% de ${suscripcionCursoData.precio} = ${((suscripcionCursoData.precio * suscripcionCursoData.comision_nivel1) / 100).toFixed(2)} cada mes</p>
+                            {suscripcionCursoData.niveles_comision >= 2 && (
+                              <p>• <strong>Nivel 2:</strong> {suscripcionCursoData.comision_nivel2}% de ${suscripcionCursoData.precio} = ${((suscripcionCursoData.precio * suscripcionCursoData.comision_nivel2) / 100).toFixed(2)} cada mes</p>
+                            )}
+                            {suscripcionCursoData.niveles_comision >= 3 && (
+                              <p>• <strong>Nivel 3:</strong> {suscripcionCursoData.comision_nivel3}% de ${suscripcionCursoData.precio} = ${((suscripcionCursoData.precio * suscripcionCursoData.comision_nivel3) / 100).toFixed(2)} cada mes</p>
+                            )}
+                            <p className="mt-2 text-xs text-yellow-300">
+                              ⚡ Los afiliados reciben comisiones recurrentes mientras la suscripción esté activa
+                            </p>
+                          </div>
+                        </div>
                       </div>
-                    </div>
+                    </>
                   )}
                 </div>
               </div>
