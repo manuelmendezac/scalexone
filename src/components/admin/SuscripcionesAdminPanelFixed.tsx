@@ -65,7 +65,10 @@ const SuscripcionesAdminPanel: React.FC = () => {
     plan_id: '',
     precio_personalizado: '',
     fecha_inicio: new Date().toISOString().split('T')[0],
-    renovacion_automatica: true
+    renovacion_automatica: true,
+    imagen_url: '',
+    descripcion: '',
+    titulo_personalizado: ''
   });
 
   const inicializarComunidad = async () => {
@@ -461,7 +464,11 @@ const SuscripcionesAdminPanel: React.FC = () => {
           parseFloat(nuevaSuscripcion.precio_personalizado) : undefined,
         fecha_inicio: nuevaSuscripcion.fecha_inicio,
         renovacion_automatica: nuevaSuscripcion.renovacion_automatica,
-        estado: 'activa' as const
+        estado: 'activa' as const,
+        // Campos de personalización
+        titulo_personalizado: nuevaSuscripcion.titulo_personalizado || null,
+        descripcion: nuevaSuscripcion.descripcion || null,
+        imagen_url: nuevaSuscripcion.imagen_url || null
       };
 
       await SuscripcionesAPI.Suscripciones.crearSuscripcion(suscripcionData);
@@ -473,7 +480,10 @@ const SuscripcionesAdminPanel: React.FC = () => {
         plan_id: '',
         precio_personalizado: '',
         fecha_inicio: new Date().toISOString().split('T')[0],
-        renovacion_automatica: true
+        renovacion_automatica: true,
+        imagen_url: '',
+        descripcion: '',
+        titulo_personalizado: ''
       });
       
       await cargarDatos();
@@ -1393,10 +1403,12 @@ const SuscripcionesAdminPanel: React.FC = () => {
 
       {/* Modal Crear Suscripción */}
       {showCreateSuscripcion && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-gray-800 rounded-lg p-6 w-full max-w-md">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 overflow-y-auto">
+          <div className="bg-gray-800 rounded-lg p-6 w-full max-w-2xl my-8">
             <h3 className="text-xl font-bold text-white mb-4">Nueva Suscripción</h3>
             <form onSubmit={handleCreateSuscripcion} className="space-y-4">
+              
+              {/* Información del Usuario */}
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">Email del Usuario</label>
                 <input
@@ -1408,6 +1420,7 @@ const SuscripcionesAdminPanel: React.FC = () => {
                 />
               </div>
               
+              {/* Plan Base */}
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">Plan</label>
                 <select
@@ -1424,19 +1437,100 @@ const SuscripcionesAdminPanel: React.FC = () => {
                   ))}
                 </select>
               </div>
-              
+
+              {/* Personalización de la Suscripción */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Título Personalizado (opcional)</label>
+                  <input
+                    type="text"
+                    value={nuevaSuscripcion.titulo_personalizado}
+                    onChange={(e) => setNuevaSuscripcion({...nuevaSuscripcion, titulo_personalizado: e.target.value})}
+                    className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:border-yellow-500 focus:outline-none"
+                    placeholder="Ej: Suscripción Premium Personalizada"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Precio Personalizado (opcional)</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={nuevaSuscripcion.precio_personalizado}
+                    onChange={(e) => setNuevaSuscripcion({...nuevaSuscripcion, precio_personalizado: e.target.value})}
+                    className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:border-yellow-500 focus:outline-none"
+                    placeholder="Dejar vacío para usar precio del plan"
+                  />
+                </div>
+              </div>
+
+              {/* Descripción */}
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">Precio Personalizado (opcional)</label>
-                <input
-                  type="number"
-                  step="0.01"
-                  value={nuevaSuscripcion.precio_personalizado}
-                  onChange={(e) => setNuevaSuscripcion({...nuevaSuscripcion, precio_personalizado: e.target.value})}
+                <label className="block text-sm font-medium text-gray-300 mb-2">Descripción Personalizada (opcional)</label>
+                <textarea
+                  value={nuevaSuscripcion.descripcion}
+                  onChange={(e) => setNuevaSuscripcion({...nuevaSuscripcion, descripcion: e.target.value})}
                   className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:border-yellow-500 focus:outline-none"
-                  placeholder="Dejar vacío para usar precio del plan"
+                  rows={3}
+                  placeholder="Describe los beneficios específicos de esta suscripción..."
                 />
               </div>
+
+              {/* Imagen de la Suscripción */}
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">Imagen de la Suscripción</label>
+                <div className="space-y-3">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        const imageUrl = await uploadImage(file);
+                        if (imageUrl) {
+                          setNuevaSuscripcion({ ...nuevaSuscripcion, imagen_url: imageUrl });
+                        }
+                      }
+                    }}
+                    className="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-yellow-500"
+                    disabled={uploadingImage}
+                  />
+                  
+                  {uploadingImage && (
+                    <div className="flex items-center gap-2 text-blue-400">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-400"></div>
+                      <span className="text-sm">Subiendo imagen...</span>
+                    </div>
+                  )}
+
+                  {nuevaSuscripcion.imagen_url && (
+                    <div className="relative">
+                      <img
+                        src={nuevaSuscripcion.imagen_url}
+                        alt="Preview"
+                        className="w-full h-32 object-cover rounded-lg"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setNuevaSuscripcion({ ...nuevaSuscripcion, imagen_url: '' })}
+                        className="absolute top-2 right-2 bg-red-600 hover:bg-red-700 text-white p-1 rounded-full transition-colors"
+                      >
+                        <X size={16} />
+                      </button>
+                    </div>
+                  )}
+
+                  <input
+                    type="url"
+                    placeholder="O pega una URL de imagen"
+                    value={nuevaSuscripcion.imagen_url || ''}
+                    onChange={(e) => setNuevaSuscripcion({ ...nuevaSuscripcion, imagen_url: e.target.value })}
+                    className="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-yellow-500"
+                  />
+                </div>
+              </div>
               
+              {/* Configuración de Fechas */}
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">Fecha de Inicio</label>
                 <input
@@ -1448,6 +1542,7 @@ const SuscripcionesAdminPanel: React.FC = () => {
                 />
               </div>
               
+              {/* Opciones */}
               <div className="flex items-center gap-2">
                 <input
                   type="checkbox"
@@ -1458,20 +1553,43 @@ const SuscripcionesAdminPanel: React.FC = () => {
                 <label className="text-sm text-gray-300">Renovación automática</label>
               </div>
               
-              <div className="flex gap-3 pt-4">
+              {/* Botones */}
+              <div className="flex gap-3 pt-4 border-t border-gray-700">
                 <button
                   type="button"
-                  onClick={() => setShowCreateSuscripcion(false)}
+                  onClick={() => {
+                    setShowCreateSuscripcion(false);
+                    setNuevaSuscripcion({
+                      usuario_email: '',
+                      plan_id: '',
+                      precio_personalizado: '',
+                      fecha_inicio: new Date().toISOString().split('T')[0],
+                      renovacion_automatica: true,
+                      imagen_url: '',
+                      descripcion: '',
+                      titulo_personalizado: ''
+                    });
+                  }}
                   className="flex-1 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
-                  disabled={actionLoading === 'crear-suscripcion'}
-                  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
+                  disabled={actionLoading === 'crear-suscripcion' || uploadingImage}
+                  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
                 >
-                  {actionLoading === 'crear-suscripcion' ? 'Creando...' : 'Crear Suscripción'}
+                  {actionLoading === 'crear-suscripcion' ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                      Creando...
+                    </>
+                  ) : (
+                    <>
+                      <Save size={16} />
+                      Crear Suscripción
+                    </>
+                  )}
                 </button>
               </div>
             </form>
