@@ -24,6 +24,13 @@ interface Curso {
   comision_nivel1?: number;
   comision_nivel2?: number;
   comision_nivel3?: number;
+  // Campos para suscripciones de cursos
+  tipo_producto?: 'curso' | 'suscripcion';
+  plan_suscripcion_id?: string;
+  duracion_dias?: number;
+  caracteristicas?: string[];
+  created_at?: string;
+  updated_at?: string;
 }
 
 const CursosMarketplacePanel: React.FC = () => {
@@ -31,9 +38,11 @@ const CursosMarketplacePanel: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [editingCurso, setEditingCurso] = useState<Curso | null>(null);
   const [showForm, setShowForm] = useState(false);
+  const [showSuscripcionModal, setShowSuscripcionModal] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [filtroTipo, setFiltroTipo] = useState<string>('todos');
 
   const [formData, setFormData] = useState<Partial<Curso>>({
     titulo: '',
@@ -54,6 +63,28 @@ const CursosMarketplacePanel: React.FC = () => {
     comision_nivel1: 0,
     comision_nivel2: 0,
     comision_nivel3: 0
+  });
+
+  // Estado para el formulario de suscripciones de curso
+  const [suscripcionCursoData, setSuscripcionCursoData] = useState({
+    titulo: '',
+    descripcion: '',
+    precio: 0,
+    imagen_url: '',
+    instructor: 'ScaleXone Academy',
+    categoria: 'Curso Suscripción',
+    rating: 4.8,
+    estudiantes: 0,
+    activo: true,
+    tipo_producto: 'suscripcion' as const,
+    duracion_dias: 30,
+    caracteristicas: [''],
+    // Campos de afiliación
+    afilible: true,
+    niveles_comision: 3,
+    comision_nivel1: 30,
+    comision_nivel2: 20,
+    comision_nivel3: 10
   });
 
   useEffect(() => {
@@ -275,6 +306,85 @@ const CursosMarketplacePanel: React.FC = () => {
     }
   };
 
+  // Funciones para manejar suscripciones de curso
+  const handleSuscripcionCursoSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSaving(true);
+    setError(null);
+
+    try {
+      // Crear nueva suscripción de curso
+      const { error } = await supabase
+        .from('cursos_marketplace')
+        .insert([{
+          ...suscripcionCursoData,
+          id: crypto.randomUUID(),
+          community_id: 'default',
+          orden: 0,
+          duracion_horas: 0, // No aplica para suscripciones
+          nivel: 'Principiante', // Valor por defecto
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        }]);
+
+      if (error) throw error;
+
+      await cargarCursos();
+      resetSuscripcionCursoForm();
+      setShowSuscripcionModal(false);
+      alert('Suscripción de curso creada exitosamente');
+    } catch (error: any) {
+      console.error('Error guardando suscripción de curso:', error);
+      setError(`Error al guardar la suscripción: ${error.message}`);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const resetSuscripcionCursoForm = () => {
+    setSuscripcionCursoData({
+      titulo: '',
+      descripcion: '',
+      precio: 0,
+      imagen_url: '',
+      instructor: 'ScaleXone Academy',
+      categoria: 'Curso Suscripción',
+      rating: 4.8,
+      estudiantes: 0,
+      activo: true,
+      tipo_producto: 'suscripcion' as const,
+      duracion_dias: 30,
+      caracteristicas: [''],
+      // Campos de afiliación
+      afilible: true,
+      niveles_comision: 3,
+      comision_nivel1: 30,
+      comision_nivel2: 20,
+      comision_nivel3: 10
+    });
+  };
+
+  const handleAddCaracteristicaCurso = () => {
+    setSuscripcionCursoData(prev => ({
+      ...prev,
+      caracteristicas: [...prev.caracteristicas, '']
+    }));
+  };
+
+  const handleRemoveCaracteristicaCurso = (index: number) => {
+    setSuscripcionCursoData(prev => ({
+      ...prev,
+      caracteristicas: prev.caracteristicas.filter((_, i) => i !== index)
+    }));
+  };
+
+  const handleCaracteristicaCursoChange = (index: number, value: string) => {
+    setSuscripcionCursoData(prev => ({
+      ...prev,
+      caracteristicas: prev.caracteristicas.map((item, i) => i === index ? value : item)
+    }));
+  };
+
   if (loading) {
     return (
       <div className="p-6">
@@ -295,6 +405,13 @@ const CursosMarketplacePanel: React.FC = () => {
           <p className="text-gray-400">Administra los cursos disponibles en el marketplace independiente</p>
         </div>
         <div className="flex gap-3">
+          <button
+            onClick={() => setShowSuscripcionModal(true)}
+            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-semibold transition-colors"
+          >
+            <Plus size={20} />
+            Suscripción Curso
+          </button>
           <button
             onClick={crearCursoEjemplo}
             className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg font-semibold transition-colors"
@@ -757,6 +874,276 @@ const CursosMarketplacePanel: React.FC = () => {
             </button>
           </div>
         </div>
+      )}
+
+      {/* Modal Crear Suscripción de Curso */}
+      {showSuscripcionModal && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+        >
+          <motion.div
+            initial={{ scale: 0.9, y: 20 }}
+            animate={{ scale: 1, y: 0 }}
+            className="bg-gray-900 rounded-xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto"
+          >
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-xl font-bold text-white">Nueva Suscripción de Curso</h3>
+              <button
+                onClick={() => {
+                  setShowSuscripcionModal(false);
+                  resetSuscripcionCursoForm();
+                }}
+                className="text-gray-400 hover:text-white transition-colors"
+              >
+                <X size={24} />
+              </button>
+            </div>
+
+            <form onSubmit={handleSuscripcionCursoSubmit} className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-gray-300 mb-2">Título *</label>
+                  <input
+                    type="text"
+                    value={suscripcionCursoData.titulo}
+                    onChange={(e) => setSuscripcionCursoData(prev => ({ ...prev, titulo: e.target.value }))}
+                    className="w-full bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-blue-400"
+                    required
+                    placeholder="Ej: Membresía Premium de Cursos"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-gray-300 mb-2">Instructor</label>
+                  <input
+                    type="text"
+                    value={suscripcionCursoData.instructor}
+                    onChange={(e) => setSuscripcionCursoData(prev => ({ ...prev, instructor: e.target.value }))}
+                    className="w-full bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-blue-400"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-gray-300 mb-2">Precio ($)</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={suscripcionCursoData.precio}
+                    onChange={(e) => setSuscripcionCursoData(prev => ({ ...prev, precio: parseFloat(e.target.value) || 0 }))}
+                    className="w-full bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-blue-400"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-gray-300 mb-2">Duración</label>
+                  <select
+                    value={suscripcionCursoData.duracion_dias}
+                    onChange={(e) => setSuscripcionCursoData(prev => ({ ...prev, duracion_dias: parseInt(e.target.value) }))}
+                    className="w-full bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-blue-400"
+                  >
+                    <option value={7}>Semanal (7 días)</option>
+                    <option value={30}>Mensual (30 días)</option>
+                    <option value={90}>Trimestral (90 días)</option>
+                    <option value={365}>Anual (365 días)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-gray-300 mb-2">Descripción</label>
+                <textarea
+                  value={suscripcionCursoData.descripcion}
+                  onChange={(e) => setSuscripcionCursoData(prev => ({ ...prev, descripcion: e.target.value }))}
+                  rows={3}
+                  className="w-full bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-blue-400"
+                  placeholder="Describe los beneficios de esta suscripción de cursos..."
+                />
+              </div>
+
+              {/* Imagen */}
+              <div>
+                <label className="block text-gray-300 mb-2">Imagen de la Suscripción</label>
+                <div className="space-y-3">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        const imageUrl = await uploadImage(file);
+                        if (imageUrl) {
+                          setSuscripcionCursoData(prev => ({ ...prev, imagen_url: imageUrl }));
+                        }
+                      }
+                    }}
+                    className="w-full bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-blue-400"
+                    disabled={uploadingImage}
+                  />
+                  
+                  {uploadingImage && (
+                    <div className="flex items-center gap-2 text-blue-400">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-400"></div>
+                      <span className="text-sm">Subiendo imagen...</span>
+                    </div>
+                  )}
+
+                  {suscripcionCursoData.imagen_url && (
+                    <div className="relative">
+                      <img
+                        src={suscripcionCursoData.imagen_url}
+                        alt="Preview"
+                        className="w-full h-32 object-cover rounded-lg"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setSuscripcionCursoData(prev => ({ ...prev, imagen_url: '' }))}
+                        className="absolute top-2 right-2 bg-red-600 hover:bg-red-700 text-white p-1 rounded-full transition-colors"
+                      >
+                        <X size={16} />
+                      </button>
+                    </div>
+                  )}
+
+                  <input
+                    type="url"
+                    placeholder="O pega una URL de imagen"
+                    value={suscripcionCursoData.imagen_url || ''}
+                    onChange={(e) => setSuscripcionCursoData(prev => ({ ...prev, imagen_url: e.target.value }))}
+                    className="w-full bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-blue-400"
+                  />
+                </div>
+              </div>
+
+              {/* Características */}
+              <div>
+                <label className="block text-gray-300 mb-2">Características de la Suscripción</label>
+                <div className="space-y-2">
+                  {suscripcionCursoData.caracteristicas.map((caracteristica, index) => (
+                    <div key={index} className="flex items-center gap-2">
+                      <input
+                        type="text"
+                        value={caracteristica}
+                        onChange={(e) => handleCaracteristicaCursoChange(index, e.target.value)}
+                        className="flex-1 bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-blue-400"
+                        placeholder="Ej: Acceso a todos los cursos premium"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveCaracteristicaCurso(index)}
+                        className="bg-red-600 hover:bg-red-700 text-white p-2 rounded transition-colors"
+                        disabled={suscripcionCursoData.caracteristicas.length === 1}
+                      >
+                        <X size={16} />
+                      </button>
+                    </div>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={handleAddCaracteristicaCurso}
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors"
+                  >
+                    <Plus size={16} className="inline mr-2" />
+                    Agregar Característica
+                  </button>
+                </div>
+              </div>
+
+              {/* Configuración de Afiliación */}
+              <div className="bg-yellow-900/20 border border-yellow-500/30 rounded-lg p-4">
+                <h4 className="text-yellow-400 font-bold text-lg mb-4 flex items-center gap-2">
+                  💰 Configuración de Afiliación
+                </h4>
+                
+                <div className="space-y-4">
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="checkbox"
+                      checked={suscripcionCursoData.afilible}
+                      onChange={(e) => setSuscripcionCursoData(prev => ({ ...prev, afilible: e.target.checked }))}
+                      className="w-4 h-4 text-yellow-600 bg-gray-800 border-gray-600 rounded focus:ring-yellow-500"
+                    />
+                    <label className="text-gray-300 font-medium">
+                      Disponible para afiliación
+                    </label>
+                  </div>
+
+                  {suscripcionCursoData.afilible && (
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div>
+                        <label className="block text-gray-300 mb-2">Nivel 1 (%)</label>
+                        <input
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          max="100"
+                          value={suscripcionCursoData.comision_nivel1}
+                          onChange={(e) => setSuscripcionCursoData(prev => ({ ...prev, comision_nivel1: parseFloat(e.target.value) || 0 }))}
+                          className="w-full bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-yellow-400"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-gray-300 mb-2">Nivel 2 (%)</label>
+                        <input
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          max="100"
+                          value={suscripcionCursoData.comision_nivel2}
+                          onChange={(e) => setSuscripcionCursoData(prev => ({ ...prev, comision_nivel2: parseFloat(e.target.value) || 0 }))}
+                          className="w-full bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-yellow-400"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-gray-300 mb-2">Nivel 3 (%)</label>
+                        <input
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          max="100"
+                          value={suscripcionCursoData.comision_nivel3}
+                          onChange={(e) => setSuscripcionCursoData(prev => ({ ...prev, comision_nivel3: parseFloat(e.target.value) || 0 }))}
+                          className="w-full bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-yellow-400"
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex gap-3 pt-4">
+                <button
+                  type="submit"
+                  disabled={saving || uploadingImage}
+                  className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 text-white px-6 py-2 rounded-lg font-semibold transition-colors"
+                >
+                  {saving ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                      Creando...
+                    </>
+                  ) : (
+                    <>
+                      <Save size={20} />
+                      Crear Suscripción
+                    </>
+                  )}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowSuscripcionModal(false);
+                    resetSuscripcionCursoForm();
+                  }}
+                  className="bg-gray-600 hover:bg-gray-700 text-white px-6 py-2 rounded-lg font-semibold transition-colors"
+                >
+                  Cancelar
+                </button>
+              </div>
+            </form>
+          </motion.div>
+        </motion.div>
       )}
     </div>
   );
