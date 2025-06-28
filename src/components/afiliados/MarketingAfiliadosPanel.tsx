@@ -3,36 +3,19 @@ import { motion } from 'framer-motion';
 import { Search, Filter, Star, Users, Clock, GraduationCap, Briefcase, ChevronDown, Send, Heart, DollarSign, TrendingUp } from 'lucide-react';
 import { supabase } from '../../supabase';
 import { toast } from 'react-hot-toast';
-
-interface Producto {
-  id: string;
-  titulo: string;
-  descripcion: string;
-  precio: number;
-  imagen_url?: string;
-  proveedor: string;
-  categoria: string;
-  rating: number;
-  reviews: number;
-  activo: boolean;
-  tipo_producto: string;
-  duracion_dias?: number;
-  comision_nivel1: number;
-  comision_nivel2: number;
-  comision_nivel3: number;
-  afilible: boolean;
-}
+import { OfertasMarketplaceService } from '../../services/ofertasMarketplaceService';
+import type { OfertaMarketplace } from '../../services/ofertasMarketplaceService';
 
 interface SolicitudAfiliacion {
   id: string;
   producto_id: string;
   estado: 'pendiente' | 'aprobada' | 'rechazada';
   fecha_solicitud: string;
-  producto?: Producto;
+  producto?: OfertaMarketplace;
 }
 
 const MarketingAfiliadosPanel: React.FC = () => {
-  const [productos, setProductos] = useState<Producto[]>([]);
+  const [ofertas, setOfertas] = useState<OfertaMarketplace[]>([]);
   const [solicitudes, setSolicitudes] = useState<SolicitudAfiliacion[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -40,7 +23,7 @@ const MarketingAfiliadosPanel: React.FC = () => {
   const [sortBy, setSortBy] = useState('popularidad');
   const [showSolicitudes, setShowSolicitudes] = useState(false);
 
-  const categorias = ['Todos', 'Cursos', 'Servicios', 'Software & SaaS', 'Productos Físicos', 'Propiedades'];
+  const categorias = ['Todos', 'Cursos de Trading', 'Marketing Digital', 'Automatización', 'Consultoría Business', 'Herramientas Premium', 'Coaching Personal'];
 
   useEffect(() => {
     cargarDatos();
@@ -52,8 +35,8 @@ const MarketingAfiliadosPanel: React.FC = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      // Cargar todos los productos afiliables del marketplace
-      await cargarProductos();
+      // Cargar ofertas afiliables del nuevo sistema
+      await cargarOfertas();
       
       // Cargar solicitudes del usuario
       await cargarSolicitudes(user.id);
@@ -66,61 +49,14 @@ const MarketingAfiliadosPanel: React.FC = () => {
     }
   };
 
-  const cargarProductos = async () => {
+  const cargarOfertas = async () => {
     try {
-      // Cargar cursos
-      const { data: cursosData } = await supabase
-        .from('cursos_marketplace')
-        .select('*')
-        .eq('activo', true);
-
-      // Cargar servicios
-      const { data: serviciosData } = await supabase
-        .from('servicios_marketplace')
-        .select('*')
-        .eq('activo', true)
-        .eq('afilible', true);
-
-      const cursosFormateados: Producto[] = (cursosData || []).map(curso => ({
-        id: curso.id,
-        titulo: curso.titulo,
-        descripcion: curso.descripcion,
-        precio: curso.precio || 0,
-        imagen_url: curso.imagen_url,
-        proveedor: curso.instructor || 'ScaleXone',
-        categoria: 'Cursos',
-        rating: curso.rating || 4.8,
-        reviews: curso.estudiantes || 0,
-        activo: curso.activo,
-        tipo_producto: 'curso',
-        comision_nivel1: 25,
-        comision_nivel2: 15,
-        comision_nivel3: 10,
-        afilible: true
-      }));
-
-      const serviciosFormateados: Producto[] = (serviciosData || []).map(servicio => ({
-        id: servicio.id,
-        titulo: servicio.titulo,
-        descripcion: servicio.descripcion,
-        precio: servicio.precio || 0,
-        imagen_url: servicio.imagen_url,
-        proveedor: servicio.proveedor || 'ScaleXone',
-        categoria: servicio.tipo_producto === 'suscripcion' ? 'Software & SaaS' : 'Servicios',
-        rating: servicio.rating || 4.8,
-        reviews: servicio.reviews || 0,
-        activo: servicio.activo,
-        tipo_producto: servicio.tipo_producto || 'servicio',
-        duracion_dias: servicio.duracion_dias,
-        comision_nivel1: servicio.comision_nivel1 || 20,
-        comision_nivel2: servicio.comision_nivel2 || 15,
-        comision_nivel3: servicio.comision_nivel3 || 10,
-        afilible: servicio.afilible || false
-      }));
-
-      setProductos([...cursosFormateados, ...serviciosFormateados]);
+      // Usar el nuevo servicio de ofertas
+      const ofertasData = await OfertasMarketplaceService.obtenerOfertasAfiliables();
+      setOfertas(ofertasData);
     } catch (error) {
-      console.error('Error cargando productos:', error);
+      console.error('Error cargando ofertas:', error);
+      toast.error('Error al cargar las ofertas del marketplace');
     }
   };
 
@@ -141,7 +77,7 @@ const MarketingAfiliadosPanel: React.FC = () => {
     }
   };
 
-  const enviarSolicitudAfiliacion = async (producto: Producto) => {
+  const enviarSolicitudAfiliacion = async (oferta: OfertaMarketplace) => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
@@ -154,11 +90,11 @@ const MarketingAfiliadosPanel: React.FC = () => {
         .from('solicitudes_afiliacion')
         .select('id')
         .eq('usuario_id', user.id)
-        .eq('producto_id', producto.id)
+        .eq('producto_id', oferta.id)
         .single();
 
       if (existente) {
-        toast.error('Ya tienes una solicitud pendiente para este producto');
+        toast.error('Ya tienes una solicitud pendiente para esta oferta');
         return;
       }
 
@@ -167,8 +103,8 @@ const MarketingAfiliadosPanel: React.FC = () => {
         .from('solicitudes_afiliacion')
         .insert([{
           usuario_id: user.id,
-          producto_id: producto.id,
-          tipo_producto: producto.tipo_producto,
+          producto_id: oferta.id,
+          tipo_producto: oferta.tipo_producto,
           estado: 'pendiente',
           fecha_solicitud: new Date().toISOString()
         }]);
@@ -183,8 +119,8 @@ const MarketingAfiliadosPanel: React.FC = () => {
     }
   };
 
-  const productosFiltrados = React.useMemo(() => {
-    let items = productos;
+  const ofertasFiltradas = React.useMemo(() => {
+    let items = ofertas;
     
     // Filtrar por categoría
     if (selectedCategory !== 'Todos') {
@@ -195,7 +131,7 @@ const MarketingAfiliadosPanel: React.FC = () => {
     if (searchTerm) {
       items = items.filter(item =>
         item.titulo.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.descripcion.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.descripcion?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         item.proveedor.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
@@ -210,363 +146,342 @@ const MarketingAfiliadosPanel: React.FC = () => {
         case 'rating':
           return b.rating - a.rating;
         case 'comision':
-          return b.comision_nivel1 - a.comision_nivel1;
+          return a.comision_nivel1 - b.comision_nivel1;
         case 'popularidad':
         default:
-          return b.reviews - a.reviews;
+          return b.ventas_totales - a.ventas_totales;
       }
     });
 
     return items;
-  }, [productos, searchTerm, selectedCategory, sortBy]);
+  }, [ofertas, searchTerm, selectedCategory, sortBy]);
 
-  const renderProductCard = (producto: Producto) => {
-    const solicitudExistente = solicitudes.find(s => s.producto_id === producto.id);
-    const esSuscripcion = producto.tipo_producto === 'suscripcion';
+  const renderOfertaCard = (oferta: OfertaMarketplace) => {
+    const solicitudExistente = solicitudes.find(s => s.producto_id === oferta.id);
     
-    const colorScheme = esSuscripcion 
-      ? { 
-          border: 'border-cyan-500/20 hover:border-cyan-400/40',
-          badge: 'bg-gradient-to-r from-cyan-500 to-blue-500',
-          text: 'text-cyan-400',
-          button: 'bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500',
-          bg: 'from-cyan-900/30 to-blue-900/30'
-        }
-      : producto.categoria === 'Cursos'
-      ? {
-          border: 'border-amber-500/20 hover:border-amber-400/40',
-          badge: 'bg-gradient-to-r from-amber-500 to-yellow-500',
-          text: 'text-amber-400',
-          button: 'bg-gradient-to-r from-amber-500 to-yellow-600 hover:from-amber-400 hover:to-yellow-500',
-          bg: 'from-amber-900/30 to-yellow-900/30'
-        }
-      : {
-          border: 'border-purple-500/20 hover:border-purple-400/40',
-          badge: 'bg-gradient-to-r from-purple-500 to-pink-500',
-          text: 'text-purple-400',
-          button: 'bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-400 hover:to-pink-500',
-          bg: 'from-purple-900/30 to-pink-900/30'
-        };
+    const getColorByType = (tipo: string) => {
+      switch (tipo) {
+        case 'curso': return 'from-amber-500/20 to-yellow-600/20 border-amber-500/30';
+        case 'servicio': return 'from-purple-500/20 to-indigo-600/20 border-purple-500/30';
+        case 'herramienta': return 'from-cyan-500/20 to-blue-600/20 border-cyan-500/30';
+        case 'producto_fisico': return 'from-green-500/20 to-emerald-600/20 border-green-500/30';
+        default: return 'from-gray-500/20 to-slate-600/20 border-gray-500/30';
+      }
+    };
+
+    const getIconByType = (tipo: string) => {
+      switch (tipo) {
+        case 'curso': return <GraduationCap className="w-5 h-5" />;
+        case 'servicio': return <Briefcase className="w-5 h-5" />;
+        case 'herramienta': return <TrendingUp className="w-5 h-5" />;
+        case 'producto_fisico': return <DollarSign className="w-5 h-5" />;
+        default: return <Star className="w-5 h-5" />;
+      }
+    };
 
     return (
       <motion.div
-        key={producto.id}
+        key={oferta.id}
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        whileHover={{ y: -5, scale: 1.02 }}
-        transition={{ duration: 0.3 }}
-        className={`bg-white rounded-xl ${colorScheme.border} transition-all group cursor-pointer overflow-hidden shadow-lg hover:shadow-xl`}
+        className={`bg-gradient-to-br ${getColorByType(oferta.tipo_producto)} backdrop-blur-sm rounded-xl p-6 border hover:shadow-xl transition-all duration-300`}
       >
+        {/* Header */}
+        <div className="flex items-start justify-between mb-4">
+          <div className="flex items-center space-x-3">
+            <div className="p-2 bg-white/10 rounded-lg text-amber-400">
+              {getIconByType(oferta.tipo_producto)}
+            </div>
+            <div>
+              <h3 className="text-white font-semibold text-lg line-clamp-1">{oferta.titulo}</h3>
+              <p className="text-gray-300 text-sm">{oferta.proveedor}</p>
+            </div>
+          </div>
+          <div className="text-right">
+            <div className="text-2xl font-bold text-white">${oferta.precio}</div>
+            {oferta.precio_original && (
+              <div className="text-sm text-gray-400 line-through">${oferta.precio_original}</div>
+            )}
+          </div>
+        </div>
+
         {/* Imagen */}
-        <div className="relative">
-          <div className="w-full h-48 bg-gray-200 relative overflow-hidden">
-            {producto.imagen_url ? (
-              <img 
-                src={producto.imagen_url} 
-                alt={producto.titulo} 
-                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-              />
-            ) : (
-              <div className={`w-full h-full flex items-center justify-center bg-gradient-to-br ${colorScheme.bg}`}>
-                {producto.categoria === 'Cursos' ? (
-                  <GraduationCap size={48} className={colorScheme.text} />
-                ) : (
-                  <Briefcase size={48} className={colorScheme.text} />
-                )}
-              </div>
-            )}
-            
-            {/* Badge de comisión */}
-            <div className="absolute top-3 left-3">
-              <span className={`${colorScheme.badge} text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg`}>
-                {producto.comision_nivel1}% Comisión
-              </span>
+        <div className="mb-4 rounded-lg overflow-hidden bg-black/20 h-32 flex items-center justify-center">
+          {oferta.imagen_url ? (
+            <img 
+              src={oferta.imagen_url} 
+              alt={oferta.titulo}
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <div className="text-gray-400">
+              {getIconByType(oferta.tipo_producto)}
             </div>
-            
-            {/* Rating */}
-            <div className="absolute top-3 right-3">
-              <div className="bg-black/70 backdrop-blur-sm rounded-full px-2 py-1 flex items-center gap-1">
-                <Star className={`w-3 h-3 ${colorScheme.text} fill-current`} />
-                <span className="text-white text-xs font-semibold">{producto.rating}</span>
-              </div>
-            </div>
+          )}
+        </div>
 
-            {/* Estado de solicitud */}
-            {solicitudExistente && (
-              <div className="absolute bottom-3 left-3">
-                <span className={`px-3 py-1 rounded-full text-xs font-bold text-white shadow-lg ${
-                  solicitudExistente.estado === 'aprobada' ? 'bg-green-500' :
-                  solicitudExistente.estado === 'rechazada' ? 'bg-red-500' : 'bg-yellow-500'
-                }`}>
-                  {solicitudExistente.estado === 'aprobada' ? '✓ Aprobado' :
-                   solicitudExistente.estado === 'rechazada' ? '✗ Rechazado' : '⏳ Pendiente'}
-                </span>
-              </div>
-            )}
+        {/* Descripción */}
+        <p className="text-gray-300 text-sm mb-4 line-clamp-2">{oferta.descripcion}</p>
+
+        {/* Métricas */}
+        <div className="flex items-center justify-between mb-4 text-sm">
+          <div className="flex items-center space-x-2">
+            <Star className="w-4 h-4 text-yellow-400 fill-current" />
+            <span className="text-white">{oferta.rating}</span>
+            <span className="text-gray-400">({oferta.reviews} reviews)</span>
+          </div>
+          <div className="flex items-center space-x-2">
+            <Users className="w-4 h-4 text-blue-400" />
+            <span className="text-gray-300">{oferta.ventas_totales} ventas</span>
           </div>
         </div>
 
-        {/* Información */}
-        <div className="p-6">
-          <h3 className="text-gray-900 font-bold text-lg mb-2 line-clamp-2">
-            {producto.titulo}
-          </h3>
-          
-          <p className="text-gray-600 text-sm mb-4 line-clamp-2">
-            {producto.descripcion}
-          </p>
-          
-          {/* Metadata */}
-          <div className="flex items-center gap-4 mb-4 text-xs text-gray-500">
-            <div className="flex items-center gap-1">
-              <Users size={12} />
-              <span>{producto.reviews} reviews</span>
+        {/* Comisiones */}
+        <div className="bg-black/30 rounded-lg p-3 mb-4">
+          <div className="text-white text-sm font-medium mb-2">Comisiones por Nivel:</div>
+          <div className="grid grid-cols-3 gap-2 text-xs">
+            <div className="text-center">
+              <div className="text-green-400 font-bold">{oferta.comision_nivel1}%</div>
+              <div className="text-gray-400">Nivel 1</div>
             </div>
-            <div className={`bg-gray-100 ${colorScheme.text} px-2 py-1 rounded-full text-xs font-semibold`}>
-              {producto.categoria}
+            <div className="text-center">
+              <div className="text-blue-400 font-bold">{oferta.comision_nivel2}%</div>
+              <div className="text-gray-400">Nivel 2</div>
             </div>
-          </div>
-          
-          {/* Proveedor */}
-          <div className="text-sm text-gray-500 mb-4">
-            Por: <span className={`${colorScheme.text} font-semibold`}>{producto.proveedor}</span>
-          </div>
-
-          {/* Comisiones */}
-          <div className="bg-gray-50 rounded-lg p-3 mb-4">
-            <div className="flex justify-between items-center text-sm">
-              <span className="text-gray-600">Comisiones:</span>
-              <div className="flex gap-2">
-                <span className="text-green-600 font-semibold">N1: {producto.comision_nivel1}%</span>
-                <span className="text-blue-600 font-semibold">N2: {producto.comision_nivel2}%</span>
-                <span className="text-purple-600 font-semibold">N3: {producto.comision_nivel3}%</span>
-              </div>
+            <div className="text-center">
+              <div className="text-purple-400 font-bold">{oferta.comision_nivel3}%</div>
+              <div className="text-gray-400">Nivel 3</div>
             </div>
-          </div>
-          
-          {/* Precio y Botón */}
-          <div className="flex items-center justify-between">
-            <div className={`text-2xl font-bold bg-gradient-to-r ${esSuscripcion ? 'from-cyan-600 to-blue-600' : producto.categoria === 'Cursos' ? 'from-amber-600 to-yellow-600' : 'from-purple-600 to-pink-600'} bg-clip-text text-transparent`}>
-              ${producto.precio}
-              {esSuscripcion && producto.duracion_dias && (
-                <span className="text-sm text-gray-500 font-normal">
-                  /{producto.duracion_dias === 30 ? 'mes' : producto.duracion_dias === 365 ? 'año' : `${producto.duracion_dias}d`}
-                </span>
-              )}
-            </div>
-            <button 
-              onClick={() => enviarSolicitudAfiliacion(producto)}
-              disabled={!!solicitudExistente}
-              className={`${colorScheme.button} text-white font-bold px-6 py-2 rounded-lg text-sm shadow-lg transform transition-all duration-200 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2`}
-            >
-              {solicitudExistente ? (
-                <>
-                  <Heart size={16} />
-                  {solicitudExistente.estado === 'aprobada' ? 'Afiliado' : 
-                   solicitudExistente.estado === 'rechazada' ? 'Rechazado' : 'Pendiente'}
-                </>
-              ) : (
-                <>
-                  <Send size={16} />
-                  Solicitar
-                </>
-              )}
-            </button>
           </div>
         </div>
+
+        {/* Detalles específicos por tipo */}
+        {oferta.tipo_producto === 'curso' && oferta.duracion_horas && (
+          <div className="flex items-center space-x-2 text-sm text-gray-300 mb-3">
+            <Clock className="w-4 h-4" />
+            <span>{oferta.duracion_horas} horas • {oferta.nivel}</span>
+          </div>
+        )}
+
+        {oferta.tipo_producto === 'servicio' && oferta.duracion_dias && (
+          <div className="flex items-center space-x-2 text-sm text-gray-300 mb-3">
+            <Clock className="w-4 h-4" />
+            <span>{oferta.duracion_dias} días de servicio</span>
+          </div>
+        )}
+
+        {/* Categoría y tipo */}
+        <div className="flex items-center justify-between mb-4">
+          <span className="px-3 py-1 bg-white/10 rounded-full text-xs text-gray-300">
+            {oferta.categoria}
+          </span>
+          <span className="px-3 py-1 bg-amber-500/20 rounded-full text-xs text-amber-300 capitalize">
+            {oferta.tipo_producto.replace('_', ' ')}
+          </span>
+        </div>
+
+        {/* Botón de acción */}
+        {solicitudExistente ? (
+          <div className={`w-full p-3 rounded-lg text-center text-sm font-medium ${
+            solicitudExistente.estado === 'pendiente' 
+              ? 'bg-yellow-500/20 text-yellow-300 border border-yellow-500/30' 
+              : solicitudExistente.estado === 'aprobada'
+              ? 'bg-green-500/20 text-green-300 border border-green-500/30'
+              : 'bg-red-500/20 text-red-300 border border-red-500/30'
+          }`}>
+            {solicitudExistente.estado === 'pendiente' && 'Solicitud Pendiente'}
+            {solicitudExistente.estado === 'aprobada' && 'Afiliación Aprobada'}
+            {solicitudExistente.estado === 'rechazada' && 'Solicitud Rechazada'}
+          </div>
+        ) : (
+          <button
+            onClick={() => enviarSolicitudAfiliacion(oferta)}
+            className="w-full bg-gradient-to-r from-amber-500 to-yellow-600 hover:from-amber-600 hover:to-yellow-700 text-black font-medium py-3 rounded-lg transition-all duration-200 flex items-center justify-center space-x-2"
+          >
+            <Send className="w-4 h-4" />
+            <span>Solicitar Afiliación</span>
+          </button>
+        )}
       </motion.div>
     );
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Cargando marketplace...</p>
+      <div className="p-6">
+        <div className="flex items-center justify-center py-12">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-amber-400"></div>
+          <span className="ml-3 text-gray-300">Cargando ofertas del marketplace...</span>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="space-y-6">
       {/* Header */}
-      <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white">
-        <div className="max-w-7xl mx-auto px-6 py-12">
-          <div className="text-center mb-8">
-            <h1 className="text-4xl md:text-5xl font-bold mb-4">
-              🚀 Marketing de Afiliados
+      <div className="bg-gradient-to-r from-amber-900/20 to-yellow-900/20 rounded-xl p-6 border border-amber-500/20">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-white mb-2">
+              🛒 Marketplace de Afiliados ScaleXone
             </h1>
-            <p className="text-xl text-blue-100 max-w-3xl mx-auto leading-relaxed">
-              Descubre productos increíbles para promocionar y generar comisiones. ¡Únete a nuestro programa de afiliados estilo Hotmart!
+            <p className="text-gray-300">
+              Descubre y solicita afiliación a los mejores productos y servicios del marketplace
             </p>
           </div>
-
-          {/* Stats rápidas */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-            <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 text-center">
-              <div className="text-2xl font-bold">{productos.length}</div>
-              <div className="text-blue-200 text-sm">Productos Disponibles</div>
-            </div>
-            <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 text-center">
-              <div className="text-2xl font-bold">{solicitudes.filter(s => s.estado === 'aprobada').length}</div>
-              <div className="text-blue-200 text-sm">Afiliaciones Activas</div>
-            </div>
-            <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 text-center">
-              <div className="text-2xl font-bold">{solicitudes.filter(s => s.estado === 'pendiente').length}</div>
-              <div className="text-blue-200 text-sm">Solicitudes Pendientes</div>
-            </div>
-            <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 text-center">
-              <div className="text-2xl font-bold">25%</div>
-              <div className="text-blue-200 text-sm">Comisión Promedio</div>
-            </div>
-          </div>
-
-          {/* Barra de búsqueda y filtros */}
-          <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
-            <div className="relative flex-1 max-w-md">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-              <input
-                type="text"
-                placeholder="Buscar productos para afiliar..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 bg-white/90 backdrop-blur-sm border border-white/20 rounded-xl text-gray-800 focus:outline-none focus:border-blue-400 transition-colors"
-              />
-            </div>
-
-            <div className="flex gap-3">
-              {/* Filtro de categoría */}
-              <div className="relative">
-                <select
-                  value={selectedCategory}
-                  onChange={(e) => setSelectedCategory(e.target.value)}
-                  className="appearance-none bg-white/90 backdrop-blur-sm border border-white/20 rounded-xl px-4 py-3 text-gray-800 focus:outline-none focus:border-blue-400 cursor-pointer"
-                >
-                  {categorias.map(categoria => (
-                    <option key={categoria} value={categoria}>{categoria}</option>
-                  ))}
-                </select>
-                <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-600 pointer-events-none" size={16} />
-              </div>
-
-              {/* Ordenamiento */}
-              <div className="relative">
-                <select
-                  value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value)}
-                  className="appearance-none bg-white/90 backdrop-blur-sm border border-white/20 rounded-xl px-4 py-3 text-gray-800 focus:outline-none focus:border-blue-400 cursor-pointer"
-                >
-                  <option value="popularidad">Más Popular</option>
-                  <option value="precio-asc">Precio: Menor a Mayor</option>
-                  <option value="precio-desc">Precio: Mayor a Menor</option>
-                  <option value="rating">Mejor Valorado</option>
-                  <option value="comision">Mayor Comisión</option>
-                </select>
-                <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-600 pointer-events-none" size={16} />
-              </div>
-
-              {/* Toggle solicitudes */}
-              <button
-                onClick={() => setShowSolicitudes(!showSolicitudes)}
-                className={`px-4 py-3 rounded-xl font-semibold transition-all ${
-                  showSolicitudes 
-                    ? 'bg-white text-blue-600' 
-                    : 'bg-white/20 text-white hover:bg-white/30'
-                }`}
-              >
-                Mis Solicitudes ({solicitudes.length})
-              </button>
-            </div>
-          </div>
+          <button
+            onClick={() => setShowSolicitudes(!showSolicitudes)}
+            className="bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 px-4 py-2 rounded-lg transition-colors duration-200 flex items-center space-x-2"
+          >
+            <Heart className="w-4 h-4" />
+            <span>Mis Solicitudes ({solicitudes.length})</span>
+          </button>
         </div>
       </div>
 
-      {/* Contenido principal */}
-      <div className="max-w-7xl mx-auto px-6 py-8">
-        {showSolicitudes ? (
-          /* Panel de solicitudes */
-          <div className="space-y-6">
-            <h2 className="text-2xl font-bold text-gray-900">Mis Solicitudes de Afiliación</h2>
-            
+      {/* Mis Solicitudes Panel */}
+      {showSolicitudes && (
+        <motion.div
+          initial={{ opacity: 0, height: 0 }}
+          animate={{ opacity: 1, height: 'auto' }}
+          exit={{ opacity: 0, height: 0 }}
+          className="bg-gray-900/50 rounded-xl border border-gray-700"
+        >
+          <div className="p-6">
+            <h2 className="text-xl font-semibold text-white mb-4">Mis Solicitudes de Afiliación</h2>
             {solicitudes.length === 0 ? (
-              <div className="text-center py-12">
-                <Send size={64} className="text-gray-400 mx-auto mb-4" />
-                <h3 className="text-xl font-semibold text-gray-600 mb-2">Sin solicitudes aún</h3>
-                <p className="text-gray-500">¡Comienza enviando solicitudes para productos que te interesen!</p>
-              </div>
+              <p className="text-gray-400 text-center py-8">No tienes solicitudes de afiliación aún</p>
             ) : (
-              <div className="grid gap-4">
+              <div className="space-y-3">
                 {solicitudes.map((solicitud) => (
-                  <div key={solicitud.id} className="bg-white rounded-lg border p-6 flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                      <div className="w-16 h-16 bg-gray-200 rounded-lg overflow-hidden">
-                        {solicitud.producto?.imagen_url ? (
-                          <img src={solicitud.producto.imagen_url} alt="" className="w-full h-full object-cover" />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center">
-                            <Briefcase className="w-6 h-6 text-gray-400" />
-                          </div>
-                        )}
+                  <div key={solicitud.id} className="bg-gray-800/50 rounded-lg p-4 flex items-center justify-between">
+                    <div className="flex items-center space-x-4">
+                      <div className="w-12 h-12 bg-gray-700 rounded-lg flex items-center justify-center">
+                        <GraduationCap className="w-6 h-6 text-gray-400" />
                       </div>
                       <div>
-                        <h3 className="font-semibold text-gray-900">{solicitud.producto?.titulo || 'Producto'}</h3>
-                        <p className="text-sm text-gray-600">Solicitud enviada: {new Date(solicitud.fecha_solicitud).toLocaleDateString()}</p>
-                        <p className="text-sm text-gray-600">Precio: ${solicitud.producto?.precio || 0}</p>
+                        <h3 className="text-white font-medium">Producto ID: {solicitud.producto_id}</h3>
+                        <p className="text-gray-400 text-sm">
+                          Solicitado el {new Date(solicitud.fecha_solicitud).toLocaleDateString()}
+                        </p>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <span className={`px-3 py-1 rounded-full text-sm font-semibold ${
-                        solicitud.estado === 'aprobada' ? 'bg-green-100 text-green-800' :
-                        solicitud.estado === 'rechazada' ? 'bg-red-100 text-red-800' : 
-                        'bg-yellow-100 text-yellow-800'
-                      }`}>
-                        {solicitud.estado === 'aprobada' ? '✓ Aprobada' :
-                         solicitud.estado === 'rechazada' ? '✗ Rechazada' : '⏳ Pendiente'}
-                      </span>
+                    <div className={`px-3 py-1 rounded-full text-xs font-medium ${
+                      solicitud.estado === 'pendiente' 
+                        ? 'bg-yellow-500/20 text-yellow-300' 
+                        : solicitud.estado === 'aprobada'
+                        ? 'bg-green-500/20 text-green-300'
+                        : 'bg-red-500/20 text-red-300'
+                    }`}>
+                      {solicitud.estado.charAt(0).toUpperCase() + solicitud.estado.slice(1)}
                     </div>
                   </div>
                 ))}
               </div>
             )}
           </div>
-        ) : (
-          /* Grid de productos */
-          <div>
-            {/* Indicador de filtro activo */}
-            {selectedCategory !== 'Todos' && (
-              <div className="mb-6">
-                <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg p-4 flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-3 h-3 bg-blue-500 rounded-full animate-pulse"></div>
-                    <span className="text-blue-800 font-medium">
-                      Mostrando <span className="font-bold">{productosFiltrados.length}</span> productos de: 
-                      <span className="font-bold ml-1">{selectedCategory}</span>
-                    </span>
-                  </div>
-                  <button
-                    onClick={() => setSelectedCategory('Todos')}
-                    className="text-blue-600 hover:text-blue-800 text-sm font-medium"
-                  >
-                    Quitar filtro ✕
-                  </button>
-                </div>
-              </div>
-            )}
+        </motion.div>
+      )}
 
-            {productosFiltrados.length === 0 ? (
-              <div className="text-center py-12">
-                <Search size={64} className="text-gray-400 mx-auto mb-4" />
-                <h3 className="text-xl font-semibold text-gray-600 mb-2">No se encontraron productos</h3>
-                <p className="text-gray-500">Intenta ajustar tus filtros de búsqueda</p>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-                {productosFiltrados.map(renderProductCard)}
-              </div>
-            )}
+      {/* Filtros y búsqueda */}
+      <div className="bg-gray-900/50 rounded-xl p-6 border border-gray-700">
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0 lg:space-x-4">
+          {/* Búsqueda */}
+          <div className="relative flex-1 max-w-md">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+            <input
+              type="text"
+              placeholder="Buscar ofertas..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-amber-500"
+            />
           </div>
+
+          {/* Filtros */}
+          <div className="flex items-center space-x-4">
+            <select
+              value={selectedCategory}
+              onChange={(e) => setSelectedCategory(e.target.value)}
+              className="bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-amber-500"
+            >
+              {categorias.map(categoria => (
+                <option key={categoria} value={categoria}>{categoria}</option>
+              ))}
+            </select>
+
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+              className="bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-amber-500"
+            >
+              <option value="popularidad">Más Populares</option>
+              <option value="comision">Mayor Comisión</option>
+              <option value="precio-asc">Precio: Menor a Mayor</option>
+              <option value="precio-desc">Precio: Mayor a Menor</option>
+              <option value="rating">Mejor Rating</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      {/* Estadísticas */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="bg-gradient-to-r from-blue-500/20 to-cyan-600/20 rounded-lg p-4 border border-blue-500/30">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-blue-300 text-sm">Total Ofertas</p>
+              <p className="text-white text-2xl font-bold">{ofertas.length}</p>
+            </div>
+            <TrendingUp className="w-8 h-8 text-blue-400" />
+          </div>
+        </div>
+
+        <div className="bg-gradient-to-r from-green-500/20 to-emerald-600/20 rounded-lg p-4 border border-green-500/30">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-green-300 text-sm">Comisión Promedio</p>
+              <p className="text-white text-2xl font-bold">
+                {ofertas.length > 0 ? Math.round(ofertas.reduce((acc, o) => acc + o.comision_nivel1, 0) / ofertas.length) : 0}%
+              </p>
+            </div>
+            <DollarSign className="w-8 h-8 text-green-400" />
+          </div>
+        </div>
+
+        <div className="bg-gradient-to-r from-purple-500/20 to-indigo-600/20 rounded-lg p-4 border border-purple-500/30">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-purple-300 text-sm">Mis Solicitudes</p>
+              <p className="text-white text-2xl font-bold">{solicitudes.length}</p>
+            </div>
+            <Send className="w-8 h-8 text-purple-400" />
+          </div>
+        </div>
+
+        <div className="bg-gradient-to-r from-amber-500/20 to-yellow-600/20 rounded-lg p-4 border border-amber-500/30">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-amber-300 text-sm">Aprobadas</p>
+              <p className="text-white text-2xl font-bold">
+                {solicitudes.filter(s => s.estado === 'aprobada').length}
+              </p>
+            </div>
+            <Star className="w-8 h-8 text-amber-400" />
+          </div>
+        </div>
+      </div>
+
+      {/* Grid de ofertas */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {ofertasFiltradas.length === 0 ? (
+          <div className="col-span-full text-center py-12">
+            <div className="text-gray-400 text-lg mb-2">No se encontraron ofertas</div>
+            <p className="text-gray-500">Intenta ajustar tus filtros de búsqueda</p>
+          </div>
+        ) : (
+          ofertasFiltradas.map(renderOfertaCard)
         )}
       </div>
     </div>

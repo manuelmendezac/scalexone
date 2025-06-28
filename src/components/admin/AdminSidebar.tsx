@@ -1,5 +1,5 @@
 import React from 'react';
-import { Home, Settings, BarChart2, Tv, Users, Calendar, MessageSquare, Briefcase, DollarSign, List, CreditCard, Activity, Menu, Image, Wallet, UserCheck, ShoppingBag, Percent, UsersIcon } from 'lucide-react';
+import { Home, Settings, BarChart2, Tv, Users, Calendar, MessageSquare, Briefcase, DollarSign, List, CreditCard, Activity, Menu, Image, Wallet, UserCheck, ShoppingBag, Percent, UsersIcon, Store } from 'lucide-react';
 
 interface AdminSidebarProps {
   selected: string;
@@ -20,6 +20,7 @@ export const menuItems = [
     { key: 'config-comisiones', label: 'Config. Comisiones', icon: <DollarSign size={20} />, section: 'general' },
     { key: 'marketplace-cursos', label: 'Cursos Marketplace', icon: <ShoppingBag size={20} />, section: 'contenido' },
     { key: 'marketplace-servicios', label: 'Servicios Marketplace', icon: <Briefcase size={20} />, section: 'contenido' },
+    { key: 'marketplace-ofertas', label: 'Ofertas ScaleXone', icon: <Store size={20} />, section: 'contenido' },
     { key: 'subscriptions', label: 'Suscripciones', icon: <UserCheck size={20} />, section: 'finanzas' },
     { key: 'payments', label: 'Métodos de Cobro', icon: <DollarSign size={20} />, section: 'finanzas' },
     { key: 'salesHistory', label: 'Historial de Ventas', icon: <List size={20} />, section: 'finanzas' },

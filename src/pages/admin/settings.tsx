@@ -14,6 +14,7 @@ import ConfiguracionProyecto from '../../components/ConfiguracionProyecto';
 import AdminCanalesPanel from '../../components/AdminCanalesPanel';
 import CursosMarketplacePanel from '../../components/admin/CursosMarketplacePanel';
 import ServiciosMarketplacePanel from '../../components/admin/ServiciosMarketplacePanel';
+import OfertasMarketplacePanel from '../../components/admin/OfertasMarketplacePanel';
 import ConfigComisionesPanel from '../../components/admin/ConfigComisionesPanel';
 import GestionAfiliadosPanel from '../../components/admin/GestionAfiliadosPanel';
 
@@ -76,6 +77,9 @@ export default function AdminSettingsPage() {
         case 'marketplace-servicios':
           console.log('Rendering ServiciosMarketplacePanel');
           return <ServiciosMarketplacePanel />;
+        case 'marketplace-ofertas':
+          console.log('Rendering OfertasMarketplacePanel');
+          return <OfertasMarketplacePanel />;
         case 'gestion-afiliados':
           console.log('Rendering GestionAfiliadosPanel');
           return <GestionAfiliadosPanel />;
