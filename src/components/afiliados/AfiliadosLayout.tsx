@@ -10,6 +10,7 @@ import {
   PhoneIcon,
   Bars3Icon,
   XMarkIcon,
+  ShoppingCartIcon,
 } from '@heroicons/react/24/outline';
 import SwitchClienteIB from '../SwitchClienteIB';
 
@@ -30,6 +31,7 @@ const AfiliadosLayout: React.FC<AfiliadosLayoutProps> = ({ children }) => {
 
   const menuItems = [
     { name: 'Panel de Control', icon: HomeIcon, path: '/afiliados' },
+    { name: 'Marketplace de Productos', icon: ShoppingCartIcon, path: '/afiliados/marketplace' },
     { name: 'Comisiones Marca Blanca', icon: ChartBarIcon, path: '/afiliados/ib-marca-blanca' },
     { name: 'Comisiones ScalexOne', icon: ChartBarIcon, path: '/afiliados/ib-scalexone' },
     { name: 'Multinivel IB', icon: UserGroupIcon, path: '/afiliados/multinivel' },
@@ -43,10 +45,10 @@ const AfiliadosLayout: React.FC<AfiliadosLayoutProps> = ({ children }) => {
   // Menú inferior para móvil
   const mobileMenu = [
     menuItems[0], // Panel de Control
-    menuItems[2], // Comisiones ScalexOne
-    menuItems[3], // Multinivel IB
-    menuItems[6], // Perfil
-    menuItems[8], // Contacto
+    menuItems[1], // Marketplace de Productos
+    menuItems[3], // Comisiones ScalexOne
+    menuItems[4], // Multinivel IB
+    menuItems[7], // Perfil
   ];
 
   return (

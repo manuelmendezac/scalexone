@@ -51,6 +51,7 @@ const CursoDetalle = lazy(() => import('./pages/cursos/id'));
 const ModuloDetalle = lazy(() => import('./pages/cursos/modulo'));
 const ModulosCurso = lazy(() => import('./pages/cursos/modulos'));
 const Marketplace = lazy(() => import('./pages/marketplace'));
+const MarketplaceAfiliados = lazy(() => import('./pages/afiliados/marketplace'));
 
 const SuspenseWrapper = ({ children }: { children: React.ReactNode }) => (
   <Suspense fallback={<div />}>
@@ -130,6 +131,7 @@ export const router = createBrowserRouter([
       { path: 'perfil', element: <PerfilIBPage /> },
       { path: 'enlaces', element: <EnlacesAfiliadosPage /> },
       { path: 'contacto', element: <ContactoIBPage /> },
+      { path: 'marketplace', element: <SuspenseWrapper><MarketplaceAfiliados /></SuspenseWrapper> },
     ]
   }
 ]); 
