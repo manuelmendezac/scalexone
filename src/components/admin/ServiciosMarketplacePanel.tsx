@@ -658,6 +658,55 @@ const ServiciosMarketplacePanel: React.FC = () => {
                   )}
                 </div>
 
+                {/* ⭐ Rating y Reviews */}
+                <div className="bg-gray-800/30 rounded-lg p-4 border border-gray-600/30">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Star className="text-yellow-400" size={18} />
+                    <h4 className="text-base font-semibold text-gray-200">⭐ Calificación y Reviews</h4>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-2">
+                        Rating (1-5 estrellas)
+                      </label>
+                      <input
+                        type="number"
+                        min="1"
+                        max="5"
+                        step="0.1"
+                        value={suscripcionData.rating}
+                        onChange={(e) => setSuscripcionData(prev => ({ ...prev, rating: parseFloat(e.target.value) || 4.8 }))}
+                        className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-yellow-400"
+                        placeholder="4.8"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-2">
+                        Número de Reviews
+                      </label>
+                      <input
+                        type="number"
+                        min="0"
+                        value={suscripcionData.reviews}
+                        onChange={(e) => setSuscripcionData(prev => ({ ...prev, reviews: parseInt(e.target.value) || 0 }))}
+                        className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-yellow-400"
+                        placeholder="127"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Preview del rating */}
+                  <div className="mt-3 p-2 bg-yellow-900/20 border border-yellow-500/30 rounded-lg">
+                    <div className="flex items-center gap-2 text-yellow-300">
+                      <Star className="fill-current" size={16} />
+                      <span className="font-semibold">{suscripcionData.rating}</span>
+                      <span className="text-sm text-gray-400">({suscripcionData.reviews} reviews)</span>
+                    </div>
+                  </div>
+                </div>
+
                 {/* Imagen */}
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-2">
