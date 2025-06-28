@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { Heart, DollarSign, TrendingUp, Target, MousePointer, Percent, RefreshCw, Download, GraduationCap, Briefcase } from 'lucide-react';
 import { supabase } from '../../supabase';
 import { toast } from 'react-hot-toast';
@@ -116,36 +117,51 @@ const MarketingAfiliadosPanel: React.FC = () => {
   };
 
   const renderEarningsChart = () => {
-    const maxEarnings = Math.max(...earningsData.map(d => d.earnings));
-    
     return (
-      <div className="bg-white/5 rounded-xl p-6 border border-gray-700/50">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-white">Gráfico de Ingresos</h3>
-          <div className="text-blue-400 font-bold text-xl">
-            ${earningsData.reduce((acc, d) => acc + d.earnings, 0).toLocaleString()}
-          </div>
-        </div>
-        
-        <div className="flex items-end justify-between h-48 gap-3">
-          {earningsData.map((data, index) => (
-            <div key={data.date} className="flex-1 flex flex-col items-center group">
-              <div className="flex-1 flex items-end w-full">
-                <motion.div
-                  initial={{ height: 0 }}
-                  animate={{ height: `${(data.earnings / maxEarnings) * 100}%` }}
-                  transition={{ delay: index * 0.1, duration: 0.5 }}
-                  className="w-full bg-gradient-to-t from-blue-600 to-blue-400 rounded-t hover:from-blue-500 hover:to-blue-300 transition-colors cursor-pointer"
-                />
-              </div>
-              <div className="mt-2 text-xs text-gray-400 text-center">
-                {new Date(data.date).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' })}
-              </div>
-              <div className="text-xs text-white font-medium opacity-0 group-hover:opacity-100 transition-opacity">
-                ${data.earnings}
-              </div>
-            </div>
-          ))}
+      <div className="bg-white rounded-xl p-4 sm:p-6 border border-gray-200">
+        <h3 className="text-lg font-semibold text-gray-800 mb-4">Ingresos</h3>
+        <div style={{ width: '100%', height: 300 }}>
+          <ResponsiveContainer>
+            <AreaChart
+              data={earningsData}
+              margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
+            >
+              <defs>
+                <linearGradient id="colorUv" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#2563eb" stopOpacity={0.4}/>
+                  <stop offset="95%" stopColor="#2563eb" stopOpacity={0}/>
+                </linearGradient>
+              </defs>
+              <XAxis 
+                dataKey="date" 
+                tickFormatter={(str: string) => new Date(str).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' })}
+                axisLine={false}
+                tickLine={false}
+                stroke="#6b7280"
+              />
+              <YAxis 
+                axisLine={false}
+                tickLine={false}
+                stroke="#6b7280"
+                tickFormatter={(value: number) => `$${value}`}
+              />
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                  border: '1px solid #e5e7eb',
+                  borderRadius: '0.5rem',
+                  backdropFilter: 'blur(4px)'
+                }}
+                labelFormatter={(label: string) => new Date(label).toLocaleDateString('es-ES', {
+                  weekday: 'long',
+                  day: 'numeric',
+                  month: 'long'
+                })}
+                formatter={(value: number) => [`$${value.toFixed(2)}`, 'Ingresos']}
+              />
+              <Area type="monotone" dataKey="earnings" stroke="#2563eb" strokeWidth={2} fillOpacity={1} fill="url(#colorUv)" />
+            </AreaChart>
+          </ResponsiveContainer>
         </div>
       </div>
     );
@@ -153,167 +169,69 @@ const MarketingAfiliadosPanel: React.FC = () => {
 
   const renderDashboard = () => (
     <div className="space-y-6">
-      {/* Header del Dashboard */}
-      <div className="bg-white/5 rounded-xl border border-gray-700/50 p-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-2xl font-bold text-white mb-2 flex items-center gap-3">
-              📊 Dashboard de Rendimiento
-            </h2>
-            <p className="text-gray-300">
-              Monitorea tus ingresos, conversiones y rendimiento en tiempo real
-            </p>
-          </div>
-          
-          <div className="flex items-center gap-3">
-            <select
-              value={dateFilter}
-              onChange={(e) => setDateFilter(e.target.value)}
-              className="bg-gray-800 border border-gray-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-500"
-            >
-              <option value="7d">Últimos 7 días</option>
-              <option value="30d">Últimos 30 días</option>
-              <option value="90d">Últimos 90 días</option>
-              <option value="year">Este año</option>
-            </select>
-            
-            <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2">
-              <Download className="w-4 h-4" />
-              Exportar
-            </button>
-          </div>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="bg-white rounded-xl p-6 border border-gray-200">
+          <p className="text-gray-500 text-sm font-medium flex items-center">
+            Total <InfoIcon />
+          </p>
+          <p className="text-gray-900 text-3xl font-bold mt-2">${dashboardMetrics.totalEarnings.toLocaleString()} US$</p>
+        </div>
+
+        <div className="bg-white rounded-xl p-6 border border-gray-200">
+          <p className="text-gray-500 text-sm font-medium flex items-center">
+            Reembolsada <InfoIcon />
+          </p>
+          <p className="text-gray-900 text-3xl font-bold mt-2">${dashboardMetrics.refunds.toFixed(2)} US$</p>
+        </div>
+
+        <div className="bg-white rounded-xl p-6 border border-gray-200">
+          <p className="text-gray-500 text-sm font-medium flex items-center">
+            % Reembolso <InfoIcon />
+          </p>
+          <p className="text-gray-900 text-3xl font-bold mt-2">{dashboardMetrics.refundPercentage}%</p>
         </div>
       </div>
-
-      {/* Gráfico de Ingresos */}
+      
       {renderEarningsChart()}
 
-      {/* Métricas Principales */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-white/5 rounded-xl p-6 border border-gray-700/50">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-gray-400 text-sm font-medium">Total Generado</p>
-              <p className="text-white text-3xl font-bold">${dashboardMetrics.totalEarnings.toLocaleString()}</p>
-              <p className="text-blue-400 text-sm mt-2">+${dashboardMetrics.pendingEarnings.toLocaleString()} pendiente</p>
-            </div>
-            <div className="w-12 h-12 bg-blue-500/20 rounded-lg flex items-center justify-center">
-              <DollarSign className="w-6 h-6 text-blue-400" />
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white/5 rounded-xl p-6 border border-gray-700/50">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-gray-400 text-sm font-medium">Reembolsada</p>
-              <p className="text-white text-3xl font-bold">${dashboardMetrics.refunds.toFixed(2)}</p>
-              <p className="text-gray-400 text-sm mt-2">{dashboardMetrics.refundPercentage}% del total</p>
-            </div>
-            <div className="w-12 h-12 bg-gray-500/20 rounded-lg flex items-center justify-center">
-              <RefreshCw className="w-6 h-6 text-gray-400" />
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white/5 rounded-xl p-6 border border-gray-700/50">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-gray-400 text-sm font-medium">% Reembolso</p>
-              <p className="text-white text-3xl font-bold">{dashboardMetrics.refundPercentage}%</p>
-              <p className="text-gray-400 text-sm mt-2">Muy por debajo del promedio</p>
-            </div>
-            <div className="w-12 h-12 bg-gray-500/20 rounded-lg flex items-center justify-center">
-              <Percent className="w-6 h-6 text-gray-400" />
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Panel de Rendimiento */}
-      <div className="bg-white/5 rounded-xl border border-gray-700/50 p-6">
-        <h3 className="text-xl font-semibold text-white mb-6 flex items-center gap-2">
-          <Target className="w-6 h-6 text-blue-400" />
-          Panel de Rendimiento
+      <div className="bg-white rounded-xl border border-gray-200 p-6">
+        <h3 className="text-lg font-semibold text-gray-800 mb-6">
+          Desempeño
         </h3>
-        
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="text-center bg-gray-800/30 rounded-lg p-4">
-            <div className="text-3xl font-bold text-white mb-2">{dashboardMetrics.totalSales}</div>
-            <div className="text-gray-300 text-sm mb-1">Ventas Generadas</div>
-            <div className="text-blue-400 text-xs">+15% vs período anterior</div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
+          <div>
+            <p className="text-gray-500 text-sm mb-1 flex items-center justify-center">Ventas <InfoIcon /></p>
+            <p className="text-3xl font-bold text-gray-900">{dashboardMetrics.totalSales}</p>
+            <p className="text-green-500 text-sm font-medium mt-1">▲ 450%</p>
           </div>
-          
-          <div className="text-center bg-gray-800/30 rounded-lg p-4">
-            <div className="text-3xl font-bold text-white mb-2">{dashboardMetrics.totalClicks.toLocaleString()}</div>
-            <div className="text-gray-300 text-sm mb-1">Clics en Enlaces</div>
-            <div className="text-blue-400 text-xs">+8% vs período anterior</div>
+          <div>
+            <p className="text-gray-500 text-sm mb-1 flex items-center justify-center">Clics <InfoIcon /></p>
+            <p className="text-3xl font-bold text-gray-900">{dashboardMetrics.totalClicks.toLocaleString()}</p>
           </div>
-          
-          <div className="text-center bg-gray-800/30 rounded-lg p-4">
-            <div className="text-3xl font-bold text-white mb-2">{dashboardMetrics.totalLeads}</div>
-            <div className="text-gray-300 text-sm mb-1">Leads Generados</div>
-            <div className="text-blue-400 text-xs">+23% vs período anterior</div>
+          <div>
+            <p className="text-gray-500 text-sm mb-1 flex items-center justify-center">Leads <InfoIcon /></p>
+            <p className="text-3xl font-bold text-gray-900">{dashboardMetrics.totalLeads}</p>
           </div>
         </div>
       </div>
 
-      {/* Pagos en Efectivo */}
-      <div className="bg-white/5 rounded-xl border border-gray-700/50 p-6">
-        <h3 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
-          <MousePointer className="w-6 h-6 text-blue-400" />
-          Pagos en Efectivo
+      <div className="bg-white rounded-xl border border-gray-200 p-6">
+        <h3 className="text-lg font-semibold text-gray-800 mb-6">
+          Pagos en efectivo
         </h3>
-        
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="text-center bg-gray-800/30 rounded-lg p-4">
-            <div className="text-2xl font-bold text-white mb-2">{dashboardMetrics.paymentsGenerated}</div>
-            <div className="text-gray-300 text-sm">Pagos Generados</div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
+          <div>
+            <p className="text-gray-500 text-sm mb-1">Generados</p>
+            <p className="text-2xl font-bold text-gray-900">{dashboardMetrics.paymentsGenerated}</p>
           </div>
-          
-          <div className="text-center bg-gray-800/30 rounded-lg p-4">
-            <div className="text-2xl font-bold text-white mb-2">{dashboardMetrics.paymentsReceived}</div>
-            <div className="text-gray-300 text-sm">Pagos Recibidos</div>
+          <div>
+            <p className="text-gray-500 text-sm mb-1">Pagados</p>
+            <p className="text-2xl font-bold text-gray-900">{dashboardMetrics.paymentsReceived}</p>
           </div>
-          
-          <div className="text-center bg-gray-800/30 rounded-lg p-4">
-            <div className="text-2xl font-bold text-blue-400 mb-2">{dashboardMetrics.conversionRate}%</div>
-            <div className="text-gray-300 text-sm">Tasa de Conversión</div>
+          <div>
+            <p className="text-gray-500 text-sm mb-1">% Conversión</p>
+            <p className="text-2xl font-bold text-gray-900">{dashboardMetrics.conversionRate}%</p>
           </div>
-        </div>
-      </div>
-
-      {/* Sistema de Gamificación - Top Afiliados */}
-      <div className="bg-white/5 rounded-xl p-6 border border-gray-700/50">
-        <div className="flex items-center justify-between mb-6">
-          <h3 className="text-xl font-semibold text-white">
-            🏆 Top Afiliados
-          </h3>
-          <button className="text-blue-400 hover:text-blue-300 text-sm">Ver todas</button>
-        </div>
-        
-        <div className="flex items-center space-x-4 overflow-x-auto pb-2">
-          {topAfiliates.map((affiliate, index) => (
-            <motion.div
-              key={affiliate.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.1 }}
-              className="flex-shrink-0 text-center"
-            >
-              <div className={`w-16 h-16 rounded-full flex items-center justify-center text-2xl mb-2 ${
-                index === 0 ? 'bg-gradient-to-r from-blue-500 to-blue-600' :
-                index === 1 ? 'bg-gradient-to-r from-gray-500 to-gray-600' :
-                index === 2 ? 'bg-gradient-to-r from-blue-400 to-blue-500' :
-                'bg-gradient-to-r from-gray-600 to-gray-700'
-              }`}>
-                {affiliate.avatar}
-              </div>
-              <div className="text-white text-sm font-medium">{affiliate.name.split(' ')[0]}</div>
-              <div className="text-blue-400 text-xs">${affiliate.earnings.toLocaleString()}</div>
-              <div className="text-gray-500 text-xs">#{affiliate.rank}</div>
-            </motion.div>
-          ))}
         </div>
       </div>
     </div>
@@ -432,5 +350,11 @@ const MarketingAfiliadosPanel: React.FC = () => {
     </div>
   );
 };
+
+const InfoIcon = () => (
+  <span className="ml-1.5 text-gray-400 hover:text-gray-600 cursor-pointer" title="Información adicional">
+    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+  </span>
+);
 
 export default MarketingAfiliadosPanel;
