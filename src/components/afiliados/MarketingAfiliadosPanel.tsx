@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Search, Filter, Star, Users, Clock, GraduationCap, Briefcase, ChevronDown, Send, Heart, DollarSign, TrendingUp } from 'lucide-react';
+import { Search, Filter, Star, Users, Clock, GraduationCap, Briefcase, ChevronDown, Send, Heart, DollarSign, TrendingUp, Settings } from 'lucide-react';
 import { supabase } from '../../supabase';
 import { toast } from 'react-hot-toast';
 import { OfertasMarketplaceService } from '../../services/ofertasMarketplaceService';
@@ -163,8 +163,7 @@ const MarketingAfiliadosPanel: React.FC = () => {
       switch (tipo) {
         case 'curso': return 'from-amber-500/20 to-yellow-600/20 border-amber-500/30';
         case 'servicio': return 'from-purple-500/20 to-indigo-600/20 border-purple-500/30';
-        case 'herramienta': return 'from-cyan-500/20 to-blue-600/20 border-cyan-500/30';
-        case 'producto_fisico': return 'from-green-500/20 to-emerald-600/20 border-green-500/30';
+        case 'suscripcion': return 'from-cyan-500/20 to-blue-600/20 border-cyan-500/30';
         default: return 'from-gray-500/20 to-slate-600/20 border-gray-500/30';
       }
     };
@@ -173,8 +172,7 @@ const MarketingAfiliadosPanel: React.FC = () => {
       switch (tipo) {
         case 'curso': return <GraduationCap className="w-5 h-5" />;
         case 'servicio': return <Briefcase className="w-5 h-5" />;
-        case 'herramienta': return <TrendingUp className="w-5 h-5" />;
-        case 'producto_fisico': return <DollarSign className="w-5 h-5" />;
+        case 'suscripcion': return <Settings className="w-5 h-5" />;
         default: return <Star className="w-5 h-5" />;
       }
     };
