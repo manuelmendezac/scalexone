@@ -159,7 +159,16 @@ const MarketingAfiliadosPanel: React.FC = () => {
                 })}
                 formatter={(value: number) => [`$${value.toFixed(2)}`, 'Ingresos']}
               />
-              <Area type="monotone" dataKey="earnings" stroke="#2563eb" strokeWidth={2} fillOpacity={1} fill="url(#colorUv)" />
+              <Area 
+                type="monotone" 
+                dataKey="earnings" 
+                stroke="#2563eb" 
+                strokeWidth={2} 
+                fillOpacity={1} 
+                fill="url(#colorUv)" 
+                activeDot={{ r: 6, stroke: 'white', strokeWidth: 2, fill: '#2563eb' }}
+                dot={{ r: 4, stroke: 'white', strokeWidth: 2, fill: '#2563eb' }}
+              />
             </AreaChart>
           </ResponsiveContainer>
         </div>
@@ -169,6 +178,25 @@ const MarketingAfiliadosPanel: React.FC = () => {
 
   const renderDashboard = () => (
     <div className="space-y-6">
+      <div className="bg-white rounded-xl p-6 border border-gray-200">
+        <div className="flex items-center justify-between">
+            <div>
+                <h1 className="text-3xl font-bold text-blue-700 flex items-center">
+                    🚀 Portal de Afiliados ScaleXone
+                </h1>
+                <p className="text-gray-800 text-lg mt-2">
+                    Dashboard profesional para maximizar tus ganancias como afiliado
+                </p>
+            </div>
+            <div className="text-right">
+                <p className="text-gray-500 text-sm">Ganancias Totales</p>
+                <div className="text-3xl font-bold text-green-600">
+                    ${dashboardMetrics.totalEarnings.toLocaleString()} US$
+                </div>
+            </div>
+        </div>
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="bg-white rounded-xl p-6 border border-gray-200">
           <p className="text-gray-500 text-sm font-medium flex items-center">
