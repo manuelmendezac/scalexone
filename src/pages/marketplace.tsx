@@ -388,12 +388,6 @@ const Marketplace: React.FC = () => {
               <div className={`${colorScheme.category} px-2 py-1 rounded-full text-xs font-medium`}>
                 {servicio.tipo_pago === 'suscripcion' ? '🔄 Suscripción' : '💵 Pago Único'}
               </div>
-              
-              {servicio.tipo_pago === 'pago_unico' && (
-                <div className="bg-green-500/20 text-green-400 px-2 py-1 rounded-full text-xs font-medium">
-                  ✅ Acceso Permanente
-                </div>
-              )}
             </div>
           </div>
           
