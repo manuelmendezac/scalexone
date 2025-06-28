@@ -37,6 +37,7 @@ const ServiciosMarketplacePanel: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [showSuscripcionModal, setShowSuscripcionModal] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [editingServicio, setEditingServicio] = useState<Servicio | null>(null);
 
   const [suscripcionData, setSuscripcionData] = useState({
     titulo: '',
@@ -48,7 +49,7 @@ const ServiciosMarketplacePanel: React.FC = () => {
     rating: 4.8,
     reviews: 0,
     activo: true,
-    tipo_producto: 'suscripcion' as const,
+    tipo_producto: 'suscripcion' as 'servicio' | 'suscripcion',
     tipo_pago: 'pago_unico' as 'pago_unico' | 'suscripcion',
     duracion_dias: 30,
     caracteristicas: [''],
@@ -155,7 +156,34 @@ const ServiciosMarketplacePanel: React.FC = () => {
     }
   };
 
+  const handleEdit = (servicio: Servicio) => {
+    setEditingServicio(servicio);
+    setSuscripcionData({
+      titulo: servicio.titulo,
+      descripcion: servicio.descripcion,
+      precio: servicio.precio,
+      imagen_url: servicio.imagen_url || '',
+      proveedor: servicio.proveedor,
+      categoria: servicio.categoria,
+      rating: servicio.rating,
+      reviews: servicio.reviews,
+      activo: servicio.activo,
+      tipo_producto: (servicio.tipo_producto || 'suscripcion') as 'servicio' | 'suscripcion',
+      tipo_pago: servicio.tipo_pago || 'pago_unico',
+      duracion_dias: servicio.duracion_dias || 30,
+      caracteristicas: Array.isArray(servicio.caracteristicas) ? servicio.caracteristicas : [''],
+      // Campos de afiliación
+      afilible: servicio.afilible || false,
+      niveles_comision: servicio.niveles_comision || 3,
+      comision_nivel1: servicio.comision_nivel1 || 30,
+      comision_nivel2: servicio.comision_nivel2 || 20,
+      comision_nivel3: servicio.comision_nivel3 || 10
+    });
+    setShowSuscripcionModal(true);
+  };
+
   const resetSuscripcionForm = () => {
+    setEditingServicio(null);
     setSuscripcionData({
       titulo: '',
       descripcion: '',
@@ -166,7 +194,7 @@ const ServiciosMarketplacePanel: React.FC = () => {
       rating: 4.8,
       reviews: 0,
       activo: true,
-      tipo_producto: 'suscripcion' as const,
+      tipo_producto: 'suscripcion' as 'servicio' | 'suscripcion',
       tipo_pago: 'pago_unico' as 'pago_unico' | 'suscripcion',
       duracion_dias: 30,
       caracteristicas: [''],
@@ -205,74 +233,94 @@ const ServiciosMarketplacePanel: React.FC = () => {
     setLoading(true);
 
     try {
-      // 🔥 PASO 1: Crear el plan SIEMPRE (tanto pago único como suscripción)
-      const esPagoUnico = suscripcionData.tipo_pago === 'pago_unico';
-      
-      const planData = {
-        comunidad_id: '8fb70d6e-3237-465e-8669-979461cf2bc1', // ScaleXone UUID como text
-        nombre: `${esPagoUnico ? 'Servicio' : 'Plan'}: ${suscripcionData.titulo}`,
+      const servicioData = {
+        titulo: suscripcionData.titulo,
         descripcion: suscripcionData.descripcion,
         precio: suscripcionData.precio,
-        moneda: 'USD',
-        duracion_dias: esPagoUnico ? 0 : (suscripcionData.duracion_dias || 30), // ✅ 0 para pago único (permanente)
-        caracteristicas: suscripcionData.caracteristicas.filter(c => c.trim() !== ''), // ✅ JS Array
-        activo: true,
-        orden: 0,
-        limites: {},
-        configuracion: {
-          tipo: esPagoUnico ? 'servicio_pago_unico' : 'servicio_suscripcion', // ✅ Diferenciamos el tipo
-          pago_unico: esPagoUnico, // ✅ Flag para identificar
-          afiliacion: {
-            habilitada: suscripcionData.afilible,
-            niveles: suscripcionData.niveles_comision,
-            comision_nivel1: suscripcionData.comision_nivel1,
-            comision_nivel2: suscripcionData.comision_nivel2,
-            comision_nivel3: suscripcionData.comision_nivel3
-          }
-        }
-      };
-
-      console.log(`📋 Datos del ${esPagoUnico ? 'servicio pago único' : 'servicio suscripción'} a crear:`, planData);
-
-      const { data: planCreated, error: planError } = await supabase
-        .from('planes_suscripcion')
-        .insert([planData])
-        .select()
-        .single();
-
-      if (planError) {
-        console.error('❌ Error específico creando plan:', planError);
-        throw new Error(`Error creando plan: ${planError.message}`);
-      }
-
-      console.log('✅ Plan creado exitosamente:', planCreated);
-
-      // 🔥 PASO 2: Crear el servicio marketplace con referencia al plan
-      const servicioData = {
-        ...suscripcionData,
-        id: crypto.randomUUID(),
-        plan_suscripcion_id: planCreated.id, // ✅ SIEMPRE conectar con el plan
-        tipo_producto: esPagoUnico ? 'servicio' : 'suscripcion', // ✅ Ajustar tipo_producto
-        created_at: new Date().toISOString(),
+        imagen_url: suscripcionData.imagen_url,
+        proveedor: suscripcionData.proveedor,
+        categoria: suscripcionData.categoria,
+        rating: suscripcionData.rating,
+        reviews: suscripcionData.reviews,
+        activo: suscripcionData.activo,
+        tipo_producto: suscripcionData.tipo_producto,
+        tipo_pago: suscripcionData.tipo_pago,
+        community_id: '8fb70d6e-3237-465e-8669-979461cf2bc1',
+        // Campos de afiliación
+        afilible: suscripcionData.afilible,
+        niveles_comision: suscripcionData.niveles_comision,
+        comision_nivel1: suscripcionData.comision_nivel1,
+        comision_nivel2: suscripcionData.comision_nivel2,
+        comision_nivel3: suscripcionData.comision_nivel3,
+        fecha_afiliacion: new Date().toISOString(),
+        caracteristicas: suscripcionData.caracteristicas.filter(c => c.trim() !== ''),
         updated_at: new Date().toISOString()
       };
 
-      const { error: servicioError } = await supabase
-        .from('servicios_marketplace')
-        .insert([servicioData]);
+      // Agregar campos específicos según el tipo de producto
+      if (suscripcionData.tipo_producto === 'suscripcion') {
+        const planData = {
+          ...servicioData,
+          duracion_dias: suscripcionData.tipo_pago === 'pago_unico' ? 0 : suscripcionData.duracion_dias,
+          configuracion: {
+            tipo: suscripcionData.tipo_pago === 'pago_unico' ? 'servicio_pago_unico' : 'servicio_suscripcion',
+            caracteristicas: suscripcionData.caracteristicas.filter(c => c.trim() !== ''),
+            acceso_completo: true,
+            recursos_incluidos: ['Acceso completo al servicio'],
+            soporte_incluido: true
+          }
+        };
 
-      if (servicioError) throw servicioError;
+        if (editingServicio) {
+          // Editar servicio existente
+          const { error: updateError } = await supabase
+            .from('servicios_marketplace')
+            .update(servicioData)
+            .eq('id', editingServicio.id);
+
+          if (updateError) throw updateError;
+
+          // Si tiene plan_suscripcion_id, también actualizar en planes_suscripcion
+          if (editingServicio.plan_suscripcion_id) {
+            const { error: planUpdateError } = await supabase
+              .from('planes_suscripcion')
+              .update(planData)
+              .eq('id', editingServicio.plan_suscripcion_id);
+
+            if (planUpdateError) {
+              console.error('Error actualizando plan:', planUpdateError);
+            }
+          }
+        } else {
+          // Crear nuevo servicio
+          // Crear primero el plan de suscripción
+          const { data: planCreated, error: planError } = await supabase
+            .from('planes_suscripcion')
+            .insert([planData])
+            .select()
+            .single();
+
+          if (planError) throw planError;
+
+          // Crear el servicio en marketplace con referencia al plan
+          const { error: servicioError } = await supabase
+            .from('servicios_marketplace')
+            .insert([{
+              ...servicioData,
+              plan_suscripcion_id: planCreated.id,
+              duracion_dias: planData.duracion_dias
+            }]);
+
+          if (servicioError) throw servicioError;
+        }
+      }
 
       await cargarServicios();
-      resetSuscripcionForm();
       setShowSuscripcionModal(false);
-      
-      // ✅ Mensaje de éxito diferenciado
-      const tipoServicio = esPagoUnico ? 'Servicio de pago único' : 'Servicio de suscripción';
-      alert(`✅ ${tipoServicio} creado exitosamente\n\n🎯 Ahora aparecerá en:\n• Marketplace de Servicios\n• Portal de Suscripciones (para gestión)`);
+      resetSuscripcionForm();
     } catch (error: any) {
       console.error('Error guardando servicio:', error);
-      alert('Error al guardar el servicio: ' + error.message);
+      alert(`Error: ${error.message}`);
     } finally {
       setLoading(false);
     }
@@ -289,7 +337,7 @@ const ServiciosMarketplacePanel: React.FC = () => {
       rating: 4.9,
       reviews: 127,
       activo: true,
-      tipo_producto: 'suscripcion' as const,
+      tipo_producto: 'suscripcion' as 'servicio' | 'suscripcion',
       tipo_pago: 'pago_unico' as 'pago_unico' | 'suscripcion',
       duracion_dias: 30,
       caracteristicas: [
@@ -459,6 +507,13 @@ const ServiciosMarketplacePanel: React.FC = () => {
               {/* Acciones */}
               <div className="flex gap-2">
                 <button
+                  onClick={() => handleEdit(servicio)}
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg flex items-center justify-center gap-1 text-sm transition-colors"
+                >
+                  <Edit size={14} />
+                  Editar
+                </button>
+                <button
                   onClick={() => toggleActivo(servicio.id, servicio.activo)}
                   className={`flex-1 px-3 py-2 rounded-lg flex items-center justify-center gap-2 text-sm transition-colors ${
                     servicio.activo
@@ -501,438 +556,444 @@ const ServiciosMarketplacePanel: React.FC = () => {
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="bg-gray-900 rounded-xl border border-blue-500/20 w-full max-w-3xl max-h-[90vh] overflow-y-auto"
+            className="bg-gray-900 rounded-2xl border border-purple-500/20 p-6 max-w-4xl w-full max-h-[90vh] overflow-y-auto"
           >
-            <div className="p-6">
-              <div className="flex justify-between items-center mb-6">
-                <h3 className="text-xl font-bold text-white">
-                  🎯 Nuevo Servicio
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h3 className="text-2xl font-bold text-white">
+                  {editingServicio ? '✏️ Editar Servicio' : '🚀 Nuevo Servicio'}
                 </h3>
-                <button
-                  onClick={() => {
-                    setShowSuscripcionModal(false);
-                    resetSuscripcionForm();
-                  }}
-                  className="text-gray-400 hover:text-white"
-                >
-                  <X size={24} />
-                </button>
+                <p className="text-gray-400 mt-1">
+                  {editingServicio 
+                    ? 'Actualiza la información del servicio existente'
+                    : 'Crea un nuevo servicio para el marketplace. Se creará automáticamente en el Portal de Suscripciones.'
+                  }
+                </p>
               </div>
+              <button
+                onClick={() => {
+                  setShowSuscripcionModal(false);
+                  resetSuscripcionForm();
+                }}
+                className="text-gray-400 hover:text-white p-2 rounded-lg hover:bg-gray-800 transition-colors"
+              >
+                <X size={20} />
+              </button>
+            </div>
 
-              <form onSubmit={handleSuscripcionSubmit} className="space-y-6">
-                {/* Información básica */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">
-                      Nombre del Servicio *
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      value={suscripcionData.titulo}
-                      onChange={(e) => setSuscripcionData(prev => ({ ...prev, titulo: e.target.value }))}
-                      className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-400"
-                      placeholder="ej. Consultoría Estratégica Premium"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">
-                      Proveedor
-                    </label>
-                    <input
-                      type="text"
-                      value={suscripcionData.proveedor}
-                      onChange={(e) => setSuscripcionData(prev => ({ ...prev, proveedor: e.target.value }))}
-                      className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-400"
-                    />
-                  </div>
-                </div>
-
+            <form onSubmit={handleSuscripcionSubmit} className="space-y-6">
+              {/* Información básica */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Descripción *
+                    Nombre del Servicio *
                   </label>
-                  <textarea
+                  <input
+                    type="text"
                     required
-                    value={suscripcionData.descripcion}
-                    onChange={(e) => setSuscripcionData(prev => ({ ...prev, descripcion: e.target.value }))}
+                    value={suscripcionData.titulo}
+                    onChange={(e) => setSuscripcionData(prev => ({ ...prev, titulo: e.target.value }))}
                     className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-400"
-                    rows={3}
-                    placeholder="Describe los beneficios y características del servicio..."
+                    placeholder="ej. Consultoría Estratégica Premium"
                   />
                 </div>
 
-                {/* Categoría del Servicio */}
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Categoría del Servicio
+                    Proveedor
                   </label>
-                  <select
-                    value={suscripcionData.categoria}
-                    onChange={(e) => setSuscripcionData(prev => ({ ...prev, categoria: e.target.value }))}
+                  <input
+                    type="text"
+                    value={suscripcionData.proveedor}
+                    onChange={(e) => setSuscripcionData(prev => ({ ...prev, proveedor: e.target.value }))}
                     className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-400"
-                  >
-                    {categorias.map(categoria => (
-                      <option key={categoria} value={categoria}>{categoria}</option>
-                    ))}
-                  </select>
+                  />
                 </div>
+              </div>
 
-                {/* 💰 Tipo de Pago */}
-                <div className="bg-blue-900/20 rounded-lg p-4 border border-blue-500/30">
-                  <div className="flex items-center gap-2 mb-3">
-                    <DollarSign className="text-blue-400" size={18} />
-                    <h4 className="text-base font-semibold text-blue-200">💰 Modelo de Facturación</h4>
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  Descripción *
+                </label>
+                <textarea
+                  required
+                  value={suscripcionData.descripcion}
+                  onChange={(e) => setSuscripcionData(prev => ({ ...prev, descripcion: e.target.value }))}
+                  className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-400"
+                  rows={3}
+                  placeholder="Describe los beneficios y características del servicio..."
+                />
+              </div>
+
+              {/* Categoría del Servicio */}
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  Categoría del Servicio
+                </label>
+                <select
+                  value={suscripcionData.categoria}
+                  onChange={(e) => setSuscripcionData(prev => ({ ...prev, categoria: e.target.value }))}
+                  className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-400"
+                >
+                  {categorias.map(categoria => (
+                    <option key={categoria} value={categoria}>{categoria}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* 💰 Tipo de Pago */}
+              <div className="bg-blue-900/20 rounded-lg p-4 border border-blue-500/30">
+                <div className="flex items-center gap-2 mb-3">
+                  <DollarSign className="text-blue-400" size={18} />
+                  <h4 className="text-base font-semibold text-blue-200">💰 Modelo de Facturación</h4>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                      Tipo de Pago *
+                    </label>
+                    <select
+                      value={suscripcionData.tipo_pago}
+                      onChange={(e) => setSuscripcionData(prev => ({ ...prev, tipo_pago: e.target.value as 'pago_unico' | 'suscripcion' }))}
+                      className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-400"
+                    >
+                      <option value="pago_unico">💵 Pago Único - Una sola vez</option>
+                      <option value="suscripcion">🔄 Suscripción - Recurrente</option>
+                    </select>
                   </div>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-300 mb-2">
-                        Tipo de Pago *
-                      </label>
-                      <select
-                        value={suscripcionData.tipo_pago}
-                        onChange={(e) => setSuscripcionData(prev => ({ ...prev, tipo_pago: e.target.value as 'pago_unico' | 'suscripcion' }))}
-                        className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-400"
-                      >
-                        <option value="pago_unico">💵 Pago Único - Una sola vez</option>
-                        <option value="suscripcion">🔄 Suscripción - Recurrente</option>
-                      </select>
-                    </div>
 
-                    <div className="flex items-center">
-                      <div className={`p-3 rounded-lg border ${
-                        suscripcionData.tipo_pago === 'pago_unico' 
-                          ? 'bg-green-900/30 border-green-500/40 text-green-300' 
-                          : 'bg-blue-900/30 border-blue-500/40 text-blue-300'
-                      }`}>
-                        <div className="text-xs font-medium">
-                          {suscripcionData.tipo_pago === 'pago_unico' ? '✅ Pago único' : '🔄 Suscripción'}
-                        </div>
-                        <div className="text-xs opacity-75 mt-1">
-                          {suscripcionData.tipo_pago === 'pago_unico' 
-                            ? 'El cliente paga una vez y tiene acceso permanente' 
-                            : 'El cliente paga mensual/anualmente de forma recurrente'
-                          }
-                        </div>
+                  <div className="flex items-center">
+                    <div className={`p-3 rounded-lg border ${
+                      suscripcionData.tipo_pago === 'pago_unico' 
+                        ? 'bg-green-900/30 border-green-500/40 text-green-300' 
+                        : 'bg-blue-900/30 border-blue-500/40 text-blue-300'
+                    }`}>
+                      <div className="text-xs font-medium">
+                        {suscripcionData.tipo_pago === 'pago_unico' ? '✅ Pago único' : '🔄 Suscripción'}
+                      </div>
+                      <div className="text-xs opacity-75 mt-1">
+                        {suscripcionData.tipo_pago === 'pago_unico' 
+                          ? 'El cliente paga una vez y tiene acceso permanente' 
+                          : 'El cliente paga mensual/anualmente de forma recurrente'
+                        }
                       </div>
                     </div>
                   </div>
                 </div>
+              </div>
 
-                {/* Precio y duración */}
+              {/* Precio y duración */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Precio (USD) *
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    required
+                    value={suscripcionData.precio}
+                    onChange={(e) => setSuscripcionData(prev => ({ ...prev, precio: parseFloat(e.target.value) || 0 }))}
+                    className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-400"
+                  />
+                </div>
+
+                {/* ✅ DURACIÓN SOLO PARA SUSCRIPCIONES */}
+                {suscripcionData.tipo_pago === 'suscripcion' && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                      Duración *
+                    </label>
+                    <select
+                      value={suscripcionData.duracion_dias}
+                      onChange={(e) => setSuscripcionData(prev => ({ ...prev, duracion_dias: parseInt(e.target.value) }))}
+                      className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-400"
+                    >
+                      <option value={7}>Semanal (7 días)</option>
+                      <option value={30}>Mensual (30 días)</option>
+                      <option value={90}>Trimestral (90 días)</option>
+                      <option value={365}>Anual (365 días)</option>
+                    </select>
+                  </div>
+                )}
+              </div>
+
+              {/* ⭐ Rating y Reviews */}
+              <div className="bg-gray-800/30 rounded-lg p-4 border border-gray-600/30">
+                <div className="flex items-center gap-2 mb-3">
+                  <Star className="text-yellow-400" size={18} />
+                  <h4 className="text-base font-semibold text-gray-200">⭐ Calificación y Reviews</h4>
+                </div>
+                
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-300 mb-2">
-                      Precio (USD) *
+                      Rating (1-5 estrellas)
+                    </label>
+                    <input
+                      type="number"
+                      min="1"
+                      max="5"
+                      step="0.1"
+                      value={suscripcionData.rating}
+                      onChange={(e) => setSuscripcionData(prev => ({ ...prev, rating: parseFloat(e.target.value) || 4.8 }))}
+                      className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-yellow-400"
+                      placeholder="4.8"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                      Número de Reviews
                     </label>
                     <input
                       type="number"
                       min="0"
-                      step="0.01"
-                      required
-                      value={suscripcionData.precio}
-                      onChange={(e) => setSuscripcionData(prev => ({ ...prev, precio: parseFloat(e.target.value) || 0 }))}
-                      className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-400"
+                      value={suscripcionData.reviews}
+                      onChange={(e) => setSuscripcionData(prev => ({ ...prev, reviews: parseInt(e.target.value) || 0 }))}
+                      className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-yellow-400"
+                      placeholder="127"
                     />
                   </div>
+                </div>
 
-                  {/* ✅ DURACIÓN SOLO PARA SUSCRIPCIONES */}
-                  {suscripcionData.tipo_pago === 'suscripcion' && (
-                    <div>
-                      <label className="block text-sm font-medium text-gray-300 mb-2">
-                        Duración *
-                      </label>
-                      <select
-                        value={suscripcionData.duracion_dias}
-                        onChange={(e) => setSuscripcionData(prev => ({ ...prev, duracion_dias: parseInt(e.target.value) }))}
-                        className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-400"
-                      >
-                        <option value={7}>Semanal (7 días)</option>
-                        <option value={30}>Mensual (30 días)</option>
-                        <option value={90}>Trimestral (90 días)</option>
-                        <option value={365}>Anual (365 días)</option>
-                      </select>
+                {/* Preview del rating */}
+                <div className="mt-3 p-2 bg-yellow-900/20 border border-yellow-500/30 rounded-lg">
+                  <div className="flex items-center gap-2 text-yellow-300">
+                    <Star className="fill-current" size={16} />
+                    <span className="font-semibold">{suscripcionData.rating}</span>
+                    <span className="text-sm text-gray-400">({suscripcionData.reviews} reviews)</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Imagen */}
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  Imagen del Servicio
+                </label>
+                <div className="space-y-2">
+                  <input
+                    type="url"
+                    placeholder="URL de la imagen"
+                    value={suscripcionData.imagen_url}
+                    onChange={(e) => setSuscripcionData(prev => ({ ...prev, imagen_url: e.target.value }))}
+                    className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-400"
+                  />
+                  <div className="text-center">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => e.target.files?.[0] && handleSuscripcionImageUpload(e.target.files[0])}
+                      className="hidden"
+                      id="suscripcion-image-upload"
+                    />
+                    <label
+                      htmlFor="suscripcion-image-upload"
+                      className="inline-flex items-center gap-2 bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg cursor-pointer transition-colors"
+                    >
+                      <Upload size={16} />
+                      {uploading ? 'Subiendo...' : 'Subir Imagen'}
+                    </label>
+                  </div>
+                  {suscripcionData.imagen_url && (
+                    <div className="mt-2">
+                      <img
+                        src={suscripcionData.imagen_url}
+                        alt="Preview"
+                        className="w-full h-32 object-cover rounded-lg"
+                      />
                     </div>
                   )}
                 </div>
+              </div>
 
-                {/* ⭐ Rating y Reviews */}
-                <div className="bg-gray-800/30 rounded-lg p-4 border border-gray-600/30">
-                  <div className="flex items-center gap-2 mb-3">
-                    <Star className="text-yellow-400" size={18} />
-                    <h4 className="text-base font-semibold text-gray-200">⭐ Calificación y Reviews</h4>
-                  </div>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-300 mb-2">
-                        Rating (1-5 estrellas)
-                      </label>
+              {/* Características */}
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  Características y Beneficios
+                </label>
+                <div className="space-y-2">
+                  {suscripcionData.caracteristicas.map((caracteristica, index) => (
+                    <div key={index} className="flex gap-2">
                       <input
-                        type="number"
-                        min="1"
-                        max="5"
-                        step="0.1"
-                        value={suscripcionData.rating}
-                        onChange={(e) => setSuscripcionData(prev => ({ ...prev, rating: parseFloat(e.target.value) || 4.8 }))}
-                        className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-yellow-400"
-                        placeholder="4.8"
+                        type="text"
+                        value={caracteristica}
+                        onChange={(e) => handleCaracteristicaChange(index, e.target.value)}
+                        className="flex-1 px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-400"
+                        placeholder="ej. Acceso a todos los cursos premium"
                       />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-300 mb-2">
-                        Número de Reviews
-                      </label>
-                      <input
-                        type="number"
-                        min="0"
-                        value={suscripcionData.reviews}
-                        onChange={(e) => setSuscripcionData(prev => ({ ...prev, reviews: parseInt(e.target.value) || 0 }))}
-                        className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-yellow-400"
-                        placeholder="127"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Preview del rating */}
-                  <div className="mt-3 p-2 bg-yellow-900/20 border border-yellow-500/30 rounded-lg">
-                    <div className="flex items-center gap-2 text-yellow-300">
-                      <Star className="fill-current" size={16} />
-                      <span className="font-semibold">{suscripcionData.rating}</span>
-                      <span className="text-sm text-gray-400">({suscripcionData.reviews} reviews)</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Imagen */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Imagen del Servicio
-                  </label>
-                  <div className="space-y-2">
-                    <input
-                      type="url"
-                      placeholder="URL de la imagen"
-                      value={suscripcionData.imagen_url}
-                      onChange={(e) => setSuscripcionData(prev => ({ ...prev, imagen_url: e.target.value }))}
-                      className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-400"
-                    />
-                    <div className="text-center">
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={(e) => e.target.files?.[0] && handleSuscripcionImageUpload(e.target.files[0])}
-                        className="hidden"
-                        id="suscripcion-image-upload"
-                      />
-                      <label
-                        htmlFor="suscripcion-image-upload"
-                        className="inline-flex items-center gap-2 bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg cursor-pointer transition-colors"
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveCaracteristica(index)}
+                        className="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-lg transition-colors"
                       >
-                        <Upload size={16} />
-                        {uploading ? 'Subiendo...' : 'Subir Imagen'}
-                      </label>
+                        <Trash2 size={16} />
+                      </button>
                     </div>
-                    {suscripcionData.imagen_url && (
-                      <div className="mt-2">
-                        <img
-                          src={suscripcionData.imagen_url}
-                          alt="Preview"
-                          className="w-full h-32 object-cover rounded-lg"
-                        />
-                      </div>
-                    )}
-                  </div>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={handleAddCaracteristica}
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
+                  >
+                    <Plus size={16} />
+                    Agregar Característica
+                  </button>
+                </div>
+              </div>
+
+              {/* Configuración de Afiliación */}
+              <div className="bg-gray-800/50 rounded-lg p-4 border border-blue-500/20">
+                <div className="flex items-center gap-2 mb-4">
+                  <DollarSign className="text-blue-400" size={20} />
+                  <h4 className="text-lg font-semibold text-white">💰 Configuración de Afiliación</h4>
                 </div>
 
-                {/* Características */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Características y Beneficios
-                  </label>
-                  <div className="space-y-2">
-                    {suscripcionData.caracteristicas.map((caracteristica, index) => (
-                      <div key={index} className="flex gap-2">
-                        <input
-                          type="text"
-                          value={caracteristica}
-                          onChange={(e) => handleCaracteristicaChange(index, e.target.value)}
-                          className="flex-1 px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-400"
-                          placeholder="ej. Acceso a todos los cursos premium"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveCaracteristica(index)}
-                          className="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-lg transition-colors"
+                <div className="space-y-4">
+                  {/* Activar Afiliación */}
+                  <div className="flex items-center">
+                    <input
+                      type="checkbox"
+                      id="suscripcion-afilible"
+                      checked={suscripcionData.afilible}
+                      onChange={(e) => setSuscripcionData(prev => ({ ...prev, afilible: e.target.checked }))}
+                      className="w-4 h-4 text-blue-600 bg-gray-800 border-gray-600 rounded focus:ring-blue-500"
+                    />
+                    <label htmlFor="suscripcion-afilible" className="ml-2 text-sm text-gray-300">
+                      Activar programa de afiliación para este servicio
+                    </label>
+                  </div>
+
+                  {suscripcionData.afilible && (
+                    <>
+                      {/* Selector de Niveles */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-300 mb-2">
+                          Estructura de Comisiones
+                        </label>
+                        <select
+                          value={suscripcionData.niveles_comision}
+                          onChange={(e) => setSuscripcionData(prev => ({ ...prev, niveles_comision: parseInt(e.target.value) }))}
+                          className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-400"
                         >
-                          <Trash2 size={16} />
-                        </button>
+                          <option value={1}>1 Nivel (Directo)</option>
+                          <option value={3}>3 Niveles (Multinivel)</option>
+                        </select>
                       </div>
-                    ))}
-                    <button
-                      type="button"
-                      onClick={handleAddCaracteristica}
-                      className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
-                    >
-                      <Plus size={16} />
-                      Agregar Característica
-                    </button>
-                  </div>
-                </div>
 
-                {/* Configuración de Afiliación */}
-                <div className="bg-gray-800/50 rounded-lg p-4 border border-blue-500/20">
-                  <div className="flex items-center gap-2 mb-4">
-                    <DollarSign className="text-blue-400" size={20} />
-                    <h4 className="text-lg font-semibold text-white">💰 Configuración de Afiliación</h4>
-                  </div>
-
-                  <div className="space-y-4">
-                    {/* Activar Afiliación */}
-                    <div className="flex items-center">
-                      <input
-                        type="checkbox"
-                        id="suscripcion-afilible"
-                        checked={suscripcionData.afilible}
-                        onChange={(e) => setSuscripcionData(prev => ({ ...prev, afilible: e.target.checked }))}
-                        className="w-4 h-4 text-blue-600 bg-gray-800 border-gray-600 rounded focus:ring-blue-500"
-                      />
-                      <label htmlFor="suscripcion-afilible" className="ml-2 text-sm text-gray-300">
-                        Activar programa de afiliación para este servicio
-                      </label>
-                    </div>
-
-                    {suscripcionData.afilible && (
-                      <>
-                        {/* Selector de Niveles */}
+                      {/* Comisiones por Nivel */}
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div>
                           <label className="block text-sm font-medium text-gray-300 mb-2">
-                            Estructura de Comisiones
+                            Comisión Nivel 1 (%)
                           </label>
-                          <select
-                            value={suscripcionData.niveles_comision}
-                            onChange={(e) => setSuscripcionData(prev => ({ ...prev, niveles_comision: parseInt(e.target.value) }))}
+                          <input
+                            type="number"
+                            min="0"
+                            max="100"
+                            step="0.1"
+                            value={suscripcionData.comision_nivel1}
+                            onChange={(e) => setSuscripcionData(prev => ({ ...prev, comision_nivel1: parseFloat(e.target.value) || 0 }))}
                             className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-400"
-                          >
-                            <option value={1}>1 Nivel (Directo)</option>
-                            <option value={3}>3 Niveles (Multinivel)</option>
-                          </select>
+                          />
                         </div>
 
-                        {/* Comisiones por Nivel */}
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        {suscripcionData.niveles_comision >= 2 && (
                           <div>
                             <label className="block text-sm font-medium text-gray-300 mb-2">
-                              Comisión Nivel 1 (%)
+                              Comisión Nivel 2 (%)
                             </label>
                             <input
                               type="number"
                               min="0"
                               max="100"
                               step="0.1"
-                              value={suscripcionData.comision_nivel1}
-                              onChange={(e) => setSuscripcionData(prev => ({ ...prev, comision_nivel1: parseFloat(e.target.value) || 0 }))}
+                              value={suscripcionData.comision_nivel2}
+                              onChange={(e) => setSuscripcionData(prev => ({ ...prev, comision_nivel2: parseFloat(e.target.value) || 0 }))}
                               className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-400"
                             />
                           </div>
+                        )}
 
-                          {suscripcionData.niveles_comision >= 2 && (
-                            <div>
-                              <label className="block text-sm font-medium text-gray-300 mb-2">
-                                Comisión Nivel 2 (%)
-                              </label>
-                              <input
-                                type="number"
-                                min="0"
-                                max="100"
-                                step="0.1"
-                                value={suscripcionData.comision_nivel2}
-                                onChange={(e) => setSuscripcionData(prev => ({ ...prev, comision_nivel2: parseFloat(e.target.value) || 0 }))}
-                                className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-400"
-                              />
-                            </div>
-                          )}
+                        {suscripcionData.niveles_comision >= 3 && (
+                          <div>
+                            <label className="block text-sm font-medium text-gray-300 mb-2">
+                              Comisión Nivel 3 (%)
+                            </label>
+                            <input
+                              type="number"
+                              min="0"
+                              max="100"
+                              step="0.1"
+                              value={suscripcionData.comision_nivel3}
+                              onChange={(e) => setSuscripcionData(prev => ({ ...prev, comision_nivel3: parseFloat(e.target.value) || 0 }))}
+                              className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-400"
+                            />
+                          </div>
+                        )}
+                      </div>
 
-                          {suscripcionData.niveles_comision >= 3 && (
-                            <div>
-                              <label className="block text-sm font-medium text-gray-300 mb-2">
-                                Comisión Nivel 3 (%)
-                              </label>
-                              <input
-                                type="number"
-                                min="0"
-                                max="100"
-                                step="0.1"
-                                value={suscripcionData.comision_nivel3}
-                                onChange={(e) => setSuscripcionData(prev => ({ ...prev, comision_nivel3: parseFloat(e.target.value) || 0 }))}
-                                className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-400"
-                              />
-                            </div>
-                          )}
-                        </div>
-
-                        {/* Información explicativa */}
-                        <div className="bg-blue-900/20 border border-blue-500/30 rounded-lg p-3">
-                          <div className="flex items-start gap-2">
-                            <Info className="text-blue-400 mt-0.5" size={16} />
-                            <div className="text-sm text-blue-200">
-                              <p className="font-medium mb-1">Comisiones Recurrentes:</p>
-                              <p>• <strong>Nivel 1:</strong> {suscripcionData.comision_nivel1}% de ${suscripcionData.precio} = ${((suscripcionData.precio * suscripcionData.comision_nivel1) / 100).toFixed(2)} cada {suscripcionData.duracion_dias === 30 ? 'mes' : suscripcionData.duracion_dias === 365 ? 'año' : `${suscripcionData.duracion_dias} días`}</p>
-                              {suscripcionData.niveles_comision >= 2 && (
-                                <p>• <strong>Nivel 2:</strong> {suscripcionData.comision_nivel2}% de ${suscripcionData.precio} = ${((suscripcionData.precio * suscripcionData.comision_nivel2) / 100).toFixed(2)} cada {suscripcionData.duracion_dias === 30 ? 'mes' : suscripcionData.duracion_dias === 365 ? 'año' : `${suscripcionData.duracion_dias} días`}</p>
-                              )}
-                              {suscripcionData.niveles_comision >= 3 && (
-                                <p>• <strong>Nivel 3:</strong> {suscripcionData.comision_nivel3}% de ${suscripcionData.precio} = ${((suscripcionData.precio * suscripcionData.comision_nivel3) / 100).toFixed(2)} cada {suscripcionData.duracion_dias === 30 ? 'mes' : suscripcionData.duracion_dias === 365 ? 'año' : `${suscripcionData.duracion_dias} días`}</p>
-                              )}
-                              <p className="mt-2 text-xs text-blue-300">
-                                ⚡ Los afiliados reciben comisiones recurrentes mientras la suscripción esté activa.
-                              </p>
-                            </div>
+                      {/* Información explicativa */}
+                      <div className="bg-blue-900/20 border border-blue-500/30 rounded-lg p-3">
+                        <div className="flex items-start gap-2">
+                          <Info className="text-blue-400 mt-0.5" size={16} />
+                          <div className="text-sm text-blue-200">
+                            <p className="font-medium mb-1">Comisiones Recurrentes:</p>
+                            <p>• <strong>Nivel 1:</strong> {suscripcionData.comision_nivel1}% de ${suscripcionData.precio} = ${((suscripcionData.precio * suscripcionData.comision_nivel1) / 100).toFixed(2)} cada {suscripcionData.duracion_dias === 30 ? 'mes' : suscripcionData.duracion_dias === 365 ? 'año' : `${suscripcionData.duracion_dias} días`}</p>
+                            {suscripcionData.niveles_comision >= 2 && (
+                              <p>• <strong>Nivel 2:</strong> {suscripcionData.comision_nivel2}% de ${suscripcionData.precio} = ${((suscripcionData.precio * suscripcionData.comision_nivel2) / 100).toFixed(2)} cada {suscripcionData.duracion_dias === 30 ? 'mes' : suscripcionData.duracion_dias === 365 ? 'año' : `${suscripcionData.duracion_dias} días`}</p>
+                            )}
+                            {suscripcionData.niveles_comision >= 3 && (
+                              <p>• <strong>Nivel 3:</strong> {suscripcionData.comision_nivel3}% de ${suscripcionData.precio} = ${((suscripcionData.precio * suscripcionData.comision_nivel3) / 100).toFixed(2)} cada {suscripcionData.duracion_dias === 30 ? 'mes' : suscripcionData.duracion_dias === 365 ? 'año' : `${suscripcionData.duracion_dias} días`}</p>
+                            )}
+                            <p className="mt-2 text-xs text-blue-300">
+                              ⚡ Los afiliados reciben comisiones recurrentes mientras la suscripción esté activa.
+                            </p>
                           </div>
                         </div>
-                      </>
-                    )}
-                  </div>
+                      </div>
+                    </>
+                  )}
                 </div>
+              </div>
 
-                <div className="flex items-center">
-                  <input
-                    type="checkbox"
-                    id="suscripcion-activa"
-                    checked={suscripcionData.activo}
-                    onChange={(e) => setSuscripcionData(prev => ({ ...prev, activo: e.target.checked }))}
-                    className="w-4 h-4 text-blue-600 bg-gray-800 border-gray-600 rounded focus:ring-blue-500"
-                  />
-                  <label htmlFor="suscripcion-activa" className="ml-2 text-sm text-gray-300">
-                    Suscripción activa
-                  </label>
-                </div>
+              <div className="flex items-center">
+                <input
+                  type="checkbox"
+                  id="suscripcion-activa"
+                  checked={suscripcionData.activo}
+                  onChange={(e) => setSuscripcionData(prev => ({ ...prev, activo: e.target.checked }))}
+                  className="w-4 h-4 text-blue-600 bg-gray-800 border-gray-600 rounded focus:ring-blue-500"
+                />
+                <label htmlFor="suscripcion-activa" className="ml-2 text-sm text-gray-300">
+                  Suscripción activa
+                </label>
+              </div>
 
-                <div className="flex gap-3 pt-4">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setShowSuscripcionModal(false);
-                      resetSuscripcionForm();
-                    }}
-                    className="flex-1 bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition-colors"
-                  >
-                    Cancelar
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={loading}
-                    className="flex-1 bg-gradient-to-r from-blue-500 to-cyan-600 hover:from-blue-400 hover:to-cyan-500 text-white px-4 py-2 rounded-lg flex items-center justify-center gap-2 transition-all disabled:opacity-50"
-                  >
-                    <Save size={16} />
-                    {loading ? 'Creando...' : 'Crear Suscripción'}
-                  </button>
-                </div>
-              </form>
-            </div>
+              <div className="flex gap-3 pt-4">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowSuscripcionModal(false);
+                    resetSuscripcionForm();
+                  }}
+                  className="flex-1 bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition-colors"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="flex-1 bg-gradient-to-r from-blue-500 to-cyan-600 hover:from-blue-400 hover:to-cyan-500 text-white px-4 py-2 rounded-lg flex items-center justify-center gap-2 transition-all disabled:opacity-50"
+                >
+                  <Save size={16} />
+                  {loading ? (editingServicio ? 'Actualizando...' : 'Creando...') : (editingServicio ? 'Actualizar Servicio' : 'Crear Servicio')}
+                </button>
+              </div>
+            </form>
           </motion.div>
         </div>
       )}
