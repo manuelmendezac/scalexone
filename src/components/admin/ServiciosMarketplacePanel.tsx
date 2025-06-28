@@ -233,6 +233,7 @@ const ServiciosMarketplacePanel: React.FC = () => {
     setLoading(true);
 
     try {
+      // Datos para servicios_marketplace (incluye campos de afiliación)
       const servicioData = {
         titulo: suscripcionData.titulo,
         descripcion: suscripcionData.descripcion,
@@ -246,7 +247,7 @@ const ServiciosMarketplacePanel: React.FC = () => {
         tipo_producto: suscripcionData.tipo_producto,
         tipo_pago: suscripcionData.tipo_pago,
         community_id: '8fb70d6e-3237-465e-8669-979461cf2bc1',
-        // Campos de afiliación
+        // Campos de afiliación (SOLO para servicios_marketplace)
         afilible: suscripcionData.afilible,
         niveles_comision: suscripcionData.niveles_comision,
         comision_nivel1: suscripcionData.comision_nivel1,
@@ -259,15 +260,33 @@ const ServiciosMarketplacePanel: React.FC = () => {
 
       // Agregar campos específicos según el tipo de producto
       if (suscripcionData.tipo_producto === 'suscripcion') {
+        // Datos para planes_suscripcion (SIN campos de afiliación)
         const planData = {
-          ...servicioData,
+          comunidad_id: '8fb70d6e-3237-465e-8669-979461cf2bc1',
+          nombre: `${suscripcionData.tipo_pago === 'pago_unico' ? 'Servicio' : 'Plan'}: ${suscripcionData.titulo}`,
+          descripcion: suscripcionData.descripcion,
+          precio: suscripcionData.precio,
+          moneda: 'USD',
           duracion_dias: suscripcionData.tipo_pago === 'pago_unico' ? 0 : suscripcionData.duracion_dias,
+          caracteristicas: suscripcionData.caracteristicas.filter(c => c.trim() !== ''),
+          activo: suscripcionData.activo,
+          orden: 0,
+          limites: {},
           configuracion: {
             tipo: suscripcionData.tipo_pago === 'pago_unico' ? 'servicio_pago_unico' : 'servicio_suscripcion',
+            pago_unico: suscripcionData.tipo_pago === 'pago_unico',
             caracteristicas: suscripcionData.caracteristicas.filter(c => c.trim() !== ''),
             acceso_completo: true,
             recursos_incluidos: ['Acceso completo al servicio'],
-            soporte_incluido: true
+            soporte_incluido: true,
+            // Configuración de afiliación (dentro de configuracion, no como campos directos)
+            afiliacion: {
+              habilitada: suscripcionData.afilible,
+              niveles: suscripcionData.niveles_comision,
+              comision_nivel1: suscripcionData.comision_nivel1,
+              comision_nivel2: suscripcionData.comision_nivel2,
+              comision_nivel3: suscripcionData.comision_nivel3
+            }
           }
         };
 
