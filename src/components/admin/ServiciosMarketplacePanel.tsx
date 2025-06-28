@@ -214,7 +214,7 @@ const ServiciosMarketplacePanel: React.FC = () => {
         descripcion: suscripcionData.descripcion,
         precio: suscripcionData.precio,
         moneda: 'USD',
-        duracion_dias: esPagoUnico ? null : (suscripcionData.duracion_dias || 30), // ✅ Null para pago único
+        duracion_dias: esPagoUnico ? 0 : (suscripcionData.duracion_dias || 30), // ✅ 0 para pago único (permanente)
         caracteristicas: suscripcionData.caracteristicas.filter(c => c.trim() !== ''), // ✅ JS Array
         activo: true,
         orden: 0,
