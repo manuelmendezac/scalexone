@@ -63,7 +63,7 @@ const ServiciosMarketplacePanel: React.FC = () => {
     precio: 0,
     imagen_url: '',
     proveedor: 'ScaleXone',
-    categoria: 'Suscripción Premium',
+    categoria: 'Consultoría',
     rating: 4.8,
     reviews: 0,
     activo: true,
@@ -383,7 +383,7 @@ const ServiciosMarketplacePanel: React.FC = () => {
       precio: 0,
       imagen_url: '',
       proveedor: 'ScaleXone',
-      categoria: 'Suscripción Premium',
+      categoria: 'Consultoría',
       rating: 4.8,
       reviews: 0,
       activo: true,
@@ -1006,6 +1006,22 @@ const ServiciosMarketplacePanel: React.FC = () => {
                     rows={3}
                     placeholder="Describe los beneficios y características de la suscripción..."
                   />
+                </div>
+
+                {/* Categoría del Servicio */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Categoría del Servicio
+                  </label>
+                  <select
+                    value={suscripcionData.categoria}
+                    onChange={(e) => setSuscripcionData(prev => ({ ...prev, categoria: e.target.value }))}
+                    className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-400"
+                  >
+                    {categorias.map(categoria => (
+                      <option key={categoria} value={categoria}>{categoria}</option>
+                    ))}
+                  </select>
                 </div>
 
                 {/* Precio y duración */}
