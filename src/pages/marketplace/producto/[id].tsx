@@ -226,6 +226,64 @@ const PaginaProductoMarketplace: React.FC = () => {
         </div>
       </div>
       
+      {/* Nueva Sección de Video y Puntos Clave */}
+      <div className="py-16 sm:py-24">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            {/* Columna de Video */}
+            <div className="relative aspect-video rounded-lg overflow-hidden group bg-black">
+              <img 
+                src="https://images.pexels.com/photos/7788009/pexels-photo-7788009.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2" 
+                alt="Video thumbnail" 
+                className="w-full h-full object-cover transition-transform group-hover:scale-110"
+              />
+              <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                <button className="bg-white/10 backdrop-blur-sm p-4 rounded-full text-white hover:bg-white/20 transition-colors">
+                  <PlayCircle size={64} />
+                </button>
+              </div>
+            </div>
+
+            {/* Columna de Texto */}
+            <div className="flex flex-col gap-4">
+              <h2 className="text-3xl sm:text-4xl font-extrabold text-white">Tu camino hacia el éxito empieza ahora.</h2>
+              <p className="text-gray-400 text-lg">
+                Con el respaldo de nuestra comunidad y expertos, te abrimos las puertas. Si...
+              </p>
+              <ul className="space-y-3 mt-4">
+                <li className="flex items-center gap-3">
+                  <CheckCircle className="h-6 w-6 text-blue-500 flex-shrink-0" />
+                  <span className="text-white">¿Estás cansado de cursos teóricos que no llevan a ninguna parte?</span>
+                </li>
+                <li className="flex items-center gap-3">
+                  <CheckCircle className="h-6 w-6 text-blue-500 flex-shrink-0" />
+                  <span className="text-white">¿Quieres resultados reales y operar con un equipo profesional?</span>
+                </li>
+                <li className="flex items-center gap-3">
+                  <CheckCircle className="h-6 w-6 text-blue-500 flex-shrink-0" />
+                  <span className="text-white">¿Te gustaría aprender con respaldo global y acceso a capital?</span>
+                </li>
+              </ul>
+              <div className="mt-6 flex items-center gap-6">
+                <button className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition-all transform hover:scale-105">
+                  Entonces esto es para ti
+                </button>
+                <div className="flex flex-col items-start">
+                  <div className="flex text-yellow-400">
+                    <Star className="w-5 h-5 fill-current" />
+                    <Star className="w-5 h-5 fill-current" />
+                    <Star className="w-5 h-5 fill-current" />
+                    <Star className="w-5 h-5 fill-current" />
+                    <Star className="w-5 h-5 fill-current" />
+                  </div>
+                  <p className="text-sm text-gray-400 mt-1">+300 usuarios activos</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Barra de Información Clave */}
       <div className="border-y border-gray-800">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
