@@ -208,8 +208,7 @@ const PaginaProductoMarketplace: React.FC = () => {
   // Renderizado de la página de producto con diseño
   return (
     <div className="bg-black text-white min-h-screen">
-      {/* HERO editable */}
-      <HeroEditableSection producto={producto} onUpdate={nuevosDatos => setProducto(p => ({ ...p, portada_datos: nuevosDatos }))} />
+      <HeroEditableSection producto={producto} onUpdate={nuevosDatos => setProducto(p => ({ ...p!, portada_datos: nuevosDatos }))} />
       <div className="relative">
         <button 
           onClick={handleBack}
