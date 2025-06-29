@@ -113,11 +113,16 @@ export default function IncluyeAccesoEditableSection({ producto, onUpdate }: Pro
         // Si falla, sube el original
       }
     }
+    // Detectar bucket según tipo de producto
+    let bucket = 'cursos-marketplace';
+    if (producto.tipo_pago && producto.tipo_pago === 'suscripcion' && producto.categoria && producto.categoria.toLowerCase().includes('servicio')) {
+      bucket = 'servicios-marketplace';
+    }
     const filePath = `incluye-acceso/${producto.id}/icono_${idx}_${Date.now()}.webp`;
-    const { data, error } = await supabase.storage.from('public').upload(filePath, uploadFile, { upsert: true });
+    const { data, error } = await supabase.storage.from(bucket).upload(filePath, uploadFile, { upsert: true });
     setUploading(null);
     if (!error) {
-      const url = supabase.storage.from('public').getPublicUrl(filePath).publicUrl;
+      const url = supabase.storage.from(bucket).getPublicUrl(filePath).data.publicUrl;
       setForm(f => ({
         ...f,
         bloques: f.bloques.map((b, i) => i === idx ? { ...b, icono_url: url } : b)
