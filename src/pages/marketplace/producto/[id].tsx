@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../../../supabase';
 import { BookOpen, Users, Award, PlayCircle, Star, ArrowLeft, ShoppingCart, CheckCircle, Info, Calendar, Globe, Users as UsersIcon, Video, Radio, BookOpenCheck, BellRing, Globe2, ShieldCheck, XCircle } from 'lucide-react';
@@ -70,6 +70,12 @@ const PaginaProductoMarketplace: React.FC = () => {
   const [producto, setProducto] = useState<ProductoMarketplace | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const membresiasRef = useRef<HTMLDivElement>(null);
+  
+  // Función para hacer scroll a la sección de membresías
+  const handleScrollToMembresias = () => {
+    membresiasRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
   
   // Función para obtener el icono de la plataforma (simplificada)
   const getPlataformaIcon = (plataforma: string) => {
@@ -342,7 +348,10 @@ const PaginaProductoMarketplace: React.FC = () => {
                 </li>
               </ul>
               <div className="mt-6 flex items-center gap-6">
-                <button className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition-all transform hover:scale-105">
+                <button 
+                  onClick={handleScrollToMembresias}
+                  className={`bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition-all transform hover:scale-105 ${theme.button}`}
+                >
                   Entonces esto es para ti
                 </button>
                 <div className="flex flex-col items-start">
@@ -521,7 +530,7 @@ const PaginaProductoMarketplace: React.FC = () => {
       </div>
 
       {/* SECCIÓN DE MEMBRESÍAS - DISEÑO DETALLADO */}
-      <div className="relative bg-black py-16 sm:py-24">
+      <div ref={membresiasRef} className="relative bg-black py-16 sm:py-24">
         <div className="absolute inset-0 opacity-20">
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(29,78,216,0.2)_0%,rgba(0,0,0,0)_70%)]"></div>
         </div>
