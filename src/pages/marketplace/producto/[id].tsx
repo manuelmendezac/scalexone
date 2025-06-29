@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../../../supabase';
-import { BookOpen, Users, Award, PlayCircle, Star, ArrowLeft, ShoppingCart, CheckCircle, Info, Calendar, Globe, Users as UsersIcon, Video, Radio, BookOpenCheck, BellRing, Globe2, ShieldCheck } from 'lucide-react';
+import { BookOpen, Users, Award, PlayCircle, Star, ArrowLeft, ShoppingCart, CheckCircle, Info, Calendar, Globe, Users as UsersIcon, Video, Radio, BookOpenCheck, BellRing, Globe2, ShieldCheck, XCircle } from 'lucide-react';
 
 // Estructura de datos que esperamos de la BD
 // Unificada para cursos y servicios del marketplace
@@ -399,6 +399,70 @@ const PaginaProductoMarketplace: React.FC = () => {
             </div>
         </div>
     </div>
+
+      {/* Sección Conoce al Experto (Sticky) */}
+      <div className="py-16 sm:py-24">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16">
+            {/* Columna Izquierda (Scroll) */}
+            <div className="space-y-8">
+              <div className="flex flex-wrap items-center gap-3">
+                <span className="bg-blue-600 text-white text-xs font-bold uppercase px-3 py-1 rounded-full">Trader Pro</span>
+                <span className="bg-gray-700 text-gray-300 text-xs font-bold uppercase px-3 py-1 rounded-full">Especialista en Oro (XAU/USD)</span>
+              </div>
+              
+              <h2 className="text-4xl lg:text-5xl font-extrabold text-white">Conoce a VicForex</h2>
+              <p className="text-2xl text-gray-400">Trader Profesional, Mentor e Inversionista</p>
+              <p className="text-gray-300">
+                Con más de 4 años operando de forma constante y disciplinada, VicForex ha perfeccionado un enfoque sólido basado en análisis técnico, acción del precio y gestión de riesgo inteligente. Su método se ha forjado operando en vivo, bajo condiciones reales de mercado, y ha sido validado día tras día, sin atajos ni promesas vacías.
+              </p>
+
+              <div className="bg-gray-900/50 p-6 rounded-2xl border border-blue-900/40">
+                <p className="text-gray-300">
+                  En la Trading Room VicForex no solo analiza, sino que opera en tiempo real. Comparte su proceso, su lectura del mercado y su toma de decisiones, ayudando a traders a salir de la teoría y desarrollar una mentalidad operativa profesional.
+                </p>
+                <blockquote className="my-4 border-l-4 border-blue-500 pl-4 italic text-gray-400">
+                  "Una buena señal no es solo cuándo entrar. Es cuándo NO hacerlo. El silencio también es parte de una estrategia." – VicForex
+                </blockquote>
+                <ul className="space-y-3 mt-4">
+                  <li className="flex items-start gap-3">
+                    <XCircle className="h-5 w-5 text-red-500 flex-shrink-0 mt-1" />
+                    <span>Nada de cursos grabados o fórmulas mágicas.</span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0 mt-1" />
+                    <span>Acompañamiento real, entorno profesional y evolución constante junto a una comunidad comprometida, global y enfocada en el crecimiento real.</span>
+                  </li>
+                </ul>
+              </div>
+              <button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-6 rounded-lg text-lg transition-all transform hover:scale-105">
+                Aprende de alguien que opera lo que enseña
+              </button>
+            </div>
+
+            {/* Columna Derecha (Sticky) */}
+            <div className="relative h-full">
+              <div className="lg:sticky lg:top-24">
+                <div className="bg-gray-900/70 bg-[radial-gradient(ellipse_at_top,_rgba(29,78,216,0.15),_transparent_70%)] p-8 rounded-2xl border border-blue-800/50 shadow-2xl shadow-blue-500/10 text-center">
+                  <img 
+                    src="https://i.imgur.com/kS9k8yM.png" 
+                    alt="Victor Acosta" 
+                    className="w-48 h-48 rounded-full mx-auto object-cover border-4 border-gray-700"
+                  />
+                  <h3 className="mt-6 text-3xl font-bold text-white tracking-wider">VICTOR ACOSTA</h3>
+                  <div className="mt-4 flex justify-center items-center gap-2">
+                    <img src="https://flagcdn.com/w40/mx.png" alt="Bandera México" className="w-6 h-auto" title="México"/>
+                    <img src="https://flagcdn.com/w40/us.png" alt="Bandera USA" className="w-6 h-auto" title="USA"/>
+                    <img src="https://flagcdn.com/w40/co.png" alt="Bandera Colombia" className="w-6 h-auto" title="Colombia"/>
+                    <img src="https://flagcdn.com/w40/es.png" alt="Bandera España" className="w-6 h-auto" title="España"/>
+                    <img src="https://flagcdn.com/w40/ve.png" alt="Bandera Venezuela" className="w-6 h-auto" title="Venezuela"/>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
 
       {/* Sección de Testimonios (Placeholder) */}
       <div className="py-16 sm:py-24">
