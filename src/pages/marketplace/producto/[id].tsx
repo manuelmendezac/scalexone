@@ -400,10 +400,10 @@ const PaginaProductoMarketplace: React.FC = () => {
         </div>
     </div>
 
-      {/* Sección Conoce al Experto (Sticky) */}
+      {/* Sección Conoce al Experto (Sticky & Animada) */}
       <div className="py-16 sm:py-24">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-start">
             {/* Columna Izquierda (Scroll) */}
             <div className="space-y-8">
               <div className="flex flex-wrap items-center gap-3">
@@ -440,10 +440,10 @@ const PaginaProductoMarketplace: React.FC = () => {
               </button>
             </div>
 
-            {/* Columna Derecha (Sticky) */}
-            <div className="relative">
-              <div className="lg:sticky lg:top-24">
-                <div className="bg-gray-900/70 bg-[radial-gradient(ellipse_at_center,_rgba(29,78,216,0.15),_transparent_60%)] p-8 rounded-2xl border border-blue-800/50 shadow-2xl shadow-blue-500/10 text-center flex flex-col items-center">
+            {/* Columna Derecha (Contenedor para el elemento Sticky) */}
+            <div className="relative h-full">
+              <div className="lg:sticky lg:top-24 transition-all duration-300 ease-in-out hover:scale-[1.03]">
+                <div className="bg-gray-900/70 bg-[radial-gradient(ellipse_at_center,_rgba(29,78,216,0.20),_transparent_70%)] p-8 rounded-2xl border border-blue-800/50 shadow-2xl shadow-blue-500/20 hover:shadow-blue-400/30 flex flex-col items-center">
                   <img 
                     src="https://i.imgur.com/3SKsD62.png" 
                     alt="Logo del experto"
