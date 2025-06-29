@@ -399,7 +399,6 @@ const PaginaProductoMarketplace: React.FC = () => {
             </div>
         </div>
     </div>
-
       {/* Sección Conoce al Experto (Sticky & Animada) - VERSIÓN CORREGIDA */}
       <div className="py-16 sm:py-24">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -416,14 +415,14 @@ const PaginaProductoMarketplace: React.FC = () => {
               <p className="text-gray-300">
                 Con más de 4 años operando de forma constante y disciplinada, VicForex ha perfeccionado un enfoque sólido basado en análisis técnico, acción del precio y gestión de riesgo inteligente. Su método se ha forjado operando en vivo, bajo condiciones reales de mercado, y ha sido validado día tras día, sin atajos ni promesas vacías.
               </p>
-
+              
               <div className="bg-gray-900/50 p-6 rounded-2xl border border-blue-900/40">
                 <p className="text-gray-300">
                   En la Trading Room VicForex no solo analiza, sino que opera en tiempo real. Comparte su proceso, su lectura del mercado y su toma de decisiones, ayudando a traders a salir de la teoría y desarrollar una mentalidad operativa profesional.
                 </p>
                 <blockquote className="my-4 border-l-4 border-blue-500 pl-4 italic text-gray-400">
-                  "Una buena señal no es solo cuándo entrar. Es cuándo NO hacerlo. El silencio también es parte de una estrategia." – VicForex
-                </blockquote>
+                   "Una buena señal no es solo cuándo entrar. Es cuándo NO hacerlo. El silencio también es parte de una estrategia." – VicForex
+                 </blockquote>
                 <ul className="space-y-3 mt-4">
                   <li className="flex items-start gap-3">
                     <XCircle className="h-5 w-5 text-red-500 flex-shrink-0 mt-1" />
@@ -433,13 +432,13 @@ const PaginaProductoMarketplace: React.FC = () => {
                     <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0 mt-1" />
                     <span>Acompañamiento real, entorno profesional y evolución constante junto a una comunidad comprometida, global y enfocada en el crecimiento real.</span>
                   </li>
-                </ul>
-              </div>
+                 </ul>
+               </div>
               <button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-6 rounded-lg text-lg transition-all transform hover:scale-105">
                 Aprende de alguien que opera lo que enseña
               </button>
             </div>
-
+            
             {/* Columna Derecha (Contenedor para el elemento Sticky) */}
             <div>
               <div className="lg:sticky lg:top-24">
@@ -464,100 +463,61 @@ const PaginaProductoMarketplace: React.FC = () => {
                         <img src="https://flagcdn.com/w40/cl.png" alt="Bandera Chile" className="w-6 h-auto" title="Chile"/>
                         <img src="https://flagcdn.com/w40/es.png" alt="Bandera España" className="w-6 h-auto" title="España"/>
                       </div>
-                    </div>
-                </div>
-              </div>
+                   </div>
+                 </div>
+               </div>
+             </div>
+          </div>
+        </div>
+      </div>
+      {/* SECCIÓN RESTAURADA: Membresías */}
+      <div className="relative bg-black py-16 sm:py-24">
+        <div className="absolute inset-0 opacity-20">
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(0,194,255,0.3)_0%,rgba(0,0,0,0)_70%)]"></div>
+        </div>
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative">
+          <div className="max-w-3xl mx-auto text-center">
+            <h2 className="text-3xl font-extrabold text-white sm:text-4xl">Elige tu plan de acceso</h2>
+            <p className="mt-4 text-lg text-gray-400">Acceso inmediato a la comunidad, sesiones en vivo y todos los beneficios.</p>
+          </div>
+          <div className="mt-12 grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="bg-gray-900/50 p-8 rounded-2xl border border-blue-900/40 shadow-xl flex flex-col">
+              <h3 className="text-xl font-bold text-white mb-2">Plan Básico</h3>
+              <p className="text-5xl font-extrabold text-white">$99</p>
+              <ul className="mt-6 space-y-3 text-gray-300 flex-grow">
+                <li className="flex gap-3"><CheckCircle className="text-blue-500 w-5 h-5" />Sesiones en Vivo</li>
+              </ul>
+              <button className="mt-8 w-full bg-blue-600 text-white font-bold py-3 rounded-lg">Suscribirse</button>
+            </div>
+            <div className="relative bg-gray-900 p-8 rounded-2xl border-2 border-green-400 shadow-2xl flex flex-col -my-4">
+               <div className="absolute top-0 -translate-y-1/2 w-full flex justify-center"><span className="bg-green-400 text-black text-sm font-bold uppercase px-4 py-1 rounded-full">Recomendado</span></div>
+              <h3 className="text-xl font-bold text-white mb-2">Plan Pro</h3>
+              <p className="text-5xl font-extrabold text-white">$147</p>
+              <ul className="mt-6 space-y-3 text-gray-300 flex-grow">
+                <li className="flex gap-3"><CheckCircle className="text-green-400 w-5 h-5" />Todo lo del Básico</li>
+                <li className="flex gap-3"><CheckCircle className="text-green-400 w-5 h-5" />Bonos Premium</li>
+              </ul>
+              <button className="mt-8 w-full bg-green-400 text-black font-bold py-3 rounded-lg">Suscribirse</button>
+            </div>
+            <div className="bg-gray-900/50 p-8 rounded-2xl border border-blue-900/40 shadow-xl flex flex-col">
+              <h3 className="text-xl font-bold text-white mb-2">Plan Avanzado</h3>
+              <p className="text-5xl font-extrabold text-white">$175</p>
+              <ul className="mt-6 space-y-3 text-gray-300 flex-grow">
+                <li className="flex gap-3"><CheckCircle className="text-blue-500 w-5 h-5" />Todo lo del Pro</li>
+                <li className="flex gap-3"><CheckCircle className="text-blue-500 w-5 h-5" />Mentoría 1x1</li>
+              </ul>
+              <button className="mt-8 w-full bg-blue-600 text-white font-bold py-3 rounded-lg">Suscribirse</button>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Sección de Planes de Membresía */}
+      {/* Sección de Testimonios */}
       <div className="bg-black py-16 sm:py-24">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            
-            {/* Plan Básico */}
-            <div className="bg-gray-900/50 p-8 rounded-2xl border border-blue-900/40 shadow-xl shadow-blue-500/10 flex flex-col">
-              <div className="flex-grow">
-                <h3 className="text-xl font-bold text-white mb-2 flex items-center gap-2"><Star size={18} className="text-blue-400"/>Plan Básico</h3>
-                <div className="flex items-baseline gap-3 my-4">
-                  <p className="text-5xl font-extrabold text-white">$99.00</p>
-                  <span className="bg-gray-700 text-gray-300 px-2 py-1 text-sm font-semibold rounded">Mensual</span>
-                </div>
-                <p className="text-gray-400 mb-6">Perfecto para dar tu primer paso.</p>
-                <button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition-all">Suscribirse</button>
-                <p className="text-white font-semibold mt-8 mb-4">Lo que incluye:</p>
-                <ul className="space-y-3 text-gray-300">
-                  <li className="flex gap-3"><CheckCircle className="text-blue-500 w-5 h-5 flex-shrink-0" />Sesiones de Trading en Vivo</li>
-                  <li className="flex gap-3"><CheckCircle className="text-blue-500 w-5 h-5 flex-shrink-0" />Alertas en Tiempo Real</li>
-                  <li className="flex gap-3"><CheckCircle className="text-blue-500 w-5 h-5 flex-shrink-0" />Comunidad Global de Traders</li>
-                  <li className="flex gap-3"><CheckCircle className="text-blue-500 w-5 h-5 flex-shrink-0" />Bonos VicForex</li>
-                  <li className="flex gap-3 text-gray-500"><XCircle className="w-5 h-5 flex-shrink-0" />Bonos Premium</li>
-                  <li className="flex gap-3 text-gray-500"><XCircle className="w-5 h-5 flex-shrink-0" />Mentoría 1x1</li>
-                </ul>
-              </div>
-            </div>
-
-            {/* Plan Pro (Destacado) */}
-            <div className="relative bg-gray-900 p-8 rounded-2xl border-2 border-green-400 shadow-2xl shadow-green-500/20 flex flex-col -my-4">
-              <div className="absolute top-0 -translate-y-1/2 w-full flex justify-center">
-                <span className="bg-green-400 text-black text-sm font-bold uppercase px-4 py-1 rounded-full flex items-center gap-2"><Star size={16}/>El favorito de todos</span>
-              </div>
-              <div className="flex-grow">
-                <h3 className="text-xl font-bold text-white mb-2 flex items-center gap-2"><Star size={18} className="text-green-400"/>Plan Pro</h3>
-                <div className="flex items-baseline gap-3 my-4">
-                  <p className="text-5xl font-extrabold text-white">$147.00</p>
-                  <span className="bg-gray-700 text-gray-300 px-2 py-1 text-sm font-semibold rounded">Trimestral</span>
-                </div>
-                <p className="text-gray-400 mb-6">Ahorra $150 vs pagar mes a mes.</p>
-                <button className="w-full bg-green-400 hover:bg-green-500 text-black font-bold py-3 px-6 rounded-lg transition-all">Suscribirse</button>
-                <p className="text-white font-semibold mt-8 mb-4">Lo que incluye:</p>
-                <ul className="space-y-3 text-gray-300">
-                  <li className="flex gap-3"><CheckCircle className="text-green-400 w-5 h-5 flex-shrink-0" />Sesiones de Trading en Vivo</li>
-                  <li className="flex gap-3"><CheckCircle className="text-green-400 w-5 h-5 flex-shrink-0" />Alertas en Tiempo Real</li>
-                  <li className="flex gap-3"><CheckCircle className="text-green-400 w-5 h-5 flex-shrink-0" />Comunidad Global de Traders</li>
-                  <li className="flex gap-3"><CheckCircle className="text-green-400 w-5 h-5 flex-shrink-0" />Bonos VicForex</li>
-                  <li className="flex gap-3"><CheckCircle className="text-green-400 w-5 h-5 flex-shrink-0" />Bonos Premium</li>
-                  <li className="flex gap-3 text-gray-500"><XCircle className="w-5 h-5 flex-shrink-0" />Mentoría 1x1</li>
-                </ul>
-              </div>
-            </div>
-
-            {/* Plan Avanzado */}
-            <div className="bg-gray-900/50 p-8 rounded-2xl border border-blue-900/40 shadow-xl shadow-blue-500/10 flex flex-col">
-              <div className="flex-grow">
-                <h3 className="text-xl font-bold text-white mb-2 flex items-center gap-2"><Star size={18} className="text-blue-400"/>Plan Avanzado</h3>
-                <div className="flex items-baseline gap-3 my-4">
-                  <p className="text-5xl font-extrabold text-white">$175.00</p>
-                  <span className="bg-gray-700 text-gray-300 px-2 py-1 text-sm font-semibold rounded">Semestral</span>
-                </div>
-                <p className="text-gray-400 mb-6">¡Menos de $1 por día!</p>
-                <button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition-all">Suscribirse</button>
-                <p className="text-white font-semibold mt-8 mb-4">Lo que incluye:</p>
-                <ul className="space-y-3 text-gray-300">
-                  <li className="flex gap-3"><CheckCircle className="text-blue-500 w-5 h-5 flex-shrink-0" />Sesiones de Trading en Vivo</li>
-                  <li className="flex gap-3"><CheckCircle className="text-blue-500 w-5 h-5 flex-shrink-0" />Alertas en Tiempo Real</li>
-                  <li className="flex gap-3"><CheckCircle className="text-blue-500 w-5 h-5 flex-shrink-0" />Comunidad Global de Traders</li>
-                  <li className="flex gap-3"><CheckCircle className="text-blue-500 w-5 h-5 flex-shrink-0" />Bonos VicForex</li>
-                  <li className="flex gap-3"><CheckCircle className="text-blue-500 w-5 h-5 flex-shrink-0" />Bonos Premium</li>
-                  <li className="flex gap-3"><CheckCircle className="text-blue-500 w-5 h-5 flex-shrink-0" />Mentoría 1x1</li>
-                </ul>
-              </div>
-            </div>
-
-          </div>
-        </div>
-      </div>
-
-      {/* Sección de Testimonios (Placeholder) */}
-      <div className="py-16 sm:py-24">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="max-w-3xl mx-auto text-center">
-              <h2 className="text-3xl font-extrabold text-white sm:text-4xl">Lo que dicen nuestros clientes</h2>
-              <p className="mt-4 text-lg text-gray-400">
-                Resultados reales de personas reales.
-              </p>
+          <div className="text-center">
+            <h2 className="text-3xl font-extrabold text-white sm:text-4xl">Lo que dicen nuestros clientes</h2>
+            <p className="mt-4 text-lg text-gray-400">Únete a cientos de traders que han transformado su operativa.</p>
           </div>
           <div className="mt-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {/* Testimonio 1 */}
