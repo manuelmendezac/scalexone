@@ -389,19 +389,17 @@ const PaginaProductoMarketplace: React.FC = () => {
                     </ul>
                 </div>
 
-                {/* Bloque 5: Bonos Premium (Ocupa todo el ancho) */}
-                <div className="bg-gray-900/50 p-8 rounded-2xl border border-blue-900/40 shadow-xl shadow-blue-500/10 lg:col-span-2 flex flex-col md:flex-row items-center gap-8">
-                    <div className="flex-shrink-0">
-                        <div className="bg-yellow-500/10 p-4 rounded-xl"><ShieldCheck size={64} className="text-yellow-400"/></div>
+                {/* Bloque 5: Bonos Premium */}
+                <div className="bg-gray-900/50 p-8 rounded-2xl border border-blue-900/40 shadow-xl shadow-blue-500/10 flex flex-col">
+                    <div className="flex justify-center mb-6">
+                        <div className="bg-yellow-500/10 p-4 rounded-xl"><ShieldCheck size={48} className="text-yellow-400"/></div>
                     </div>
-                    <div className="flex-grow text-center md:text-left">
-                        <h3 className="text-xl font-bold text-white mb-3">Bonos Premium <span className="text-base font-normal text-gray-400">(Máximo para 10 nuevos usuarios)</span></h3>
-                        <ul className="space-y-2 text-gray-400">
-                            <li className="flex gap-3"><CheckCircle className="text-blue-500 w-5 h-5 flex-shrink-0 mt-1" /><span>Acceso gratuito al sistema de copytrading.</span></li>
-                            <li className="flex gap-3"><CheckCircle className="text-blue-500 w-5 h-5 flex-shrink-0 mt-1" /><span>Sorteo de cuentas de 1000 dólares cada mes.</span></li>
-                            <li className="flex gap-3"><CheckCircle className="text-blue-500 w-5 h-5 flex-shrink-0 mt-1" /><span>Mentoría Dubai Trading Society.</span></li>
-                        </ul>
-                    </div>
+                    <h3 className="text-xl font-bold text-white mb-3">Bonos Premium <span className="text-base font-normal text-gray-400">(Máximo 10)</span></h3>
+                    <ul className="space-y-2 text-gray-400">
+                        <li className="flex gap-3"><CheckCircle className="text-blue-500 w-5 h-5 flex-shrink-0 mt-1" /><span>Acceso gratuito al sistema de copytrading.</span></li>
+                        <li className="flex gap-3"><CheckCircle className="text-blue-500 w-5 h-5 flex-shrink-0 mt-1" /><span>Sorteo de cuentas de $1000 dólares cada mes.</span></li>
+                        <li className="flex gap-3"><CheckCircle className="text-blue-500 w-5 h-5 flex-shrink-0 mt-1" /><span>Mentoría Dubai Trading Society.</span></li>
+                    </ul>
                 </div>
             </div>
         </div>
