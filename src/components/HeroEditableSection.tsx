@@ -65,6 +65,14 @@ export default function HeroEditableSection({ producto, onUpdate }: HeroEditable
 
   const videoEmbed = parseVideoUrl(form.video_url);
 
+  // Nueva función para scroll al anclaje de membresías
+  const handleScrollToMembresias = () => {
+    const target = document.getElementById('membresias');
+    if (target) {
+      target.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
   return (
     <div className="relative bg-black py-16">
       {isAdmin && (
@@ -99,7 +107,12 @@ export default function HeroEditableSection({ producto, onUpdate }: HeroEditable
             ))}
           </ul>
           <div className="mt-6 flex items-center gap-4">
-            <button className="bg-blue-600 text-white px-6 py-3 rounded-lg font-bold">{form.cta_texto}</button>
+            <button
+              className="bg-blue-600 text-white px-6 py-3 rounded-lg font-bold"
+              onClick={handleScrollToMembresias}
+            >
+              {form.cta_texto}
+            </button>
             <div className="flex items-center gap-1 text-yellow-400">
               {'★'.repeat(Number(form.rating))}
             </div>
