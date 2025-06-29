@@ -12,6 +12,13 @@ type ProductoMarketplace = {
   precio: number;
   imagen_url?: string;
   tipo_pago?: 'pago_unico' | 'suscripcion';
+  categoria?: string;
+  instructor?: string;
+  caracteristicas?: string[];
+  nivel?: string;
+  duracion_horas?: number;
+  estudiantes?: number;
+  rating?: number;
   // --- CAMPOS PARA LA CARTA DE VENTAS (a definir) ---
   portada_datos?: { // datos de la sección HERO
     logo_url?: string;
@@ -149,22 +156,248 @@ const PaginaProductoMarketplace: React.FC = () => {
   const titulo = portada?.titulo || producto.titulo;
   const descripcion = portada?.descripcion || producto.descripcion;
 
-  // Renderizado temporal para verificar que los datos se cargan
+  // Renderizado de la página de producto con diseño
   return (
-    <div className="bg-black text-white min-h-screen p-8">
-       <button 
-        onClick={handleBack}
-        className="fixed top-4 left-4 z-50 bg-black/50 backdrop-blur-sm p-2 rounded-full text-white hover:bg-white/20 transition-colors"
-      >
-        <ArrowLeft size={24} />
-      </button>
-      <h1 className="text-4xl font-bold text-cyan-400 mb-4">Datos del Producto (Prueba)</h1>
-      <h2 className="text-2xl font-bold">{producto.titulo}</h2>
-      <p className="text-gray-300 mt-2">{producto.descripcion}</p>
-      <p className="text-yellow-400 text-3xl font-bold mt-4">${producto.precio}</p>
-      <pre className="mt-8 bg-gray-900 p-4 rounded-lg text-xs overflow-x-auto">
-        {JSON.stringify(producto, null, 2)}
-      </pre>
+    <div className="bg-black text-white min-h-screen">
+      <div className="relative">
+        <button 
+          onClick={handleBack}
+          className="absolute top-4 left-4 z-20 bg-black/50 backdrop-blur-sm p-2 rounded-full text-white hover:bg-white/20 transition-colors"
+        >
+          <ArrowLeft size={24} />
+        </button>
+
+        {/* Imagen de fondo (opcional, para dar profundidad) */}
+        {producto.imagen_url && (
+          <div 
+            className="absolute top-0 left-0 w-full h-96 bg-cover bg-center opacity-20 blur-lg"
+            style={{ backgroundImage: `url(${producto.imagen_url})` }}
+          />
+        )}
+        
+        <div className="relative container mx-auto px-4 sm:px-6 lg:px-8 py-24">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-16 items-center">
+            
+            {/* Columna de la Imagen */}
+            <div className="w-full h-auto bg-gray-900/50 rounded-lg overflow-hidden shadow-2xl shadow-cyan-500/10">
+              {producto.imagen_url ? (
+                <img src={producto.imagen_url} alt={titulo} className="w-full h-full object-cover aspect-video"/>
+              ) : (
+                <div className="w-full aspect-video flex items-center justify-center bg-gray-800">
+                  <PlayCircle size={64} className="text-gray-600" />
+                </div>
+              )}
+            </div>
+
+            {/* Columna de Información */}
+            <div className="flex flex-col gap-4">
+              <span className="font-bold text-cyan-400 uppercase tracking-wider">{producto.categoria || 'Producto'}</span>
+              <h1 className="text-4xl lg:text-5xl font-extrabold text-white">{titulo}</h1>
+              {producto.instructor && <p className="text-lg text-gray-300">Por: <span className="font-semibold">{producto.instructor}</span></p>}
+              <p className="text-gray-400 text-lg">{descripcion}</p>
+
+              <div className="flex items-baseline gap-4 mt-4">
+                  <p className="text-yellow-400 text-5xl font-bold">
+                    ${producto.precio}
+                  </p>
+                  {producto.tipo_pago === 'pago_unico' ? (
+                     <span className="bg-yellow-400/10 text-yellow-300 text-xs font-bold px-2 py-1 rounded-full">PAGO ÚNICO</span>
+                  ) : (
+                    <span className="bg-purple-400/10 text-purple-300 text-xs font-bold px-2 py-1 rounded-full">SUSCRIPCIÓN</span>
+                  )}
+              </div>
+
+              <div className="mt-6">
+                <button className="w-full bg-cyan-500 hover:bg-cyan-600 text-black font-bold py-4 px-6 rounded-lg text-lg transition-all transform hover:scale-105 flex items-center justify-center gap-2">
+                  {producto.tipo_pago === 'pago_unico' ? (
+                    <>
+                      <ShoppingCart size={20} /> Contratar Ahora
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle size={20} /> Suscribirse
+                    </>
+                  )}
+                </button>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      {/* Barra de Información Clave */}
+      <div className="border-y border-gray-800">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center py-6">
+            {producto.nivel && (
+              <div className="flex flex-col items-center justify-center gap-1">
+                <Award size={24} className="text-cyan-400" />
+                <span className="text-sm text-gray-400">Nivel</span>
+                <span className="text-lg font-semibold text-white">{producto.nivel}</span>
+              </div>
+            )}
+            {producto.duracion_horas && (
+              <div className="flex flex-col items-center justify-center gap-1">
+                <PlayCircle size={24} className="text-cyan-400" />
+                <span className="text-sm text-gray-400">Duración</span>
+                <span className="text-lg font-semibold text-white">{producto.duracion_horas} horas</span>
+              </div>
+            )}
+            {producto.estudiantes && (
+              <div className="flex flex-col items-center justify-center gap-1">
+                <Users size={24} className="text-cyan-400" />
+                <span className="text-sm text-gray-400">Estudiantes</span>
+                <span className="text-lg font-semibold text-white">{producto.estudiantes}</span>
+              </div>
+            )}
+            {producto.rating && (
+               <div className="flex flex-col items-center justify-center gap-1">
+                <Star size={24} className="text-cyan-400" />
+                <span className="text-sm text-gray-400">Valoración</span>
+                <span className="text-lg font-semibold text-white">{producto.rating}/5</span>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Sección de Características */}
+      {producto.caracteristicas && producto.caracteristicas.length > 0 && (
+        <div className="bg-gray-900/50 py-16 sm:py-24">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="max-w-3xl mx-auto text-center">
+              <h2 className="text-3xl font-extrabold text-white sm:text-4xl">¿Qué incluye este producto?</h2>
+              <p className="mt-4 text-lg text-gray-400">
+                Todo lo que necesitas para alcanzar tus objetivos, directamente y sin rodeos.
+              </p>
+            </div>
+            <div className="mt-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {producto.caracteristicas.map((feature, index) => (
+                <div key={index} className="flex items-start gap-4 p-6 bg-black/30 rounded-lg">
+                  <div className="flex-shrink-0">
+                    <CheckCircle className="h-6 w-6 text-cyan-400" />
+                  </div>
+                  <div>
+                    <p className="text-base font-medium text-white">{feature}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Sección de Testimonios (Placeholder) */}
+      <div className="py-16 sm:py-24">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="max-w-3xl mx-auto text-center">
+              <h2 className="text-3xl font-extrabold text-white sm:text-4xl">Lo que dicen nuestros clientes</h2>
+              <p className="mt-4 text-lg text-gray-400">
+                Resultados reales de personas reales.
+              </p>
+          </div>
+          <div className="mt-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {/* Testimonio 1 */}
+            <div className="bg-gray-900/50 p-6 rounded-lg shadow-lg">
+              <p className="text-gray-300">"Este es el mejor producto que he comprado. Cambió completamente mi forma de trabajar y los resultados han sido increíbles. 100% recomendado."</p>
+              <div className="mt-4 flex items-center gap-4">
+                <img className="w-12 h-12 rounded-full object-cover" src="https://i.pravatar.cc/150?u=a042581f4e29026704d" alt="Avatar Cliente 1" />
+                <div>
+                  <p className="font-semibold text-white">Ana de Armas</p>
+                  <p className="text-sm text-gray-500">CEO, Startup Innovadora</p>
+                </div>
+              </div>
+            </div>
+            {/* Testimonio 2 */}
+            <div className="bg-gray-900/50 p-6 rounded-lg shadow-lg">
+              <p className="text-gray-300">"Dudaba al principio, pero superó todas mis expectativas. El soporte es fantástico y el contenido es de primer nivel. ¡Gracias!"</p>
+              <div className="mt-4 flex items-center gap-4">
+                <img className="w-12 h-12 rounded-full object-cover" src="https://i.pravatar.cc/150?u=a042581f4e29026704e" alt="Avatar Cliente 2" />
+                <div>
+                  <p className="font-semibold text-white">Carlos Pérez</p>
+                  <p className="text-sm text-gray-500">Desarrollador Freelance</p>
+                </div>
+              </div>
+            </div>
+            {/* Testimonio 3 */}
+            <div className="bg-gray-900/50 p-6 rounded-lg shadow-lg">
+              <p className="text-gray-300">"Una inversión que se paga sola. Simple, directo al grano y con un impacto medible en mi negocio. No podría estar más contento."</p>
+              <div className="mt-4 flex items-center gap-4">
+                <img className="w-12 h-12 rounded-full object-cover" src="https://i.pravatar.cc/150?u=a042581f4e29026704f" alt="Avatar Cliente 3" />
+                <div>
+                  <p className="font-semibold text-white">Sofía Rodríguez</p>
+                  <p className="text-sm text-gray-500">Manager de Marketing</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Sección de FAQ (Placeholder) */}
+      <div className="bg-gray-900/50 py-16 sm:py-24">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="max-w-3xl mx-auto text-center">
+              <h2 className="text-3xl font-extrabold text-white sm:text-4xl">Preguntas Frecuentes</h2>
+              <p className="mt-4 text-lg text-gray-400">
+                Resolvemos tus dudas para que tomes la mejor decisión.
+              </p>
+            </div>
+            <div className="mt-12 max-w-3xl mx-auto space-y-4">
+              {/* FAQ 1 */}
+              <details className="p-4 bg-black/30 rounded-lg group">
+                <summary className="font-semibold text-white cursor-pointer list-none flex justify-between items-center">
+                  ¿Para quién es este producto?
+                  <span className="group-open:rotate-45 transform transition-transform">+</span>
+                </summary>
+                <p className="mt-2 text-gray-400">Este producto está diseñado para emprendedores, creadores de contenido y profesionales que buscan optimizar su tiempo y maximizar su impacto.</p>
+              </details>
+              {/* FAQ 2 */}
+              <details className="p-4 bg-black/30 rounded-lg group">
+                <summary className="font-semibold text-white cursor-pointer list-none flex justify-between items-center">
+                  ¿Qué pasa si no me gusta?
+                  <span className="group-open:rotate-45 transform transition-transform">+</span>
+                </summary>
+                <p className="mt-2 text-gray-400">Ofrecemos una garantía de satisfacción de 7 días. Si no estás contento con tu compra, te devolvemos tu dinero, sin preguntas.</p>
+              </details>
+              {/* FAQ 3 */}
+              <details className="p-4 bg-black/30 rounded-lg group">
+                <summary className="font-semibold text-white cursor-pointer list-none flex justify-between items-center">
+                  ¿Tendré acceso a actualizaciones?
+                  <span className="group-open:rotate-45 transform transition-transform">+</span>
+                </summary>
+                <p className="mt-2 text-gray-400">Sí, todos los clientes reciben acceso a las futuras actualizaciones del producto sin coste adicional.</p>
+              </details>
+            </div>
+        </div>
+      </div>
+
+      {/* Sección Final CTA */}
+      <div className="py-16 sm:py-24">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <h2 className="text-3xl sm:text-4xl font-extrabold text-white">¿Listo para empezar?</h2>
+          <p className="mt-4 text-lg text-gray-400 max-w-2xl mx-auto">
+            Únete a cientos de profesionales que ya están transformando su negocio. No esperes más para alcanzar tus metas.
+          </p>
+          <div className="mt-8 flex flex-col items-center justify-center gap-4">
+            <p className="text-yellow-400 text-6xl font-bold">${producto.precio}</p>
+            <button className="w-full max-w-md bg-cyan-500 hover:bg-cyan-600 text-black font-bold py-4 px-6 rounded-lg text-xl transition-all transform hover:scale-105 flex items-center justify-center gap-2">
+              {producto.tipo_pago === 'pago_unico' ? (
+                <>
+                  <ShoppingCart size={22} /> Contratar Ahora
+                </>
+              ) : (
+                <>
+                  <CheckCircle size={22} /> Suscribirme Ahora
+                </>
+              )}
+            </button>
+            <p className="text-sm text-gray-500">Garantía de satisfacción de 7 días.</p>
+          </div>
+        </div>
+      </div>
+
     </div>
   );
 };
