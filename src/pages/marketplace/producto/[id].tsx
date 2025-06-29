@@ -4,6 +4,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../../../supabase';
 import { BookOpen, Users, Award, PlayCircle, Star, ArrowLeft, ShoppingCart, CheckCircle, Info, Calendar, Globe, Users as UsersIcon, Video, Radio, BookOpenCheck, BellRing, Globe2, ShieldCheck, XCircle } from 'lucide-react';
 import HeroEditableSection from '../../../components/HeroEditableSection';
+import IncluyeAccesoEditableSection from '../../../components/IncluyeAccesoEditableSection';
 
 // Estructura de datos que esperamos de la BD
 // Unificada para cursos y servicios del marketplace
@@ -60,6 +61,28 @@ type ProductoMarketplace = {
       dia: string;
       hora: string;
       plataforma: string;
+    }[];
+  };
+  incluye_acceso_datos?: { // datos de la sección "¿QUÉ INCLUYE TU ACCESO?"
+    sesiones_en_vivo?: {
+      titulo: string;
+      descripcion: string;
+    }[];
+    bonos?: {
+      titulo: string;
+      descripcion: string;
+    }[];
+    alertas?: {
+      titulo: string;
+      descripcion: string;
+    }[];
+    comunidad?: {
+      titulo: string;
+      descripcion: string;
+    }[];
+    bonos_premium?: {
+      titulo: string;
+      descripcion: string;
     }[];
   };
   // etc... podríamos añadir más secciones como "bonus", "garantia", "faq"
@@ -317,84 +340,10 @@ const PaginaProductoMarketplace: React.FC = () => {
       </div>
 
       {/* SECCIÓN ¿QUÉ INCLUYE TU ACCESO? (Versión Fiel al Ejemplo) */}
-      <div className="bg-black py-16 sm:py-24">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="max-w-3xl mx-auto text-center mb-16">
-                <h2 className="text-3xl font-extrabold text-white sm:text-4xl tracking-tight">¿QUÉ INCLUYE TU ACCESO?</h2>
-                <p className="mt-4 text-lg text-gray-400">
-                    Accede a una comunidad donde aprender, operar y crecer es parte del día a día.
-                </p>
-            </div>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
-                
-                {/* Bloque 1: Sesiones en Vivo (Más alto) */}
-                <div className="bg-gray-900/70 bg-[radial-gradient(ellipse_at_top,_rgba(29,78,216,0.15),_transparent_70%)] p-8 rounded-2xl border border-blue-800/50 shadow-2xl shadow-blue-500/10 lg:row-span-2 flex flex-col h-full">
-                    <div className="flex justify-center mb-6 h-16">
-                       <Video size={56} className={theme.text}/>
-                    </div>
-                    <div className="flex-grow text-center">
-                        <h3 className="text-xl font-bold text-white mb-4">Sesiones de Trading en Vivo</h3>
-                        <ul className="space-y-2 text-gray-400 text-left">
-                            <li className="flex gap-3"><CheckCircle className={`${theme.text} w-5 h-5 flex-shrink-0 mt-1`} /><span>Operaciones en tiempo real con VicForex.</span></li>
-                            <li className="flex gap-3"><CheckCircle className={`${theme.text} w-5 h-5 flex-shrink-0 mt-1`} /><span>Análisis, entradas, gestión del riesgo y cierre en vivo.</span></li>
-                            <li className="flex gap-3"><CheckCircle className={`${theme.text} w-5 h-5 flex-shrink-0 mt-1`} /><span>Espacios interactivos para resolver dudas.</span></li>
-                            <li className="flex gap-3"><CheckCircle className={`${theme.text} w-5 h-5 flex-shrink-0 mt-1`} /><span>Acceso a grabaciones 24/7.</span></li>
-                        </ul>
-                    </div>
-                </div>
+      <div id="incluye-acceso">
+        <IncluyeAccesoEditableSection producto={producto} onUpdate={nuevosDatos => setProducto(p => ({ ...p!, incluye_acceso_datos: nuevosDatos }))} />
+      </div>
 
-                {/* Bloque 2: Bonos */}
-                <div className="bg-gray-900/70 bg-[radial-gradient(ellipse_at_top,_rgba(29,78,216,0.15),_transparent_70%)] p-8 rounded-2xl border border-blue-800/50 shadow-2xl shadow-blue-500/10 flex flex-col h-full">
-                    <div className="flex justify-center mb-6 h-16 items-center">
-                        <BookOpenCheck size={52} className={theme.text}/>
-                    </div>
-                    <h3 className="text-xl font-bold text-white mb-3 text-center">Bonos Vicforex</h3>
-                    <ul className="space-y-2 text-gray-400">
-                        <li className="flex gap-3"><CheckCircle className={`${theme.text} w-5 h-5 flex-shrink-0 mt-1`} /><span>Curso Fundamentos de Trading.</span></li>
-                        <li className="flex gap-3"><CheckCircle className={`${theme.text} w-5 h-5 flex-shrink-0 mt-1`} /><span>Curso Trading sistemático.</span></li>
-                        <li className="flex gap-3"><CheckCircle className={`${theme.text} w-5 h-5 flex-shrink-0 mt-1`} /><span>Checklists, herramientas y plantillas descargables.</span></li>
-                    </ul>
-                </div>
-
-                {/* Bloque 3: Alertas */}
-                <div className="bg-gray-900/70 bg-[radial-gradient(ellipse_at_top,_rgba(168,85,247,0.15),_transparent_70%)] p-8 rounded-2xl border border-purple-800/50 shadow-2xl shadow-purple-500/10 flex flex-col h-full">
-                   <div className="flex justify-center mb-6 h-16 items-center">
-                        <BellRing size={52} className={theme.text}/>
-                    </div>
-                    <h3 className="text-xl font-bold text-white mb-3 text-center">Alertas en Tiempo Real</h3>
-                    <ul className="space-y-2 text-gray-400">
-                        <li className="flex gap-3"><CheckCircle className={`${theme.text} w-5 h-5 flex-shrink-0 mt-1`} /><span>Canal privado (Telegram o Discord).</span></li>
-                        <li className="flex gap-3"><CheckCircle className={`${theme.text} w-5 h-5 flex-shrink-0 mt-1`} /><span>Alertas de setups, noticias clave y oportunidades de entrada.</span></li>
-                    </ul>
-                </div>
-                
-                {/* Bloque 4: Comunidad */}
-                <div className="bg-gray-900/70 bg-[radial-gradient(ellipse_at_top,_rgba(34,197,94,0.15),_transparent_70%)] p-8 rounded-2xl border border-green-800/50 shadow-2xl shadow-green-500/10 flex flex-col h-full">
-                    <div className="flex justify-center mb-6 h-16 items-center">
-                       <Globe2 size={52} className={theme.text}/>
-                    </div>
-                    <h3 className="text-xl font-bold text-white mb-3 text-center">Comunidad Global de Traders</h3>
-                    <ul className="space-y-2 text-gray-400">
-                        <li className="flex gap-3"><CheckCircle className={`${theme.text} w-5 h-5 flex-shrink-0 mt-1`} /><span>LATAM, USA, Europa y Asia.</span></li>
-                        <li className="flex gap-3"><CheckCircle className={`${theme.text} w-5 h-5 flex-shrink-0 mt-1`} /><span>Comparte, aprende y crece con una red activa y profesional.</span></li>
-                    </ul>
-                </div>
-
-                {/* Bloque 5: Bonos Premium */}
-                <div className="bg-gray-900/70 bg-[radial-gradient(ellipse_at_top,_rgba(234,179,8,0.15),_transparent_70%)] p-8 rounded-2xl border border-yellow-800/50 shadow-2xl shadow-yellow-500/10 flex flex-col h-full">
-                    <div className="flex justify-center mb-6 h-16 items-center">
-                        <ShieldCheck size={52} className={theme.text}/>
-                    </div>
-                    <h3 className="text-xl font-bold text-white mb-3 text-center">Bonos Premium <span className="text-base font-normal text-gray-400">(Máximo 10)</span></h3>
-                    <ul className="space-y-2 text-gray-400">
-                        <li className="flex gap-3"><CheckCircle className={`${theme.text} w-5 h-5 flex-shrink-0 mt-1`} /><span>Acceso gratuito al sistema de copytrading.</span></li>
-                        <li className="flex gap-3"><CheckCircle className={`${theme.text} w-5 h-5 flex-shrink-0 mt-1`} /><span>Sorteo de cuentas de $1000 dólares cada mes.</span></li>
-                        <li className="flex gap-3"><CheckCircle className={`${theme.text} w-5 h-5 flex-shrink-0 mt-1`} /><span>Mentoría Dubai Trading Society.</span></li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-    </div>
       {/* SECCIÓN "CONOCE AL EXPERTO" RESTAURADA (SIN BOTÓN) */}
       <div className="bg-gray-900/50 py-16 sm:py-24">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row gap-12 relative">
