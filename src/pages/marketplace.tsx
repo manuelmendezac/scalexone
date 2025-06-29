@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { Search, Filter, Star, Users, Clock, GraduationCap, ShoppingCart, Briefcase, Home, MapPin, ChevronDown, Eye } from 'lucide-react';
 import { supabase } from '../supabase';
@@ -205,88 +205,90 @@ const Marketplace: React.FC = () => {
   }, [cursos, servicios, searchTerm, selectedCategory, sortBy]);
 
   const renderCursoCard = (curso: Curso) => (
-    <Link to={`/marketplace/producto/${curso.id}`} className="block group">
-      <motion.div
-        layoutId={`card-container-${curso.id}`}
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0 }}
-        whileHover={{ y: -5, scale: 1.02 }}
-        transition={{ duration: 0.3 }}
-        className="bg-gray-900/50 rounded-xl border border-amber-500/20 hover:border-amber-400/40 transition-all group cursor-pointer overflow-hidden h-full flex flex-col"
-      >
-        {/* Imagen horizontal tipo Netflix/Instagram */}
-        <div className="relative">
-          <div className="w-full h-48 bg-gray-800 relative overflow-hidden">
-            {curso.imagen_url ? (
-              <img 
-                src={curso.imagen_url} 
-                alt={curso.titulo} 
-                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-              />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-amber-900/30 to-yellow-900/30">
-                <GraduationCap size={48} className="text-amber-400" />
+    <Link href={`/marketplace/producto/${curso.id}`} passHref>
+      <a className="block group h-full">
+        <motion.div
+          layoutId={`card-container-${curso.id}`}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0 }}
+          whileHover={{ y: -5, scale: 1.02 }}
+          transition={{ duration: 0.3 }}
+          className="bg-gray-900/50 rounded-xl border border-amber-500/20 hover:border-amber-400/40 transition-all group cursor-pointer overflow-hidden h-full flex flex-col"
+        >
+          {/* Imagen horizontal tipo Netflix/Instagram */}
+          <div className="relative">
+            <div className="w-full h-48 bg-gray-800 relative overflow-hidden">
+              {curso.imagen_url ? (
+                <img 
+                  src={curso.imagen_url} 
+                  alt={curso.titulo} 
+                  className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-amber-900/30 to-yellow-900/30">
+                  <GraduationCap size={48} className="text-amber-400" />
+                </div>
+              )}
+              
+              {/* Badge de Curso */}
+              <div className="absolute top-3 left-3">
+                <span className="bg-gradient-to-r from-amber-400 to-yellow-500 text-black px-3 py-1 rounded-full text-xs font-bold shadow-lg">
+                  CURSO
+                </span>
               </div>
-            )}
-            
-            {/* Badge de Curso */}
-            <div className="absolute top-3 left-3">
-              <span className="bg-gradient-to-r from-amber-400 to-yellow-500 text-black px-3 py-1 rounded-full text-xs font-bold shadow-lg">
-                CURSO
-              </span>
-            </div>
-            
-            {/* Rating */}
-            <div className="absolute top-3 right-3">
-              <div className="bg-black/70 backdrop-blur-sm rounded-full px-2 py-1 flex items-center gap-1">
-                <Star className="w-3 h-3 text-amber-400 fill-current" />
-                <span className="text-amber-400 text-xs font-semibold">{curso.rating}</span>
+              
+              {/* Rating */}
+              <div className="absolute top-3 right-3">
+                <div className="bg-black/70 backdrop-blur-sm rounded-full px-2 py-1 flex items-center gap-1">
+                  <Star className="w-3 h-3 text-amber-400 fill-current" />
+                  <span className="text-amber-400 text-xs font-semibold">{curso.rating}</span>
+                </div>
               </div>
             </div>
           </div>
-        </div>
 
-        {/* Información separada debajo */}
-        <div className="p-6 flex flex-col flex-grow">
-          <h3 className="text-white font-bold text-lg mb-2 group-hover:text-amber-300 transition-colors line-clamp-2">
-            {curso.titulo}
-          </h3>
-          <p className="text-gray-400 text-sm mb-4 line-clamp-3 flex-grow">
-            {curso.descripcion}
-          </p>
-          
-          {/* Metadata */}
-          <div className="flex items-center gap-4 mb-4 text-xs text-gray-400">
-            <div className="flex items-center gap-1">
-              <Users size={12} />
-              <span>{curso.estudiantes} estudiantes</span>
+          {/* Información separada debajo */}
+          <div className="p-6 flex flex-col flex-grow">
+            <h3 className="text-white font-bold text-lg mb-2 group-hover:text-amber-300 transition-colors line-clamp-2">
+              {curso.titulo}
+            </h3>
+            <p className="text-gray-400 text-sm mb-4 line-clamp-3 flex-grow">
+              {curso.descripcion}
+            </p>
+            
+            {/* Metadata */}
+            <div className="flex items-center gap-4 mb-4 text-xs text-gray-400">
+              <div className="flex items-center gap-1">
+                <Users size={12} />
+                <span>{curso.estudiantes} estudiantes</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <Clock size={12} />
+                <span>{curso.duracion_horas}h</span>
+              </div>
+              <div className="bg-amber-500/20 text-amber-400 px-2 py-1 rounded-full text-xs">
+                {curso.nivel}
+              </div>
             </div>
-            <div className="flex items-center gap-1">
-              <Clock size={12} />
-              <span>{curso.duracion_horas}h</span>
+            
+            {/* Instructor */}
+            <div className="text-sm text-gray-400 mb-4">
+              Por: <span className="text-amber-400 font-semibold">{curso.instructor}</span>
             </div>
-            <div className="bg-amber-500/20 text-amber-400 px-2 py-1 rounded-full text-xs">
-              {curso.nivel}
+            
+            {/* Pie de la tarjeta */}
+            <div className="mt-auto pt-4 border-t border-white/10 flex justify-between items-center">
+              <div className="text-amber-400 font-bold text-xl">
+                ${curso.precio}
+              </div>
+              <div className="bg-amber-600/80 text-white text-center font-bold py-2 px-4 rounded-lg group-hover:bg-amber-500 transition-colors flex items-center justify-center gap-2 text-sm">
+                 Ver Detalles
+              </div>
             </div>
           </div>
-          
-          {/* Instructor */}
-          <div className="text-sm text-gray-400 mb-4">
-            Por: <span className="text-amber-400 font-semibold">{curso.instructor}</span>
-          </div>
-          
-          {/* Pie de la tarjeta */}
-          <div className="mt-auto pt-4 border-t border-white/10 flex justify-between items-center">
-            <div className="text-amber-400 font-bold text-xl">
-              ${curso.precio}
-            </div>
-            <div className="bg-amber-600/80 text-white text-center font-bold py-2 px-4 rounded-lg group-hover:bg-amber-500 transition-colors flex items-center justify-center gap-2 text-sm">
-               Ver Detalles
-            </div>
-          </div>
-        </div>
-      </motion.div>
+        </motion.div>
+      </a>
     </Link>
   );
 
@@ -326,97 +328,99 @@ const Marketplace: React.FC = () => {
     const badgeCategoryText = esSoftwareSaaS ? 'Software & SaaS' : 'Servicios';
 
     return (
-      <Link to={`/marketplace/producto/${servicio.id}`} className="block group">
-        <motion.div
-          layoutId={`card-container-${servicio.id}`}
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          whileHover={{ y: -5, scale: 1.02 }}
-          transition={{ duration: 0.3 }}
-          className="bg-gray-900/50 rounded-xl border border-purple-500/20 hover:border-purple-400/40 transition-all group cursor-pointer overflow-hidden h-full flex flex-col"
-        >
-          {/* Imagen horizontal tipo Netflix/Instagram */}
-          <div className="relative">
-            <div className="w-full h-48 bg-gray-800 relative overflow-hidden">
-              {servicio.imagen_url ? (
-                <img 
-                  src={servicio.imagen_url} 
-                  alt={servicio.titulo} 
-                  className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                />
-              ) : (
-                <div className={`w-full h-full flex items-center justify-center bg-gradient-to-br ${colorScheme.bg}`}>
-                  <Briefcase size={48} className={colorScheme.text} />
+      <Link href={`/marketplace/producto/${servicio.id}`} passHref>
+        <a className="block group h-full">
+          <motion.div
+            layoutId={`card-container-${servicio.id}`}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            whileHover={{ y: -5, scale: 1.02 }}
+            transition={{ duration: 0.3 }}
+            className="bg-gray-900/50 rounded-xl border border-purple-500/20 hover:border-purple-400/40 transition-all group cursor-pointer overflow-hidden h-full flex flex-col"
+          >
+            {/* Imagen horizontal tipo Netflix/Instagram */}
+            <div className="relative">
+              <div className="w-full h-48 bg-gray-800 relative overflow-hidden">
+                {servicio.imagen_url ? (
+                  <img 
+                    src={servicio.imagen_url} 
+                    alt={servicio.titulo} 
+                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                  />
+                ) : (
+                  <div className={`w-full h-full flex items-center justify-center bg-gradient-to-br ${colorScheme.bg}`}>
+                    <Briefcase size={48} className={colorScheme.text} />
+                  </div>
+                )}
+                
+                {/* Badge de tipo - ✅ CORREGIDO PARA MOSTRAR CATEGORÍA REAL */}
+                <div className="absolute top-3 left-3 flex gap-2">
+                  <span className={`${colorScheme.badge} text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg`}>
+                    {badgeCategoryText}
+                  </span>
                 </div>
-              )}
-              
-              {/* Badge de tipo - ✅ CORREGIDO PARA MOSTRAR CATEGORÍA REAL */}
-              <div className="absolute top-3 left-3 flex gap-2">
-                <span className={`${colorScheme.badge} text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg`}>
-                  {badgeCategoryText}
-                </span>
-              </div>
-              
-              {/* Rating */}
-              <div className="absolute top-3 right-3">
-                <div className="bg-black/70 backdrop-blur-sm rounded-full px-2 py-1 flex items-center gap-1">
-                  <Star className={`w-3 h-3 ${colorScheme.text} fill-current`} />
-                  <span className={`${colorScheme.text} text-xs font-semibold`}>{servicio.rating}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          {/* Información */}
-          <div className="p-6 flex flex-col flex-grow">
-            <h3 className="text-white font-bold text-lg mb-2 group-hover:text-purple-300 transition-colors line-clamp-2">
-              {servicio.titulo}
-            </h3>
-            <p className="text-gray-400 text-sm mb-4 line-clamp-3 flex-grow">
-              {servicio.descripcion}
-            </p>
-
-            {/* Metadata */}
-            <div className="flex items-center gap-4 mb-4 text-xs text-gray-400">
-              <div className="flex items-center gap-1">
-                <Users size={12} />
-                <span>{servicio.reviews} reviews</span>
-              </div>
-              
-              {/* ✅ BADGES MEJORADOS SEGÚN TIPO_PAGO */}
-              <div className="flex gap-2">
-                <div className={`${colorScheme.category} px-2 py-1 rounded-full text-xs font-medium`}>
-                  {isSuscripcion ? '🔄 Suscripción' : '💵 Pago Único'}
+                
+                {/* Rating */}
+                <div className="absolute top-3 right-3">
+                  <div className="bg-black/70 backdrop-blur-sm rounded-full px-2 py-1 flex items-center gap-1">
+                    <Star className={`w-3 h-3 ${colorScheme.text} fill-current`} />
+                    <span className={`${colorScheme.text} text-xs font-semibold`}>{servicio.rating}</span>
+                  </div>
                 </div>
               </div>
-            </div>
-
-            {/* Proveedor */}
-            <div className="text-sm text-gray-400 mb-4">
-              Por: <span className={`${colorScheme.text} font-semibold`}>{servicio.proveedor}</span>
             </div>
             
-            {/* Pie de la tarjeta */}
-            <div className="mt-auto pt-4 border-t border-white/10 flex justify-between items-center">
-              <div className="text-purple-400 font-bold text-xl">
-                ${servicio.precio}
-                {isSuscripcion && servicio.duracion_dias && (
-                  <span className="text-base font-normal text-gray-400">
-                    {formatDuracion(servicio.duracion_dias)}
-                  </span>
-                )}
-                {servicio.tipo_pago === 'pago_unico' && (
-                  <span className="text-sm text-gray-400 font-normal"> único</span>
-                )}
+            {/* Información */}
+            <div className="p-6 flex flex-col flex-grow">
+              <h3 className="text-white font-bold text-lg mb-2 group-hover:text-purple-300 transition-colors line-clamp-2">
+                {servicio.titulo}
+              </h3>
+              <p className="text-gray-400 text-sm mb-4 line-clamp-3 flex-grow">
+                {servicio.descripcion}
+              </p>
+
+              {/* Metadata */}
+              <div className="flex items-center gap-4 mb-4 text-xs text-gray-400">
+                <div className="flex items-center gap-1">
+                  <Users size={12} />
+                  <span>{servicio.reviews} reviews</span>
+                </div>
+                
+                {/* ✅ BADGES MEJORADOS SEGÚN TIPO_PAGO */}
+                <div className="flex gap-2">
+                  <div className={`${colorScheme.category} px-2 py-1 rounded-full text-xs font-medium`}>
+                    {isSuscripcion ? '🔄 Suscripción' : '💵 Pago Único'}
+                  </div>
+                </div>
+              </div>
+
+              {/* Proveedor */}
+              <div className="text-sm text-gray-400 mb-4">
+                Por: <span className={`${colorScheme.text} font-semibold`}>{servicio.proveedor}</span>
               </div>
               
-              {/* ✅ BOTÓN SEGÚN TIPO_PAGO */}
-              <div className={`${colorScheme.button} text-white font-bold px-6 py-2 rounded-lg text-sm shadow-lg transform transition-all duration-200 hover:scale-105`}>
-                Ver Detalles
+              {/* Pie de la tarjeta */}
+              <div className="mt-auto pt-4 border-t border-white/10 flex justify-between items-center">
+                <div className="text-purple-400 font-bold text-xl">
+                  ${servicio.precio}
+                  {isSuscripcion && servicio.duracion_dias && (
+                    <span className="text-base font-normal text-gray-400">
+                      {formatDuracion(servicio.duracion_dias)}
+                    </span>
+                  )}
+                  {servicio.tipo_pago === 'pago_unico' && (
+                    <span className="text-sm text-gray-400 font-normal"> único</span>
+                  )}
+                </div>
+                
+                {/* ✅ BOTÓN SEGÚN TIPO_PAGO */}
+                <div className={`${colorScheme.button} text-white font-bold px-6 py-2 rounded-lg text-sm shadow-lg transform transition-all duration-200 hover:scale-105`}>
+                  Ver Detalles
+                </div>
               </div>
             </div>
-          </div>
-        </motion.div>
+          </motion.div>
+        </a>
       </Link>
     );
   };
