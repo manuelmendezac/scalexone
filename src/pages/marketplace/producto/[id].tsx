@@ -441,21 +441,27 @@ const PaginaProductoMarketplace: React.FC = () => {
             </div>
 
             {/* Columna Derecha (Sticky) */}
-            <div className="relative h-full">
+            <div className="relative">
               <div className="lg:sticky lg:top-24">
-                <div className="bg-gray-900/70 bg-[radial-gradient(ellipse_at_top,_rgba(29,78,216,0.15),_transparent_70%)] p-8 rounded-2xl border border-blue-800/50 shadow-2xl shadow-blue-500/10 text-center">
+                <div className="bg-gray-900/70 bg-[radial-gradient(ellipse_at_center,_rgba(29,78,216,0.15),_transparent_60%)] p-8 rounded-2xl border border-blue-800/50 shadow-2xl shadow-blue-500/10 text-center flex flex-col items-center">
+                  <img 
+                    src="https://i.imgur.com/3SKsD62.png" 
+                    alt="Logo del experto"
+                    className="w-24 h-auto mb-4"
+                  />
                   <img 
                     src="https://i.imgur.com/kS9k8yM.png" 
                     alt="Victor Acosta" 
-                    className="w-48 h-48 rounded-full mx-auto object-cover border-4 border-gray-700"
+                    className="max-w-full h-auto max-h-80"
                   />
-                  <h3 className="mt-6 text-3xl font-bold text-white tracking-wider">VICTOR ACOSTA</h3>
+                  <h3 className="mt-6 text-3xl font-bold text-white tracking-wider uppercase">VICTOR ACOSTA</h3>
                   <div className="mt-4 flex justify-center items-center gap-2">
                     <img src="https://flagcdn.com/w40/mx.png" alt="Bandera México" className="w-6 h-auto" title="México"/>
-                    <img src="https://flagcdn.com/w40/us.png" alt="Bandera USA" className="w-6 h-auto" title="USA"/>
+                    <img src="https://flagcdn.com/w40/ar.png" alt="Bandera Argentina" className="w-6 h-auto" title="Argentina"/>
+                    <img src="https://flagcdn.com/w40/pe.png" alt="Bandera Perú" className="w-6 h-auto" title="Perú"/>
                     <img src="https://flagcdn.com/w40/co.png" alt="Bandera Colombia" className="w-6 h-auto" title="Colombia"/>
+                    <img src="https://flagcdn.com/w40/cl.png" alt="Bandera Chile" className="w-6 h-auto" title="Chile"/>
                     <img src="https://flagcdn.com/w40/es.png" alt="Bandera España" className="w-6 h-auto" title="España"/>
-                    <img src="https://flagcdn.com/w40/ve.png" alt="Bandera Venezuela" className="w-6 h-auto" title="Venezuela"/>
                   </div>
                 </div>
               </div>
