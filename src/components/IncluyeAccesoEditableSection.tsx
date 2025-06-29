@@ -95,10 +95,10 @@ export default function IncluyeAccesoEditableSection({ producto, onUpdate }: Pro
     setUploading(idx);
     let uploadFile = file;
     let ext = file.name.split('.').pop()?.toLowerCase() || '';
-    // Si es SVG, súbelo tal cual
+    // Si es SVG, súbelo tal cual, sin conversión ni procesamiento
     if (file.type === 'image/svg+xml' || ext === 'svg') {
-      // No conversion
-    } else if (file.type !== 'image/webp') {
+      // No conversion, keep as is
+    } else if (file.type === 'image/png' || file.type === 'image/jpeg' || file.type === 'image/jpg') {
       try {
         const bitmap = await createImageBitmap(file);
         const canvas = document.createElement('canvas');
@@ -111,6 +111,7 @@ export default function IncluyeAccesoEditableSection({ producto, onUpdate }: Pro
         );
         if (blob) {
           uploadFile = new File([blob], file.name.replace(/\.[^.]+$/, '.webp'), { type: 'image/webp' });
+          ext = 'webp';
         }
       } catch (err) {
         // Si falla, sube el original
@@ -121,8 +122,8 @@ export default function IncluyeAccesoEditableSection({ producto, onUpdate }: Pro
     if (producto.tipo_pago && producto.tipo_pago === 'suscripcion' && producto.categoria && producto.categoria.toLowerCase().includes('servicio')) {
       bucket = 'servicios-marketplace';
     }
-    const filePath = `incluye-acceso/${producto.id}/icono_${idx}_${Date.now()}.${ext === 'svg' ? 'svg' : 'webp'}`;
-    const { data, error } = await supabase.storage.from(bucket).upload(filePath, uploadFile, { upsert: true });
+    const filePath = `incluye-acceso/${producto.id}/icono_${idx}_${Date.now()}.${ext}`;
+    const { data, error } = await supabase.storage.from(bucket).upload(filePath, uploadFile, { upsert: true, contentType: file.type });
     setUploading(null);
     if (!error) {
       const url = supabase.storage.from(bucket).getPublicUrl(filePath).data.publicUrl;
