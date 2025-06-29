@@ -110,7 +110,7 @@ export default function HeroEditableSection({ producto, onUpdate }: HeroEditable
       {/* Modal de edición */}
       {modalOpen && (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
-          <div className="bg-gray-900 p-8 rounded-lg w-full max-w-lg">
+          <div className="bg-gray-900 p-8 rounded-lg w-full max-w-2xl max-h-[90vh] overflow-y-auto">
             <h3 className="text-xl font-bold text-white mb-4">Editar sección HERO</h3>
             <label className="block text-gray-300 mb-2">URL Video (YouTube/Vimeo):</label>
             <input type="text" name="video_url" value={form.video_url} onChange={handleChange} className="w-full mb-4 p-2 rounded" />
