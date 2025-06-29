@@ -433,10 +433,18 @@ const PaginaProductoMarketplace: React.FC = () => {
           {/* Columna Derecha (Contenedor para la Tarjeta Sticky) */}
           <div className="md:w-2/5 lg:w-2/5">
             <div className="sticky top-24">
-              <div className="rounded-2xl bg-gray-800/80 backdrop-blur-sm p-8 shadow-2xl shadow-blue-500/10 border border-gray-700">
+              <div className="rounded-2xl bg-gray-800/80 backdrop-blur-sm p-8 shadow-2xl shadow-blue-500/10 border border-gray-700 text-center">
+                
+                {/* Imagen del Ponente */}
+                <img 
+                  src="https://images.unsplash.com/photo-1560250097-0b93528c311a?q=80&w=1887&auto=format&fit=crop" 
+                  alt="Ponente" 
+                  className="w-32 h-32 rounded-full mx-auto mb-6 object-cover border-4 border-gray-700"
+                />
+
                 <h3 className="text-2xl font-bold leading-7 tracking-tight text-white">VICTOR ACOSTA</h3>
                 <p className="text-sm leading-6 text-gray-400">Trading · Análisis Técnico · Mentalidad</p>
-                <div className="flex items-center gap-x-2 mt-4">
+                <div className="flex items-center justify-center gap-x-2 mt-4">
                   <img src="https://flagcdn.com/w20/mx.png" alt="México" className="h-4 rounded-sm" />
                   <img src="https://flagcdn.com/w20/ar.png" alt="Argentina" className="h-4 rounded-sm" />
                   <img src="https://flagcdn.com/w20/pe.png" alt="Perú" className="h-4 rounded-sm" />
@@ -448,7 +456,7 @@ const PaginaProductoMarketplace: React.FC = () => {
                 
                 <div className="mt-6 border-t border-gray-700 pt-6">
                   <h4 className="text-base font-semibold text-white mb-3">Estadísticas Clave</h4>
-                  <ul className="space-y-3 text-sm text-gray-300">
+                  <ul className="space-y-3 text-sm text-gray-300 text-left">
                     <li className="flex justify-between"><span>Años de Experiencia</span> <span className="font-mono text-cyan-400">4+</span></li>
                     <li className="flex justify-between"><span>Países</span> <span className="font-mono text-cyan-400">7+</span></li>
                     <li className="flex justify-between"><span>Estudiantes</span> <span className="font-mono text-cyan-400">1,200+</span></li>
@@ -458,7 +466,7 @@ const PaginaProductoMarketplace: React.FC = () => {
 
                 <div className="mt-6 border-t border-gray-700 pt-6">
                   <h4 className="text-base font-semibold text-white mb-3">Enfocado en</h4>
-                  <div className="flex flex-wrap gap-2">
+                  <div className="flex flex-wrap gap-2 justify-center">
                     <span className="bg-cyan-400/10 text-cyan-300 text-xs font-medium px-2 py-1 rounded-full">Acción del Precio</span>
                     <span className="bg-cyan-400/10 text-cyan-300 text-xs font-medium px-2 py-1 rounded-full">Gestión de Riesgo</span>
                     <span className="bg-cyan-400/10 text-cyan-300 text-xs font-medium px-2 py-1 rounded-full">Psicotrading</span>
@@ -471,47 +479,81 @@ const PaginaProductoMarketplace: React.FC = () => {
         </div>
       </div>
 
-      {/* SECCIÓN DE MEMBRESÍAS - VERSIÓN INICIAL RESTAURADA */}
+      {/* SECCIÓN DE MEMBRESÍAS - DISEÑO DETALLADO */}
       <div className="relative bg-black py-16 sm:py-24">
         <div className="absolute inset-0 opacity-20">
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(0,194,255,0.3)_0%,rgba(0,0,0,0)_70%)]"></div>
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(29,78,216,0.2)_0%,rgba(0,0,0,0)_70%)]"></div>
         </div>
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative">
           <div className="max-w-3xl mx-auto text-center">
             <h2 className="text-3xl font-extrabold text-white sm:text-4xl">Elige tu plan de acceso</h2>
             <p className="mt-4 text-lg text-gray-400">Acceso inmediato a la comunidad, sesiones en vivo y todos los beneficios.</p>
           </div>
-          <div className="mt-12 grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-8 items-start">
+            
             {/* Plan Básico */}
-            <div className="bg-gray-900/50 p-8 rounded-2xl border border-blue-900/40 shadow-xl flex flex-col">
-              <h3 className="text-xl font-bold text-white mb-2">Plan Básico</h3>
-              <p className="text-5xl font-extrabold text-white">$99</p>
-              <ul className="mt-6 space-y-3 text-gray-300 flex-grow">
-                <li className="flex gap-3"><CheckCircle className="text-blue-500 w-5 h-5" />Sesiones en Vivo</li>
+            <div className="bg-gray-900/50 p-8 rounded-2xl border border-blue-900/40 shadow-xl flex flex-col h-full">
+              <h3 className="text-xl font-bold text-white mb-2 flex items-center gap-2"><Star size={18} className="text-blue-400"/>Plan Básico</h3>
+              <div className="flex items-baseline gap-3 my-4">
+                <p className="text-5xl font-extrabold text-white">$99<span className="text-3xl font-bold">.00</span></p>
+                <span className="bg-gray-700 text-gray-300 px-2 py-1 text-xs font-semibold rounded">Mensual</span>
+              </div>
+              <p className="text-gray-400 mb-6 min-h-[40px]">Perfecto para dar tu primer paso.</p>
+              <button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition-all">Suscribirse</button>
+              <p className="text-white font-semibold mt-8 mb-4">Lo que incluye:</p>
+              <ul className="space-y-3 text-gray-300 flex-grow">
+                <li className="flex gap-3"><CheckCircle className="text-blue-500 w-5 h-5 flex-shrink-0" />Sesiones de Trading en Vivo</li>
+                <li className="flex gap-3"><CheckCircle className="text-blue-500 w-5 h-5 flex-shrink-0" />Alertas en Tiempo Real</li>
+                <li className="flex gap-3"><CheckCircle className="text-blue-500 w-5 h-5 flex-shrink-0" />Comunidad Global de Traders</li>
+                <li className="flex gap-3"><CheckCircle className="text-blue-500 w-5 h-5 flex-shrink-0" />Bonos VicForex</li>
+                <li className="flex gap-3 text-gray-500"><XCircle className="w-5 h-5 flex-shrink-0" />Bonos Premium</li>
+                <li className="flex gap-3 text-gray-500"><XCircle className="w-5 h-5 flex-shrink-0" />Mentoría 1x1</li>
               </ul>
-              <button className="mt-8 w-full bg-blue-600 text-white font-bold py-3 rounded-lg">Suscribirse</button>
             </div>
+
             {/* Plan Pro (Destacado) */}
-            <div className="relative bg-gray-900 p-8 rounded-2xl border-2 border-green-400 shadow-2xl flex flex-col -my-4">
-               <div className="absolute top-0 -translate-y-1/2 w-full flex justify-center"><span className="bg-green-400 text-black text-sm font-bold uppercase px-4 py-1 rounded-full">Recomendado</span></div>
-              <h3 className="text-xl font-bold text-white mb-2">Plan Pro</h3>
-              <p className="text-5xl font-extrabold text-white">$147</p>
-              <ul className="mt-6 space-y-3 text-gray-300 flex-grow">
-                <li className="flex gap-3"><CheckCircle className="text-green-400 w-5 h-5" />Todo lo del Básico</li>
-                <li className="flex gap-3"><CheckCircle className="text-green-400 w-5 h-5" />Bonos Premium</li>
+            <div className="relative bg-gray-900 p-8 rounded-2xl border-2 border-green-400 shadow-2xl shadow-green-500/20 flex flex-col h-full -my-4">
+               <div className="absolute top-0 -translate-y-1/2 w-full flex justify-center">
+                 <span className="bg-green-400 text-black text-sm font-bold uppercase px-4 py-1 rounded-full flex items-center gap-2"><Star size={16}/>El favorito de todos</span>
+               </div>
+              <h3 className="text-xl font-bold text-white mb-2 flex items-center gap-2"><Star size={18} className="text-green-400"/>Plan Pro</h3>
+              <div className="flex items-baseline gap-3 my-4">
+                <p className="text-5xl font-extrabold text-white">$147<span className="text-3xl font-bold">.00</span></p>
+                <span className="bg-gray-700 text-gray-300 px-2 py-1 text-xs font-semibold rounded">Trimestral</span>
+              </div>
+              <p className="text-gray-400 mb-6 min-h-[40px]">Ahorra $150 vs pagar mes a mes.</p>
+              <button className="w-full bg-green-400 hover:bg-green-500 text-black font-bold py-3 px-6 rounded-lg transition-all">Suscribirse</button>
+              <p className="text-white font-semibold mt-8 mb-4">Lo que incluye:</p>
+              <ul className="space-y-3 text-gray-300 flex-grow">
+                <li className="flex gap-3"><CheckCircle className="text-green-400 w-5 h-5 flex-shrink-0" />Sesiones de Trading en Vivo</li>
+                <li className="flex gap-3"><CheckCircle className="text-green-400 w-5 h-5 flex-shrink-0" />Alertas en Tiempo Real</li>
+                <li className="flex gap-3"><CheckCircle className="text-green-400 w-5 h-5 flex-shrink-0" />Comunidad Global de Traders</li>
+                <li className="flex gap-3"><CheckCircle className="text-green-400 w-5 h-5 flex-shrink-0" />Bonos VicForex</li>
+                <li className="flex gap-3"><CheckCircle className="text-green-400 w-5 h-5 flex-shrink-0" />Bonos Premium</li>
+                <li className="flex gap-3 text-gray-500"><XCircle className="w-5 h-5 flex-shrink-0" />Mentoría 1x1</li>
               </ul>
-              <button className="mt-8 w-full bg-green-400 text-black font-bold py-3 rounded-lg">Suscribirse</button>
             </div>
+
             {/* Plan Avanzado */}
-            <div className="bg-gray-900/50 p-8 rounded-2xl border border-blue-900/40 shadow-xl flex flex-col">
-              <h3 className="text-xl font-bold text-white mb-2">Plan Avanzado</h3>
-              <p className="text-5xl font-extrabold text-white">$175</p>
-              <ul className="mt-6 space-y-3 text-gray-300 flex-grow">
-                <li className="flex gap-3"><CheckCircle className="text-blue-500 w-5 h-5" />Todo lo del Pro</li>
-                <li className="flex gap-3"><CheckCircle className="text-blue-500 w-5 h-5" />Mentoría 1x1</li>
+            <div className="bg-gray-900/50 p-8 rounded-2xl border border-blue-900/40 shadow-xl flex flex-col h-full">
+              <h3 className="text-xl font-bold text-white mb-2 flex items-center gap-2"><Star size={18} className="text-blue-400"/>Plan Avanzado</h3>
+              <div className="flex items-baseline gap-3 my-4">
+                <p className="text-5xl font-extrabold text-white">$175<span className="text-3xl font-bold">.00</span></p>
+                <span className="bg-gray-700 text-gray-300 px-2 py-1 text-xs font-semibold rounded">Semestral</span>
+              </div>
+              <p className="text-gray-400 mb-6 min-h-[40px]">¡Menos de $1 por día!</p>
+              <button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition-all">Suscribirse</button>
+              <p className="text-white font-semibold mt-8 mb-4">Lo que incluye:</p>
+              <ul className="space-y-3 text-gray-300 flex-grow">
+                <li className="flex gap-3"><CheckCircle className="text-blue-500 w-5 h-5 flex-shrink-0" />Sesiones de Trading en Vivo</li>
+                <li className="flex gap-3"><CheckCircle className="text-blue-500 w-5 h-5 flex-shrink-0" />Alertas en Tiempo Real</li>
+                <li className="flex gap-3"><CheckCircle className="text-blue-500 w-5 h-5 flex-shrink-0" />Comunidad Global de Traders</li>
+                <li className="flex gap-3"><CheckCircle className="text-blue-500 w-5 h-5 flex-shrink-0" />Bonos VicForex</li>
+                <li className="flex gap-3"><CheckCircle className="text-blue-500 w-5 h-5 flex-shrink-0" />Bonos Premium</li>
+                <li className="flex gap-3"><CheckCircle className="text-blue-500 w-5 h-5 flex-shrink-0" />Mentoría 1x1</li>
               </ul>
-              <button className="mt-8 w-full bg-blue-600 text-white font-bold py-3 rounded-lg">Suscribirse</button>
             </div>
+
           </div>
         </div>
       </div>
