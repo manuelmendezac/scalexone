@@ -93,9 +93,12 @@ export default function IncluyeAccesoEditableSection({ producto, onUpdate }: Pro
     const file = e.target.files?.[0];
     if (!file) return;
     setUploading(idx);
-    // Convertir a webp si es posible
     let uploadFile = file;
-    if (file.type !== 'image/webp') {
+    let ext = file.name.split('.').pop()?.toLowerCase() || '';
+    // Si es SVG, súbelo tal cual
+    if (file.type === 'image/svg+xml' || ext === 'svg') {
+      // No conversion
+    } else if (file.type !== 'image/webp') {
       try {
         const bitmap = await createImageBitmap(file);
         const canvas = document.createElement('canvas');
@@ -118,7 +121,7 @@ export default function IncluyeAccesoEditableSection({ producto, onUpdate }: Pro
     if (producto.tipo_pago && producto.tipo_pago === 'suscripcion' && producto.categoria && producto.categoria.toLowerCase().includes('servicio')) {
       bucket = 'servicios-marketplace';
     }
-    const filePath = `incluye-acceso/${producto.id}/icono_${idx}_${Date.now()}.webp`;
+    const filePath = `incluye-acceso/${producto.id}/icono_${idx}_${Date.now()}.${ext === 'svg' ? 'svg' : 'webp'}`;
     const { data, error } = await supabase.storage.from(bucket).upload(filePath, uploadFile, { upsert: true });
     setUploading(null);
     if (!error) {
@@ -168,6 +171,25 @@ export default function IncluyeAccesoEditableSection({ producto, onUpdate }: Pro
     }
   };
 
+  // Agregar bloque vacío
+  const handleAddBloque = () => {
+    setForm(f => ({
+      ...f,
+      bloques: [
+        ...f.bloques,
+        { icono_url: '', titulo: '', descripcion: '', bullets: [''] }
+      ]
+    }));
+  };
+
+  // Eliminar bloque
+  const handleRemoveBloque = (idx: number) => {
+    setForm(f => ({
+      ...f,
+      bloques: f.bloques.length > 1 ? f.bloques.filter((_, i) => i !== idx) : f.bloques
+    }));
+  };
+
   return (
     <div className="bg-black py-16 sm:py-24">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -215,7 +237,7 @@ export default function IncluyeAccesoEditableSection({ producto, onUpdate }: Pro
             {form.bloques.map((bloque, idx) => (
               <div key={idx} className="mb-8 border-b border-gray-700 pb-4">
                 <label className="block text-gray-300 mb-2">Icono/Imagen:</label>
-                <input type="file" accept="image/*" onChange={e => handleIconUpload(e, idx)} className="mb-2" />
+                <input type="file" accept="image/*,.svg" onChange={e => handleIconUpload(e, idx)} className="mb-2" />
                 {uploading === idx && <span className="text-blue-400">Subiendo...</span>}
                 {bloque.icono_url && <img src={bloque.icono_url} alt="icono" className="h-12 w-12 object-contain mb-2" />}
                 <label className="block text-gray-300 mb-2">Título del bloque:</label>
@@ -224,8 +246,12 @@ export default function IncluyeAccesoEditableSection({ producto, onUpdate }: Pro
                 {bloque.bullets.map((b, i) => (
                   <input key={i} type="text" value={b} onChange={e => handleBulletChange(idx, i, e.target.value)} className="w-full mb-2 p-2 rounded" />
                 ))}
+                {form.bloques.length > 1 && (
+                  <button type="button" onClick={() => handleRemoveBloque(idx)} className="mt-2 bg-red-600 text-white px-3 py-1 rounded">Eliminar bloque</button>
+                )}
               </div>
             ))}
+            <button type="button" onClick={handleAddBloque} className="bg-blue-700 text-white px-4 py-2 rounded font-bold mb-4">Agregar bloque</button>
             <div className="flex gap-4 mt-4">
               <button onClick={handleSave} disabled={saving} className="bg-green-500 text-black px-4 py-2 rounded font-bold">{saving ? 'Guardando...' : 'Guardar'}</button>
               <button onClick={() => setModalOpen(false)} className="bg-gray-700 text-white px-4 py-2 rounded">Cancelar</button>
