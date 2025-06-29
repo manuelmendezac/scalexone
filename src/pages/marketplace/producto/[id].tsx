@@ -128,28 +128,52 @@ const PaginaProductoMarketplace: React.FC = () => {
     navigate('/marketplace');
   };
 
-  // --- Renderizado ---
-  if (loading) {
-    return <div className="bg-black text-white min-h-screen flex justify-center items-center">Cargando producto...</div>;
-  }
-
-  if (error) {
-    return (
-      <div className="bg-black text-white min-h-screen flex flex-col justify-center items-center p-4">
-        <Info size={48} className="text-red-500 mb-4" />
-        <h2 className="text-xl font-bold mb-2">Error al cargar el producto</h2>
-        <p className="text-center text-gray-400">{error}</p>
-        <button onClick={handleBack} className="mt-6 bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg flex items-center transition-colors">
-          <ArrowLeft size={18} className="mr-2" /> Volver al Marketplace
-        </button>
-      </div>
-    );
-  }
-
   if (!producto) {
     // Este estado no debería alcanzarse si la lógica anterior es correcta, pero es una buena práctica tenerlo.
     return <div className="bg-black text-white min-h-screen flex justify-center items-center">No se pudo cargar la información del producto.</div>;
   }
+
+  // --- Lógica de Theming y Datos ---
+  const getThemeType = (category?: string): 'curso' | 'servicio' | 'software' => {
+    const cat = category?.toLowerCase() || '';
+    if (['consultoría', 'marketing', 'estrategia', 'servicios'].some(c => cat.includes(c))) {
+      return 'servicio';
+    }
+    if (['desarrollo', 'programación', 'diseño', 'trading', 'finanzas', 'cursos', 'e-commerce'].some(c => cat.includes(c))) {
+      return 'curso';
+    }
+    return 'software'; // Default para 'Software & SaaS' etc.
+  };
+
+  const themeConfig = {
+    curso: { // Dorado
+      text: 'text-amber-400',
+      border: 'border-amber-500',
+      accentBg: 'bg-amber-400/10',
+      accentText: 'text-amber-300',
+      button: 'bg-amber-500 hover:bg-amber-600 text-black font-bold',
+      membershipButton: 'bg-amber-500 hover:bg-amber-600 text-black font-bold'
+    },
+    servicio: { // Fucsia/Púrpura
+      text: 'text-fuchsia-400',
+      border: 'border-fuchsia-500',
+      accentBg: 'bg-fuchsia-400/10',
+      accentText: 'text-fuchsia-300',
+      button: 'bg-gradient-to-r from-pink-500 to-fuchsia-600 hover:from-pink-600 hover:to-fuchsia-700 text-white font-bold',
+      membershipButton: 'bg-gradient-to-r from-pink-500 to-fuchsia-600 hover:from-pink-600 hover:to-fuchsia-700 text-white font-bold'
+    },
+    software: { // Celeste
+      text: 'text-cyan-400',
+      border: 'border-cyan-500',
+      accentBg: 'bg-cyan-400/10',
+      accentText: 'text-cyan-300',
+      button: 'bg-cyan-500 hover:bg-cyan-600 text-black font-bold',
+      membershipButton: 'bg-cyan-500 hover:bg-cyan-600 text-black font-bold'
+    }
+  };
+
+  const themeType = getThemeType(producto.categoria);
+  const theme = themeConfig[themeType];
 
   // Usamos los datos de la carta de ventas si existen, si no, los datos base del producto
   const portada = producto.portada_datos;
@@ -179,7 +203,7 @@ const PaginaProductoMarketplace: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-16 items-center">
             
             {/* Columna de la Imagen */}
-            <div className="w-full h-auto bg-gray-900/50 rounded-lg overflow-hidden shadow-2xl shadow-cyan-500/10">
+            <div className={`w-full h-auto bg-gray-900/50 rounded-lg overflow-hidden shadow-2xl shadow-cyan-500/10`}>
               {producto.imagen_url ? (
                 <img src={producto.imagen_url} alt={titulo} className="w-full h-full object-cover aspect-video"/>
               ) : (
@@ -191,7 +215,7 @@ const PaginaProductoMarketplace: React.FC = () => {
 
             {/* Columna de Información */}
             <div className="flex flex-col gap-4">
-              <span className="font-bold text-cyan-400 uppercase tracking-wider">{producto.categoria || 'Producto'}</span>
+              <span className={`font-bold ${theme.text} uppercase tracking-wider`}>{producto.categoria || 'Producto'}</span>
               <h1 className="text-4xl lg:text-5xl font-extrabold text-white">{titulo}</h1>
               {producto.instructor && <p className="text-lg text-gray-300">Por: <span className="font-semibold">{producto.instructor}</span></p>}
               <p className="text-gray-400 text-lg">{descripcion}</p>
@@ -208,7 +232,7 @@ const PaginaProductoMarketplace: React.FC = () => {
               </div>
 
               <div className="mt-6">
-                <button className="w-full bg-cyan-500 hover:bg-cyan-600 text-black font-bold py-4 px-6 rounded-lg text-lg transition-all transform hover:scale-105 flex items-center justify-center gap-2">
+                <button className={`w-full ${theme.button} py-4 px-6 rounded-lg text-lg transition-all transform hover:scale-105 flex items-center justify-center gap-2`}>
                   {producto.tipo_pago === 'pago_unico' ? (
                     <>
                       <ShoppingCart size={20} /> Contratar Ahora
@@ -232,28 +256,28 @@ const PaginaProductoMarketplace: React.FC = () => {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center py-6">
             {producto.nivel && (
               <div className="flex flex-col items-center justify-center gap-1">
-                <Award size={24} className="text-cyan-400" />
+                <Award size={24} className={theme.text} />
                 <span className="text-sm text-gray-400">Nivel</span>
                 <span className="text-lg font-semibold text-white">{producto.nivel}</span>
               </div>
             )}
             {producto.duracion_horas && (
               <div className="flex flex-col items-center justify-center gap-1">
-                <PlayCircle size={24} className="text-cyan-400" />
+                <PlayCircle size={24} className={theme.text} />
                 <span className="text-sm text-gray-400">Duración</span>
                 <span className="text-lg font-semibold text-white">{producto.duracion_horas} horas</span>
               </div>
             )}
             {producto.estudiantes && (
               <div className="flex flex-col items-center justify-center gap-1">
-                <Users size={24} className="text-cyan-400" />
+                <Users size={24} className={theme.text} />
                 <span className="text-sm text-gray-400">Estudiantes</span>
                 <span className="text-lg font-semibold text-white">{producto.estudiantes}</span>
               </div>
             )}
             {producto.rating && (
                <div className="flex flex-col items-center justify-center gap-1">
-                <Star size={24} className="text-cyan-400" />
+                <Star size={24} className={theme.text} />
                 <span className="text-sm text-gray-400">Valoración</span>
                 <span className="text-lg font-semibold text-white">{producto.rating}/5</span>
               </div>
@@ -334,15 +358,15 @@ const PaginaProductoMarketplace: React.FC = () => {
                 {/* Bloque 1: Sesiones en Vivo (Más alto) */}
                 <div className="bg-gray-900/70 bg-[radial-gradient(ellipse_at_top,_rgba(29,78,216,0.15),_transparent_70%)] p-8 rounded-2xl border border-blue-800/50 shadow-2xl shadow-blue-500/10 lg:row-span-2 flex flex-col h-full">
                     <div className="flex justify-center mb-6 h-16">
-                       <Video size={56} className="text-blue-400 opacity-90"/>
+                       <Video size={56} className={theme.text}/>
                     </div>
                     <div className="flex-grow text-center">
                         <h3 className="text-xl font-bold text-white mb-4">Sesiones de Trading en Vivo</h3>
                         <ul className="space-y-2 text-gray-400 text-left">
-                            <li className="flex gap-3"><CheckCircle className="text-blue-500 w-5 h-5 flex-shrink-0 mt-1" /><span>Operaciones en tiempo real con VicForex.</span></li>
-                            <li className="flex gap-3"><CheckCircle className="text-blue-500 w-5 h-5 flex-shrink-0 mt-1" /><span>Análisis, entradas, gestión del riesgo y cierre en vivo.</span></li>
-                            <li className="flex gap-3"><CheckCircle className="text-blue-500 w-5 h-5 flex-shrink-0 mt-1" /><span>Espacios interactivos para resolver dudas.</span></li>
-                            <li className="flex gap-3"><CheckCircle className="text-blue-500 w-5 h-5 flex-shrink-0 mt-1" /><span>Acceso a grabaciones 24/7.</span></li>
+                            <li className="flex gap-3"><CheckCircle className={`${theme.text} w-5 h-5 flex-shrink-0 mt-1`} /><span>Operaciones en tiempo real con VicForex.</span></li>
+                            <li className="flex gap-3"><CheckCircle className={`${theme.text} w-5 h-5 flex-shrink-0 mt-1`} /><span>Análisis, entradas, gestión del riesgo y cierre en vivo.</span></li>
+                            <li className="flex gap-3"><CheckCircle className={`${theme.text} w-5 h-5 flex-shrink-0 mt-1`} /><span>Espacios interactivos para resolver dudas.</span></li>
+                            <li className="flex gap-3"><CheckCircle className={`${theme.text} w-5 h-5 flex-shrink-0 mt-1`} /><span>Acceso a grabaciones 24/7.</span></li>
                         </ul>
                     </div>
                 </div>
@@ -350,50 +374,50 @@ const PaginaProductoMarketplace: React.FC = () => {
                 {/* Bloque 2: Bonos */}
                 <div className="bg-gray-900/70 bg-[radial-gradient(ellipse_at_top,_rgba(29,78,216,0.15),_transparent_70%)] p-8 rounded-2xl border border-blue-800/50 shadow-2xl shadow-blue-500/10 flex flex-col h-full">
                     <div className="flex justify-center mb-6 h-16 items-center">
-                        <BookOpenCheck size={52} className="text-cyan-400 opacity-90"/>
+                        <BookOpenCheck size={52} className={theme.text}/>
                     </div>
                     <h3 className="text-xl font-bold text-white mb-3 text-center">Bonos Vicforex</h3>
                     <ul className="space-y-2 text-gray-400">
-                        <li className="flex gap-3"><CheckCircle className="text-blue-500 w-5 h-5 flex-shrink-0 mt-1" /><span>Curso Fundamentos de Trading.</span></li>
-                        <li className="flex gap-3"><CheckCircle className="text-blue-500 w-5 h-5 flex-shrink-0 mt-1" /><span>Curso Trading sistemático.</span></li>
-                        <li className="flex gap-3"><CheckCircle className="text-blue-500 w-5 h-5 flex-shrink-0 mt-1" /><span>Checklists, herramientas y plantillas descargables.</span></li>
+                        <li className="flex gap-3"><CheckCircle className={`${theme.text} w-5 h-5 flex-shrink-0 mt-1`} /><span>Curso Fundamentos de Trading.</span></li>
+                        <li className="flex gap-3"><CheckCircle className={`${theme.text} w-5 h-5 flex-shrink-0 mt-1`} /><span>Curso Trading sistemático.</span></li>
+                        <li className="flex gap-3"><CheckCircle className={`${theme.text} w-5 h-5 flex-shrink-0 mt-1`} /><span>Checklists, herramientas y plantillas descargables.</span></li>
                     </ul>
                 </div>
 
                 {/* Bloque 3: Alertas */}
                 <div className="bg-gray-900/70 bg-[radial-gradient(ellipse_at_top,_rgba(168,85,247,0.15),_transparent_70%)] p-8 rounded-2xl border border-purple-800/50 shadow-2xl shadow-purple-500/10 flex flex-col h-full">
                    <div className="flex justify-center mb-6 h-16 items-center">
-                        <BellRing size={52} className="text-purple-400 opacity-90"/>
+                        <BellRing size={52} className={theme.text}/>
                     </div>
                     <h3 className="text-xl font-bold text-white mb-3 text-center">Alertas en Tiempo Real</h3>
                     <ul className="space-y-2 text-gray-400">
-                        <li className="flex gap-3"><CheckCircle className="text-blue-500 w-5 h-5 flex-shrink-0 mt-1" /><span>Canal privado (Telegram o Discord).</span></li>
-                        <li className="flex gap-3"><CheckCircle className="text-blue-500 w-5 h-5 flex-shrink-0 mt-1" /><span>Alertas de setups, noticias clave y oportunidades de entrada.</span></li>
+                        <li className="flex gap-3"><CheckCircle className={`${theme.text} w-5 h-5 flex-shrink-0 mt-1`} /><span>Canal privado (Telegram o Discord).</span></li>
+                        <li className="flex gap-3"><CheckCircle className={`${theme.text} w-5 h-5 flex-shrink-0 mt-1`} /><span>Alertas de setups, noticias clave y oportunidades de entrada.</span></li>
                     </ul>
                 </div>
                 
                 {/* Bloque 4: Comunidad */}
                 <div className="bg-gray-900/70 bg-[radial-gradient(ellipse_at_top,_rgba(34,197,94,0.15),_transparent_70%)] p-8 rounded-2xl border border-green-800/50 shadow-2xl shadow-green-500/10 flex flex-col h-full">
                     <div className="flex justify-center mb-6 h-16 items-center">
-                       <Globe2 size={52} className="text-green-400 opacity-90"/>
+                       <Globe2 size={52} className={theme.text}/>
                     </div>
                     <h3 className="text-xl font-bold text-white mb-3 text-center">Comunidad Global de Traders</h3>
                     <ul className="space-y-2 text-gray-400">
-                        <li className="flex gap-3"><CheckCircle className="text-blue-500 w-5 h-5 flex-shrink-0 mt-1" /><span>LATAM, USA, Europa y Asia.</span></li>
-                        <li className="flex gap-3"><CheckCircle className="text-blue-500 w-5 h-5 flex-shrink-0 mt-1" /><span>Comparte, aprende y crece con una red activa y profesional.</span></li>
+                        <li className="flex gap-3"><CheckCircle className={`${theme.text} w-5 h-5 flex-shrink-0 mt-1`} /><span>LATAM, USA, Europa y Asia.</span></li>
+                        <li className="flex gap-3"><CheckCircle className={`${theme.text} w-5 h-5 flex-shrink-0 mt-1`} /><span>Comparte, aprende y crece con una red activa y profesional.</span></li>
                     </ul>
                 </div>
 
                 {/* Bloque 5: Bonos Premium */}
                 <div className="bg-gray-900/70 bg-[radial-gradient(ellipse_at_top,_rgba(234,179,8,0.15),_transparent_70%)] p-8 rounded-2xl border border-yellow-800/50 shadow-2xl shadow-yellow-500/10 flex flex-col h-full">
                     <div className="flex justify-center mb-6 h-16 items-center">
-                        <ShieldCheck size={52} className="text-yellow-400 opacity-90"/>
+                        <ShieldCheck size={52} className={theme.text}/>
                     </div>
                     <h3 className="text-xl font-bold text-white mb-3 text-center">Bonos Premium <span className="text-base font-normal text-gray-400">(Máximo 10)</span></h3>
                     <ul className="space-y-2 text-gray-400">
-                        <li className="flex gap-3"><CheckCircle className="text-blue-500 w-5 h-5 flex-shrink-0 mt-1" /><span>Acceso gratuito al sistema de copytrading.</span></li>
-                        <li className="flex gap-3"><CheckCircle className="text-blue-500 w-5 h-5 flex-shrink-0 mt-1" /><span>Sorteo de cuentas de $1000 dólares cada mes.</span></li>
-                        <li className="flex gap-3"><CheckCircle className="text-blue-500 w-5 h-5 flex-shrink-0 mt-1" /><span>Mentoría Dubai Trading Society.</span></li>
+                        <li className="flex gap-3"><CheckCircle className={`${theme.text} w-5 h-5 flex-shrink-0 mt-1`} /><span>Acceso gratuito al sistema de copytrading.</span></li>
+                        <li className="flex gap-3"><CheckCircle className={`${theme.text} w-5 h-5 flex-shrink-0 mt-1`} /><span>Sorteo de cuentas de $1000 dólares cada mes.</span></li>
+                        <li className="flex gap-3"><CheckCircle className={`${theme.text} w-5 h-5 flex-shrink-0 mt-1`} /><span>Mentoría Dubai Trading Society.</span></li>
                     </ul>
                 </div>
             </div>
@@ -412,7 +436,7 @@ const PaginaProductoMarketplace: React.FC = () => {
               <div className="mt-10 text-base leading-7 text-gray-200">
                 <div className="p-8 border border-gray-700 rounded-lg bg-gray-800/40">
                   <p>En la Trading Room VicForex no solo analiza, sino que opera en tiempo real. Comparte su proceso, su lectura del mercado y su toma de decisiones, ayudando a traders a salir de la teoría y desarrollar una mentalidad operativa profesional.</p>
-                  <blockquote className="italic text-gray-400 mt-4 border-l-2 border-cyan-500 pl-4">
+                  <blockquote className={`italic text-gray-400 mt-4 border-l-2 ${theme.border} pl-4`}>
                     "Una buena señal no es solo cuándo entrar. Es cuándo NO hacerlo. El silencio también es parte de una estrategia." – VicForex
                   </blockquote>
                   <ul className="mt-8 space-y-4">
@@ -457,20 +481,20 @@ const PaginaProductoMarketplace: React.FC = () => {
                 <div className="mt-6 border-t border-gray-700 pt-6">
                   <h4 className="text-base font-semibold text-white mb-3">Estadísticas Clave</h4>
                   <ul className="space-y-3 text-sm text-gray-300 text-left">
-                    <li className="flex justify-between"><span>Años de Experiencia</span> <span className="font-mono text-cyan-400">4+</span></li>
-                    <li className="flex justify-between"><span>Países</span> <span className="font-mono text-cyan-400">7+</span></li>
-                    <li className="flex justify-between"><span>Estudiantes</span> <span className="font-mono text-cyan-400">1,200+</span></li>
-                    <li className="flex justify-between"><span>Comunidad</span> <span className="font-mono text-cyan-400">Activa</span></li>
+                    <li className="flex justify-between"><span>Años de Experiencia</span> <span className={`font-mono ${theme.text}`}>4+</span></li>
+                    <li className="flex justify-between"><span>Países</span> <span className={`font-mono ${theme.text}`}>7+</span></li>
+                    <li className="flex justify-between"><span>Estudiantes</span> <span className={`font-mono ${theme.text}`}>1,200+</span></li>
+                    <li className="flex justify-between"><span>Comunidad</span> <span className={`font-mono ${theme.text}`}>Activa</span></li>
                   </ul>
                 </div>
 
                 <div className="mt-6 border-t border-gray-700 pt-6">
                   <h4 className="text-base font-semibold text-white mb-3">Enfocado en</h4>
                   <div className="flex flex-wrap gap-2 justify-center">
-                    <span className="bg-cyan-400/10 text-cyan-300 text-xs font-medium px-2 py-1 rounded-full">Acción del Precio</span>
-                    <span className="bg-cyan-400/10 text-cyan-300 text-xs font-medium px-2 py-1 rounded-full">Gestión de Riesgo</span>
-                    <span className="bg-cyan-400/10 text-cyan-300 text-xs font-medium px-2 py-1 rounded-full">Psicotrading</span>
-                    <span className="bg-cyan-400/10 text-cyan-300 text-xs font-medium px-2 py-1 rounded-full">Trading en Vivo</span>
+                    <span className={`${theme.accentBg} ${theme.accentText} text-xs font-medium px-2 py-1 rounded-full`}>Acción del Precio</span>
+                    <span className={`${theme.accentBg} ${theme.accentText} text-xs font-medium px-2 py-1 rounded-full`}>Gestión de Riesgo</span>
+                    <span className={`${theme.accentBg} ${theme.accentText} text-xs font-medium px-2 py-1 rounded-full`}>Psicotrading</span>
+                    <span className={`${theme.accentBg} ${theme.accentText} text-xs font-medium px-2 py-1 rounded-full`}>Trading en Vivo</span>
                   </div>
                 </div>
               </div>
@@ -493,19 +517,19 @@ const PaginaProductoMarketplace: React.FC = () => {
             
             {/* Plan Básico */}
             <div className="bg-gray-900/50 p-8 rounded-2xl border border-blue-900/40 shadow-xl flex flex-col h-full">
-              <h3 className="text-xl font-bold text-white mb-2 flex items-center gap-2"><Star size={18} className="text-blue-400"/>Plan Básico</h3>
+              <h3 className="text-xl font-bold text-white mb-2 flex items-center gap-2"><Star size={18} className={theme.text}/>Plan Básico</h3>
               <div className="flex items-baseline gap-3 my-4">
                 <p className="text-5xl font-extrabold text-white">$99<span className="text-3xl font-bold">.00</span></p>
                 <span className="bg-gray-700 text-gray-300 px-2 py-1 text-xs font-semibold rounded">Mensual</span>
               </div>
               <p className="text-gray-400 mb-6 min-h-[40px]">Perfecto para dar tu primer paso.</p>
-              <button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition-all">Suscribirse</button>
+              <button className={`w-full ${theme.membershipButton} py-3 px-6 rounded-lg transition-all`}>Suscribirse</button>
               <p className="text-white font-semibold mt-8 mb-4">Lo que incluye:</p>
               <ul className="space-y-3 text-gray-300 flex-grow">
-                <li className="flex gap-3"><CheckCircle className="text-blue-500 w-5 h-5 flex-shrink-0" />Sesiones de Trading en Vivo</li>
-                <li className="flex gap-3"><CheckCircle className="text-blue-500 w-5 h-5 flex-shrink-0" />Alertas en Tiempo Real</li>
-                <li className="flex gap-3"><CheckCircle className="text-blue-500 w-5 h-5 flex-shrink-0" />Comunidad Global de Traders</li>
-                <li className="flex gap-3"><CheckCircle className="text-blue-500 w-5 h-5 flex-shrink-0" />Bonos VicForex</li>
+                <li className="flex gap-3"><CheckCircle className={`${theme.text} w-5 h-5 flex-shrink-0`} />Sesiones de Trading en Vivo</li>
+                <li className="flex gap-3"><CheckCircle className={`${theme.text} w-5 h-5 flex-shrink-0`} />Alertas en Tiempo Real</li>
+                <li className="flex gap-3"><CheckCircle className={`${theme.text} w-5 h-5 flex-shrink-0`} />Comunidad Global de Traders</li>
+                <li className="flex gap-3"><CheckCircle className={`${theme.text} w-5 h-5 flex-shrink-0`} />Bonos VicForex</li>
                 <li className="flex gap-3 text-gray-500"><XCircle className="w-5 h-5 flex-shrink-0" />Bonos Premium</li>
                 <li className="flex gap-3 text-gray-500"><XCircle className="w-5 h-5 flex-shrink-0" />Mentoría 1x1</li>
               </ul>
@@ -536,21 +560,21 @@ const PaginaProductoMarketplace: React.FC = () => {
 
             {/* Plan Avanzado */}
             <div className="bg-gray-900/50 p-8 rounded-2xl border border-blue-900/40 shadow-xl flex flex-col h-full">
-              <h3 className="text-xl font-bold text-white mb-2 flex items-center gap-2"><Star size={18} className="text-blue-400"/>Plan Avanzado</h3>
+              <h3 className="text-xl font-bold text-white mb-2 flex items-center gap-2"><Star size={18} className={theme.text}/>Plan Avanzado</h3>
               <div className="flex items-baseline gap-3 my-4">
                 <p className="text-5xl font-extrabold text-white">$175<span className="text-3xl font-bold">.00</span></p>
                 <span className="bg-gray-700 text-gray-300 px-2 py-1 text-xs font-semibold rounded">Semestral</span>
               </div>
               <p className="text-gray-400 mb-6 min-h-[40px]">¡Menos de $1 por día!</p>
-              <button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition-all">Suscribirse</button>
+              <button className={`w-full ${theme.membershipButton} py-3 px-6 rounded-lg transition-all`}>Suscribirse</button>
               <p className="text-white font-semibold mt-8 mb-4">Lo que incluye:</p>
               <ul className="space-y-3 text-gray-300 flex-grow">
-                <li className="flex gap-3"><CheckCircle className="text-blue-500 w-5 h-5 flex-shrink-0" />Sesiones de Trading en Vivo</li>
-                <li className="flex gap-3"><CheckCircle className="text-blue-500 w-5 h-5 flex-shrink-0" />Alertas en Tiempo Real</li>
-                <li className="flex gap-3"><CheckCircle className="text-blue-500 w-5 h-5 flex-shrink-0" />Comunidad Global de Traders</li>
-                <li className="flex gap-3"><CheckCircle className="text-blue-500 w-5 h-5 flex-shrink-0" />Bonos VicForex</li>
-                <li className="flex gap-3"><CheckCircle className="text-blue-500 w-5 h-5 flex-shrink-0" />Bonos Premium</li>
-                <li className="flex gap-3"><CheckCircle className="text-blue-500 w-5 h-5 flex-shrink-0" />Mentoría 1x1</li>
+                <li className="flex gap-3"><CheckCircle className={`${theme.text} w-5 h-5 flex-shrink-0`} />Sesiones de Trading en Vivo</li>
+                <li className="flex gap-3"><CheckCircle className={`${theme.text} w-5 h-5 flex-shrink-0`} />Alertas en Tiempo Real</li>
+                <li className="flex gap-3"><CheckCircle className={`${theme.text} w-5 h-5 flex-shrink-0`} />Comunidad Global de Traders</li>
+                <li className="flex gap-3"><CheckCircle className={`${theme.text} w-5 h-5 flex-shrink-0`} />Bonos VicForex</li>
+                <li className="flex gap-3"><CheckCircle className={`${theme.text} w-5 h-5 flex-shrink-0`} />Bonos Premium</li>
+                <li className="flex gap-3"><CheckCircle className={`${theme.text} w-5 h-5 flex-shrink-0`} />Mentoría 1x1</li>
               </ul>
             </div>
 
