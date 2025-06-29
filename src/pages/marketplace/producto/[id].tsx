@@ -440,32 +440,111 @@ const PaginaProductoMarketplace: React.FC = () => {
               </button>
             </div>
 
-            {/* Columna Derecha (Contenedor para el elemento Sticky) */}
-            <div className="relative">
-              <div className="lg:sticky lg:top-24 transition-all duration-300 ease-in-out hover:scale-[1.03]">
-                <div className="bg-gray-900/70 bg-[radial-gradient(ellipse_at_center,_rgba(29,78,216,0.20),_transparent_70%)] p-8 rounded-2xl border border-blue-800/50 shadow-2xl shadow-blue-500/20 hover:shadow-blue-400/30 flex flex-col items-center">
-                  <img 
-                    src="https://i.imgur.com/3SKsD62.png" 
-                    alt="Logo del experto"
-                    className="w-24 h-auto mb-4"
-                  />
-                  <img 
-                    src="https://i.imgur.com/kS9k8yM.png" 
-                    alt="Victor Acosta" 
-                    className="max-w-full h-auto max-h-80"
-                  />
-                  <h3 className="mt-6 text-3xl font-bold text-white tracking-wider uppercase">VICTOR ACOSTA</h3>
-                  <div className="mt-4 flex justify-center items-center gap-2">
-                    <img src="https://flagcdn.com/w40/mx.png" alt="Bandera México" className="w-6 h-auto" title="México"/>
-                    <img src="https://flagcdn.com/w40/ar.png" alt="Bandera Argentina" className="w-6 h-auto" title="Argentina"/>
-                    <img src="https://flagcdn.com/w40/pe.png" alt="Bandera Perú" className="w-6 h-auto" title="Perú"/>
-                    <img src="https://flagcdn.com/w40/co.png" alt="Bandera Colombia" className="w-6 h-auto" title="Colombia"/>
-                    <img src="https://flagcdn.com/w40/cl.png" alt="Bandera Chile" className="w-6 h-auto" title="Chile"/>
-                    <img src="https://flagcdn.com/w40/es.png" alt="Bandera España" className="w-6 h-auto" title="España"/>
+            {/* COLUMNA DERECHA (STICKY) - La clave es hacer que la columna en sí sea sticky, no un div interno. */}
+            {/* La clase h-fit es crucial para que el elemento sticky tenga su propia altura y no se estire. */}
+            <div className="lg:sticky lg:top-24 h-fit">
+              <div className="transition-all duration-300 ease-in-out hover:scale-[1.03]">
+                  <div className="bg-gray-900/70 bg-[radial-gradient(ellipse_at_center,_rgba(29,78,216,0.20),_transparent_70%)] p-8 rounded-2xl border border-blue-800/50 shadow-2xl shadow-blue-500/20 hover:shadow-blue-400/30 flex flex-col items-center">
+                    <img 
+                      src="https://i.imgur.com/3SKsD62.png" 
+                      alt="Logo del experto"
+                      className="w-24 h-auto mb-4"
+                    />
+                    <img 
+                      src="https://i.imgur.com/kS9k8yM.png" 
+                      alt="Victor Acosta" 
+                      className="max-w-full h-auto max-h-80"
+                    />
+                    <h3 className="mt-6 text-3xl font-bold text-white tracking-wider uppercase">VICTOR ACOSTA</h3>
+                    <div className="mt-4 flex justify-center items-center gap-2">
+                      <img src="https://flagcdn.com/w40/mx.png" alt="Bandera México" className="w-6 h-auto" title="México"/>
+                      <img src="https://flagcdn.com/w40/ar.png" alt="Bandera Argentina" className="w-6 h-auto" title="Argentina"/>
+                      <img src="https://flagcdn.com/w40/pe.png" alt="Bandera Perú" className="w-6 h-auto" title="Perú"/>
+                      <img src="https://flagcdn.com/w40/co.png" alt="Bandera Colombia" className="w-6 h-auto" title="Colombia"/>
+                      <img src="https://flagcdn.com/w40/cl.png" alt="Bandera Chile" className="w-6 h-auto" title="Chile"/>
+                      <img src="https://flagcdn.com/w40/es.png" alt="Bandera España" className="w-6 h-auto" title="España"/>
+                    </div>
                   </div>
-                </div>
               </div>
             </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Sección de Planes de Membresía */}
+      <div className="bg-black py-16 sm:py-24">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            
+            {/* Plan Básico */}
+            <div className="bg-gray-900/50 p-8 rounded-2xl border border-blue-900/40 shadow-xl shadow-blue-500/10 flex flex-col">
+              <div className="flex-grow">
+                <h3 className="text-xl font-bold text-white mb-2 flex items-center gap-2"><Star size={18} className="text-blue-400"/>Plan Básico</h3>
+                <div className="flex items-baseline gap-3 my-4">
+                  <p className="text-5xl font-extrabold text-white">$99.00</p>
+                  <span className="bg-gray-700 text-gray-300 px-2 py-1 text-sm font-semibold rounded">Mensual</span>
+                </div>
+                <p className="text-gray-400 mb-6">Perfecto para dar tu primer paso.</p>
+                <button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition-all">Suscribirse</button>
+                <p className="text-white font-semibold mt-8 mb-4">Lo que incluye:</p>
+                <ul className="space-y-3 text-gray-300">
+                  <li className="flex gap-3"><CheckCircle className="text-blue-500 w-5 h-5 flex-shrink-0" />Sesiones de Trading en Vivo</li>
+                  <li className="flex gap-3"><CheckCircle className="text-blue-500 w-5 h-5 flex-shrink-0" />Alertas en Tiempo Real</li>
+                  <li className="flex gap-3"><CheckCircle className="text-blue-500 w-5 h-5 flex-shrink-0" />Comunidad Global de Traders</li>
+                  <li className="flex gap-3"><CheckCircle className="text-blue-500 w-5 h-5 flex-shrink-0" />Bonos VicForex</li>
+                  <li className="flex gap-3 text-gray-500"><XCircle className="w-5 h-5 flex-shrink-0" />Bonos Premium</li>
+                  <li className="flex gap-3 text-gray-500"><XCircle className="w-5 h-5 flex-shrink-0" />Mentoría 1x1</li>
+                </ul>
+              </div>
+            </div>
+
+            {/* Plan Pro (Destacado) */}
+            <div className="relative bg-gray-900 p-8 rounded-2xl border-2 border-green-400 shadow-2xl shadow-green-500/20 flex flex-col -my-4">
+              <div className="absolute top-0 -translate-y-1/2 w-full flex justify-center">
+                <span className="bg-green-400 text-black text-sm font-bold uppercase px-4 py-1 rounded-full flex items-center gap-2"><Star size={16}/>El favorito de todos</span>
+              </div>
+              <div className="flex-grow">
+                <h3 className="text-xl font-bold text-white mb-2 flex items-center gap-2"><Star size={18} className="text-green-400"/>Plan Pro</h3>
+                <div className="flex items-baseline gap-3 my-4">
+                  <p className="text-5xl font-extrabold text-white">$147.00</p>
+                  <span className="bg-gray-700 text-gray-300 px-2 py-1 text-sm font-semibold rounded">Trimestral</span>
+                </div>
+                <p className="text-gray-400 mb-6">Ahorra $150 vs pagar mes a mes.</p>
+                <button className="w-full bg-green-400 hover:bg-green-500 text-black font-bold py-3 px-6 rounded-lg transition-all">Suscribirse</button>
+                <p className="text-white font-semibold mt-8 mb-4">Lo que incluye:</p>
+                <ul className="space-y-3 text-gray-300">
+                  <li className="flex gap-3"><CheckCircle className="text-green-400 w-5 h-5 flex-shrink-0" />Sesiones de Trading en Vivo</li>
+                  <li className="flex gap-3"><CheckCircle className="text-green-400 w-5 h-5 flex-shrink-0" />Alertas en Tiempo Real</li>
+                  <li className="flex gap-3"><CheckCircle className="text-green-400 w-5 h-5 flex-shrink-0" />Comunidad Global de Traders</li>
+                  <li className="flex gap-3"><CheckCircle className="text-green-400 w-5 h-5 flex-shrink-0" />Bonos VicForex</li>
+                  <li className="flex gap-3"><CheckCircle className="text-green-400 w-5 h-5 flex-shrink-0" />Bonos Premium</li>
+                  <li className="flex gap-3 text-gray-500"><XCircle className="w-5 h-5 flex-shrink-0" />Mentoría 1x1</li>
+                </ul>
+              </div>
+            </div>
+
+            {/* Plan Avanzado */}
+            <div className="bg-gray-900/50 p-8 rounded-2xl border border-blue-900/40 shadow-xl shadow-blue-500/10 flex flex-col">
+              <div className="flex-grow">
+                <h3 className="text-xl font-bold text-white mb-2 flex items-center gap-2"><Star size={18} className="text-blue-400"/>Plan Avanzado</h3>
+                <div className="flex items-baseline gap-3 my-4">
+                  <p className="text-5xl font-extrabold text-white">$175.00</p>
+                  <span className="bg-gray-700 text-gray-300 px-2 py-1 text-sm font-semibold rounded">Semestral</span>
+                </div>
+                <p className="text-gray-400 mb-6">¡Menos de $1 por día!</p>
+                <button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition-all">Suscribirse</button>
+                <p className="text-white font-semibold mt-8 mb-4">Lo que incluye:</p>
+                <ul className="space-y-3 text-gray-300">
+                  <li className="flex gap-3"><CheckCircle className="text-blue-500 w-5 h-5 flex-shrink-0" />Sesiones de Trading en Vivo</li>
+                  <li className="flex gap-3"><CheckCircle className="text-blue-500 w-5 h-5 flex-shrink-0" />Alertas en Tiempo Real</li>
+                  <li className="flex gap-3"><CheckCircle className="text-blue-500 w-5 h-5 flex-shrink-0" />Comunidad Global de Traders</li>
+                  <li className="flex gap-3"><CheckCircle className="text-blue-500 w-5 h-5 flex-shrink-0" />Bonos VicForex</li>
+                  <li className="flex gap-3"><CheckCircle className="text-blue-500 w-5 h-5 flex-shrink-0" />Bonos Premium</li>
+                  <li className="flex gap-3"><CheckCircle className="text-blue-500 w-5 h-5 flex-shrink-0" />Mentoría 1x1</li>
+                </ul>
+              </div>
+            </div>
+
           </div>
         </div>
       </div>
