@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Search, Filter, Star, Users, Clock, GraduationCap, ShoppingCart, Briefcase, Home, MapPin, ChevronDown } from 'lucide-react';
+import { Search, Filter, Star, Users, Clock, GraduationCap, ShoppingCart, Briefcase, Home, MapPin, ChevronDown, Eye } from 'lucide-react';
 import { supabase } from '../supabase';
 
 interface Curso {
@@ -204,96 +205,98 @@ const Marketplace: React.FC = () => {
   }, [cursos, servicios, searchTerm, selectedCategory, sortBy]);
 
   const renderCursoCard = (curso: Curso) => (
-    <motion.div
-      key={curso.id}
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      whileHover={{ y: -5, scale: 1.02 }}
-      transition={{ duration: 0.3 }}
-      className="bg-gray-900/50 rounded-xl border border-amber-500/20 hover:border-amber-400/40 transition-all group cursor-pointer overflow-hidden"
-    >
-      {/* Imagen horizontal tipo Netflix/Instagram */}
-      <div className="relative">
-        <div className="w-full h-48 bg-gray-800 relative overflow-hidden">
-          {curso.imagen_url ? (
-            <img 
-              src={curso.imagen_url} 
-              alt={curso.titulo} 
-              className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-            />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-amber-900/30 to-yellow-900/30">
-              <GraduationCap size={48} className="text-amber-400" />
+    <Link to={`/marketplace/producto/${curso.id}`} className="block group">
+      <motion.div
+        layoutId={`card-container-${curso.id}`}
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0 }}
+        whileHover={{ y: -5, scale: 1.02 }}
+        transition={{ duration: 0.3 }}
+        className="bg-gray-900/50 rounded-xl border border-amber-500/20 hover:border-amber-400/40 transition-all group cursor-pointer overflow-hidden h-full flex flex-col"
+      >
+        {/* Imagen horizontal tipo Netflix/Instagram */}
+        <div className="relative">
+          <div className="w-full h-48 bg-gray-800 relative overflow-hidden">
+            {curso.imagen_url ? (
+              <img 
+                src={curso.imagen_url} 
+                alt={curso.titulo} 
+                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-amber-900/30 to-yellow-900/30">
+                <GraduationCap size={48} className="text-amber-400" />
+              </div>
+            )}
+            
+            {/* Badge de Curso */}
+            <div className="absolute top-3 left-3">
+              <span className="bg-gradient-to-r from-amber-400 to-yellow-500 text-black px-3 py-1 rounded-full text-xs font-bold shadow-lg">
+                CURSO
+              </span>
             </div>
-          )}
-          
-          {/* Badge de Curso */}
-          <div className="absolute top-3 left-3">
-            <span className="bg-gradient-to-r from-amber-400 to-yellow-500 text-black px-3 py-1 rounded-full text-xs font-bold shadow-lg">
-              CURSO
-            </span>
-          </div>
-          
-          {/* Rating */}
-          <div className="absolute top-3 right-3">
-            <div className="bg-black/70 backdrop-blur-sm rounded-full px-2 py-1 flex items-center gap-1">
-              <Star className="w-3 h-3 text-amber-400 fill-current" />
-              <span className="text-amber-400 text-xs font-semibold">{curso.rating}</span>
+            
+            {/* Rating */}
+            <div className="absolute top-3 right-3">
+              <div className="bg-black/70 backdrop-blur-sm rounded-full px-2 py-1 flex items-center gap-1">
+                <Star className="w-3 h-3 text-amber-400 fill-current" />
+                <span className="text-amber-400 text-xs font-semibold">{curso.rating}</span>
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Información separada debajo */}
-      <div className="p-6">
-        <h3 className="text-white font-bold text-lg mb-2 group-hover:text-amber-300 transition-colors line-clamp-2">
-          {curso.titulo}
-        </h3>
-        
-        <p className="text-gray-400 text-sm mb-4 line-clamp-2">
-          {curso.descripcion}
-        </p>
-        
-        {/* Metadata */}
-        <div className="flex items-center gap-4 mb-4 text-xs text-gray-400">
-          <div className="flex items-center gap-1">
-            <Users size={12} />
-            <span>{curso.estudiantes} estudiantes</span>
+        {/* Información separada debajo */}
+        <div className="p-6 flex flex-col flex-grow">
+          <h3 className="text-white font-bold text-lg mb-2 group-hover:text-amber-300 transition-colors line-clamp-2">
+            {curso.titulo}
+          </h3>
+          <p className="text-gray-400 text-sm mb-4 line-clamp-3 flex-grow">
+            {curso.descripcion}
+          </p>
+          
+          {/* Metadata */}
+          <div className="flex items-center gap-4 mb-4 text-xs text-gray-400">
+            <div className="flex items-center gap-1">
+              <Users size={12} />
+              <span>{curso.estudiantes} estudiantes</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <Clock size={12} />
+              <span>{curso.duracion_horas}h</span>
+            </div>
+            <div className="bg-amber-500/20 text-amber-400 px-2 py-1 rounded-full text-xs">
+              {curso.nivel}
+            </div>
           </div>
-          <div className="flex items-center gap-1">
-            <Clock size={12} />
-            <span>{curso.duracion_horas}h</span>
+          
+          {/* Instructor */}
+          <div className="text-sm text-gray-400 mb-4">
+            Por: <span className="text-amber-400 font-semibold">{curso.instructor}</span>
           </div>
-          <div className="bg-amber-500/20 text-amber-400 px-2 py-1 rounded-full text-xs">
-            {curso.nivel}
+          
+          {/* Pie de la tarjeta */}
+          <div className="mt-auto pt-4 border-t border-white/10 flex justify-between items-center">
+            <div className="text-amber-400 font-bold text-xl">
+              ${curso.precio}
+            </div>
+            <div className="bg-amber-600/80 text-white text-center font-bold py-2 px-4 rounded-lg group-hover:bg-amber-500 transition-colors flex items-center justify-center gap-2 text-sm">
+               Ver Detalles
+            </div>
           </div>
         </div>
-        
-        {/* Instructor */}
-        <div className="text-sm text-gray-400 mb-4">
-          Por: <span className="text-amber-400 font-semibold">{curso.instructor}</span>
-        </div>
-        
-        {/* Precio y Botón */}
-        <div className="flex items-center justify-between">
-          <div className="text-2xl font-bold bg-gradient-to-r from-amber-400 to-yellow-500 bg-clip-text text-transparent">
-            ${curso.precio}
-          </div>
-          <button className="bg-gradient-to-r from-amber-500 to-yellow-600 hover:from-amber-400 hover:to-yellow-500 text-black font-bold px-6 py-2 rounded-lg text-sm shadow-lg transform transition-all duration-200 hover:scale-105">
-            Ver
-          </button>
-        </div>
-      </div>
-    </motion.div>
+      </motion.div>
+    </Link>
   );
 
   const renderServicioCard = (servicio: Servicio) => {
-    const esSuscripcion = servicio.tipo_producto === 'suscripcion';
+    const isSuscripcion = servicio.tipo_pago === 'suscripcion';
     
     // ✅ DETERMINAR CATEGORÍA REAL BASADA EN LA CATEGORÍA DEL SERVICIO
     const categoriasServicios = ['Consultoría', 'Diseño', 'Marketing', 'Automatización', 'Desarrollo', 'Coaching', 'Otros'];
     const esServicioReal = categoriasServicios.includes(servicio.categoria);
-    const esSoftwareSaaS = !esServicioReal && (esSuscripcion || servicio.categoria.toLowerCase().includes('software') || servicio.categoria.toLowerCase().includes('saas'));
+    const esSoftwareSaaS = !esServicioReal && (isSuscripcion || servicio.categoria.toLowerCase().includes('software') || servicio.categoria.toLowerCase().includes('saas'));
     
     const colorScheme = esSoftwareSaaS 
       ? { 
@@ -320,99 +323,101 @@ const Marketplace: React.FC = () => {
       return `/${dias} días`;
     };
 
-    return (
-      <motion.div
-        key={servicio.id}
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        whileHover={{ y: -5, scale: 1.02 }}
-        transition={{ duration: 0.3 }}
-        className={`bg-gray-900/50 rounded-xl ${colorScheme.border} transition-all group cursor-pointer overflow-hidden`}
-      >
-        {/* Imagen horizontal tipo Netflix/Instagram */}
-        <div className="relative">
-          <div className="w-full h-48 bg-gray-800 relative overflow-hidden">
-            {servicio.imagen_url ? (
-              <img 
-                src={servicio.imagen_url} 
-                alt={servicio.titulo} 
-                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-              />
-            ) : (
-              <div className={`w-full h-full flex items-center justify-center bg-gradient-to-br ${colorScheme.bg}`}>
-                <Briefcase size={48} className={colorScheme.text} />
-              </div>
-            )}
-            
-            {/* Badge de tipo - ✅ CORREGIDO PARA MOSTRAR CATEGORÍA REAL */}
-            <div className="absolute top-3 left-3 flex gap-2">
-              <span className={`${colorScheme.badge} text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg`}>
-                {esSoftwareSaaS ? 'SOFTWARE & SAAS' : 'SERVICIO'}
-              </span>
-            </div>
-            
-            {/* Rating */}
-            <div className="absolute top-3 right-3">
-              <div className="bg-black/70 backdrop-blur-sm rounded-full px-2 py-1 flex items-center gap-1">
-                <Star className={`w-3 h-3 ${colorScheme.text} fill-current`} />
-                <span className={`${colorScheme.text} text-xs font-semibold`}>{servicio.rating}</span>
-              </div>
-            </div>
-          </div>
-        </div>
+    const badgeCategoryText = esSoftwareSaaS ? 'Software & SaaS' : 'Servicios';
 
-        {/* Información separada debajo */}
-        <div className="p-6">
-          <h3 className={`text-white font-bold text-lg mb-2 group-hover:${colorScheme.text} transition-colors line-clamp-2`}>
-            {servicio.titulo}
-          </h3>
-          
-          <p className="text-gray-400 text-sm mb-4 line-clamp-2">
-            {servicio.descripcion}
-          </p>
-          
-          {/* Metadata */}
-          <div className="flex items-center gap-4 mb-4 text-xs text-gray-400">
-            <div className="flex items-center gap-1">
-              <Users size={12} />
-              <span>{servicio.reviews} reviews</span>
-            </div>
-            
-            {/* ✅ BADGES MEJORADOS SEGÚN TIPO_PAGO */}
-            <div className="flex gap-2">
-              <div className={`${colorScheme.category} px-2 py-1 rounded-full text-xs font-medium`}>
-                {servicio.tipo_pago === 'suscripcion' ? '🔄 Suscripción' : '💵 Pago Único'}
+    return (
+      <Link to={`/marketplace/producto/${servicio.id}`} className="block group">
+        <motion.div
+          layoutId={`card-container-${servicio.id}`}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          whileHover={{ y: -5, scale: 1.02 }}
+          transition={{ duration: 0.3 }}
+          className="bg-gray-900/50 rounded-xl border border-purple-500/20 hover:border-purple-400/40 transition-all group cursor-pointer overflow-hidden h-full flex flex-col"
+        >
+          {/* Imagen horizontal tipo Netflix/Instagram */}
+          <div className="relative">
+            <div className="w-full h-48 bg-gray-800 relative overflow-hidden">
+              {servicio.imagen_url ? (
+                <img 
+                  src={servicio.imagen_url} 
+                  alt={servicio.titulo} 
+                  className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                />
+              ) : (
+                <div className={`w-full h-full flex items-center justify-center bg-gradient-to-br ${colorScheme.bg}`}>
+                  <Briefcase size={48} className={colorScheme.text} />
+                </div>
+              )}
+              
+              {/* Badge de tipo - ✅ CORREGIDO PARA MOSTRAR CATEGORÍA REAL */}
+              <div className="absolute top-3 left-3 flex gap-2">
+                <span className={`${colorScheme.badge} text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg`}>
+                  {badgeCategoryText}
+                </span>
+              </div>
+              
+              {/* Rating */}
+              <div className="absolute top-3 right-3">
+                <div className="bg-black/70 backdrop-blur-sm rounded-full px-2 py-1 flex items-center gap-1">
+                  <Star className={`w-3 h-3 ${colorScheme.text} fill-current`} />
+                  <span className={`${colorScheme.text} text-xs font-semibold`}>{servicio.rating}</span>
+                </div>
               </div>
             </div>
           </div>
           
-          {/* Proveedor */}
-          <div className="text-sm text-gray-400 mb-4">
-            Por: <span className={`${colorScheme.text} font-semibold`}>{servicio.proveedor}</span>
-          </div>
-          
-          {/* Precio y Botón */}
-          <div className="flex items-center justify-between">
-            <div className={`text-2xl font-bold bg-gradient-to-r ${esSuscripcion ? 'from-cyan-400 to-blue-500' : 'from-purple-400 to-pink-500'} bg-clip-text text-transparent`}>
-              ${servicio.precio}
-              {/* ✅ MOSTRAR SUFIJO SEGÚN TIPO_PAGO */}
-              {servicio.tipo_pago === 'suscripcion' && servicio.duracion_dias && (
-                <span className="text-sm text-gray-400 font-normal">
-                  {formatDuracion(servicio.duracion_dias)}
-                </span>
-              )}
-              {servicio.tipo_pago === 'pago_unico' && (
-                <span className="text-sm text-gray-400 font-normal"> único</span>
-              )}
+          {/* Información */}
+          <div className="p-6 flex flex-col flex-grow">
+            <h3 className="text-white font-bold text-lg mb-2 group-hover:text-purple-300 transition-colors line-clamp-2">
+              {servicio.titulo}
+            </h3>
+            <p className="text-gray-400 text-sm mb-4 line-clamp-3 flex-grow">
+              {servicio.descripcion}
+            </p>
+
+            {/* Metadata */}
+            <div className="flex items-center gap-4 mb-4 text-xs text-gray-400">
+              <div className="flex items-center gap-1">
+                <Users size={12} />
+                <span>{servicio.reviews} reviews</span>
+              </div>
+              
+              {/* ✅ BADGES MEJORADOS SEGÚN TIPO_PAGO */}
+              <div className="flex gap-2">
+                <div className={`${colorScheme.category} px-2 py-1 rounded-full text-xs font-medium`}>
+                  {isSuscripcion ? '🔄 Suscripción' : '💵 Pago Único'}
+                </div>
+              </div>
+            </div>
+
+            {/* Proveedor */}
+            <div className="text-sm text-gray-400 mb-4">
+              Por: <span className={`${colorScheme.text} font-semibold`}>{servicio.proveedor}</span>
             </div>
             
-            {/* ✅ BOTÓN SEGÚN TIPO_PAGO */}
-            <button className={`${colorScheme.button} text-white font-bold px-6 py-2 rounded-lg text-sm shadow-lg transform transition-all duration-200 hover:scale-105`}>
-              {servicio.tipo_pago === 'suscripcion' ? 'Suscribirse' : 'Contratar'}
-            </button>
+            {/* Pie de la tarjeta */}
+            <div className="mt-auto pt-4 border-t border-white/10 flex justify-between items-center">
+              <div className="text-purple-400 font-bold text-xl">
+                ${servicio.precio}
+                {isSuscripcion && servicio.duracion_dias && (
+                  <span className="text-base font-normal text-gray-400">
+                    {formatDuracion(servicio.duracion_dias)}
+                  </span>
+                )}
+                {servicio.tipo_pago === 'pago_unico' && (
+                  <span className="text-sm text-gray-400 font-normal"> único</span>
+                )}
+              </div>
+              
+              {/* ✅ BOTÓN SEGÚN TIPO_PAGO */}
+              <div className={`${colorScheme.button} text-white font-bold px-6 py-2 rounded-lg text-sm shadow-lg transform transition-all duration-200 hover:scale-105`}>
+                Ver Detalles
+              </div>
+            </div>
           </div>
-        </div>
-      </motion.div>
+        </motion.div>
+      </Link>
     );
   };
 
@@ -635,8 +640,12 @@ const Marketplace: React.FC = () => {
         </div>
 
         {/* Grid de productos */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 mb-16">
-          {itemsFiltrados.map(renderCard)}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {itemsFiltrados.map(item => (
+            <div key={item.id} className="h-full">
+              {renderCard(item)}
+            </div>
+          ))}
         </div>
 
         {/* Estado vacío */}
