@@ -399,6 +399,78 @@ const PaginaProductoMarketplace: React.FC = () => {
             </div>
         </div>
     </div>
+      {/* SECCIÓN "CONOCE AL EXPERTO" RESTAURADA (SIN BOTÓN) */}
+      <div className="bg-gray-900/50 py-16 sm:py-24">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row gap-12 relative">
+          
+          {/* Columna Izquierda (Contenido Principal que se desplaza) */}
+          <div className="md:w-3/5 lg:w-3/5">
+            <div className="max-w-none">
+              <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">Con más de 4 años operando de forma constante y disciplinada, VicForex ha perfeccionado un enfoque sólido basado en análisis técnico, acción del precio y gestión de riesgo inteligente.</h2>
+              <p className="mt-6 text-lg leading-8 text-gray-300">Su método se ha forjado operando en vivo, bajo condiciones reales de mercado, y ha sido validado día tras día, sin atajos ni promesas vacías.</p>
+              
+              <div className="mt-10 text-base leading-7 text-gray-200">
+                <div className="p-8 border border-gray-700 rounded-lg bg-gray-800/40">
+                  <p>En la Trading Room VicForex no solo analiza, sino que opera en tiempo real. Comparte su proceso, su lectura del mercado y su toma de decisiones, ayudando a traders a salir de la teoría y desarrollar una mentalidad operativa profesional.</p>
+                  <blockquote className="italic text-gray-400 mt-4 border-l-2 border-cyan-500 pl-4">
+                    "Una buena señal no es solo cuándo entrar. Es cuándo NO hacerlo. El silencio también es parte de una estrategia." – VicForex
+                  </blockquote>
+                  <ul className="mt-8 space-y-4">
+                    <li className="flex gap-x-3 items-start">
+                      <XCircle className="mt-1 h-5 w-5 flex-none text-red-500" aria-hidden="true" />
+                      <span><strong className="font-semibold text-white">Nada de cursos grabados o fórmulas mágicas.</strong></span>
+                    </li>
+                    <li className="flex gap-x-3 items-start">
+                      <CheckCircle className="mt-1 h-5 w-5 flex-none text-green-500" aria-hidden="true" />
+                      <span><strong className="font-semibold text-white">Acompañamiento real,</strong> entorno profesional, y evolución constante junto a una comunidad comprometida, global y enfocada en el crecimiento real.</span>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Columna Derecha (Contenedor para la Tarjeta Sticky) */}
+          <div className="md:w-2/5 lg:w-2/5">
+            <div className="sticky top-24">
+              <div className="rounded-2xl bg-gray-800/80 backdrop-blur-sm p-8 shadow-2xl shadow-blue-500/10 border border-gray-700">
+                <h3 className="text-2xl font-bold leading-7 tracking-tight text-white">VICTOR ACOSTA</h3>
+                <p className="text-sm leading-6 text-gray-400">Trading · Análisis Técnico · Mentalidad</p>
+                <div className="flex items-center gap-x-2 mt-4">
+                  <img src="https://flagcdn.com/w20/mx.png" alt="México" className="h-4 rounded-sm" />
+                  <img src="https://flagcdn.com/w20/ar.png" alt="Argentina" className="h-4 rounded-sm" />
+                  <img src="https://flagcdn.com/w20/pe.png" alt="Perú" className="h-4 rounded-sm" />
+                  <img src="https://flagcdn.com/w20/co.png" alt="Colombia" className="h-4 rounded-sm" />
+                  <img src="https://flagcdn.com/w20/ve.png" alt="Venezuela" className="h-4 rounded-sm" />
+                  <img src="https://flagcdn.com/w20/cl.png" alt="Chile" className="h-4 rounded-sm" />
+                  <img src="https://flagcdn.com/w20/es.png" alt="España" className="h-4 rounded-sm" />
+                </div>
+                
+                <div className="mt-6 border-t border-gray-700 pt-6">
+                  <h4 className="text-base font-semibold text-white mb-3">Estadísticas Clave</h4>
+                  <ul className="space-y-3 text-sm text-gray-300">
+                    <li className="flex justify-between"><span>Años de Experiencia</span> <span className="font-mono text-cyan-400">4+</span></li>
+                    <li className="flex justify-between"><span>Países</span> <span className="font-mono text-cyan-400">7+</span></li>
+                    <li className="flex justify-between"><span>Estudiantes</span> <span className="font-mono text-cyan-400">1,200+</span></li>
+                    <li className="flex justify-between"><span>Comunidad</span> <span className="font-mono text-cyan-400">Activa</span></li>
+                  </ul>
+                </div>
+
+                <div className="mt-6 border-t border-gray-700 pt-6">
+                  <h4 className="text-base font-semibold text-white mb-3">Enfocado en</h4>
+                  <div className="flex flex-wrap gap-2">
+                    <span className="bg-cyan-400/10 text-cyan-300 text-xs font-medium px-2 py-1 rounded-full">Acción del Precio</span>
+                    <span className="bg-cyan-400/10 text-cyan-300 text-xs font-medium px-2 py-1 rounded-full">Gestión de Riesgo</span>
+                    <span className="bg-cyan-400/10 text-cyan-300 text-xs font-medium px-2 py-1 rounded-full">Psicotrading</span>
+                    <span className="bg-cyan-400/10 text-cyan-300 text-xs font-medium px-2 py-1 rounded-full">Trading en Vivo</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* SECCIÓN DE MEMBRESÍAS - VERSIÓN INICIAL RESTAURADA */}
       <div className="relative bg-black py-16 sm:py-24">
         <div className="absolute inset-0 opacity-20">
