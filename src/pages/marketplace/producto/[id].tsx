@@ -226,6 +226,42 @@ const PaginaProductoMarketplace: React.FC = () => {
         </div>
       </div>
       
+      {/* Barra de Información Clave */}
+      <div className="border-y border-gray-800">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center py-6">
+            {producto.nivel && (
+              <div className="flex flex-col items-center justify-center gap-1">
+                <Award size={24} className="text-cyan-400" />
+                <span className="text-sm text-gray-400">Nivel</span>
+                <span className="text-lg font-semibold text-white">{producto.nivel}</span>
+              </div>
+            )}
+            {producto.duracion_horas && (
+              <div className="flex flex-col items-center justify-center gap-1">
+                <PlayCircle size={24} className="text-cyan-400" />
+                <span className="text-sm text-gray-400">Duración</span>
+                <span className="text-lg font-semibold text-white">{producto.duracion_horas} horas</span>
+              </div>
+            )}
+            {producto.estudiantes && (
+              <div className="flex flex-col items-center justify-center gap-1">
+                <Users size={24} className="text-cyan-400" />
+                <span className="text-sm text-gray-400">Estudiantes</span>
+                <span className="text-lg font-semibold text-white">{producto.estudiantes}</span>
+              </div>
+            )}
+            {producto.rating && (
+               <div className="flex flex-col items-center justify-center gap-1">
+                <Star size={24} className="text-cyan-400" />
+                <span className="text-sm text-gray-400">Valoración</span>
+                <span className="text-lg font-semibold text-white">{producto.rating}/5</span>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
       {/* Nueva Sección de Video y Puntos Clave */}
       <div className="py-16 sm:py-24">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -284,67 +320,79 @@ const PaginaProductoMarketplace: React.FC = () => {
         </div>
       </div>
 
-      {/* Barra de Información Clave */}
-      <div className="border-y border-gray-800">
+      {/* SECCIÓN MEJORADA: ¿QUÉ INCLUYE TU ACCESO? */}
+      <div className="bg-black py-16 sm:py-24">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center py-6">
-            {producto.nivel && (
-              <div className="flex flex-col items-center justify-center gap-1">
-                <Award size={24} className="text-cyan-400" />
-                <span className="text-sm text-gray-400">Nivel</span>
-                <span className="text-lg font-semibold text-white">{producto.nivel}</span>
+          <div className="max-w-3xl mx-auto text-center mb-12">
+            <h2 className="text-3xl font-extrabold text-white sm:text-4xl">¿QUÉ INCLUYE TU ACCESO?</h2>
+            <p className="mt-4 text-lg text-gray-400">
+              Accede a una comunidad donde aprender, operar y crecer es parte del día a día.
+            </p>
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            
+            {/* Bloque 1: Sesiones en Vivo (Más alto) */}
+            <div className="bg-gray-900/50 p-6 rounded-2xl border border-blue-900/50 shadow-xl shadow-blue-500/10 lg:row-span-2 flex flex-col">
+              <div className="flex items-center gap-4 mb-4">
+                <img src="https://i.imgur.com/L8FvB2d.png" alt="Sesiones en vivo" className="w-20 h-20"/>
+                <img src="https://i.imgur.com/vHqAV3p.png" alt="Kick" className="w-20 h-20"/>
               </div>
-            )}
-            {producto.duracion_horas && (
-              <div className="flex flex-col items-center justify-center gap-1">
-                <PlayCircle size={24} className="text-cyan-400" />
-                <span className="text-sm text-gray-400">Duración</span>
-                <span className="text-lg font-semibold text-white">{producto.duracion_horas} horas</span>
+              <h3 className="text-xl font-bold text-white mb-2">Sesiones de Trading en Vivo</h3>
+              <ul className="space-y-2 text-gray-400">
+                <li className="flex gap-2"><CheckCircle className="text-blue-500 w-5 h-5 flex-shrink-0" />Operaciones en tiempo real.</li>
+                <li className="flex gap-2"><CheckCircle className="text-blue-500 w-5 h-5 flex-shrink-0" />Análisis, entradas y gestión de riesgo.</li>
+                <li className="flex gap-2"><CheckCircle className="text-blue-500 w-5 h-5 flex-shrink-0" />Espacios interactivos para resolver dudas.</li>
+                <li className="flex gap-2"><CheckCircle className="text-blue-500 w-5 h-5 flex-shrink-0" />Acceso a grabaciones 24/7.</li>
+              </ul>
+            </div>
+
+            {/* Bloque 2: Bonos */}
+            <div className="bg-gray-900/50 p-6 rounded-2xl border border-blue-900/50 shadow-xl shadow-blue-500/10 flex flex-col">
+              <img src="https://i.imgur.com/b11gY2F.png" alt="Bonos" className="w-24 h-24 mb-4 self-center"/>
+              <h3 className="text-xl font-bold text-white mb-2">Bonos Principales</h3>
+              <ul className="space-y-2 text-gray-400">
+                <li className="flex gap-2"><CheckCircle className="text-blue-500 w-5 h-5 flex-shrink-0" />Curso Fundamentos de Trading.</li>
+                <li className="flex gap-2"><CheckCircle className="text-blue-500 w-5 h-5 flex-shrink-0" />Curso Trading sistemático.</li>
+                <li className="flex gap-2"><CheckCircle className="text-blue-500 w-5 h-5 flex-shrink-0" />Plan de trading y plantillas.</li>
+              </ul>
+            </div>
+
+            {/* Bloque 3: Alertas */}
+            <div className="bg-gray-900/50 p-6 rounded-2xl border border-blue-900/50 shadow-xl shadow-blue-500/10 flex flex-col">
+               <img src="https://i.imgur.com/MJAon7T.png" alt="Alertas" className="w-24 h-24 mb-4 self-center"/>
+              <h3 className="text-xl font-bold text-white mb-2">Alertas en Tiempo Real</h3>
+              <ul className="space-y-2 text-gray-400">
+                <li className="flex gap-2"><CheckCircle className="text-blue-500 w-5 h-5 flex-shrink-0" />Canal privado (Telegram o Discord).</li>
+                <li className="flex gap-2"><CheckCircle className="text-blue-500 w-5 h-5 flex-shrink-0" />Alertas de setups y noticias clave.</li>
+              </ul>
+            </div>
+
+            {/* Bloque 4: Comunidad */}
+            <div className="bg-gray-900/50 p-6 rounded-2xl border border-blue-900/50 shadow-xl shadow-blue-500/10 flex flex-col">
+              <img src="https://i.imgur.com/lgsBDhG.png" alt="Comunidad" className="w-24 h-24 mb-4 self-center"/>
+              <h3 className="text-xl font-bold text-white mb-2">Comunidad Global</h3>
+              <ul className="space-y-2 text-gray-400">
+                <li className="flex gap-2"><CheckCircle className="text-blue-500 w-5 h-5 flex-shrink-0" />LATAM, USA, Europa y Asia.</li>
+                <li className="flex gap-2"><CheckCircle className="text-blue-500 w-5 h-5 flex-shrink-0" />Comparte, aprende y crece con la red.</li>
+              </ul>
+            </div>
+
+            {/* Bloque 5: Bonos Premium (Ocupa todo el ancho) */}
+            <div className="bg-gray-900/50 p-6 rounded-2xl border border-blue-900/50 shadow-xl shadow-blue-500/10 lg:col-span-2 flex flex-col md:flex-row items-center gap-6">
+              <img src="https://i.imgur.com/1i8LAXv.png" alt="Bonos Premium" className="w-32 h-32 flex-shrink-0"/>
+              <div className="text-center md:text-left">
+                <h3 className="text-xl font-bold text-white mb-2">Bonos Premium <span className="text-base font-normal text-gray-400">(Máximo 10 nuevos usuarios)</span></h3>
+                <ul className="space-y-2 text-gray-400">
+                  <li className="flex gap-2"><CheckCircle className="text-blue-500 w-5 h-5 flex-shrink-0" />Acceso gratuito al sistema de copytrading.</li>
+                  <li className="flex gap-2"><CheckCircle className="text-blue-500 w-5 h-5 flex-shrink-0" />Sorteo de cuentas de $1000 dólares cada mes.</li>
+                  <li className="flex gap-2"><CheckCircle className="text-blue-500 w-5 h-5 flex-shrink-0" />Mentoría personalizada.</li>
+                </ul>
               </div>
-            )}
-            {producto.estudiantes && (
-              <div className="flex flex-col items-center justify-center gap-1">
-                <Users size={24} className="text-cyan-400" />
-                <span className="text-sm text-gray-400">Estudiantes</span>
-                <span className="text-lg font-semibold text-white">{producto.estudiantes}</span>
-              </div>
-            )}
-            {producto.rating && (
-               <div className="flex flex-col items-center justify-center gap-1">
-                <Star size={24} className="text-cyan-400" />
-                <span className="text-sm text-gray-400">Valoración</span>
-                <span className="text-lg font-semibold text-white">{producto.rating}/5</span>
-              </div>
-            )}
+            </div>
+
           </div>
         </div>
       </div>
-
-      {/* Sección de Características */}
-      {producto.caracteristicas && producto.caracteristicas.length > 0 && (
-        <div className="bg-gray-900/50 py-16 sm:py-24">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="max-w-3xl mx-auto text-center">
-              <h2 className="text-3xl font-extrabold text-white sm:text-4xl">¿Qué incluye este producto?</h2>
-              <p className="mt-4 text-lg text-gray-400">
-                Todo lo que necesitas para alcanzar tus objetivos, directamente y sin rodeos.
-              </p>
-            </div>
-            <div className="mt-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {producto.caracteristicas.map((feature, index) => (
-                <div key={index} className="flex items-start gap-4 p-6 bg-black/30 rounded-lg">
-                  <div className="flex-shrink-0">
-                    <CheckCircle className="h-6 w-6 text-cyan-400" />
-                  </div>
-                  <div>
-                    <p className="text-base font-medium text-white">{feature}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Sección de Testimonios (Placeholder) */}
       <div className="py-16 sm:py-24">
