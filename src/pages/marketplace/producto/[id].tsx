@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useRouter } from 'next/router';
+import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../../../supabase';
 import { BookOpen, Users, Award, PlayCircle, Star, ArrowLeft, ShoppingCart, CheckCircle, Info, Calendar, Globe, Users as UsersIcon } from 'lucide-react';
 
@@ -58,8 +58,8 @@ type ProductoMarketplace = {
 
 
 const PaginaProductoMarketplace: React.FC = () => {
-  const router = useRouter();
-  const { id } = router.query;
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const [producto, setProducto] = useState<ProductoMarketplace | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -107,7 +107,7 @@ const PaginaProductoMarketplace: React.FC = () => {
   }, [id]);
 
   const handleBack = () => {
-    router.push('/marketplace');
+    navigate('/marketplace');
   };
 
   // --- Renderizado ---
