@@ -51,6 +51,7 @@ const ServiciosMarketplacePanel: React.FC = () => {
     activo: true,
     tipo_producto: 'suscripcion' as 'servicio' | 'suscripcion',
     tipo_pago: 'pago_unico' as 'pago_unico' | 'suscripcion',
+    plan_suscripcion_id: '',
     duracion_dias: 30,
     caracteristicas: [''],
     // Campos de afiliación
@@ -170,6 +171,7 @@ const ServiciosMarketplacePanel: React.FC = () => {
       activo: servicio.activo,
       tipo_producto: (servicio.tipo_producto || 'suscripcion') as 'servicio' | 'suscripcion',
       tipo_pago: servicio.tipo_pago || 'pago_unico',
+      plan_suscripcion_id: servicio.plan_suscripcion_id || '',
       duracion_dias: servicio.duracion_dias || 30,
       caracteristicas: Array.isArray(servicio.caracteristicas) ? servicio.caracteristicas : [''],
       // Campos de afiliación
@@ -196,6 +198,7 @@ const ServiciosMarketplacePanel: React.FC = () => {
       activo: true,
       tipo_producto: 'suscripcion' as 'servicio' | 'suscripcion',
       tipo_pago: 'pago_unico' as 'pago_unico' | 'suscripcion',
+      plan_suscripcion_id: '',
       duracion_dias: 30,
       caracteristicas: [''],
       // Campos de afiliación
@@ -358,6 +361,7 @@ const ServiciosMarketplacePanel: React.FC = () => {
       activo: true,
       tipo_producto: 'suscripcion' as 'servicio' | 'suscripcion',
       tipo_pago: 'pago_unico' as 'pago_unico' | 'suscripcion',
+      plan_suscripcion_id: '',
       duracion_dias: 30,
       caracteristicas: [
         'Análisis completo de tu negocio actual',
@@ -788,45 +792,45 @@ const ServiciosMarketplacePanel: React.FC = () => {
                 </div>
               </div>
 
-              {/* Imagen */}
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Imagen del Servicio
-                </label>
-                <div className="space-y-2">
+              {/* Imagen URL & Uploader */}
+              <div className="col-span-2">
+                <label className="block text-sm font-medium text-gray-400 mb-1">Imagen del Servicio</label>
+                <div className="flex items-center gap-2">
                   <input
-                    type="url"
-                    placeholder="URL de la imagen"
+                    type="text"
                     value={suscripcionData.imagen_url}
                     onChange={(e) => setSuscripcionData(prev => ({ ...prev, imagen_url: e.target.value }))}
-                    className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-400"
+                    className="flex-grow bg-gray-800 border-gray-700 text-white rounded-lg p-2 focus:ring-purple-500 focus:border-purple-500"
+                    placeholder="Pega una URL o sube un archivo"
                   />
-                  <div className="text-center">
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) => e.target.files?.[0] && handleSuscripcionImageUpload(e.target.files[0])}
-                      className="hidden"
-                      id="suscripcion-image-upload"
-                    />
-                    <label
-                      htmlFor="suscripcion-image-upload"
-                      className="inline-flex items-center gap-2 bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg cursor-pointer transition-colors"
-                    >
+                  <input
+                    type="file"
+                    id="imageUpload"
+                    className="hidden"
+                    onChange={(e) => {
+                      if (e.target.files && e.target.files[0]) {
+                        handleSuscripcionImageUpload(e.target.files[0]);
+                      }
+                    }}
+                    accept="image/png, image/jpeg, image/gif, image/webp"
+                  />
+                  <label
+                    htmlFor="imageUpload"
+                    className="cursor-pointer bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
+                  >
+                    {uploading ? (
+                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                    ) : (
                       <Upload size={16} />
-                      {uploading ? 'Subiendo...' : 'Subir Imagen'}
-                    </label>
-                  </div>
-                  {suscripcionData.imagen_url && (
-                    <div className="mt-2">
-                      <img
-                        src={suscripcionData.imagen_url}
-                        alt="Preview"
-                        className="w-full h-32 object-cover rounded-lg"
-                      />
-                    </div>
-                  )}
+                    )}
+                    Subir
+                  </label>
                 </div>
+                {suscripcionData.imagen_url && (
+                  <div className="mt-2">
+                    <img src={suscripcionData.imagen_url} alt="Previsualización" className="w-32 h-32 object-cover rounded-lg border border-gray-700" />
+                  </div>
+                )}
               </div>
 
               {/* Características */}
