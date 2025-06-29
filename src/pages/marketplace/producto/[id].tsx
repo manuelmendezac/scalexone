@@ -400,10 +400,10 @@ const PaginaProductoMarketplace: React.FC = () => {
         </div>
     </div>
 
-      {/* Sección Conoce al Experto (Sticky & Animada) */}
+      {/* Sección Conoce al Experto (Sticky & Animada) - VERSIÓN CORREGIDA */}
       <div className="py-16 sm:py-24">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-start">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16">
             {/* Columna Izquierda (Scroll) */}
             <div className="space-y-8">
               <div className="flex flex-wrap items-center gap-3">
@@ -441,7 +441,7 @@ const PaginaProductoMarketplace: React.FC = () => {
             </div>
 
             {/* Columna Derecha (Contenedor para el elemento Sticky) */}
-            <div className="relative h-full">
+            <div className="relative">
               <div className="lg:sticky lg:top-24 transition-all duration-300 ease-in-out hover:scale-[1.03]">
                 <div className="bg-gray-900/70 bg-[radial-gradient(ellipse_at_center,_rgba(29,78,216,0.20),_transparent_70%)] p-8 rounded-2xl border border-blue-800/50 shadow-2xl shadow-blue-500/20 hover:shadow-blue-400/30 flex flex-col items-center">
                   <img 
