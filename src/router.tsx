@@ -51,6 +51,7 @@ const CursoDetalle = lazy(() => import('./pages/cursos/id'));
 const ModuloDetalle = lazy(() => import('./pages/cursos/modulo'));
 const ModulosCurso = lazy(() => import('./pages/cursos/modulos'));
 const Marketplace = lazy(() => import('./pages/marketplace'));
+const PaginaProductoMarketplace = lazy(() => import('./pages/marketplace/producto/[id]'));
 const MarketplaceAfiliados = lazy(() => import('./pages/afiliados/marketplace'));
 
 const SuspenseWrapper = ({ children }: { children: React.ReactNode }) => (
@@ -91,7 +92,13 @@ export const router = createBrowserRouter([
       },
       { path: 'launchpad', element: <SuspenseWrapper><Launchpad /></SuspenseWrapper> },
       { path: 'comunidad', element: <SuspenseWrapper><ComunidadPage /></SuspenseWrapper> },
-      { path: 'marketplace', element: <SuspenseWrapper><Marketplace /></SuspenseWrapper> },
+      { 
+        path: 'marketplace', 
+        children: [
+          { index: true, element: <SuspenseWrapper><Marketplace /></SuspenseWrapper> },
+          { path: 'producto/:id', element: <SuspenseWrapper><PaginaProductoMarketplace /></SuspenseWrapper> },
+        ] 
+      },
       { path: 'configuracion-admin', element: <SuspenseWrapper><AdminSettingsPage /></SuspenseWrapper> },
       { path: 'console', element: <div style={{color: 'white', fontSize: 32, textAlign: 'center', marginTop: 40}}>Test Console</div> },
       { path: 'focus', element: <SuspenseWrapper><FocusMode /></SuspenseWrapper> },
