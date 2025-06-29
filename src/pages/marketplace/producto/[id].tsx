@@ -440,31 +440,32 @@ const PaginaProductoMarketplace: React.FC = () => {
               </button>
             </div>
 
-            {/* COLUMNA DERECHA (STICKY) - La clave es hacer que la columna en sí sea sticky, no un div interno. */}
-            {/* La clase h-fit es crucial para que el elemento sticky tenga su propia altura y no se estire. */}
-            <div className="lg:sticky lg:top-24 h-fit">
-              <div className="transition-all duration-300 ease-in-out hover:scale-[1.03]">
-                  <div className="bg-gray-900/70 bg-[radial-gradient(ellipse_at_center,_rgba(29,78,216,0.20),_transparent_70%)] p-8 rounded-2xl border border-blue-800/50 shadow-2xl shadow-blue-500/20 hover:shadow-blue-400/30 flex flex-col items-center">
-                    <img 
-                      src="https://i.imgur.com/3SKsD62.png" 
-                      alt="Logo del experto"
-                      className="w-24 h-auto mb-4"
-                    />
-                    <img 
-                      src="https://i.imgur.com/kS9k8yM.png" 
-                      alt="Victor Acosta" 
-                      className="max-w-full h-auto max-h-80"
-                    />
-                    <h3 className="mt-6 text-3xl font-bold text-white tracking-wider uppercase">VICTOR ACOSTA</h3>
-                    <div className="mt-4 flex justify-center items-center gap-2">
-                      <img src="https://flagcdn.com/w40/mx.png" alt="Bandera México" className="w-6 h-auto" title="México"/>
-                      <img src="https://flagcdn.com/w40/ar.png" alt="Bandera Argentina" className="w-6 h-auto" title="Argentina"/>
-                      <img src="https://flagcdn.com/w40/pe.png" alt="Bandera Perú" className="w-6 h-auto" title="Perú"/>
-                      <img src="https://flagcdn.com/w40/co.png" alt="Bandera Colombia" className="w-6 h-auto" title="Colombia"/>
-                      <img src="https://flagcdn.com/w40/cl.png" alt="Bandera Chile" className="w-6 h-auto" title="Chile"/>
-                      <img src="https://flagcdn.com/w40/es.png" alt="Bandera España" className="w-6 h-auto" title="España"/>
+            {/* Columna Derecha (Contenedor para el elemento Sticky) */}
+            <div>
+              <div className="lg:sticky lg:top-24">
+                <div className="transition-all duration-300 ease-in-out hover:scale-[1.03]">
+                    <div className="bg-gray-900/70 bg-[radial-gradient(ellipse_at_center,_rgba(29,78,216,0.20),_transparent_70%)] p-8 rounded-2xl border border-blue-800/50 shadow-2xl shadow-blue-500/20 hover:shadow-blue-400/30 flex flex-col items-center">
+                      <img 
+                        src="https://i.imgur.com/3SKsD62.png" 
+                        alt="Logo del experto"
+                        className="w-24 h-auto mb-4"
+                      />
+                      <img 
+                        src="https://i.imgur.com/kS9k8yM.png" 
+                        alt="Victor Acosta" 
+                        className="max-w-full h-auto max-h-80"
+                      />
+                      <h3 className="mt-6 text-3xl font-bold text-white tracking-wider uppercase">VICTOR ACOSTA</h3>
+                      <div className="mt-4 flex justify-center items-center gap-2">
+                        <img src="https://flagcdn.com/w40/mx.png" alt="Bandera México" className="w-6 h-auto" title="México"/>
+                        <img src="https://flagcdn.com/w40/ar.png" alt="Bandera Argentina" className="w-6 h-auto" title="Argentina"/>
+                        <img src="https://flagcdn.com/w40/pe.png" alt="Bandera Perú" className="w-6 h-auto" title="Perú"/>
+                        <img src="https://flagcdn.com/w40/co.png" alt="Bandera Colombia" className="w-6 h-auto" title="Colombia"/>
+                        <img src="https://flagcdn.com/w40/cl.png" alt="Bandera Chile" className="w-6 h-auto" title="Chile"/>
+                        <img src="https://flagcdn.com/w40/es.png" alt="Bandera España" className="w-6 h-auto" title="España"/>
+                      </div>
                     </div>
-                  </div>
+                </div>
               </div>
             </div>
           </div>
