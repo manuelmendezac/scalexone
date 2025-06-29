@@ -128,6 +128,23 @@ const PaginaProductoMarketplace: React.FC = () => {
     navigate('/marketplace');
   };
 
+  if (loading) {
+    return <div className="bg-black text-white min-h-screen flex justify-center items-center">Cargando producto...</div>;
+  }
+
+  if (error) {
+    return (
+      <div className="bg-black text-white min-h-screen flex flex-col justify-center items-center p-4">
+        <Info size={48} className="text-red-500 mb-4" />
+        <h2 className="text-xl font-bold mb-2">Error al cargar el producto</h2>
+        <p className="text-center text-gray-400">{error}</p>
+        <button onClick={handleBack} className="mt-6 bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg flex items-center transition-colors">
+          <ArrowLeft size={18} className="mr-2" /> Volver al Marketplace
+        </button>
+      </div>
+    );
+  }
+
   if (!producto) {
     // Este estado no debería alcanzarse si la lógica anterior es correcta, pero es una buena práctica tenerlo.
     return <div className="bg-black text-white min-h-screen flex justify-center items-center">No se pudo cargar la información del producto.</div>;
@@ -139,7 +156,7 @@ const PaginaProductoMarketplace: React.FC = () => {
     if (['consultoría', 'marketing', 'estrategia', 'servicios'].some(c => cat.includes(c))) {
       return 'servicio';
     }
-    if (['desarrollo', 'programación', 'diseño', 'trading', 'finanzas', 'cursos', 'e-commerce'].some(c => cat.includes(c))) {
+    if (['desarrollo', 'programación', 'diseño', 'trading', 'finanzas', 'curso', 'e-commerce'].some(c => cat.includes(c))) {
       return 'curso';
     }
     return 'software'; // Default para 'Software & SaaS' etc.
