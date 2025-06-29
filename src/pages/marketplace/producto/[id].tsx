@@ -3,6 +3,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../../../supabase';
 import { BookOpen, Users, Award, PlayCircle, Star, ArrowLeft, ShoppingCart, CheckCircle, Info, Calendar, Globe, Users as UsersIcon, Video, Radio, BookOpenCheck, BellRing, Globe2, ShieldCheck, XCircle } from 'lucide-react';
+import HeroEditableSection from '../../../components/HeroEditableSection';
 
 // Estructura de datos que esperamos de la BD
 // Unificada para cursos y servicios del marketplace
@@ -207,6 +208,8 @@ const PaginaProductoMarketplace: React.FC = () => {
   // Renderizado de la página de producto con diseño
   return (
     <div className="bg-black text-white min-h-screen">
+      {/* HERO editable */}
+      <HeroEditableSection producto={producto} onUpdate={nuevosDatos => setProducto(p => ({ ...p, portada_datos: nuevosDatos }))} />
       <div className="relative">
         <button 
           onClick={handleBack}
