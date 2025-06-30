@@ -1,4 +1,4 @@
-import formidable from 'formidable';
+import formidable, { File as FormidableFile } from 'formidable';
 import { createClient } from '@supabase/supabase-js';
 import fs from 'fs';
 
@@ -22,13 +22,13 @@ export default async function handler(req, res) {
     if (err) {
       return res.status(500).json({ error: 'Error al procesar el archivo' });
     }
-    let file = files.avatar;
+    let file = files.avatar as FormidableFile | FormidableFile[] | undefined;
     if (Array.isArray(file)) file = file[0];
     if (!file) {
       return res.status(400).json({ error: 'No se envió ningún archivo' });
     }
     try {
-      const fileExt = file.originalFilename?.split('.').pop();
+      const fileExt = file.originalFilename?.split('.')?.pop();
       const fileName = `avatar_${Date.now()}.${fileExt}`;
       const fileBuffer = fs.readFileSync(file.filepath);
       const { data, error } = await supabase.storage
