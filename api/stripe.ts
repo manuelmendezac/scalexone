@@ -1,11 +1,10 @@
-import { VercelRequest, VercelResponse } from '@vercel/node';
 import Stripe from 'stripe';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
   apiVersion: '2025-05-28.basil',
 });
 
-export default async function handler(req: VercelRequest, res: VercelResponse) {
+export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Método no permitido' });
   }
@@ -43,7 +42,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     });
 
     // 2. Crear precio en Stripe
-    const priceData: Stripe.PriceCreateParams = {
+    const priceData: any = {
       product: producto.id,
       unit_amount: Math.round(precio * 100), // Convertir a centavos
       currency: moneda,
@@ -64,7 +63,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       precio_centavos: price.unit_amount,
       moneda: price.currency,
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Error en Stripe API:', error);
     
     // Manejo específico de errores de Stripe
