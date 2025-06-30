@@ -26,6 +26,8 @@ export const StripePaymentButton: React.FC<StripePaymentButtonProps> = ({
   const [isLoading, setIsLoading] = useState(false);
 
   const handlePayment = async () => {
+    alert('¡Botón de pago clickeado!');
+    console.log('StripePaymentButton: handlePayment ejecutado', { productData, customerEmail, metadata });
     if (disabled || isLoading) return;
 
     setIsLoading(true);
