@@ -19,6 +19,7 @@ interface PlanMembresia {
   principal?: boolean;
   caracteristicas: Caracteristica[];
   stripe_price_id?: string;
+  periodicidad?: 'month' | 'year' | 'quarter' | 'semiannual';
 }
 
 interface MembresiasDatos {
@@ -198,6 +199,7 @@ export default function MembresiasEditableSection({ producto, onUpdate, isAdmin 
             descripcion: plan.descripcion,
             precio: plan.precio,
             tipo_pago: plan.tipo_pago,
+            periodicidad: plan.tipo_pago === 'suscripcion' ? plan.periodicidad || 'month' : undefined,
           });
           updatedForm.planes[i].stripe_price_id = result.stripe_price_id;
         } catch (err) {
@@ -207,8 +209,12 @@ export default function MembresiasEditableSection({ producto, onUpdate, isAdmin 
         }
       }
     }
+    // Detectar tipo de producto y tabla
+    let tabla = 'cursos_marketplace';
+    if (producto.tipo === 'servicio') tabla = 'servicios_marketplace';
+    if (producto.tipo === 'software') tabla = 'software_marketplace';
     const { error } = await supabase
-      .from('cursos_marketplace') // o servicios_marketplace según corresponda
+      .from(tabla)
       .update({ membresias_datos: updatedForm })
       .eq('id', producto.id);
     setSaving(false);
@@ -443,6 +449,20 @@ export default function MembresiasEditableSection({ producto, onUpdate, isAdmin 
                         className="w-full p-2 rounded text-gray-200 bg-gray-700"
                         placeholder="Ej: price_1N..."
                       />
+                    </div>
+                    <div>
+                      <label className="block text-gray-300 mb-2">Periodicidad:</label>
+                      <select
+                        value={plan.periodicidad || 'month'}
+                        onChange={e => handlePlanChange(planIndex, 'periodicidad', e.target.value)}
+                        className="w-full p-2 rounded text-gray-200 bg-gray-700"
+                        disabled={plan.tipo_pago !== 'suscripcion'}
+                      >
+                        <option value="month">Mensual</option>
+                        <option value="quarter">Trimestral</option>
+                        <option value="semiannual">Semestral</option>
+                        <option value="year">Anual</option>
+                      </select>
                     </div>
                   </div>
 

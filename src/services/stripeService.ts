@@ -5,6 +5,7 @@ export interface StripeProductData {
   precio: number;
   tipo_pago: 'pago_unico' | 'suscripcion';
   moneda?: string;
+  periodicidad?: 'month' | 'year' | 'quarter' | 'semiannual';
 }
 
 export interface StripeCheckoutData {

@@ -5,12 +5,15 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
   apiVersion: '2025-05-28.basil',
 });
 
+console.log('STRIPE_SECRET_KEY:', process.env.STRIPE_SECRET_KEY);
+console.log('BODY RECIBIDO:', req.body);
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Método no permitido' });
   }
 
-  const { nombre, descripcion, precio, tipo_pago, moneda = 'usd' } = req.body;
+  const { nombre, descripcion, precio, tipo_pago, moneda = 'usd', periodicidad } = req.body;
 
   // Validación mejorada
   if (!nombre || !precio || !tipo_pago) {
@@ -51,7 +54,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     // Agregar configuración de suscripción si es necesario
     if (tipo_pago === 'suscripcion') {
-      priceData.recurring = { interval: 'month' };
+      priceData.recurring = { interval: periodicidad || 'month' };
     }
 
     const price = await stripe.prices.create(priceData);
