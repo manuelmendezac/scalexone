@@ -363,12 +363,12 @@ const PaginaProductoMarketplace: React.FC = () => {
       <div className="bg-gray-900/50 py-16 sm:py-24">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row gap-12 relative">
           {/* Columna Izquierda (Contenido Principal que se desplaza) */}
-          <div className="w-full">
+          <div className="md:w-3/5 lg:w-3/5">
             <BloqueTextosAutoridadEditableSection producto={producto} isAdmin={isAdmin} onUpdate={nuevosDatos => setProducto(p => ({ ...p!, bloque_textos_autoridad_datos: nuevosDatos }))} />
           </div>
 
           {/* Columna Derecha (Contenedor para la Tarjeta Sticky) */}
-          <div className="w-full md:max-w-md lg:max-w-xl mx-auto">
+          <div className="md:w-2/5 lg:w-2/5">
             <div className="sticky top-24">
               <BloqueAutoridadEditableSection producto={producto} isAdmin={isAdmin} onUpdate={nuevosDatos => setProducto(p => ({ ...p!, bloque_autoridad_datos: nuevosDatos }))} />
             </div>
