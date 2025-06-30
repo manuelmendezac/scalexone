@@ -8,6 +8,7 @@ import IncluyeAccesoEditableSection from '../../../components/IncluyeAccesoEdita
 import BloqueTextosAutoridadEditableSection from '../../../components/BloqueTextosAutoridadEditableSection';
 import BloqueAutoridadEditableSection from '../../../components/BloqueAutoridadEditableSection';
 import MembresiasEditableSection from '../../../components/MembresiasEditableSection';
+import TestimoniosEditableSection from '../../../components/TestimoniosEditableSection';
 
 // Estructura de datos que esperamos de la BD
 // Unificada para cursos y servicios del marketplace
@@ -125,6 +126,13 @@ type ProductoMarketplace = {
         texto: string;
         incluida: boolean;
       }[];
+    }[];
+  };
+  testimonios_datos?: {
+    testimonios: {
+      texto: string;
+      autor: string;
+      fecha: string;
     }[];
   };
   // etc... podríamos añadir más secciones como "bonus", "garantia", "faq"
@@ -414,49 +422,7 @@ const PaginaProductoMarketplace: React.FC = () => {
       </div>
 
       {/* Sección de Testimonios */}
-      <div className="bg-black py-16 sm:py-24">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center">
-            <h2 className="text-3xl font-extrabold text-white sm:text-4xl">Lo que dicen nuestros clientes</h2>
-            <p className="mt-4 text-lg text-gray-400">Únete a cientos de traders que han transformado su operativa.</p>
-          </div>
-          <div className="mt-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {/* Testimonio 1 */}
-            <div className="bg-gray-900/50 p-6 rounded-lg shadow-lg">
-              <p className="text-gray-300">"Este es el mejor producto que he comprado. Cambió completamente mi forma de trabajar y los resultados han sido increíbles. 100% recomendado."</p>
-              <div className="mt-4 flex items-center gap-4">
-                <img className="w-12 h-12 rounded-full object-cover" src="https://i.pravatar.cc/150?u=a042581f4e29026704d" alt="Avatar Cliente 1" />
-                <div>
-                  <p className="font-semibold text-white">Ana de Armas</p>
-                  <p className="text-sm text-gray-500">CEO, Startup Innovadora</p>
-                </div>
-              </div>
-            </div>
-            {/* Testimonio 2 */}
-            <div className="bg-gray-900/50 p-6 rounded-lg shadow-lg">
-              <p className="text-gray-300">"Dudaba al principio, pero superó todas mis expectativas. El soporte es fantástico y el contenido es de primer nivel. ¡Gracias!"</p>
-              <div className="mt-4 flex items-center gap-4">
-                <img className="w-12 h-12 rounded-full object-cover" src="https://i.pravatar.cc/150?u=a042581f4e29026704e" alt="Avatar Cliente 2" />
-                <div>
-                  <p className="font-semibold text-white">Carlos Pérez</p>
-                  <p className="text-sm text-gray-500">Desarrollador Freelance</p>
-                </div>
-              </div>
-            </div>
-            {/* Testimonio 3 */}
-            <div className="bg-gray-900/50 p-6 rounded-lg shadow-lg">
-              <p className="text-gray-300">"Una inversión que se paga sola. Simple, directo al grano y con un impacto medible en mi negocio. No podría estar más contento."</p>
-              <div className="mt-4 flex items-center gap-4">
-                <img className="w-12 h-12 rounded-full object-cover" src="https://i.pravatar.cc/150?u=a042581f4e29026704f" alt="Avatar Cliente 3" />
-                <div>
-                  <p className="font-semibold text-white">Sofía Rodríguez</p>
-                  <p className="text-sm text-gray-500">Manager de Marketing</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+      <TestimoniosEditableSection producto={producto} isAdmin={isAdmin} onUpdate={(nuevosDatos: any) => setProducto(p => ({ ...p!, testimonios_datos: nuevosDatos }))} />
 
       {/* Sección de FAQ (Placeholder) */}
       <div className="bg-gray-900/50 py-16 sm:py-24">
