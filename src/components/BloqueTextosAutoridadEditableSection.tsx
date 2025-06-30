@@ -19,6 +19,7 @@ interface BloqueTextosAutoridadDatos {
 interface Props {
   producto: any;
   onUpdate?: (nuevosDatos: BloqueTextosAutoridadDatos) => void;
+  isAdmin?: boolean;
 }
 
 const defaultData: BloqueTextosAutoridadDatos = {
@@ -32,8 +33,8 @@ const defaultData: BloqueTextosAutoridadDatos = {
   ]
 };
 
-export default function BloqueTextosAutoridadEditableSection({ producto, onUpdate }: Props) {
-  const { isAdmin } = useAuth();
+export default function BloqueTextosAutoridadEditableSection({ producto, onUpdate, isAdmin }: Props) {
+  const { isAdmin: authIsAdmin } = useAuth();
   const [modalOpen, setModalOpen] = useState(false);
   const [form, setForm] = useState<BloqueTextosAutoridadDatos>(
     producto.bloque_textos_autoridad_datos || defaultData

@@ -106,6 +106,7 @@ const PaginaProductoMarketplace: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const membresiasRef = useRef<HTMLDivElement>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
   
   // Función para hacer scroll a la sección de membresías
   const handleScrollToMembresias = () => {
@@ -119,6 +120,10 @@ const PaginaProductoMarketplace: React.FC = () => {
     if (p.includes('meet')) return <UsersIcon className="text-green-500" size={22} />;
     return <Globe className="text-gray-400" size={22} />;
   };
+
+  useEffect(() => {
+    setIsAdmin(localStorage.getItem('adminMode') === 'true');
+  }, []);
 
   useEffect(() => {
     if (!id) {
@@ -346,12 +351,12 @@ const PaginaProductoMarketplace: React.FC = () => {
 
       {/* Nueva Sección de Video y Puntos Clave */}
       <div className="py-16 sm:py-24">
-        <HeroEditableSection producto={producto} onUpdate={nuevosDatos => setProducto(p => ({ ...p!, portada_datos: nuevosDatos }))} />
+        <HeroEditableSection producto={producto} isAdmin={isAdmin} onUpdate={nuevosDatos => setProducto(p => ({ ...p!, portada_datos: nuevosDatos }))} />
       </div>
 
       {/* SECCIÓN ¿QUÉ INCLUYE TU ACCESO? (Versión Fiel al Ejemplo) */}
       <div id="incluye-acceso">
-        <IncluyeAccesoEditableSection producto={producto} onUpdate={nuevosDatos => setProducto(p => ({ ...p!, incluye_acceso_datos: nuevosDatos }))} />
+        <IncluyeAccesoEditableSection producto={producto} isAdmin={isAdmin} onUpdate={nuevosDatos => setProducto(p => ({ ...p!, incluye_acceso_datos: nuevosDatos }))} />
       </div>
 
       {/* SECCIÓN "CONOCE AL EXPERTO" RESTAURADA (SIN BOTÓN) */}
@@ -361,14 +366,14 @@ const PaginaProductoMarketplace: React.FC = () => {
           {/* Columna Izquierda (Contenido Principal que se desplaza) */}
           <div className="md:w-3/5 lg:w-3/5">
             <div className="max-w-none">
-              <BloqueTextosAutoridadEditableSection producto={producto} onUpdate={nuevosDatos => setProducto(p => ({ ...p!, bloque_textos_autoridad_datos: nuevosDatos }))} />
+              <BloqueTextosAutoridadEditableSection producto={producto} isAdmin={isAdmin} onUpdate={nuevosDatos => setProducto(p => ({ ...p!, bloque_textos_autoridad_datos: nuevosDatos }))} />
             </div>
           </div>
 
           {/* Columna Derecha (Contenedor para la Tarjeta Sticky) */}
           <div className="md:w-2/5 lg:w-2/5">
             <div className="sticky top-24">
-              <BloqueAutoridadEditableSection producto={producto} onUpdate={nuevosDatos => setProducto(p => ({ ...p!, bloque_autoridad_datos: nuevosDatos }))} />
+              <BloqueAutoridadEditableSection producto={producto} isAdmin={isAdmin} onUpdate={nuevosDatos => setProducto(p => ({ ...p!, bloque_autoridad_datos: nuevosDatos }))} />
             </div>
           </div>
         </div>

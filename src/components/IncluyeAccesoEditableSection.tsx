@@ -19,6 +19,7 @@ interface IncluyeAccesoDatos {
 interface Props {
   producto: any;
   onUpdate?: (nuevosDatos: IncluyeAccesoDatos) => void;
+  isAdmin?: boolean;
 }
 
 const bloquesDefault: BloqueIncluye[] = [
@@ -79,8 +80,8 @@ const defaultData: IncluyeAccesoDatos = {
   bloques: bloquesDefault
 };
 
-export default function IncluyeAccesoEditableSection({ producto, onUpdate }: Props) {
-  const { isAdmin } = useAuth();
+export default function IncluyeAccesoEditableSection({ producto, onUpdate, isAdmin }: Props) {
+  const { isAdmin: authIsAdmin } = useAuth();
   const [modalOpen, setModalOpen] = useState(false);
   const [form, setForm] = useState<IncluyeAccesoDatos>(
     producto.incluye_acceso_datos || defaultData

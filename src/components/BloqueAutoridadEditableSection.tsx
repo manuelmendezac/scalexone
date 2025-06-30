@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { supabase } from '../supabase';
-import { useAuth } from '../hooks/useAuth';
 import { Edit } from 'lucide-react';
 import flagsList from '../utils/flagsList'; // Debes crear este archivo con [{code: 'mx', name: 'México', url: 'https://flagcdn.com/w20/mx.png'}, ...]
 
@@ -21,6 +20,7 @@ interface BloqueAutoridadDatos {
 interface Props {
   producto: any;
   onUpdate?: (nuevosDatos: BloqueAutoridadDatos) => void;
+  isAdmin?: boolean;
 }
 
 const defaultData: BloqueAutoridadDatos = {
@@ -50,8 +50,7 @@ const defaultData: BloqueAutoridadDatos = {
   ]
 };
 
-export default function BloqueAutoridadEditableSection({ producto, onUpdate }: Props) {
-  const { isAdmin } = useAuth();
+export default function BloqueAutoridadEditableSection({ producto, onUpdate, isAdmin }: Props) {
   const [modalOpen, setModalOpen] = useState(false);
   const [form, setForm] = useState<BloqueAutoridadDatos>(
     producto.bloque_autoridad_datos || defaultData

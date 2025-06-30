@@ -17,6 +17,7 @@ function parseVideoUrl(url: string) {
 interface HeroEditableSectionProps {
   producto: any;
   onUpdate?: (nuevosDatos: any) => void;
+  isAdmin?: boolean;
 }
 
 const defaultBullets = [
@@ -25,8 +26,8 @@ const defaultBullets = [
   '¿Te gustaría aprender con respaldo global y acceso a capital?'
 ];
 
-export default function HeroEditableSection({ producto, onUpdate }: HeroEditableSectionProps) {
-  const { isAdmin } = useAuth();
+export default function HeroEditableSection({ producto, onUpdate, isAdmin }: HeroEditableSectionProps) {
+  const { isAdmin: authIsAdmin } = useAuth();
   const [modalOpen, setModalOpen] = useState(false);
   const [form, setForm] = useState({
     video_url: producto.portada_datos?.video_url || '',
