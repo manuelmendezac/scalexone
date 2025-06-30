@@ -1,4 +1,3 @@
-import type { NextApiRequest, NextApiResponse } from 'next';
 import Stripe from 'stripe';
 import { buffer } from 'micro';
 import { createClient } from '@supabase/supabase-js';
@@ -18,7 +17,7 @@ export const config = {
   },
 };
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Método no permitido' });
   }
@@ -26,17 +25,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const buf = await buffer(req);
   const sig = req.headers['stripe-signature'] as string;
 
-  let event: Stripe.Event;
+  let event;
 
   try {
     event = stripe.webhooks.constructEvent(buf, sig, endpointSecret!);
-  } catch (err: any) {
+  } catch (err) {
     console.error('Error en webhook:', err.message);
     return res.status(400).json({ error: `Webhook Error: ${err.message}` });
   }
 
   if (event.type === 'checkout.session.completed' || event.type === 'invoice.payment_succeeded') {
-    const session = event.data.object as any;
+    const session = event.data.object;
     const customerEmail = session.customer_email || session.customer_details?.email;
     const stripe_price_id = session.metadata?.stripe_price_id || session.metadata?.price_id || session.display_items?.[0]?.price?.id;
     const tipo_producto = session.metadata?.tipo_producto;

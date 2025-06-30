@@ -1,6 +1,4 @@
-import type { NextApiRequest, NextApiResponse } from 'next';
-
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(req, res) {
   const apiKey = process.env.OPENAI_API_KEY;
 
   if (!apiKey) {
@@ -41,7 +39,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     return res.status(200).json({ result: data.choices[0].message.content });
-  } catch (error: any) {
+  } catch (error) {
     return res.status(500).json({ error: error?.message || 'Error generando respuesta desde OpenAI' });
   }
-}
+} 

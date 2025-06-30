@@ -1,4 +1,3 @@
-import type { NextApiRequest, NextApiResponse } from 'next';
 import formidable from 'formidable';
 import { createClient } from '@supabase/supabase-js';
 import fs from 'fs';
@@ -13,7 +12,7 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL as string;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY as string;
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Método no permitido' });
   }
@@ -23,7 +22,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (err) {
       return res.status(500).json({ error: 'Error al procesar el archivo' });
     }
-    let file = files.avatar as formidable.File | formidable.File[];
+    let file = files.avatar;
     if (Array.isArray(file)) file = file[0];
     if (!file) {
       return res.status(400).json({ error: 'No se envió ningún archivo' });
