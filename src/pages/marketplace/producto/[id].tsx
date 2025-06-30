@@ -361,14 +361,14 @@ const PaginaProductoMarketplace: React.FC = () => {
 
       {/* SECCIÓN "CONOCE AL EXPERTO" RESTAURADA (SIN BOTÓN) */}
       <div className="bg-gray-900/50 py-16 sm:py-24">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row gap-12 relative">
+        <div className="container mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row gap-12 relative">
           {/* Columna Izquierda (Contenido Principal que se desplaza) */}
-          <div className="md:w-3/5 lg:w-3/5">
+          <div className="w-full md:w-7/12">
             <BloqueTextosAutoridadEditableSection producto={producto} isAdmin={isAdmin} onUpdate={nuevosDatos => setProducto(p => ({ ...p!, bloque_textos_autoridad_datos: nuevosDatos }))} />
           </div>
 
           {/* Columna Derecha (Contenedor para la Tarjeta Sticky) */}
-          <div className="md:w-2/5 lg:w-2/5">
+          <div className="w-full md:w-5/12">
             <div className="sticky top-24">
               <BloqueAutoridadEditableSection producto={producto} isAdmin={isAdmin} onUpdate={nuevosDatos => setProducto(p => ({ ...p!, bloque_autoridad_datos: nuevosDatos }))} />
             </div>
