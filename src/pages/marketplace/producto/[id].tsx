@@ -9,6 +9,7 @@ import BloqueTextosAutoridadEditableSection from '../../../components/BloqueText
 import BloqueAutoridadEditableSection from '../../../components/BloqueAutoridadEditableSection';
 import MembresiasEditableSection from '../../../components/MembresiasEditableSection';
 import TestimoniosEditableSection from '../../../components/TestimoniosEditableSection';
+import FAQEditableSection from '../../../components/FAQEditableSection';
 
 // Estructura de datos que esperamos de la BD
 // Unificada para cursos y servicios del marketplace
@@ -424,43 +425,8 @@ const PaginaProductoMarketplace: React.FC = () => {
       {/* Sección de Testimonios */}
       <TestimoniosEditableSection producto={producto} isAdmin={isAdmin} onUpdate={(nuevosDatos: any) => setProducto(p => ({ ...p!, testimonios_datos: nuevosDatos }))} />
 
-      {/* Sección de FAQ (Placeholder) */}
-      <div className="bg-gray-900/50 py-16 sm:py-24">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="max-w-3xl mx-auto text-center">
-              <h2 className="text-3xl font-extrabold text-white sm:text-4xl">Preguntas Frecuentes</h2>
-              <p className="mt-4 text-lg text-gray-400">
-                Resolvemos tus dudas para que tomes la mejor decisión.
-              </p>
-            </div>
-            <div className="mt-12 max-w-3xl mx-auto space-y-4">
-              {/* FAQ 1 */}
-              <details className="p-4 bg-black/30 rounded-lg group">
-                <summary className="font-semibold text-white cursor-pointer list-none flex justify-between items-center">
-                  ¿Para quién es este producto?
-                  <span className="group-open:rotate-45 transform transition-transform">+</span>
-                </summary>
-                <p className="mt-2 text-gray-400">Este producto está diseñado para emprendedores, creadores de contenido y profesionales que buscan optimizar su tiempo y maximizar su impacto.</p>
-              </details>
-              {/* FAQ 2 */}
-              <details className="p-4 bg-black/30 rounded-lg group">
-                <summary className="font-semibold text-white cursor-pointer list-none flex justify-between items-center">
-                  ¿Qué pasa si no me gusta?
-                  <span className="group-open:rotate-45 transform transition-transform">+</span>
-                </summary>
-                <p className="mt-2 text-gray-400">Ofrecemos una garantía de satisfacción de 7 días. Si no estás contento con tu compra, te devolvemos tu dinero, sin preguntas.</p>
-              </details>
-              {/* FAQ 3 */}
-              <details className="p-4 bg-black/30 rounded-lg group">
-                <summary className="font-semibold text-white cursor-pointer list-none flex justify-between items-center">
-                  ¿Tendré acceso a actualizaciones?
-                  <span className="group-open:rotate-45 transform transition-transform">+</span>
-                </summary>
-                <p className="mt-2 text-gray-400">Sí, todos los clientes reciben acceso a las futuras actualizaciones del producto sin coste adicional.</p>
-              </details>
-            </div>
-        </div>
-      </div>
+      {/* Sección de FAQ (Editable) */}
+      <FAQEditableSection producto={producto} isAdmin={isAdmin} onUpdate={(nuevosDatos: any) => setProducto(p => ({ ...p!, faq_datos: nuevosDatos }))} />
 
       {/* Sección Final CTA */}
       <div className="py-16 sm:py-24">
