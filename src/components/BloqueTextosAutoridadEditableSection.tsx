@@ -111,16 +111,16 @@ export default function BloqueTextosAutoridadEditableSection({ producto, onUpdat
           <div className="bg-gray-900 p-8 rounded-lg w-full max-w-2xl max-h-[90vh] overflow-y-auto">
             <h3 className="text-xl font-bold text-white mb-4">Editar bloque de textos de autoridad</h3>
             <label className="block text-gray-300 mb-2">Título principal:</label>
-            <input type="text" name="titulo" value={form.titulo} onChange={handleChange} className="w-full mb-4 p-2 rounded" />
+            <input type="text" name="titulo" value={form.titulo} onChange={handleChange} className="w-full mb-4 p-2 rounded text-gray-200 bg-gray-800" />
             <label className="block text-gray-300 mb-2">Subtítulo:</label>
-            <input type="text" name="subtitulo" value={form.subtitulo} onChange={handleChange} className="w-full mb-4 p-2 rounded" />
+            <input type="text" name="subtitulo" value={form.subtitulo} onChange={handleChange} className="w-full mb-4 p-2 rounded text-gray-200 bg-gray-800" />
             <label className="block text-gray-300 mb-2">Texto destacado:</label>
-            <textarea name="texto_destacado" value={form.texto_destacado} onChange={handleChange} className="w-full mb-4 p-2 rounded" />
+            <textarea name="texto_destacado" value={form.texto_destacado} onChange={handleChange} className="w-full mb-4 p-2 rounded text-gray-200 bg-gray-800" />
             <label className="block text-gray-300 mb-2">Frase/quote:</label>
-            <input type="text" name="frase" value={form.frase} onChange={handleChange} className="w-full mb-4 p-2 rounded" />
+            <input type="text" name="frase" value={form.frase} onChange={handleChange} className="w-full mb-4 p-2 rounded text-gray-200 bg-gray-800" />
             <label className="block text-gray-300 mb-2">Bullets:</label>
             {form.bullets.map((b, idx) => (
-              <input key={idx} type="text" value={b.texto} onChange={e => handleBulletChange(idx, e.target.value)} className="w-full mb-2 p-2 rounded" />
+              <input key={idx} type="text" value={b.texto} onChange={e => handleBulletChange(idx, e.target.value)} className="w-full mb-2 p-2 rounded text-gray-200 bg-gray-800" />
             ))}
             <div className="flex gap-4 mt-4">
               <button onClick={handleSave} disabled={saving} className="bg-green-500 text-black px-4 py-2 rounded font-bold">{saving ? 'Guardando...' : 'Guardar'}</button>
