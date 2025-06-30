@@ -359,33 +359,64 @@ const PaginaProductoMarketplace: React.FC = () => {
       <div className="border-y border-gray-800">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center py-6">
-            {producto.nivel && (
-              <div className="flex flex-col items-center justify-center gap-1">
-                <Award size={24} className={theme.text} />
-                <span className="text-sm text-gray-400">Nivel</span>
-                <span className="text-lg font-semibold text-white">{producto.nivel}</span>
-              </div>
-            )}
-            {producto.duracion_horas && (
-              <div className="flex flex-col items-center justify-center gap-1">
-                <PlayCircle size={24} className={theme.text} />
-                <span className="text-sm text-gray-400">Duración</span>
-                <span className="text-lg font-semibold text-white">{producto.duracion_horas} horas</span>
-              </div>
-            )}
-            {producto.estudiantes && (
-              <div className="flex flex-col items-center justify-center gap-1">
-                <Users size={24} className={theme.text} />
-                <span className="text-sm text-gray-400">Estudiantes</span>
-                <span className="text-lg font-semibold text-white">{producto.estudiantes}</span>
-              </div>
-            )}
-            {producto.rating && (
-               <div className="flex flex-col items-center justify-center gap-1">
-                <Star size={24} className={theme.text} />
-                <span className="text-sm text-gray-400">Valoración</span>
-                <span className="text-lg font-semibold text-white">{producto.rating}/5</span>
-              </div>
+            {themeType === 'curso' ? (
+              <>
+                {producto.nivel && (
+                  <div className="flex flex-col items-center justify-center gap-1">
+                    <Award size={24} className={theme.text} />
+                    <span className="text-sm text-gray-400">Nivel</span>
+                    <span className="text-lg font-semibold text-white">{producto.nivel}</span>
+                  </div>
+                )}
+                {producto.duracion_horas && (
+                  <div className="flex flex-col items-center justify-center gap-1">
+                    <PlayCircle size={24} className={theme.text} />
+                    <span className="text-sm text-gray-400">Duración</span>
+                    <span className="text-lg font-semibold text-white">{producto.duracion_horas} horas</span>
+                  </div>
+                )}
+                {producto.estudiantes && (
+                  <div className="flex flex-col items-center justify-center gap-1">
+                    <Users size={24} className={theme.text} />
+                    <span className="text-sm text-gray-400">Estudiantes</span>
+                    <span className="text-lg font-semibold text-white">{producto.estudiantes}</span>
+                  </div>
+                )}
+                {producto.rating && (
+                  <div className="flex flex-col items-center justify-center gap-1">
+                    <Star size={24} className={theme.text} />
+                    <span className="text-sm text-gray-400">Valoración</span>
+                    <span className="text-lg font-semibold text-white">{producto.rating}/5</span>
+                  </div>
+                )}
+              </>
+            ) : (
+              <>
+                {/* Tipo de Servicio/Software */}
+                <div className="flex flex-col items-center justify-center gap-1">
+                  <Globe size={24} className={theme.text} />
+                  <span className="text-sm text-gray-400">Tipo</span>
+                  <span className="text-lg font-semibold text-white">{producto.categoria || (themeType === 'software' ? 'Software/SaaS' : 'Servicio Digital')}</span>
+                </div>
+                {/* Modalidad */}
+                <div className="flex flex-col items-center justify-center gap-1">
+                  <Video size={24} className={theme.text} />
+                  <span className="text-sm text-gray-400">Modalidad</span>
+                  <span className="text-lg font-semibold text-white">Online</span>
+                </div>
+                {/* Tiempo de Entrega */}
+                <div className="flex flex-col items-center justify-center gap-1">
+                  <Calendar size={24} className={theme.text} />
+                  <span className="text-sm text-gray-400">Entrega</span>
+                  <span className="text-lg font-semibold text-white">A convenir</span>
+                </div>
+                {/* Valoración */}
+                <div className="flex flex-col items-center justify-center gap-1">
+                  <Star size={24} className={theme.text} />
+                  <span className="text-sm text-gray-400">Valoración</span>
+                  <span className="text-lg font-semibold text-white">{producto.rating ? `${producto.rating}/5` : '5/5'}</span>
+                </div>
+              </>
             )}
           </div>
         </div>
