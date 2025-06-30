@@ -1,0 +1,28 @@
+const flagsList = [
+  { code: 'mx', name: 'México', url: 'https://flagcdn.com/w20/mx.png' },
+  { code: 'us', name: 'Estados Unidos', url: 'https://flagcdn.com/w20/us.png' },
+  { code: 'es', name: 'España', url: 'https://flagcdn.com/w20/es.png' },
+  { code: 'fr', name: 'Francia', url: 'https://flagcdn.com/w20/fr.png' },
+  { code: 'br', name: 'Brasil', url: 'https://flagcdn.com/w20/br.png' },
+  { code: 'ar', name: 'Argentina', url: 'https://flagcdn.com/w20/ar.png' },
+  { code: 'co', name: 'Colombia', url: 'https://flagcdn.com/w20/co.png' },
+  { code: 'pe', name: 'Perú', url: 'https://flagcdn.com/w20/pe.png' },
+  { code: 'cl', name: 'Chile', url: 'https://flagcdn.com/w20/cl.png' },
+  { code: 've', name: 'Venezuela', url: 'https://flagcdn.com/w20/ve.png' },
+  { code: 'de', name: 'Alemania', url: 'https://flagcdn.com/w20/de.png' },
+  { code: 'ru', name: 'Rusia', url: 'https://flagcdn.com/w20/ru.png' },
+  { code: 'cn', name: 'China', url: 'https://flagcdn.com/w20/cn.png' },
+  { code: 'jp', name: 'Japón', url: 'https://flagcdn.com/w20/jp.png' },
+  { code: 'it', name: 'Italia', url: 'https://flagcdn.com/w20/it.png' },
+  { code: 'gb', name: 'Reino Unido', url: 'https://flagcdn.com/w20/gb.png' },
+  { code: 'ca', name: 'Canadá', url: 'https://flagcdn.com/w20/ca.png' },
+  { code: 'au', name: 'Australia', url: 'https://flagcdn.com/w20/au.png' },
+  { code: 'in', name: 'India', url: 'https://flagcdn.com/w20/in.png' },
+  { code: 'kr', name: 'Corea del Sur', url: 'https://flagcdn.com/w20/kr.png' },
+  { code: 'za', name: 'Sudáfrica', url: 'https://flagcdn.com/w20/za.png' },
+  { code: 'eg', name: 'Egipto', url: 'https://flagcdn.com/w20/eg.png' },
+  { code: 'tr', name: 'Turquía', url: 'https://flagcdn.com/w20/tr.png' },
+  { code: 'sa', name: 'Arabia Saudita', url: 'https://flagcdn.com/w20/sa.png' },
+];
+
+export default flagsList; 

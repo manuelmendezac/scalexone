@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { supabase } from '../supabase';
 import { useAuth } from '../hooks/useAuth';
 import { Edit } from 'lucide-react';
+import flagsList from '../utils/flagsList'; // Debes crear este archivo con [{code: 'mx', name: 'México', url: 'https://flagcdn.com/w20/mx.png'}, ...]
 
 interface BloqueAutoridadDatos {
   avatar_url: string;
@@ -211,10 +212,11 @@ export default function BloqueAutoridadEditableSection({ producto, onUpdate }: P
           </div>
           {isAdmin && (
             <button
-              className="absolute top-4 right-4 bg-blue-600 text-white p-2 rounded-full"
+              className="absolute top-2 right-2 bg-blue-600 text-white p-2 rounded-full shadow-lg z-10 hover:bg-blue-700 transition-all"
+              style={{ width: 40, height: 40, minWidth: 40, minHeight: 40, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
               onClick={() => setModalOpen(true)}
             >
-              <Edit size={20} /> Editar
+              <Edit size={20} />
             </button>
           )}
         </div>
@@ -232,16 +234,32 @@ export default function BloqueAutoridadEditableSection({ producto, onUpdate }: P
             <input type="text" name="nombre" value={form.nombre} onChange={handleChange} className="w-full mb-4 p-2 rounded text-gray-200 bg-gray-800" />
             <label className="block text-gray-300 mb-2">Especialidades:</label>
             <input type="text" name="especialidades" value={form.especialidades} onChange={handleChange} className="w-full mb-4 p-2 rounded text-gray-200 bg-gray-800" />
-            <label className="block text-gray-300 mb-2">Banderas (URL o subir imagen):</label>
-            {form.banderas.map((b, i) => (
-              <div key={i} className="flex items-center gap-2 mb-2">
-                <input type="text" value={b} onChange={e => handleFlagChange(i, e.target.value)} className="w-full p-2 rounded text-gray-200 bg-gray-800" />
-                <input type="file" accept="image/*" onChange={e => handleFlagUpload(e, i)} />
-                {uploadingFlag === i && <span className="text-blue-400">Subiendo...</span>}
-                <button type="button" onClick={() => handleRemoveFlag(i)} className="bg-red-600 text-white px-2 py-1 rounded">Eliminar</button>
-              </div>
-            ))}
-            <button type="button" onClick={handleAddFlag} className="bg-blue-700 text-white px-4 py-2 rounded font-bold mb-4">Agregar bandera</button>
+            <label className="block text-gray-300 mb-2">Agregar bandera:</label>
+            <div className="flex gap-2 mb-4">
+              <select
+                className="w-full p-2 rounded text-gray-200 bg-gray-800"
+                onChange={e => {
+                  const selected = flagsList.find(f => f.code === e.target.value);
+                  if (selected && !form.banderas.includes(selected.url)) {
+                    setForm(f => ({ ...f, banderas: [...f.banderas, selected.url] }));
+                  }
+                }}
+                defaultValue=""
+              >
+                <option value="" disabled>Selecciona una bandera</option>
+                {flagsList.map(flag => (
+                  <option key={flag.code} value={flag.code}>{flag.name}</option>
+                ))}
+              </select>
+            </div>
+            <div className="flex flex-wrap gap-2 mb-4">
+              {form.banderas.map((b, i) => (
+                <div key={i} className="flex items-center gap-1 bg-gray-700 rounded px-2 py-1">
+                  <img src={b} alt="Bandera" className="h-4" />
+                  <button type="button" onClick={() => setForm(f => ({ ...f, banderas: f.banderas.filter((_, j) => j !== i) }))} className="text-red-400 hover:text-red-600 ml-1">✕</button>
+                </div>
+              ))}
+            </div>
             <label className="block text-gray-300 mb-2">Estadísticas clave:</label>
             <div className="grid grid-cols-2 gap-2 mb-4">
               <input type="text" value={form.estadisticas.años_experiencia} onChange={e => handleEstadisticaChange('años_experiencia', e.target.value)} placeholder="Años de experiencia" className="p-2 rounded text-gray-200 bg-gray-800" />
