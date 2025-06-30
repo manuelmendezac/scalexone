@@ -325,9 +325,7 @@ const PaginaProductoMarketplace: React.FC = () => {
               <p className="text-gray-400 text-lg">{descripcion}</p>
 
               <div className="flex items-baseline gap-4 mt-4">
-                  <p className="text-yellow-400 text-5xl font-bold">
-                    ${producto.precio}
-                  </p>
+                  {/* Precio eliminado de la portada, solo se muestra el tipo de plan */}
                   {producto.tipo_pago === 'pago_unico' ? (
                      <span className="bg-yellow-400/10 text-yellow-300 text-xs font-bold px-2 py-1 rounded-full">PAGO ÚNICO</span>
                   ) : (
@@ -336,7 +334,10 @@ const PaginaProductoMarketplace: React.FC = () => {
               </div>
 
               <div className="mt-6">
-                <button className={`w-full ${theme.button} py-4 px-6 rounded-lg text-lg transition-all transform hover:scale-105 flex items-center justify-center gap-2`}>
+                <button
+                  className={`w-full ${theme.button} py-4 px-6 rounded-lg text-lg transition-all transform hover:scale-105 flex items-center justify-center gap-2`}
+                  onClick={handleScrollToMembresias}
+                >
                   {producto.tipo_pago === 'pago_unico' ? (
                     <>
                       <ShoppingCart size={20} /> Contratar Ahora
