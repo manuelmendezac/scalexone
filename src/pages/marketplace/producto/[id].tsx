@@ -5,6 +5,7 @@ import { supabase } from '../../../supabase';
 import { BookOpen, Users, Award, PlayCircle, Star, ArrowLeft, ShoppingCart, CheckCircle, Info, Calendar, Globe, Users as UsersIcon, Video, Radio, BookOpenCheck, BellRing, Globe2, ShieldCheck, XCircle } from 'lucide-react';
 import HeroEditableSection from '../../../components/HeroEditableSection';
 import IncluyeAccesoEditableSection from '../../../components/IncluyeAccesoEditableSection';
+import BloqueTextosAutoridadEditableSection from '../../../components/BloqueTextosAutoridadEditableSection';
 
 // Estructura de datos que esperamos de la BD
 // Unificada para cursos y servicios del marketplace
@@ -84,6 +85,10 @@ type ProductoMarketplace = {
       titulo: string;
       descripcion: string;
     }[];
+  };
+  bloque_textos_autoridad_datos?: {
+    titulo: string;
+    descripcion: string;
   };
   // etc... podríamos añadir más secciones como "bonus", "garantia", "faq"
 };
@@ -351,27 +356,7 @@ const PaginaProductoMarketplace: React.FC = () => {
           {/* Columna Izquierda (Contenido Principal que se desplaza) */}
           <div className="md:w-3/5 lg:w-3/5">
             <div className="max-w-none">
-              <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">Con más de 4 años operando de forma constante y disciplinada, VicForex ha perfeccionado un enfoque sólido basado en análisis técnico, acción del precio y gestión de riesgo inteligente.</h2>
-              <p className="mt-6 text-lg leading-8 text-gray-300">Su método se ha forjado operando en vivo, bajo condiciones reales de mercado, y ha sido validado día tras día, sin atajos ni promesas vacías.</p>
-              
-              <div className="mt-10 text-base leading-7 text-gray-200">
-                <div className="p-8 border border-gray-700 rounded-lg bg-gray-800/40">
-                  <p>En la Trading Room VicForex no solo analiza, sino que opera en tiempo real. Comparte su proceso, su lectura del mercado y su toma de decisiones, ayudando a traders a salir de la teoría y desarrollar una mentalidad operativa profesional.</p>
-                  <blockquote className={`italic text-gray-400 mt-4 border-l-2 ${theme.border} pl-4`}>
-                    "Una buena señal no es solo cuándo entrar. Es cuándo NO hacerlo. El silencio también es parte de una estrategia." – VicForex
-                  </blockquote>
-                  <ul className="mt-8 space-y-4">
-                    <li className="flex gap-x-3 items-start">
-                      <XCircle className="mt-1 h-5 w-5 flex-none text-red-500" aria-hidden="true" />
-                      <span><strong className="font-semibold text-white">Nada de cursos grabados o fórmulas mágicas.</strong></span>
-                    </li>
-                    <li className="flex gap-x-3 items-start">
-                      <CheckCircle className="mt-1 h-5 w-5 flex-none text-green-500" aria-hidden="true" />
-                      <span><strong className="font-semibold text-white">Acompañamiento real,</strong> entorno profesional, y evolución constante junto a una comunidad comprometida, global y enfocada en el crecimiento real.</span>
-                    </li>
-                  </ul>
-                </div>
-              </div>
+              <BloqueTextosAutoridadEditableSection producto={producto} onUpdate={nuevosDatos => setProducto(p => ({ ...p!, bloque_textos_autoridad_datos: nuevosDatos }))} />
             </div>
           </div>
 
