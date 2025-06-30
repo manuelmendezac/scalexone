@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { supabase } from '../supabase';
 import { Edit, Star, CheckCircle, XCircle, Plus, Trash2 } from 'lucide-react';
 import { StripePaymentButton } from './StripePaymentButton';
+import { StripeService } from '../services/stripeService';
 
 interface Caracteristica {
   texto: string;
@@ -186,13 +187,33 @@ export default function MembresiasEditableSection({ producto, onUpdate, isAdmin 
 
   const handleSave = async () => {
     setSaving(true);
+    let updatedForm = { ...form };
+    // Para cada plan sin stripe_price_id, crear producto/precio en Stripe
+    for (let i = 0; i < updatedForm.planes.length; i++) {
+      const plan = updatedForm.planes[i];
+      if (!plan.stripe_price_id) {
+        try {
+          const result = await StripeService.createProduct({
+            nombre: plan.nombre,
+            descripcion: plan.descripcion,
+            precio: plan.precio,
+            tipo_pago: plan.tipo_pago,
+          });
+          updatedForm.planes[i].stripe_price_id = result.stripe_price_id;
+        } catch (err) {
+          setSaving(false);
+          alert('Error creando el plan en Stripe: ' + (err as Error).message);
+          return;
+        }
+      }
+    }
     const { error } = await supabase
       .from('cursos_marketplace') // o servicios_marketplace según corresponda
-      .update({ membresias_datos: form })
+      .update({ membresias_datos: updatedForm })
       .eq('id', producto.id);
     setSaving(false);
     if (!error) {
-      onUpdate && onUpdate(form);
+      onUpdate && onUpdate(updatedForm);
       setModalOpen(false);
     } else {
       alert('Error al guardar: ' + error.message);
