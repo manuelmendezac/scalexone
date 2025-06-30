@@ -294,16 +294,24 @@ export default function MembresiasEditableSection({ producto, onUpdate, isAdmin 
                 </span>
               </div>
               <p className="text-gray-400 mb-6 min-h-[40px]">{plan.descripcion}</p>
-              <button className={`w-full ${plan.destacado 
-                ? 'bg-green-400 hover:bg-green-500 text-black font-bold py-3 px-6 rounded-lg transition-all'
-                : theme === 'curso' 
-                  ? 'bg-gradient-to-r from-amber-500 to-yellow-600 hover:from-amber-400 hover:to-yellow-500 text-black font-bold py-3 px-6 rounded-lg transition-all'
-                  : theme === 'servicio'
-                    ? 'bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-400 hover:to-pink-500 text-white font-bold py-3 px-6 rounded-lg transition-all'
-                    : 'bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold py-3 px-6 rounded-lg transition-all'
-              }`}>
-                {plan.tipo_pago === 'pago_unico' ? 'Contratar' : 'Suscribirse'}
-              </button>
+              {plan.stripe_price_id ? (
+                <StripePaymentButton
+                  productData={{
+                    nombre: plan.nombre,
+                    descripcion: plan.descripcion,
+                    precio: plan.precio,
+                    tipo_pago: plan.tipo_pago,
+                  }}
+                  metadata={{ plan_index: planIndex, producto_id: producto.id, tipo_producto: producto.tipo }}
+                  className="w-full max-w-md"
+                >
+                  {plan.tipo_pago === 'pago_unico' ? 'Contratar' : 'Suscribirse'}
+                </StripePaymentButton>
+              ) : (
+                <button className="w-full max-w-md bg-gray-700 text-gray-400 py-4 px-6 rounded-lg text-xl cursor-not-allowed" disabled>
+                  Configura el Stripe Price ID para habilitar el pago
+                </button>
+              )}
               <p className="text-white font-semibold mt-8 mb-4">Lo que incluye:</p>
               <ul className="space-y-3 text-gray-300 flex-grow">
                 {plan.caracteristicas.map((carac, caracIndex) => (
