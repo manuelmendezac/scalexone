@@ -10,6 +10,8 @@ interface Testimonio {
 }
 
 interface TestimoniosDatos {
+  titulo: string;
+  subtitulo: string;
   testimonios: Testimonio[];
 }
 
@@ -20,6 +22,8 @@ interface Props {
 }
 
 const defaultData: TestimoniosDatos = {
+  titulo: 'Lo que dicen nuestros clientes',
+  subtitulo: 'Únete a cientos de traders que han transformado su operativa.',
   testimonios: [
     {
       nombre: 'Ana de Armas',
@@ -129,8 +133,8 @@ export default function TestimoniosEditableSection({ producto, onUpdate, isAdmin
               <Edit size={20} />
             </button>
           )}
-          <h2 className="text-3xl font-extrabold text-white sm:text-4xl">Lo que dicen nuestros clientes</h2>
-          <p className="mt-4 text-lg text-gray-400">Únete a cientos de traders que han transformado su operativa.</p>
+          <h2 className="text-3xl font-extrabold text-white sm:text-4xl">{form.titulo}</h2>
+          <p className="mt-4 text-lg text-gray-400">{form.subtitulo}</p>
         </div>
         <div className="mt-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {form.testimonios.map((t, idx) => (
@@ -154,6 +158,29 @@ export default function TestimoniosEditableSection({ producto, onUpdate, isAdmin
           <div className="bg-gray-900 p-8 rounded-lg w-full max-w-3xl max-h-[90vh] overflow-y-auto">
             <h3 className="text-xl font-bold text-white mb-4">Editar testimonios</h3>
             <div className="space-y-8">
+              <div className="mb-6 p-4 bg-gray-800 rounded-lg">
+                <h4 className="text-lg font-semibold text-white mb-3">Configuración General</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-gray-300 mb-2">Título de la sección:</label>
+                    <input 
+                      type="text" 
+                      value={form.titulo} 
+                      onChange={e => setForm(f => ({ ...f, titulo: e.target.value }))} 
+                      className="w-full p-2 rounded text-gray-200 bg-gray-700" 
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-gray-300 mb-2">Subtítulo:</label>
+                    <input 
+                      type="text" 
+                      value={form.subtitulo} 
+                      onChange={e => setForm(f => ({ ...f, subtitulo: e.target.value }))} 
+                      className="w-full p-2 rounded text-gray-200 bg-gray-700" 
+                    />
+                  </div>
+                </div>
+              </div>
               {form.testimonios.map((t, idx) => (
                 <div key={idx} className="p-4 bg-gray-800 rounded-lg border border-gray-700 flex flex-col gap-4">
                   <div className="flex justify-between items-center">
