@@ -436,8 +436,10 @@ const PaginaProductoMarketplace: React.FC = () => {
             Únete a cientos de profesionales que ya están transformando su negocio. No esperes más para alcanzar tus metas.
           </p>
           <div className="mt-8 flex flex-col items-center justify-center gap-4">
-            <p className="text-yellow-400 text-6xl font-bold">${producto.precio}</p>
-            <button className="w-full max-w-md bg-cyan-500 hover:bg-cyan-600 text-black font-bold py-4 px-6 rounded-lg text-xl transition-all transform hover:scale-105 flex items-center justify-center gap-2">
+            <button
+              className={`w-full max-w-md ${theme.button} py-4 px-6 rounded-lg text-xl transition-all transform hover:scale-105 flex items-center justify-center gap-2`}
+              onClick={handleScrollToMembresias}
+            >
               {producto.tipo_pago === 'pago_unico' ? (
                 <>
                   <ShoppingCart size={22} /> Contratar Ahora
