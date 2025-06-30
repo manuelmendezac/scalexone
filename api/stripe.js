@@ -1,17 +1,16 @@
-import Stripe from 'stripe';
+const Stripe = require('stripe');
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
   apiVersion: '2025-05-28.basil',
 });
 
-export default async function handler(req, res) {
+module.exports = async (req, res) => {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Método no permitido' });
   }
 
   const { nombre, descripcion, precio, tipo_pago, moneda = 'usd', periodicidad } = req.body;
 
-  // Validación mejorada
   if (!nombre || !precio || !tipo_pago) {
     return res.status(400).json({ 
       error: 'Faltan datos requeridos: nombre, precio y tipo_pago son obligatorios' 
@@ -42,17 +41,14 @@ export default async function handler(req, res) {
     });
 
     // 2. Crear precio en Stripe
-    const priceData: any = {
+    const priceData = {
       product: producto.id,
-      unit_amount: Math.round(precio * 100), // Convertir a centavos
+      unit_amount: Math.round(precio * 100),
       currency: moneda,
     };
-
-    // Agregar configuración de suscripción si es necesario
     if (tipo_pago === 'suscripcion') {
       priceData.recurring = { interval: periodicidad || 'month' };
     }
-
     const price = await stripe.prices.create(priceData);
 
     // 3. Devolver los IDs para guardar en la BD
@@ -65,8 +61,6 @@ export default async function handler(req, res) {
     });
   } catch (error) {
     console.error('Error en Stripe API:', error);
-    
-    // Manejo específico de errores de Stripe
     if (error.type === 'StripeCardError') {
       return res.status(400).json({ error: 'Error en la tarjeta de crédito' });
     } else if (error.type === 'StripeInvalidRequestError') {
@@ -74,10 +68,9 @@ export default async function handler(req, res) {
     } else if (error.type === 'StripeAPIError') {
       return res.status(500).json({ error: 'Error en el servidor de Stripe' });
     }
-    
     return res.status(500).json({ 
       error: 'Error interno del servidor',
       details: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
-} 
+}; 
