@@ -183,7 +183,7 @@ export default function BloqueAutoridadEditableSection({ producto, onUpdate }: P
           <img 
             src={form.avatar_url || 'https://images.unsplash.com/photo-1560250097-0b93528c311a?q=80&w=1887&auto=format&fit=crop'} 
             alt="Ponente" 
-            className="w-32 h-32 rounded-full mx-auto mb-6 object-cover border-4 border-gray-700"
+            className="w-full h-72 object-cover mb-6"
           />
           <h3 className="text-2xl font-bold leading-7 tracking-tight text-white">{form.nombre}</h3>
           <p className="text-sm leading-6 text-gray-400">{form.especialidades}</p>

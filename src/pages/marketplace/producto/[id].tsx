@@ -6,6 +6,7 @@ import { BookOpen, Users, Award, PlayCircle, Star, ArrowLeft, ShoppingCart, Chec
 import HeroEditableSection from '../../../components/HeroEditableSection';
 import IncluyeAccesoEditableSection from '../../../components/IncluyeAccesoEditableSection';
 import BloqueTextosAutoridadEditableSection from '../../../components/BloqueTextosAutoridadEditableSection';
+import BloqueAutoridadEditableSection from '../../../components/BloqueAutoridadEditableSection';
 
 // Estructura de datos que esperamos de la BD
 // Unificada para cursos y servicios del marketplace
@@ -87,6 +88,10 @@ type ProductoMarketplace = {
     }[];
   };
   bloque_textos_autoridad_datos?: {
+    titulo: string;
+    descripcion: string;
+  };
+  bloque_autoridad_datos?: {
     titulo: string;
     descripcion: string;
   };
@@ -363,47 +368,7 @@ const PaginaProductoMarketplace: React.FC = () => {
           {/* Columna Derecha (Contenedor para la Tarjeta Sticky) */}
           <div className="md:w-2/5 lg:w-2/5">
             <div className="sticky top-24">
-              <div className="rounded-2xl bg-gray-800/80 backdrop-blur-sm p-8 shadow-2xl shadow-blue-500/10 border border-gray-700 text-center">
-                
-                {/* Imagen del Ponente */}
-                <img 
-                  src="https://images.unsplash.com/photo-1560250097-0b93528c311a?q=80&w=1887&auto=format&fit=crop" 
-                  alt="Ponente" 
-                  className="w-32 h-32 rounded-full mx-auto mb-6 object-cover border-4 border-gray-700"
-                />
-
-                <h3 className="text-2xl font-bold leading-7 tracking-tight text-white">VICTOR ACOSTA</h3>
-                <p className="text-sm leading-6 text-gray-400">Trading · Análisis Técnico · Mentalidad</p>
-                <div className="flex items-center justify-center gap-x-2 mt-4">
-                  <img src="https://flagcdn.com/w20/mx.png" alt="México" className="h-4 rounded-sm" />
-                  <img src="https://flagcdn.com/w20/ar.png" alt="Argentina" className="h-4 rounded-sm" />
-                  <img src="https://flagcdn.com/w20/pe.png" alt="Perú" className="h-4 rounded-sm" />
-                  <img src="https://flagcdn.com/w20/co.png" alt="Colombia" className="h-4 rounded-sm" />
-                  <img src="https://flagcdn.com/w20/ve.png" alt="Venezuela" className="h-4 rounded-sm" />
-                  <img src="https://flagcdn.com/w20/cl.png" alt="Chile" className="h-4 rounded-sm" />
-                  <img src="https://flagcdn.com/w20/es.png" alt="España" className="h-4 rounded-sm" />
-                </div>
-                
-                <div className="mt-6 border-t border-gray-700 pt-6">
-                  <h4 className="text-base font-semibold text-white mb-3">Estadísticas Clave</h4>
-                  <ul className="space-y-3 text-sm text-gray-300 text-left">
-                    <li className="flex justify-between"><span>Años de Experiencia</span> <span className={`font-mono ${theme.text}`}>4+</span></li>
-                    <li className="flex justify-between"><span>Países</span> <span className={`font-mono ${theme.text}`}>7+</span></li>
-                    <li className="flex justify-between"><span>Estudiantes</span> <span className={`font-mono ${theme.text}`}>1,200+</span></li>
-                    <li className="flex justify-between"><span>Comunidad</span> <span className={`font-mono ${theme.text}`}>Activa</span></li>
-                  </ul>
-                </div>
-
-                <div className="mt-6 border-t border-gray-700 pt-6">
-                  <h4 className="text-base font-semibold text-white mb-3">Enfocado en</h4>
-                  <div className="flex flex-wrap gap-2 justify-center">
-                    <span className={`${theme.accentBg} ${theme.accentText} text-xs font-medium px-2 py-1 rounded-full`}>Acción del Precio</span>
-                    <span className={`${theme.accentBg} ${theme.accentText} text-xs font-medium px-2 py-1 rounded-full`}>Gestión de Riesgo</span>
-                    <span className={`${theme.accentBg} ${theme.accentText} text-xs font-medium px-2 py-1 rounded-full`}>Psicotrading</span>
-                    <span className={`${theme.accentBg} ${theme.accentText} text-xs font-medium px-2 py-1 rounded-full`}>Trading en Vivo</span>
-                  </div>
-                </div>
-              </div>
+              <BloqueAutoridadEditableSection producto={producto} onUpdate={nuevosDatos => setProducto(p => ({ ...p!, bloque_autoridad_datos: nuevosDatos }))} />
             </div>
           </div>
         </div>
