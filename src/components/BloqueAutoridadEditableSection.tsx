@@ -179,7 +179,16 @@ export default function BloqueAutoridadEditableSection({ producto, onUpdate, isA
   return (
     <div className="md:w-2/5 lg:w-2/5">
       <div className="sticky top-24">
-        <div className="rounded-2xl bg-gray-800/80 backdrop-blur-sm p-8 shadow-2xl shadow-blue-500/10 border border-gray-700 text-center">
+        <div className="rounded-2xl bg-gray-800/80 backdrop-blur-sm p-8 shadow-2xl shadow-blue-500/10 border border-gray-700 text-center relative">
+          {isAdmin && (
+            <button
+              className="absolute top-4 right-4 bg-blue-600 text-white p-2 rounded-full shadow-lg z-10 hover:bg-blue-700 transition-all"
+              style={{ width: 40, height: 40, minWidth: 40, minHeight: 40, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+              onClick={() => setModalOpen(true)}
+            >
+              <Edit size={20} />
+            </button>
+          )}
           <img 
             src={form.avatar_url || 'https://images.unsplash.com/photo-1560250097-0b93528c311a?q=80&w=1887&auto=format&fit=crop'} 
             alt="Ponente" 
@@ -209,15 +218,6 @@ export default function BloqueAutoridadEditableSection({ producto, onUpdate, isA
               ))}
             </div>
           </div>
-          {isAdmin && (
-            <button
-              className="absolute top-2 right-2 bg-blue-600 text-white p-2 rounded-full shadow-lg z-10 hover:bg-blue-700 transition-all"
-              style={{ width: 40, height: 40, minWidth: 40, minHeight: 40, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-              onClick={() => setModalOpen(true)}
-            >
-              <Edit size={20} />
-            </button>
-          )}
         </div>
       </div>
       {/* Modal de edición */}
