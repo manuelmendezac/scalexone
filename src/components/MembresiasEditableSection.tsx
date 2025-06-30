@@ -14,6 +14,7 @@ interface PlanMembresia {
   duracion_texto: string; // "Mensual", "Trimestral", "Semestral", etc.
   descripcion: string;
   destacado: boolean;
+  principal?: boolean;
   caracteristicas: Caracteristica[];
 }
 
@@ -170,6 +171,16 @@ export default function MembresiasEditableSection({ producto, onUpdate, isAdmin 
     }));
   };
 
+  const handleSetPrincipal = (planIndex: number) => {
+    setForm(f => ({
+      ...f,
+      planes: f.planes.map((plan, i) => ({
+        ...plan,
+        principal: i === planIndex
+      }))
+    }));
+  };
+
   const handleSave = async () => {
     setSaving(true);
     const { error } = await supabase
@@ -320,14 +331,23 @@ export default function MembresiasEditableSection({ producto, onUpdate, isAdmin 
                 <div key={planIndex} className="p-4 bg-gray-800 rounded-lg border border-gray-700">
                   <div className="flex justify-between items-start mb-4">
                     <h5 className="text-md font-semibold text-white">Plan {planIndex + 1}</h5>
-                    {form.planes.length > 1 && (
-                      <button 
-                        onClick={() => handleRemovePlan(planIndex)}
-                        className="bg-red-600 text-white p-1 rounded hover:bg-red-700"
+                    <div className="flex gap-2 items-center">
+                      <button
+                        type="button"
+                        className={`px-2 py-1 rounded text-xs font-bold ${plan.principal ? 'bg-green-500 text-black' : 'bg-gray-700 text-gray-300'} border border-green-500`}
+                        onClick={() => handleSetPrincipal(planIndex)}
                       >
-                        <Trash2 size={16} />
+                        {plan.principal ? 'Principal' : 'Marcar como principal'}
                       </button>
-                    )}
+                      {form.planes.length > 1 && (
+                        <button
+                          onClick={() => handleRemovePlan(planIndex)}
+                          className="bg-red-600 text-white p-1 rounded hover:bg-red-700"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      )}
+                    </div>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">

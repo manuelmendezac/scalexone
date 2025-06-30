@@ -127,6 +127,7 @@ type ProductoMarketplace = {
         texto: string;
         incluida: boolean;
       }[];
+      principal: boolean;
     }[];
   };
   testimonios_datos?: {
@@ -279,6 +280,10 @@ const PaginaProductoMarketplace: React.FC = () => {
   const themeType = getThemeType(producto.categoria);
   const theme = themeConfig[themeType];
 
+  // Obtener el plan principal (o el primero si no hay principal)
+  const membresias = producto.membresias_datos?.planes || [];
+  const planPrincipal = membresias.find(p => p.principal) || membresias[0];
+
   // Usamos los datos de la carta de ventas si existen, si no, los datos base del producto
   const portada = producto.portada_datos;
   const titulo = portada?.titulo || producto.titulo;
@@ -325,11 +330,16 @@ const PaginaProductoMarketplace: React.FC = () => {
               <p className="text-gray-400 text-lg">{descripcion}</p>
 
               <div className="flex items-baseline gap-4 mt-4">
-                  {/* Precio eliminado de la portada, solo se muestra el tipo de plan */}
-                  {producto.tipo_pago === 'pago_unico' ? (
-                     <span className="bg-yellow-400/10 text-yellow-300 text-xs font-bold px-2 py-1 rounded-full">PAGO ÚNICO</span>
-                  ) : (
-                    <span className="bg-purple-400/10 text-purple-300 text-xs font-bold px-2 py-1 rounded-full">SUSCRIPCIÓN</span>
+                  {/* Precio eliminado de la portada, solo se muestra el tipo de plan principal */}
+                  {planPrincipal && (
+                    <>
+                      <span className="text-yellow-400 text-5xl font-bold">
+                        ${planPrincipal.precio}
+                      </span>
+                      <span className="bg-purple-400/10 text-purple-300 text-xs font-bold px-2 py-1 rounded-full">
+                        {planPrincipal.tipo_pago === 'pago_unico' ? 'PAGO ÚNICO' : planPrincipal.duracion_texto?.toUpperCase() || 'SUSCRIPCIÓN'}
+                      </span>
+                    </>
                   )}
               </div>
 
