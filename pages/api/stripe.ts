@@ -5,9 +5,6 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
   apiVersion: '2025-05-28.basil',
 });
 
-console.log('STRIPE_SECRET_KEY:', process.env.STRIPE_SECRET_KEY);
-console.log('BODY RECIBIDO:', req.body);
-
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Método no permitido' });
