@@ -71,7 +71,7 @@ export default function BloqueTextosAutoridadEditableSection({ producto, onUpdat
   return (
     <div className="bg-transparent py-16">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row gap-12 relative">
-        <div className="md:w-3/5 lg:w-3/5">
+        <div className="w-full">
           <div className="relative">
             {isAdmin && (
               <button

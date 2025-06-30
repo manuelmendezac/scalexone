@@ -177,7 +177,7 @@ export default function BloqueAutoridadEditableSection({ producto, onUpdate, isA
   };
 
   return (
-    <div className="md:w-2/5 lg:w-2/5">
+    <div className="w-full">
       <div className="sticky top-24">
         <div className="rounded-2xl bg-gray-800/80 backdrop-blur-sm p-8 shadow-2xl shadow-blue-500/10 border border-gray-700 text-center relative">
           {isAdmin && (
@@ -238,15 +238,15 @@ export default function BloqueAutoridadEditableSection({ producto, onUpdate, isA
               <select
                 className="w-full p-2 rounded text-gray-200 bg-gray-800"
                 onChange={e => {
-                  const selected = flagsList.find(f => f.code === e.target.value);
+                  const selected = flagsList.find((f: { code: string; name: string; url: string }) => f.code === e.target.value);
                   if (selected && !form.banderas.includes(selected.url)) {
-                    setForm(f => ({ ...f, banderas: [...f.banderas, selected.url] }));
+                    setForm((f: BloqueAutoridadDatos) => ({ ...f, banderas: [...f.banderas, selected.url] }));
                   }
                 }}
                 defaultValue=""
               >
                 <option value="" disabled>Selecciona una bandera</option>
-                {flagsList.map(flag => (
+                {flagsList.map((flag: { code: string; name: string; url: string }) => (
                   <option key={flag.code} value={flag.code}>{flag.name}</option>
                 ))}
               </select>
