@@ -7,6 +7,7 @@ import HeroEditableSection from '../../../components/HeroEditableSection';
 import IncluyeAccesoEditableSection from '../../../components/IncluyeAccesoEditableSection';
 import BloqueTextosAutoridadEditableSection from '../../../components/BloqueTextosAutoridadEditableSection';
 import BloqueAutoridadEditableSection from '../../../components/BloqueAutoridadEditableSection';
+import MembresiasEditableSection from '../../../components/MembresiasEditableSection';
 
 // Estructura de datos que esperamos de la BD
 // Unificada para cursos y servicios del marketplace
@@ -89,11 +90,42 @@ type ProductoMarketplace = {
   };
   bloque_textos_autoridad_datos?: {
     titulo: string;
-    descripcion: string;
+    subtitulo: string;
+    texto_destacado: string;
+    frase: string;
+    bullets: {
+      tipo: 'negativo' | 'positivo';
+      texto: string;
+    }[];
   };
   bloque_autoridad_datos?: {
-    titulo: string;
-    descripcion: string;
+    avatar_url: string;
+    nombre: string;
+    especialidades: string;
+    banderas: string[];
+    estadisticas: {
+      años_experiencia: string;
+      paises: string;
+      estudiantes: string;
+      comunidad: string;
+    };
+    chips: string[];
+  };
+  membresias_datos?: {
+    titulo_seccion: string;
+    subtitulo: string;
+    planes: {
+      nombre: string;
+      precio: number;
+      tipo_pago: 'pago_unico' | 'suscripcion';
+      duracion_texto: string;
+      descripcion: string;
+      destacado: boolean;
+      caracteristicas: {
+        texto: string;
+        incluida: boolean;
+      }[];
+    }[];
   };
   // etc... podríamos añadir más secciones como "bonus", "garantia", "faq"
 };
@@ -356,7 +388,7 @@ const PaginaProductoMarketplace: React.FC = () => {
 
       {/* SECCIÓN ¿QUÉ INCLUYE TU ACCESO? (Versión Fiel al Ejemplo) */}
       <div id="incluye-acceso">
-        <IncluyeAccesoEditableSection producto={producto} isAdmin={isAdmin} onUpdate={nuevosDatos => setProducto(p => ({ ...p!, incluye_acceso_datos: nuevosDatos }))} />
+        <IncluyeAccesoEditableSection producto={producto} isAdmin={isAdmin} onUpdate={(nuevosDatos: any) => setProducto(p => ({ ...p!, incluye_acceso_datos: nuevosDatos }))} />
       </div>
 
       {/* SECCIÓN "CONOCE AL EXPERTO" RESTAURADA (SIN BOTÓN) */}
@@ -376,83 +408,9 @@ const PaginaProductoMarketplace: React.FC = () => {
         </div>
       </div>
 
-      {/* SECCIÓN DE MEMBRESÍAS - DISEÑO DETALLADO */}
-      <div ref={membresiasRef} className="relative bg-black py-16 sm:py-24">
-        <div className="absolute inset-0 opacity-20">
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(29,78,216,0.2)_0%,rgba(0,0,0,0)_70%)]"></div>
-        </div>
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative">
-          <div className="max-w-3xl mx-auto text-center">
-            <h2 className="text-3xl font-extrabold text-white sm:text-4xl">Elige tu plan de acceso</h2>
-            <p className="mt-4 text-lg text-gray-400">Acceso inmediato a la comunidad, sesiones en vivo y todos los beneficios.</p>
-          </div>
-          <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-8 items-start">
-            
-            {/* Plan Básico */}
-            <div className="bg-gray-900/50 p-8 rounded-2xl border border-blue-900/40 shadow-xl flex flex-col h-full">
-              <h3 className="text-xl font-bold text-white mb-2 flex items-center gap-2"><Star size={18} className={theme.text}/>Plan Básico</h3>
-              <div className="flex items-baseline gap-3 my-4">
-                <p className="text-5xl font-extrabold text-white">$99<span className="text-3xl font-bold">.00</span></p>
-                <span className="bg-gray-700 text-gray-300 px-2 py-1 text-xs font-semibold rounded">Mensual</span>
-              </div>
-              <p className="text-gray-400 mb-6 min-h-[40px]">Perfecto para dar tu primer paso.</p>
-              <button className={`w-full ${theme.membershipButton} py-3 px-6 rounded-lg transition-all`}>Suscribirse</button>
-              <p className="text-white font-semibold mt-8 mb-4">Lo que incluye:</p>
-              <ul className="space-y-3 text-gray-300 flex-grow">
-                <li className="flex gap-3"><CheckCircle className={`${theme.text} w-5 h-5 flex-shrink-0`} />Sesiones de Trading en Vivo</li>
-                <li className="flex gap-3"><CheckCircle className={`${theme.text} w-5 h-5 flex-shrink-0`} />Alertas en Tiempo Real</li>
-                <li className="flex gap-3"><CheckCircle className={`${theme.text} w-5 h-5 flex-shrink-0`} />Comunidad Global de Traders</li>
-                <li className="flex gap-3"><CheckCircle className={`${theme.text} w-5 h-5 flex-shrink-0`} />Bonos VicForex</li>
-                <li className="flex gap-3 text-gray-500"><XCircle className="w-5 h-5 flex-shrink-0" />Bonos Premium</li>
-                <li className="flex gap-3 text-gray-500"><XCircle className="w-5 h-5 flex-shrink-0" />Mentoría 1x1</li>
-              </ul>
-            </div>
-
-            {/* Plan Pro (Destacado) */}
-            <div className="relative bg-gray-900 p-8 rounded-2xl border-2 border-green-400 shadow-2xl shadow-green-500/20 flex flex-col h-full -my-4">
-               <div className="absolute top-0 -translate-y-1/2 w-full flex justify-center">
-                 <span className="bg-green-400 text-black text-sm font-bold uppercase px-4 py-1 rounded-full flex items-center gap-2"><Star size={16}/>El favorito de todos</span>
-               </div>
-              <h3 className="text-xl font-bold text-white mb-2 flex items-center gap-2"><Star size={18} className="text-green-400"/>Plan Pro</h3>
-              <div className="flex items-baseline gap-3 my-4">
-                <p className="text-5xl font-extrabold text-white">$147<span className="text-3xl font-bold">.00</span></p>
-                <span className="bg-gray-700 text-gray-300 px-2 py-1 text-xs font-semibold rounded">Trimestral</span>
-              </div>
-              <p className="text-gray-400 mb-6 min-h-[40px]">Ahorra $150 vs pagar mes a mes.</p>
-              <button className="w-full bg-green-400 hover:bg-green-500 text-black font-bold py-3 px-6 rounded-lg transition-all">Suscribirse</button>
-              <p className="text-white font-semibold mt-8 mb-4">Lo que incluye:</p>
-              <ul className="space-y-3 text-gray-300 flex-grow">
-                <li className="flex gap-3"><CheckCircle className="text-green-400 w-5 h-5 flex-shrink-0" />Sesiones de Trading en Vivo</li>
-                <li className="flex gap-3"><CheckCircle className="text-green-400 w-5 h-5 flex-shrink-0" />Alertas en Tiempo Real</li>
-                <li className="flex gap-3"><CheckCircle className="text-green-400 w-5 h-5 flex-shrink-0" />Comunidad Global de Traders</li>
-                <li className="flex gap-3"><CheckCircle className="text-green-400 w-5 h-5 flex-shrink-0" />Bonos VicForex</li>
-                <li className="flex gap-3"><CheckCircle className="text-green-400 w-5 h-5 flex-shrink-0" />Bonos Premium</li>
-                <li className="flex gap-3 text-gray-500"><XCircle className="w-5 h-5 flex-shrink-0" />Mentoría 1x1</li>
-              </ul>
-            </div>
-
-            {/* Plan Avanzado */}
-            <div className="bg-gray-900/50 p-8 rounded-2xl border border-blue-900/40 shadow-xl flex flex-col h-full">
-              <h3 className="text-xl font-bold text-white mb-2 flex items-center gap-2"><Star size={18} className={theme.text}/>Plan Avanzado</h3>
-              <div className="flex items-baseline gap-3 my-4">
-                <p className="text-5xl font-extrabold text-white">$175<span className="text-3xl font-bold">.00</span></p>
-                <span className="bg-gray-700 text-gray-300 px-2 py-1 text-xs font-semibold rounded">Semestral</span>
-              </div>
-              <p className="text-gray-400 mb-6 min-h-[40px]">¡Menos de $1 por día!</p>
-              <button className={`w-full ${theme.membershipButton} py-3 px-6 rounded-lg transition-all`}>Suscribirse</button>
-              <p className="text-white font-semibold mt-8 mb-4">Lo que incluye:</p>
-              <ul className="space-y-3 text-gray-300 flex-grow">
-                <li className="flex gap-3"><CheckCircle className={`${theme.text} w-5 h-5 flex-shrink-0`} />Sesiones de Trading en Vivo</li>
-                <li className="flex gap-3"><CheckCircle className={`${theme.text} w-5 h-5 flex-shrink-0`} />Alertas en Tiempo Real</li>
-                <li className="flex gap-3"><CheckCircle className={`${theme.text} w-5 h-5 flex-shrink-0`} />Comunidad Global de Traders</li>
-                <li className="flex gap-3"><CheckCircle className={`${theme.text} w-5 h-5 flex-shrink-0`} />Bonos VicForex</li>
-                <li className="flex gap-3"><CheckCircle className={`${theme.text} w-5 h-5 flex-shrink-0`} />Bonos Premium</li>
-                <li className="flex gap-3"><CheckCircle className={`${theme.text} w-5 h-5 flex-shrink-0`} />Mentoría 1x1</li>
-              </ul>
-            </div>
-
-          </div>
-        </div>
+      {/* SECCIÓN DE MEMBRESÍAS - EDITABLE */}
+      <div ref={membresiasRef}>
+        <MembresiasEditableSection producto={producto} isAdmin={isAdmin} onUpdate={(nuevosDatos: any) => setProducto(p => ({ ...p!, membresias_datos: nuevosDatos }))} />
       </div>
 
       {/* Sección de Testimonios */}
