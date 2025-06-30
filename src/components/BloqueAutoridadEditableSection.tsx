@@ -192,11 +192,11 @@ export default function BloqueAutoridadEditableSection({ producto, onUpdate, isA
           <img 
             src={form.avatar_url || 'https://images.unsplash.com/photo-1560250097-0b93528c311a?q=80&w=1887&auto=format&fit=crop'} 
             alt="Ponente" 
-            className="w-full h-72 object-cover mb-6"
+            className="w-32 h-32 rounded-full mx-auto mb-6 object-cover border-4 border-gray-700"
           />
-          <h3 className="text-2xl font-bold leading-7 tracking-tight text-white">{form.nombre}</h3>
-          <p className="text-sm leading-6 text-gray-400">{form.especialidades}</p>
-          <div className="flex items-center justify-center gap-x-2 mt-4 flex-wrap">
+          <h3 className="text-2xl font-bold leading-7 tracking-tight text-white mb-1">{form.nombre}</h3>
+          <p className="text-sm leading-6 text-gray-400 mb-2">{form.especialidades}</p>
+          <div className="flex items-center justify-center gap-x-2 mt-2 mb-4 flex-wrap">
             {form.banderas.map((b, i) => (
               <img key={i} src={b} alt="Bandera" className="h-4 rounded-sm" />
             ))}
