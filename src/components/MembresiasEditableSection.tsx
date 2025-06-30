@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { supabase } from '../supabase';
 import { Edit, Star, CheckCircle, XCircle, Plus, Trash2 } from 'lucide-react';
+import { StripePaymentButton } from './StripePaymentButton';
 
 interface Caracteristica {
   texto: string;
@@ -16,6 +17,7 @@ interface PlanMembresia {
   destacado: boolean;
   principal?: boolean;
   caracteristicas: Caracteristica[];
+  stripe_price_id?: string;
 }
 
 interface MembresiasDatos {
@@ -91,6 +93,7 @@ export default function MembresiasEditableSection({ producto, onUpdate, isAdmin 
     producto.membresias_datos || defaultData
   );
   const [saving, setSaving] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState(0);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -410,6 +413,16 @@ export default function MembresiasEditableSection({ producto, onUpdate, isAdmin 
                         Plan destacado
                       </label>
                     </div>
+                    <div>
+                      <label className="block text-gray-300 mb-2">Stripe Price ID:</label>
+                      <input
+                        type="text"
+                        value={plan.stripe_price_id || ''}
+                        onChange={e => handlePlanChange(planIndex, 'stripe_price_id', e.target.value)}
+                        className="w-full p-2 rounded text-gray-200 bg-gray-700"
+                        placeholder="Ej: price_1N..."
+                      />
+                    </div>
                   </div>
 
                   {/* Características */}
@@ -450,6 +463,47 @@ export default function MembresiasEditableSection({ producto, onUpdate, isAdmin 
                   </div>
                 </div>
               ))}
+            </div>
+
+            {form.planes.length > 1 && (
+              <div className="mb-8 flex flex-col items-center">
+                <label className="text-white font-semibold mb-2">Elige tu plan:</label>
+                <div className="flex gap-4">
+                  {form.planes.map((plan, idx) => (
+                    <label key={idx} className={`px-4 py-2 rounded-lg cursor-pointer border-2 transition-all ${selectedPlan === idx ? 'border-green-400 bg-gray-800' : 'border-gray-700 bg-gray-900'}`}>
+                      <input
+                        type="radio"
+                        name="planSelector"
+                        checked={selectedPlan === idx}
+                        onChange={() => setSelectedPlan(idx)}
+                        className="mr-2"
+                      />
+                      {plan.nombre}
+                    </label>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div className="mt-8 flex justify-center">
+              {form.planes[selectedPlan] && form.planes[selectedPlan].stripe_price_id ? (
+                <StripePaymentButton
+                  productData={{
+                    nombre: form.planes[selectedPlan].nombre,
+                    descripcion: form.planes[selectedPlan].descripcion,
+                    precio: form.planes[selectedPlan].precio,
+                    tipo_pago: form.planes[selectedPlan].tipo_pago,
+                  }}
+                  metadata={{ plan_index: selectedPlan, producto_id: producto.id, tipo_producto: producto.tipo }}
+                  className="w-full max-w-md"
+                >
+                  {form.planes[selectedPlan].tipo_pago === 'pago_unico' ? 'Contratar' : 'Suscribirse'}
+                </StripePaymentButton>
+              ) : (
+                <button className="w-full max-w-md bg-gray-700 text-gray-400 py-4 px-6 rounded-lg text-xl cursor-not-allowed" disabled>
+                  Configura el Stripe Price ID para habilitar el pago
+                </button>
+              )}
             </div>
 
             <div className="flex gap-4 mt-6">
