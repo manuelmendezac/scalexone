@@ -98,7 +98,15 @@ export default function HeroEditableSection({ producto, onUpdate, isAdmin }: Her
           )}
         </div>
         <div className="w-full lg:w-1/2">
-          <h2 className="text-4xl font-bold text-white">{form.titulo}</h2>
+          <h2 className="text-4xl font-bold text-white flex items-center gap-4">
+            {form.titulo}
+            {producto.tipo_pago === 'suscripcion' && (
+              <span className="bg-purple-700 text-white text-xs font-bold px-3 py-1 rounded-full">Suscripción</span>
+            )}
+            {producto.tipo_pago === 'pago_unico' && (
+              <span className="bg-yellow-500 text-black text-xs font-bold px-3 py-1 rounded-full">Pago Único</span>
+            )}
+          </h2>
           <p className="text-gray-300 mt-4">{form.descripcion}</p>
           <ul className="mt-6 space-y-2">
             {form.bullets.map((b, i) => (
