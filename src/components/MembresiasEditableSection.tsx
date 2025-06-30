@@ -217,13 +217,23 @@ export default function MembresiasEditableSection({ producto, onUpdate, isAdmin 
       .from(tabla)
       .update({ membresias_datos: updatedForm })
       .eq('id', producto.id);
-    setSaving(false);
     if (!error) {
-      onUpdate && onUpdate(updatedForm);
+      // Recargar el producto actualizado desde la base de datos para asegurar persistencia
+      const { data: updatedProducto } = await supabase
+        .from(tabla)
+        .select('membresias_datos')
+        .eq('id', producto.id)
+        .single();
+      if (updatedProducto && updatedProducto.membresias_datos) {
+        onUpdate && onUpdate(updatedProducto.membresias_datos);
+      } else {
+        onUpdate && onUpdate(updatedForm);
+      }
       setModalOpen(false);
     } else {
       alert('Error al guardar: ' + error.message);
     }
+    setSaving(false);
   };
 
   const getThemeType = (category?: string): 'curso' | 'servicio' | 'software' => {
