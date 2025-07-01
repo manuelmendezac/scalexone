@@ -92,7 +92,7 @@ const defaultData: MembresiasDatos = {
 export default function MembresiasEditableSection({ producto, onUpdate, isAdmin }: Props) {
   const [modalOpen, setModalOpen] = useState(false);
   const [form, setForm] = useState<MembresiasDatos>(
-    producto.membresias_datos || defaultData
+    producto.membresias || defaultData
   );
   const [saving, setSaving] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState(0);
@@ -209,23 +209,26 @@ export default function MembresiasEditableSection({ producto, onUpdate, isAdmin 
         }
       }
     }
-    // Detectar tipo de producto y tabla
-    let tabla = 'cursos_marketplace';
-    if (producto.tipo === 'servicio') tabla = 'servicios_marketplace';
-    if (producto.tipo === 'software') tabla = 'software_marketplace';
-    console.log('Tabla:', tabla);
+    // Detectar tipo de producto y tabla de forma robusta
+    let tabla = producto.tabla_origen || '';
+    if (!tabla) {
+      if (producto.tipo === 'servicio') tabla = 'servicios_marketplace';
+      else if (producto.tipo === 'software') tabla = 'software_marketplace';
+      else tabla = 'cursos_marketplace';
+    }
+    console.log('Tabla FINAL usada para update:', tabla);
     console.log('ID:', producto.id);
     console.log('Datos a guardar:', updatedForm);
     const { error, data } = await supabase
       .from(tabla)
-      .update({ membresias_datos: updatedForm })
+      .update({ membresias: updatedForm })
       .eq('id', producto.id);
     console.log('Respuesta del update:', { error, data });
     if (error) {
       // Prueba un update simple para descartar problemas de datos
       const testUpdate = await supabase
         .from(tabla)
-        .update({ membresias_datos: { test: true } })
+        .update({ membresias: { test: true } })
         .eq('id', producto.id);
       console.log('Respuesta del update simple:', testUpdate);
       alert('Error al guardar: ' + error.message);
@@ -235,11 +238,11 @@ export default function MembresiasEditableSection({ producto, onUpdate, isAdmin 
     // Recargar el producto actualizado desde la base de datos para asegurar persistencia
     const { data: updatedProducto } = await supabase
       .from(tabla)
-      .select('membresias_datos')
+      .select('membresias')
       .eq('id', producto.id)
       .single();
-    if (updatedProducto && updatedProducto.membresias_datos) {
-      onUpdate && onUpdate(updatedProducto.membresias_datos);
+    if (updatedProducto && updatedProducto.membresias) {
+      onUpdate && onUpdate(updatedProducto.membresias);
     } else {
       onUpdate && onUpdate(updatedForm);
     }
