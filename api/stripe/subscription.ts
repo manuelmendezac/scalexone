@@ -11,25 +11,31 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    const { sessionId } = req.body
+    const { stripe_price_id, customer_email, metadata } = req.body
 
-    if (!sessionId) {
-      return res.status(400).json({ error: 'sessionId es requerido' })
+    if (!stripe_price_id) {
+      return res.status(400).json({ error: 'stripe_price_id es requerido' })
     }
 
-    // Obtener sesión de checkout
-    const session = await stripe.checkout.sessions.retrieve(sessionId)
-
-    if (session.payment_status !== 'paid') {
-      return res.status(400).json({ error: 'Pago no completado' })
-    }
-
-    // Obtener suscripción
-    const subscription = await stripe.subscriptions.retrieve(session.subscription as string)
+    // Crear sesión de suscripción
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ['card'],
+      line_items: [
+        {
+          price: stripe_price_id,
+          quantity: 1,
+        },
+      ],
+      mode: 'subscription',
+      success_url: `${process.env.NEXT_PUBLIC_BASE_URL}/success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${process.env.NEXT_PUBLIC_BASE_URL}/cancel`,
+      customer_email,
+      metadata,
+    })
 
     res.status(200).json({ 
-      subscription: subscription,
-      session: session 
+      checkout_url: session.url,
+      session_id: session.id
     })
   } catch (error) {
     console.error('Error en subscription:', error)

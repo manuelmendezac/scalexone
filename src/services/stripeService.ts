@@ -17,7 +17,7 @@ export interface StripeCheckoutData {
 }
 
 export class StripeService {
-  private static baseUrl = '/api/stripe2';
+  private static baseUrl = '/api/stripe';
 
   // Crear producto y precio en Stripe
   static async createProduct(data: StripeProductData) {
