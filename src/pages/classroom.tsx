@@ -454,6 +454,10 @@ const Classroom = () => {
         {/* Título principal */}
         <h1 className="text-4xl font-extrabold text-center mb-8" style={{ color: '#FFD700', textShadow: '0 0 16px #FFD70099, 0 2px 8px #fff' }}>RUTA DIGITAL</h1>
 
+        <div style={{ background: 'red', color: 'white', fontSize: 48, textAlign: 'center', padding: 32 }}>
+          TEST RUTA DIGITAL
+        </div>
+
         {/* Grid de módulos */}
         <DragDropContext onDragEnd={handleDragEnd}>
           <Droppable droppableId="modulos" direction="horizontal">
