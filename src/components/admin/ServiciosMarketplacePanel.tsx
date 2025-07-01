@@ -264,7 +264,8 @@ const ServiciosMarketplacePanel: React.FC = () => {
         comision_nivel3: suscripcionData.comision_nivel3,
         fecha_afiliacion: new Date().toISOString(),
         caracteristicas: suscripcionData.caracteristicas.filter(c => c.trim() !== ''),
-        updated_at: new Date().toISOString()
+        updated_at: new Date().toISOString(),
+        membresias: suscripcionData.membresias
       };
 
       // Agregar campos específicos según el tipo de producto
