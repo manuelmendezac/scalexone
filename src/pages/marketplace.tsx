@@ -18,6 +18,8 @@ interface Curso {
   community_id: string;
   activo: boolean;
   categoria?: string;
+  tipo: string;
+  tabla_origen: string;
 }
 
 interface Servicio {
@@ -34,6 +36,8 @@ interface Servicio {
   tipo_pago?: 'pago_unico' | 'suscripcion';
   duracion_dias?: number;
   membresias: number;
+  tipo: string;
+  tabla_origen: string;
 }
 
 const Marketplace: React.FC = () => {
@@ -74,7 +78,9 @@ const Marketplace: React.FC = () => {
         estudiantes: curso.estudiantes || 0,
         community_id: curso.community_id,
         activo: curso.activo,
-        categoria: 'Cursos'
+        categoria: 'Cursos',
+        tipo: 'curso',
+        tabla_origen: 'cursos_marketplace',
       }));
 
       setCursos(cursosFormateados);
@@ -106,7 +112,9 @@ const Marketplace: React.FC = () => {
         tipo_producto: servicio.tipo_producto || 'servicio',
         tipo_pago: servicio.tipo_pago || 'pago_unico',
         duracion_dias: servicio.duracion_dias,
-        membresias: servicio.membresias
+        membresias: servicio.membresias,
+        tipo: 'servicio',
+        tabla_origen: 'servicios_marketplace',
       }));
       setServicios(serviciosFormateados);
 
