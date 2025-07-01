@@ -113,7 +113,7 @@ type ProductoMarketplace = {
     };
     chips: string[];
   };
-  membresias_datos?: {
+  membresias?: {
     titulo_seccion: string;
     subtitulo: string;
     planes: {
@@ -281,7 +281,7 @@ const PaginaProductoMarketplace: React.FC = () => {
   const theme = themeConfig[themeType];
 
   // Obtener el plan principal (o el primero si no hay principal)
-  const membresias = producto.membresias_datos?.planes || [];
+  const membresias = producto.membresias?.planes || [];
   const planPrincipal = membresias.find(p => p.principal) || membresias[0];
 
   // Usamos los datos de la carta de ventas si existen, si no, los datos base del producto
@@ -461,7 +461,7 @@ const PaginaProductoMarketplace: React.FC = () => {
 
       {/* SECCIÓN DE MEMBRESÍAS - EDITABLE */}
       <div ref={membresiasRef}>
-        <MembresiasEditableSection producto={producto} isAdmin={isAdmin} onUpdate={(nuevosDatos: any) => setProducto(p => ({ ...p!, membresias_datos: nuevosDatos }))} />
+        <MembresiasEditableSection producto={producto} isAdmin={isAdmin} onUpdate={(nuevosDatos: any) => setProducto(p => ({ ...p!, membresias: nuevosDatos }))} />
       </div>
 
       {/* Sección de Testimonios */}
