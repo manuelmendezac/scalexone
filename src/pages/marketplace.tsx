@@ -86,66 +86,29 @@ const Marketplace: React.FC = () => {
         .eq('activo', true);
 
       if (serviciosError) {
-        console.warn('Error cargando servicios desde BD, usando datos simulados:', serviciosError);
-        // Fallback a datos simulados si la tabla no existe aún
-        const serviciosSimulados: Servicio[] = [
-          {
-            id: 'srv-1',
-            titulo: 'Consultoría Estratégica 1:1',
-            descripcion: 'Sesión personalizada de estrategia empresarial con expertos en escalabilidad.',
-            precio: 150,
-            imagen_url: 'https://images.unsplash.com/photo-1556761175-b413da4baf72?w=500&h=300&fit=crop',
-            proveedor: 'ScaleXone Consulting',
-            categoria: 'Consultoría',
-            rating: 4.9,
-            reviews: 127,
-            membresias: 0
-          },
-          {
-            id: 'srv-2',
-            titulo: 'Diseño de Funnel Completo',
-            descripcion: 'Creación de funnel de ventas optimizado desde landing hasta checkout.',
-            precio: 500,
-            imagen_url: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=500&h=300&fit=crop',
-            proveedor: 'Funnel Masters',
-            categoria: 'Marketing',
-            rating: 4.8,
-            reviews: 89,
-            membresias: 0
-          },
-          {
-            id: 'srv-3',
-            titulo: 'Automatización WhatsApp Business',
-            descripcion: 'Setup completo de chatbot y automatización para WhatsApp Business.',
-            precio: 300,
-            imagen_url: 'https://images.unsplash.com/photo-1611224923853-80b023f02d71?w=500&h=300&fit=crop',
-            proveedor: 'AutoBot Pro',
-            categoria: 'Automatización',
-            rating: 4.7,
-            reviews: 156,
-            membresias: 0
-          }
-        ];
-        setServicios(serviciosSimulados);
-      } else {
-        // Usar servicios reales de la base de datos
-        const serviciosFormateados: Servicio[] = (serviciosData || []).map(servicio => ({
-          id: servicio.id,
-          titulo: servicio.titulo,
-          descripcion: servicio.descripcion,
-          precio: servicio.precio || 0,
-          imagen_url: servicio.imagen_url,
-          proveedor: servicio.proveedor || 'ScaleXone',
-          categoria: servicio.categoria || 'Servicios',
-          rating: servicio.rating || 4.8,
-          reviews: servicio.reviews || 0,
-          tipo_producto: servicio.tipo_producto || 'servicio',
-          tipo_pago: servicio.tipo_pago || 'pago_unico',
-          duracion_dias: servicio.duracion_dias,
-          membresias: servicio.membresias
-        }));
-        setServicios(serviciosFormateados);
+        console.error('Error cargando servicios desde BD:', serviciosError);
+        // Mostrar mensaje de error en vez de servicios simulados
+        setServicios([]);
+        alert('Error cargando servicios reales. Por favor, revisa la conexión o los permisos de la base de datos.');
+        return;
       }
+      // Usar servicios reales de la base de datos
+      const serviciosFormateados: Servicio[] = (serviciosData || []).map(servicio => ({
+        id: servicio.id,
+        titulo: servicio.titulo,
+        descripcion: servicio.descripcion,
+        precio: servicio.precio || 0,
+        imagen_url: servicio.imagen_url,
+        proveedor: servicio.proveedor || 'ScaleXone',
+        categoria: servicio.categoria || 'Servicios',
+        rating: servicio.rating || 4.8,
+        reviews: servicio.reviews || 0,
+        tipo_producto: servicio.tipo_producto || 'servicio',
+        tipo_pago: servicio.tipo_pago || 'pago_unico',
+        duracion_dias: servicio.duracion_dias,
+        membresias: servicio.membresias
+      }));
+      setServicios(serviciosFormateados);
 
     } catch (error: any) {
       console.error('Error cargando datos:', error);
