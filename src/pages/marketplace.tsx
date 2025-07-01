@@ -33,6 +33,7 @@ interface Servicio {
   tipo_producto?: 'servicio' | 'suscripcion';
   tipo_pago?: 'pago_unico' | 'suscripcion';
   duracion_dias?: number;
+  membresias: number;
 }
 
 const Marketplace: React.FC = () => {
@@ -97,7 +98,8 @@ const Marketplace: React.FC = () => {
             proveedor: 'ScaleXone Consulting',
             categoria: 'Consultoría',
             rating: 4.9,
-            reviews: 127
+            reviews: 127,
+            membresias: 0
           },
           {
             id: 'srv-2',
@@ -108,7 +110,8 @@ const Marketplace: React.FC = () => {
             proveedor: 'Funnel Masters',
             categoria: 'Marketing',
             rating: 4.8,
-            reviews: 89
+            reviews: 89,
+            membresias: 0
           },
           {
             id: 'srv-3',
@@ -119,7 +122,8 @@ const Marketplace: React.FC = () => {
             proveedor: 'AutoBot Pro',
             categoria: 'Automatización',
             rating: 4.7,
-            reviews: 156
+            reviews: 156,
+            membresias: 0
           }
         ];
         setServicios(serviciosSimulados);
@@ -137,7 +141,8 @@ const Marketplace: React.FC = () => {
           reviews: servicio.reviews || 0,
           tipo_producto: servicio.tipo_producto || 'servicio',
           tipo_pago: servicio.tipo_pago || 'pago_unico',
-          duracion_dias: servicio.duracion_dias
+          duracion_dias: servicio.duracion_dias,
+          membresias: servicio.membresias
         }));
         setServicios(serviciosFormateados);
       }

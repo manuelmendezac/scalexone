@@ -30,6 +30,7 @@ interface Servicio {
   caracteristicas?: string[];
   created_at?: string;
   updated_at?: string;
+  membresias?: string[];
 }
 
 const ServiciosMarketplacePanel: React.FC = () => {

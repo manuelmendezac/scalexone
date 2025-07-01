@@ -47,6 +47,7 @@ interface ServicioMarketplace {
   tipo_producto?: 'servicio' | 'suscripcion';
   tipo_pago?: 'pago_unico' | 'suscripcion';
   duracion_dias?: number;
+  membresias?: string;
 }
 
 type ProductoMarketplace = (CursoMarketplace | ServicioMarketplace) & {
@@ -138,7 +139,8 @@ const MarketplaceAfiliados: React.FC = () => {
           tabla_origen: 'servicios' as const,
           // Mapear campos para consistencia
           instructor: servicio.proveedor,
-          estudiantes: servicio.reviews || 0
+          estudiantes: servicio.reviews || 0,
+          membresias: servicio.membresias,
         }))
       ];
 
