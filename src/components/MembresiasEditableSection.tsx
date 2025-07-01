@@ -213,26 +213,37 @@ export default function MembresiasEditableSection({ producto, onUpdate, isAdmin 
     let tabla = 'cursos_marketplace';
     if (producto.tipo === 'servicio') tabla = 'servicios_marketplace';
     if (producto.tipo === 'software') tabla = 'software_marketplace';
-    const { error } = await supabase
+    console.log('Tabla:', tabla);
+    console.log('ID:', producto.id);
+    console.log('Datos a guardar:', updatedForm);
+    const { error, data } = await supabase
       .from(tabla)
       .update({ membresias_datos: updatedForm })
       .eq('id', producto.id);
-    if (!error) {
-      // Recargar el producto actualizado desde la base de datos para asegurar persistencia
-      const { data: updatedProducto } = await supabase
+    console.log('Respuesta del update:', { error, data });
+    if (error) {
+      // Prueba un update simple para descartar problemas de datos
+      const testUpdate = await supabase
         .from(tabla)
-        .select('membresias_datos')
-        .eq('id', producto.id)
-        .single();
-      if (updatedProducto && updatedProducto.membresias_datos) {
-        onUpdate && onUpdate(updatedProducto.membresias_datos);
-      } else {
-        onUpdate && onUpdate(updatedForm);
-      }
-      setModalOpen(false);
-    } else {
+        .update({ membresias_datos: { test: true } })
+        .eq('id', producto.id);
+      console.log('Respuesta del update simple:', testUpdate);
       alert('Error al guardar: ' + error.message);
+      setSaving(false);
+      return;
     }
+    // Recargar el producto actualizado desde la base de datos para asegurar persistencia
+    const { data: updatedProducto } = await supabase
+      .from(tabla)
+      .select('membresias_datos')
+      .eq('id', producto.id)
+      .single();
+    if (updatedProducto && updatedProducto.membresias_datos) {
+      onUpdate && onUpdate(updatedProducto.membresias_datos);
+    } else {
+      onUpdate && onUpdate(updatedForm);
+    }
+    setModalOpen(false);
     setSaving(false);
   };
 
