@@ -186,7 +186,7 @@ const PaginaProductoMarketplace: React.FC = () => {
         .single();
 
       if (dataCurso) {
-        setProducto(dataCurso);
+        setProducto({ ...dataCurso, tipo: 'curso', tabla_origen: 'cursos_marketplace' });
         setLoading(false);
         return;
       }
@@ -199,7 +199,7 @@ const PaginaProductoMarketplace: React.FC = () => {
         .single();
 
       if (dataServicio) {
-        setProducto(dataServicio);
+        setProducto({ ...dataServicio, tipo: 'servicio', tabla_origen: 'servicios_marketplace' });
         setLoading(false);
         return;
       }
