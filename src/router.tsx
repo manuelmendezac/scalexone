@@ -53,6 +53,7 @@ const ModulosCurso = lazy(() => import('./pages/cursos/modulos'));
 const Marketplace = lazy(() => import('./pages/marketplace'));
 const PaginaProductoMarketplace = lazy(() => import('./pages/marketplace/producto/[id]'));
 const MarketplaceAfiliados = lazy(() => import('./pages/afiliados/marketplace'));
+const Success = lazy(() => import('./pages/success'));
 
 const SuspenseWrapper = ({ children }: { children: React.ReactNode }) => (
   <Suspense fallback={<div />}>
@@ -77,7 +78,8 @@ export const router = createBrowserRouter([
           { path: 'videos/:modulo_id', element: <SuspenseWrapper><LineaVideosClassroom /></SuspenseWrapper> },
           { path: 'videos', element: <SuspenseWrapper><LineaVideosClassroom /></SuspenseWrapper> },
           { path: 'editar-videos/:modulo_id', element: <SuspenseWrapper><EditarVideosClassroom /></SuspenseWrapper> },
-          { path: 'editar-videos', element: <SuspenseWrapper><EditarVideosClassroom /></SuspenseWrapper> }
+          { path: 'editar-videos', element: <SuspenseWrapper><EditarVideosClassroom /></SuspenseWrapper> },
+          { path: 'success', element: <SuspenseWrapper><Success /></SuspenseWrapper> }
         ]
       },
       {
