@@ -9,6 +9,8 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Método no permitido' });
   }
 
+  console.log('BODY RECIBIDO EN SUBSCRIPTION:', req.body);
+
   const { 
     stripe_price_id, 
     success_url, 
@@ -51,6 +53,8 @@ export default async function handler(req, res) {
         },
       },
     });
+
+    console.log('SESSION STRIPE RESPUESTA:', session);
 
     return res.status(200).json({
       success: true,
