@@ -5,10 +5,15 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
   apiVersion: '2025-05-28.basil',
 });
 
+const stripeKey = process.env.STRIPE_SECRET_KEY;
+console.log('[STRIPE] Clave presente:', !!stripeKey, 'Longitud:', stripeKey ? stripeKey.length : 0);
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Método no permitido' });
   }
+
+  console.log('[STRIPE] Body recibido:', req.body);
 
   const { nombre, descripcion, precio, tipo_pago, moneda = 'usd', periodicidad } = req.body;
 
