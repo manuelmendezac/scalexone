@@ -30,7 +30,7 @@ interface Servicio {
   caracteristicas?: string[];
   created_at?: string;
   updated_at?: string;
-  membresias?: string[];
+  membresias?: any;
 }
 
 const ServiciosMarketplacePanel: React.FC = () => {
@@ -60,7 +60,8 @@ const ServiciosMarketplacePanel: React.FC = () => {
     niveles_comision: 3,
     comision_nivel1: 30,
     comision_nivel2: 20,
-    comision_nivel3: 10
+    comision_nivel3: 10,
+    membresias: null,
   });
 
   const categorias = [
@@ -86,10 +87,12 @@ const ServiciosMarketplacePanel: React.FC = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setServicios(data || []);
+      setServicios((data || []).map(servicio => ({
+        ...servicio,
+        membresias: servicio.membresias || null
+      })));
     } catch (error: any) {
       console.error('Error cargando servicios:', error);
-      // Si la tabla no existe, inicializamos con array vacío
       setServicios([]);
     } finally {
       setLoading(false);
@@ -180,7 +183,8 @@ const ServiciosMarketplacePanel: React.FC = () => {
       niveles_comision: servicio.niveles_comision || 3,
       comision_nivel1: servicio.comision_nivel1 || 30,
       comision_nivel2: servicio.comision_nivel2 || 20,
-      comision_nivel3: servicio.comision_nivel3 || 10
+      comision_nivel3: servicio.comision_nivel3 || 10,
+      membresias: servicio.membresias || null,
     });
     setShowSuscripcionModal(true);
   };
@@ -207,7 +211,8 @@ const ServiciosMarketplacePanel: React.FC = () => {
       niveles_comision: 3,
       comision_nivel1: 30,
       comision_nivel2: 20,
-      comision_nivel3: 10
+      comision_nivel3: 10,
+      membresias: null,
     });
   };
 
@@ -376,7 +381,8 @@ const ServiciosMarketplacePanel: React.FC = () => {
       niveles_comision: 3,
       comision_nivel1: 25,
       comision_nivel2: 15,
-      comision_nivel3: 8
+      comision_nivel3: 8,
+      membresias: null,
     });
     setShowSuscripcionModal(true);
   };

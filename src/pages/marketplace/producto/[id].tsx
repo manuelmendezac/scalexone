@@ -212,6 +212,10 @@ const PaginaProductoMarketplace: React.FC = () => {
     fetchProducto();
   }, [id]);
 
+  useEffect(() => {
+    // No forzar membresias: null, solo dejarlo undefined si no existe
+  }, [producto]);
+
   const handleBack = () => {
     navigate('/marketplace');
   };
