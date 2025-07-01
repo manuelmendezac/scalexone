@@ -189,11 +189,13 @@ export default function MembresiasEditableSection({ producto, onUpdate, isAdmin 
   const handleSave = async () => {
     setSaving(true);
     let updatedForm = { ...form };
+    console.log('[Membresias] Iniciando guardado', { producto, updatedForm });
     // Para cada plan sin stripe_price_id, crear producto/precio en Stripe
     for (let i = 0; i < updatedForm.planes.length; i++) {
       const plan = updatedForm.planes[i];
       if (!plan.stripe_price_id) {
         try {
+          console.log('[Membresias] Creando producto en Stripe para plan', plan);
           const result = await StripeService.createProduct({
             nombre: plan.nombre,
             descripcion: plan.descripcion,
@@ -202,8 +204,10 @@ export default function MembresiasEditableSection({ producto, onUpdate, isAdmin 
             periodicidad: plan.tipo_pago === 'suscripcion' ? plan.periodicidad || 'month' : undefined,
           });
           updatedForm.planes[i].stripe_price_id = result.stripe_price_id;
+          console.log('[Membresias] Stripe Price ID generado:', result.stripe_price_id);
         } catch (err) {
           setSaving(false);
+          console.error('[Membresias] Error creando el plan en Stripe:', err);
           alert('Error creando el plan en Stripe: ' + (err as Error).message);
           return;
         }
@@ -216,31 +220,32 @@ export default function MembresiasEditableSection({ producto, onUpdate, isAdmin 
       else if (producto.tipo === 'software') tabla = 'software_marketplace';
       else tabla = 'cursos_marketplace';
     }
-    console.log('Tabla FINAL usada para update:', tabla);
-    console.log('ID:', producto.id);
-    console.log('Datos a guardar:', updatedForm);
+    console.log('[Membresias] Tabla usada para update:', tabla);
+    console.log('[Membresias] ID:', producto.id);
+    console.log('[Membresias] Datos a guardar:', updatedForm);
     const { error, data } = await supabase
       .from(tabla)
       .update({ membresias: updatedForm })
       .eq('id', producto.id);
-    console.log('Respuesta del update:', { error, data });
+    console.log('[Membresias] Respuesta del update:', { error, data });
     if (error) {
       // Prueba un update simple para descartar problemas de datos
       const testUpdate = await supabase
         .from(tabla)
         .update({ membresias: { test: true } })
         .eq('id', producto.id);
-      console.log('Respuesta del update simple:', testUpdate);
+      console.log('[Membresias] Respuesta del update simple:', testUpdate);
       alert('Error al guardar: ' + error.message);
       setSaving(false);
       return;
     }
     // Recargar el producto actualizado desde la base de datos para asegurar persistencia
-    const { data: updatedProducto } = await supabase
+    const { data: updatedProducto, error: fetchError } = await supabase
       .from(tabla)
       .select('membresias')
       .eq('id', producto.id)
       .single();
+    console.log('[Membresias] Fetch tras update:', { updatedProducto, fetchError });
     if (updatedProducto && updatedProducto.membresias) {
       onUpdate && onUpdate(updatedProducto.membresias);
     } else {
