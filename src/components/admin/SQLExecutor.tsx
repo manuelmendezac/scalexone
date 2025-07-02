@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { supabase } from '../../services/supabaseClient';
+import { supabase } from '../../supabase';
 
 const SQLExecutor: React.FC = () => {
   const [loading, setLoading] = useState(false);
