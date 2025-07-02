@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { StripeService } from '../services/stripeService';
 import type { StripeProductData } from '../services/stripeService';
+import { useReferralStore } from '../stores/referralStore';
+import useNeuroState from '../store/useNeuroState';
 
 interface StripePaymentButtonProps {
   productData: StripeProductData;
@@ -24,6 +26,8 @@ export const StripePaymentButton: React.FC<StripePaymentButtonProps> = ({
   onError,
 }) => {
   const [isLoading, setIsLoading] = useState(false);
+  const { userInfo } = useNeuroState();
+  const referralState = useReferralStore();
 
   const handlePayment = async () => {
     alert('¡Botón de pago clickeado!');
@@ -32,8 +36,15 @@ export const StripePaymentButton: React.FC<StripePaymentButtonProps> = ({
 
     setIsLoading(true);
     
+    const enrichedMetadata = {
+      ...metadata,
+      comunidad_id: userInfo?.community_id || null,
+      afiliado_id: referralState?.stats?.referralCode || null,
+      usuario_id: userInfo?.id || null,
+    };
+    
     try {
-      await StripeService.processPayment(productData, customerEmail, metadata);
+      await StripeService.processPayment(productData, customerEmail, enrichedMetadata);
       onSuccess?.();
     } catch (error) {
       console.error('Error en el pago:', error);
