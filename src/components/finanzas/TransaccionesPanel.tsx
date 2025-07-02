@@ -1,3 +1,4 @@
+// Cambio mínimo para forzar deploy en Vercel
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../../supabase';
 import useNeuroState from '../../store/useNeuroState';
