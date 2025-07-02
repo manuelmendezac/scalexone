@@ -89,6 +89,8 @@ export default function AdminSettingsPage() {
           return <MetodosCobroPanel />;
         case 'salesHistory':
           return <SalesHistoryPanel />;
+        case 'transactions':
+          return <AdminConfigPanel selected='transactions' />;
         default:
           return (
             <div className="w-full p-8">
