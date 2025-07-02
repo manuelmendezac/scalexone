@@ -17,6 +17,7 @@ import ServiciosMarketplacePanel from '../../components/admin/ServiciosMarketpla
 import OfertasMarketplacePanel from '../../components/admin/OfertasMarketplacePanel';
 import ConfigComisionesPanel from '../../components/admin/ConfigComisionesPanel';
 import GestionAfiliadosPanel from '../../components/admin/GestionAfiliadosPanel';
+import MetodosCobroPanel from '../../components/finanzas/MetodosCobroPanel';
 
 export default function AdminSettingsPage() {
   const [selectedItem, setSelectedItem] = useState('community');
@@ -83,6 +84,8 @@ export default function AdminSettingsPage() {
         case 'gestion-afiliados':
           console.log('Rendering GestionAfiliadosPanel');
           return <GestionAfiliadosPanel />;
+        case 'payments':
+          return <MetodosCobroPanel />;
         default:
           return (
             <div className="w-full p-8">
