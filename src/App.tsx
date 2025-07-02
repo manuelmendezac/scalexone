@@ -1,3 +1,4 @@
+// Cambio temporal para forzar deploy en Vercel
 // Cambio mínimo de prueba para commit y push
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
