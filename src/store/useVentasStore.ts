@@ -19,7 +19,7 @@ interface VentasStore {
   mensaje: string | null;
 
   // Acciones
-  fetchVentas: () => Promise<void>;
+  fetchVentas: (rol?: string) => Promise<void>;
   registrarNuevaVenta: (monto: number, producto_id: string) => Promise<void>;
   confirmarVenta: (venta_id: string) => Promise<void>;
   cancelarVenta: (venta_id: string) => Promise<void>;
@@ -35,7 +35,7 @@ const useVentasStore = create<VentasStore>((set, get) => ({
   lastFetch: null,
   mensaje: null,
 
-  fetchVentas: async () => {
+  fetchVentas: async (rol?: string) => {
     const now = Date.now();
     const lastFetch = get().lastFetch;
 
@@ -50,11 +50,11 @@ const useVentasStore = create<VentasStore>((set, get) => ({
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Usuario no autenticado');
 
-      const { data, error } = await supabase
-        .from('ventas')
-        .select('*')
-        .eq('usuario_id', user.id)
-        .order('fecha', { ascending: false });
+      let query = supabase.from('ventas').select('*').order('fecha', { ascending: false });
+      if (rol !== 'admin' && rol !== 'superadmin') {
+        query = query.eq('usuario_id', user.id);
+      }
+      const { data, error } = await query;
 
       if (error) throw error;
 

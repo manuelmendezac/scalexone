@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import useVentasStore from '../../store/useVentasStore';
 import OfertasMarketplaceService from '../../services/ofertasMarketplaceService';
 import type { OfertaMarketplace } from '../../services/ofertasMarketplaceService';
+import useNeuroState from '../../store/useNeuroState';
 
 const ESTADOS = [
   { value: '', label: 'Todos' },
@@ -18,14 +19,15 @@ const METODOS = [
 
 const SalesHistoryPanel: React.FC = () => {
   const { ventas, fetchVentas, loading, error } = useVentasStore();
+  const { userInfo } = useNeuroState();
   const [productos, setProductos] = useState<Record<string, OfertaMarketplace | null>>({});
   const [filtroEstado, setFiltroEstado] = useState('');
   const [filtroMetodo, setFiltroMetodo] = useState('');
   const [busqueda, setBusqueda] = useState('');
 
   useEffect(() => {
-    fetchVentas();
-  }, [fetchVentas]);
+    fetchVentas(userInfo?.rol);
+  }, [fetchVentas, userInfo?.rol]);
 
   useEffect(() => {
     // Cargar los productos asociados a las ventas
