@@ -11,6 +11,10 @@ import useConfigStore from '../../store/useConfigStore';
 import LoadingScreen from '../LoadingScreen';
 import { menuItems } from './AdminSidebar';
 import BannersAdminPanel from './BannersAdminPanel';
+import MetodosCobroPanel from '../finanzas/MetodosCobroPanel';
+import SalesHistoryPanel from '../finanzas/SalesHistoryPanel';
+import TransaccionesPanel from '../finanzas/TransaccionesPanel';
+import SQLExecutor from './SQLExecutor';
 
 const perfilDefault = {
   avatar: '',
@@ -355,6 +359,23 @@ const AdminConfigPanel: React.FC<AdminConfigPanelProps> = ({ selected }) => {
 
   if (selected === 'banners') {
     return <BannersAdminPanel />;
+  }
+
+  // Paneles de Finanzas
+  if (selected === 'payments') {
+    return <MetodosCobroPanel />;
+  }
+
+  if (selected === 'salesHistory') {
+    return <SalesHistoryPanel />;
+  }
+
+  if (selected === 'transactions') {
+    return <TransaccionesPanel />;
+  }
+
+  if (selected === 'sql-executor') {
+    return <SQLExecutor />;
   }
 
   // Para otras opciones, mostrar contenido básico

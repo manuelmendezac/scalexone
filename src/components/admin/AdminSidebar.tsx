@@ -26,6 +26,7 @@ export const menuItems = [
     { key: 'salesHistory', label: 'Historial de Ventas', icon: <List size={20} />, section: 'finanzas' },
     { key: 'transactions', label: 'Transacciones', icon: <CreditCard size={20} />, section: 'finanzas' },
     { key: 'cryptoTransactions', label: 'Transacciones Crypto', icon: <Activity size={20} />, section: 'finanzas' },
+    { key: 'sql-executor', label: 'Instalador SQL', icon: <Settings size={20} />, section: 'general' },
 ];
 
 const AdminSidebar: React.FC<AdminSidebarProps> = ({ selected, onSelect }) => {
