@@ -1,5 +1,4 @@
 import React, { useEffect, Suspense, lazy } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { HexColorPicker } from 'react-colorful';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import type { DropResult } from 'react-beautiful-dnd';
@@ -101,7 +100,7 @@ const MODULOS_POR_PAGINA = 9;
 
 interface ClassroomModuleVideoProps {
   videoUrl: string;
-  onClick: () => void;
+  onClick?: () => void;
 }
 
 const getVideoThumbnail = (url: string): string | null => {
@@ -264,7 +263,6 @@ const EditModuleModal = lazy(() => Promise.resolve({
 }));
 
 const Classroom = () => {
-  const navigate = useNavigate();
   const [isAdmin, setIsAdmin] = React.useState(false);
   const [isUploading, setIsUploading] = React.useState(false);
   const isHydrated = useHydration();
@@ -486,14 +484,12 @@ const Classroom = () => {
                             background: 'rgba(23, 23, 23, 0.8)',
                             cursor: isAdmin ? 'grab' : (displayMod.cover_type === 'video' ? 'default' : 'pointer')
                           }}
-                          onClick={() => !isAdmin && displayMod.cover_type !== 'video' && navigate(`/classroom/videos/${displayMod.id}`)}
                         >
                           {/* Video o Imagen de Portada */}
                           <div className="aspect-video w-full rounded-t-2xl overflow-hidden flex items-center justify-center bg-neutral-800 relative">
                             {displayMod.cover_type === 'video' && displayMod.cover_video_url ? (
                               <ClassroomModuleVideo 
                                 videoUrl={displayMod.cover_video_url} 
-                                onClick={() => !isAdmin && navigate(`/classroom/videos/${displayMod.id}`)}
                               />
                             ) : displayMod.imagen_url ? (
                               <img
@@ -555,7 +551,7 @@ const Classroom = () => {
                               <button
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  navigate(`/classroom/editar-videos?modulo_id=${displayMod.id}`);
+                                  // Implementa la lógica para editar videos
                                 }}
                                 className="bg-blue-500 text-white px-2 py-1 rounded text-xs font-bold hover:bg-blue-600"
                               >
@@ -627,7 +623,7 @@ const Classroom = () => {
 };
 
 // Reemplazar ClassroomModuleVideo para que ReactPlayer se cargue y reproduzca siempre
-const ClassroomModuleVideo: React.FC<ClassroomModuleVideoProps> = ({ videoUrl, onClick }) => {
+const ClassroomModuleVideo: React.FC<ClassroomModuleVideoProps> = ({ videoUrl }) => {
   const [showPlayer, setShowPlayer] = React.useState(false);
   const [ReactPlayer, setReactPlayer] = React.useState<any>(null);
   React.useEffect(() => {
@@ -672,18 +668,6 @@ const ClassroomModuleVideo: React.FC<ClassroomModuleVideoProps> = ({ videoUrl, o
           />
         </div>
       )}
-      {/* Overlay para navegación */}
-      <div 
-        className="absolute inset-0 bg-black/20 flex items-center justify-center cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity"
-        onClick={onClick}
-        style={{ zIndex: 20 }}
-      >
-        <div className="w-16 h-16 bg-black/50 rounded-full flex items-center justify-center backdrop-blur-sm border-2 border-amber-400/50">
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-amber-400 ml-1" viewBox="0 0 20 20" fill="currentColor">
-            <path d="M4 3.222v13.556c0 .445.54.667.895.39l11.556-6.778a.444.444 0 000-.78L4.895 2.832A.444.444 0 004 3.222z" />
-          </svg>
-        </div>
-      </div>
     </div>
   );
 };
