@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { supabase } from '../../services/supabaseClient';
-import { useNeuroState } from '../../store/useNeuroState';
+import { supabase } from '../../supabase';
+import useNeuroState from '../../store/useNeuroState';
 import { 
   MagnifyingGlassIcon, 
   FunnelIcon,
@@ -49,7 +49,9 @@ interface Estadisticas {
 }
 
 const TransaccionesPanel: React.FC = () => {
-  const { user, comunidadId } = useNeuroState();
+  const { userInfo } = useNeuroState();
+  const user = userInfo;
+  const comunidadId = userInfo?.community_id;
   const [transacciones, setTransacciones] = useState<Transaccion[]>([]);
   const [estadisticas, setEstadisticas] = useState<Estadisticas>({
     total_ventas: 0,
@@ -135,7 +137,7 @@ const TransaccionesPanel: React.FC = () => {
         fecha: venta.fecha,
         comunidad_id: venta.comunidad_id,
         afiliado_id: venta.afiliado_id,
-        nombre_afiliado: venta.afiliados?.nombre,
+        nombre_afiliado: venta.afiliados?.nombre || '',
         metadata: venta.metadata
       }));
 
