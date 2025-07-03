@@ -54,28 +54,20 @@ const MarketingAfiliadosPanel: React.FC = () => {
   // Estado del Dashboard
   const [dateFilter, setDateFilter] = useState('7d');
   const [dashboardMetrics, setDashboardMetrics] = useState<DashboardMetrics>({
-    totalEarnings: 1247.85,
-    pendingEarnings: 324.50,
-    refunds: 0.00,
+    totalEarnings: 0,
+    pendingEarnings: 0,
+    refunds: 0,
     refundPercentage: 0,
-    totalSales: 23,
-    totalClicks: 1847,
-    totalLeads: 142,
-    conversionRate: 7.7,
-    paymentsGenerated: 8,
-    paymentsReceived: 5
+    totalSales: 0,
+    totalClicks: 0,
+    totalLeads: 0,
+    conversionRate: 0,
+    paymentsGenerated: 0,
+    paymentsReceived: 0
   });
   
   // Datos del gráfico de ingresos (últimos 7 días)
-  const [earningsData, setEarningsData] = useState<EarningsData[]>([
-    { date: '2024-01-15', earnings: 125 },
-    { date: '2024-01-16', earnings: 180 },
-    { date: '2024-01-17', earnings: 245 },
-    { date: '2024-01-18', earnings: 190 },
-    { date: '2024-01-19', earnings: 310 },
-    { date: '2024-01-20', earnings: 420 },
-    { date: '2024-01-21', earnings: 380 }
-  ]);
+  const [earningsData, setEarningsData] = useState<EarningsData[]>([]);
   
   // Top afiliados para gamificación
   const [topAfiliates, setTopAfiliates] = useState<TopAffiliate[]>([
@@ -87,6 +79,7 @@ const MarketingAfiliadosPanel: React.FC = () => {
   ]);
 
   const [profile, setProfile] = useState<Profile | null>(null);
+  const [fechaRegistro, setFechaRegistro] = useState<string | null>(null);
 
   useEffect(() => {
     const cargarDatos = async () => {
@@ -97,24 +90,81 @@ const MarketingAfiliadosPanel: React.FC = () => {
           setLoading(false);
           return;
         }
-
-        const { data: profileData, error: profileError } = await supabase
-          .from('profiles')
-          .select('full_name, avatar_url')
+        // Obtener perfil real del usuario (avatar y fecha de registro)
+        const { data: usuario } = await supabase
+          .from('usuarios')
+          .select('full_name, avatar_url, created_at')
           .eq('id', user.id)
           .single();
-
-        if (profileError) {
-          console.error('Error fetching profile:', profileError);
+        setProfile({
+          full_name: usuario?.full_name || user.email,
+          avatar_url: usuario?.avatar_url || null,
+        });
+        setFechaRegistro(usuario?.created_at || null);
+        // Obtener código de afiliado principal
+        const { data: codigos } = await supabase
+          .from('codigos_afiliado')
+          .select('id, codigo')
+          .eq('user_id', user.id)
+          .eq('activo', true)
+          .order('created_at', { ascending: false })
+          .limit(1);
+        const codigoAfiliado = codigos?.[0]?.codigo;
+        const codigoAfiliadoId = codigos?.[0]?.id;
+        // Métricas principales
+        let totalClicks = 0, totalLeads = 0, totalSales = 0, totalEarnings = 0, pendingEarnings = 0, paymentsGenerated = 0, paymentsReceived = 0;
+        // CLICKS
+        if (codigoAfiliadoId) {
+          const { count: clicksCount } = await supabase
+            .from('clicks_afiliado')
+            .select('id', { count: 'exact', head: true })
+            .eq('codigo_afiliado_id', codigoAfiliadoId);
+          totalClicks = clicksCount || 0;
         }
-        setProfile(profileData);
-
-        // Cargar solicitudes del usuario
-        await cargarSolicitudes(user.id);
-        
+        // LEADS
+        if (codigoAfiliadoId) {
+          const { count: leadsCount } = await supabase
+            .from('leads_afiliado')
+            .select('id', { count: 'exact', head: true })
+            .eq('codigo_afiliado_id', codigoAfiliadoId);
+          totalLeads = leadsCount || 0;
+        }
+        // CONVERSIONES/VENTAS
+        if (codigoAfiliadoId) {
+          const { data: conversiones } = await supabase
+            .from('conversiones_afiliado')
+            .select('id, valor_conversion, comision_generada, estado, created_at')
+            .eq('codigo_afiliado_id', codigoAfiliadoId);
+          totalSales = conversiones?.length || 0;
+          totalEarnings = (conversiones && conversiones.length > 0) ? conversiones.reduce((acc, c) => acc + (c.comision_generada ?? 0), 0) : 0;
+          pendingEarnings = (conversiones && conversiones.length > 0) ? conversiones.filter(c => c.estado === 'pendiente').reduce((acc, c) => acc + (c.comision_generada ?? 0), 0) : 0;
+          paymentsGenerated = conversiones?.filter(c => c.estado === 'confirmada').length || 0;
+          paymentsReceived = conversiones?.filter(c => c.estado === 'pagada').length || 0;
+          // Gráfica de ingresos por fecha
+          const ingresosPorFecha: { [fecha: string]: number } = {};
+          conversiones?.forEach(c => {
+            const fecha = c.created_at?.slice(0, 10);
+            if (!fecha) return;
+            ingresosPorFecha[fecha] = (ingresosPorFecha[fecha] || 0) + (c.comision_generada ?? 0);
+          });
+          setEarningsData(Object.entries(ingresosPorFecha).map(([date, earnings]) => ({ date, earnings })));
+        }
+        // Calcular tasa de conversión
+        const conversionRate = totalClicks > 0 ? (totalSales / totalClicks) * 100 : 0;
+        setDashboardMetrics({
+          totalEarnings,
+          pendingEarnings,
+          refunds: 0, // Implementar si tienes reembolsos
+          refundPercentage: 0, // Implementar si tienes reembolsos
+          totalSales,
+          totalClicks,
+          totalLeads,
+          conversionRate,
+          paymentsGenerated,
+          paymentsReceived
+        });
       } catch (error) {
-        console.error('Error cargando datos:', error);
-        toast.error('Error al cargar los datos del dashboard');
+        console.error('Error cargando métricas de afiliado:', error);
       } finally {
         setLoading(false);
       }
@@ -212,14 +262,18 @@ const MarketingAfiliadosPanel: React.FC = () => {
   
     return (
         <div className="space-y-6">
-            <div className="bg-white rounded-xl p-6 border border-gray-200 text-center">
+            <div className="bg-white rounded-xl p-6 border border-gray-200 flex flex-col items-center justify-center">
                 <img
-                    src={profile?.avatar_url || `https://api.dicebear.com/7.x/thumbs/svg?seed=${profile?.full_name || 'placeholder'}`}
-                    alt="Foto de perfil"
-                    className="w-24 h-24 rounded-full mx-auto mb-4 border-4 border-gray-100 shadow-sm"
+                    src={profile?.avatar_url || '/images/silueta-perfil.svg'}
+                    alt="Avatar"
+                    style={{ width: 80, height: 80, borderRadius: '50%', marginBottom: 12, objectFit: 'cover', border: '2px solid #2563eb' }}
                 />
-                <h2 className="text-xl font-bold text-gray-800">{profile?.full_name || 'Cargando...'}</h2>
-                <p className="text-sm text-gray-500">Afiliado desde 2023</p>
+                <div style={{ fontWeight: 700, fontSize: 18, color: '#2563eb', marginBottom: 4 }}>
+                    {profile?.full_name || 'Afiliado'}
+                </div>
+                <div style={{ color: '#6b7280', fontSize: 15 }}>
+                    {fechaRegistro ? `Afiliado desde ${new Date(fechaRegistro).toLocaleDateString('es-ES', { year: 'numeric', month: 'long' })}` : 'Afiliado'}
+                </div>
             </div>
 
             <div className="bg-white rounded-xl p-6 border border-gray-200">
@@ -318,7 +372,7 @@ const MarketingAfiliadosPanel: React.FC = () => {
             </div>
           </div>
           <div className="bg-white rounded-xl border border-gray-200 p-6">
-            <h3 className="text-lg font-semibold text-gray-800 mb-6">Pagos en efectivo</h3>
+            <h3 className="text-lg font-semibold text-gray-800 mb-6">Pagos concretados</h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
                 <div>
                     <p className="text-gray-500 text-sm mb-1">Generados</p>
