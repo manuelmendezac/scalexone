@@ -32,7 +32,6 @@ const AfiliadosLayout: React.FC<AfiliadosLayoutProps> = ({ children }) => {
   const menuItems = [
     { name: 'Panel de Control', icon: HomeIcon, path: '/afiliados' },
     { name: 'Marketplace de Productos', icon: ShoppingCartIcon, path: '/afiliados/marketplace' },
-    { name: 'Comisiones Marca Blanca', icon: ChartBarIcon, path: '/afiliados/ib-marca-blanca' },
     { name: 'Comisiones ScalexOne', icon: ChartBarIcon, path: '/afiliados/ib-scalexone' },
     { name: 'Multinivel IB', icon: UserGroupIcon, path: '/afiliados/multinivel' },
     { name: 'Cuentas IB', icon: UserGroupIcon, path: '/afiliados/cuentas' },
