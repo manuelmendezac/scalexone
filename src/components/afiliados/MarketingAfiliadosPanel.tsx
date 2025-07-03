@@ -173,18 +173,19 @@ const MarketingAfiliadosPanel: React.FC = () => {
         // Calcular monto de retiro real
         let montoRetiro = 0;
         if (codigoAfiliadoId) {
-          // Comisiones aprobadas y liberadas (ventas con más de 7 días y no reembolsadas)
+          // Comisiones confirmadas y liberadas (ventas con más de 7 días, no reembolsadas)
           const { data: conversiones } = await supabase
             .from('conversiones_afiliado')
             .select('comision_generada, estado, created_at')
             .eq('codigo_afiliado_id', codigoAfiliadoId)
             .eq('estado', 'confirmada');
           const hoy = new Date();
-          montoRetiro = (conversiones || []).filter(c => {
+          const comisionesLiberadas = (conversiones || []).filter(c => {
             const fecha = new Date(c.created_at);
             const diff = (hoy.getTime() - fecha.getTime()) / (1000 * 60 * 60 * 24);
-            return diff >= 7;
-          }).reduce((acc, c) => acc + (c.comision_generada ?? 0), 0);
+            return diff >= 7 && (c.comision_generada ?? 0) > 0;
+          });
+          montoRetiro = comisionesLiberadas.reduce((acc, c) => acc + (c.comision_generada ?? 0), 0);
           // Restar retiros realizados
           const { data: retiros } = await supabase
             .from('retiros_afiliados')
