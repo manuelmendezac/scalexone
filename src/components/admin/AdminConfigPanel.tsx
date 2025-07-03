@@ -304,15 +304,9 @@ const AdminConfigPanel: React.FC<AdminConfigPanelProps> = ({ selected }) => {
         <div className="w-full bg-black rounded-lg shadow-lg md:p-10 p-6 border-2 border-yellow-500 flex flex-col gap-8">
           <h2 className="text-yellow-500 font-bold text-3xl mb-4">Mi Perfil</h2>
           <div className="grid grid-cols-1 lg:grid-cols-[300px_1fr] gap-8 items-start">
-            {/* Columna Izquierda: Avatar y Contraseña */}
+            {/* Columna Izquierda: Avatar, Username y Link de Afiliado */}
             <div className="flex flex-col items-center gap-4">
               <AvatarUploader onUpload={handleAvatar} initialUrl={perfil.avatar} label="Foto de perfil" />
-              <button
-                className="bg-yellow-500 text-black font-bold py-2 px-4 rounded-lg hover:bg-yellow-600 transition-colors w-full"
-                onClick={() => setShowPasswordModal(true)}
-              >
-                Cambiar contraseña
-              </button>
               {/* Campo username */}
               <input
                 className="input-perfil mt-2"
@@ -323,17 +317,22 @@ const AdminConfigPanel: React.FC<AdminConfigPanelProps> = ({ selected }) => {
                   await validarUsername(e.target.value.toLowerCase().replace(/[^a-z0-9]/g, ''));
                 }}
                 maxLength={32}
-                style={{ borderColor: usernameError ? 'red' : '#FFD700' }}
+                style={{ borderColor: usernameError ? 'red' : '#FFD700', textAlign: 'center', width: '100%' }}
               />
               {usernameError && <span style={{ color: 'red', fontSize: 13 }}>{usernameError}</span>}
               {/* Link de afiliado */}
-              <div style={{ color: '#FFD700', fontWeight: 500, fontSize: 15, marginTop: 4 }}>
-                Tu link de afiliado: <br />
+              <div style={{ color: '#FFD700', fontWeight: 500, fontSize: 15, marginTop: 4, textAlign: 'center', wordBreak: 'break-all' }}>
+                Tu link de afiliado:<br />
                 <span style={{ color: '#fff' }}>https://scalexone.app/afiliado/{username || 'usuario'}</span>
               </div>
+              <button
+                className="bg-yellow-500 text-black font-bold py-2 px-4 rounded-lg hover:bg-yellow-600 transition-colors w-full mt-4"
+                onClick={() => setShowPasswordModal(true)}
+              >
+                Cambiar contraseña
+              </button>
             </div>
-            
-            {/* Columna Derecha: Formulario */}
+            {/* Columna Derecha: Formulario de datos personales */}
             <div className="flex flex-col gap-4 min-w-0">
               {/* Campos de Nombre y Apellido */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -375,12 +374,12 @@ const AdminConfigPanel: React.FC<AdminConfigPanelProps> = ({ selected }) => {
                 <input className="input-perfil" placeholder="Instagram" value={perfil.instagram} onChange={e => setPerfil({ ...perfil, instagram: e.target.value })} />
                 <input className="input-perfil" placeholder="TikTok" value={perfil.tiktok} onChange={e => setPerfil({ ...perfil, tiktok: e.target.value })} />
               </div>
-               {/* Campos de Admin (solo lectura) */}
+              {/* Campos de Admin (solo lectura) */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <select className="input-perfil" value={perfil.membresia} onChange={e => setPerfil({ ...perfil, membresia: e.target.value })}>
-                   <option>Afiliado</option>
-                   <option>Premium</option>
-                   <option>Free</option>
+                  <option>Afiliado</option>
+                  <option>Premium</option>
+                  <option>Free</option>
                 </select>
                 <input className="input-perfil" value={perfil.rol} readOnly />
                 <input className="input-perfil" value={perfil.creditos} readOnly />
