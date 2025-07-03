@@ -99,6 +99,9 @@ const CuentasIBPage = () => {
             {codigoAfiliado && (
               <button onClick={copiarCodigo} className="text-xs text-blue-600 border border-blue-200 rounded px-2 py-1 hover:bg-blue-50">Copiar</button>
             )}
+            {!codigoAfiliado && (
+              <span className="text-xs text-gray-400">Solicita tu código en el panel de afiliados</span>
+            )}
           </div>
           {fechaRegistro && (
             <div className="text-xs text-gray-400 mb-1">Afiliado desde {new Date(fechaRegistro).toLocaleDateString()}</div>
@@ -107,7 +110,7 @@ const CuentasIBPage = () => {
         <div className="mb-6">
           <div className="text-sm text-gray-500 mb-2 font-semibold">Afiliaciones y Porcentajes</div>
           {productos.length === 0 ? (
-            <div className="text-gray-400 text-sm">No tienes afiliaciones activas. <span className="text-blue-600 underline cursor-pointer">Afíliate a un producto</span></div>
+            <div className="text-gray-400 text-sm">No tienes afiliaciones activas. <a href="/afiliados/marketplace" className="text-blue-600 underline cursor-pointer">Afíliate a un producto</a></div>
           ) : (
             <ul className="space-y-3">
               {productos.map((p, idx) => (
@@ -125,8 +128,8 @@ const CuentasIBPage = () => {
         </div>
         <div className="mb-2">
           <div className="text-sm text-gray-500 mb-1 font-semibold">Datos Personales</div>
-          <div className="text-base text-blue-900 font-semibold">{usuario?.full_name || usuario?.email}</div>
-          <div className="text-sm text-gray-600">{usuario?.email}</div>
+          <div className="text-base text-blue-900 font-semibold">{usuario?.full_name || usuario?.email || 'Sin nombre'}</div>
+          <div className="text-sm text-gray-600">{usuario?.email || 'Sin email'}</div>
           <div className="text-sm text-gray-600 flex items-center gap-2">
             {editandoTelefono ? (
               <>

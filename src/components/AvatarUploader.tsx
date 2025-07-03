@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { supabase } from '../supabase';
 
 interface AvatarUploaderProps {
@@ -12,6 +12,10 @@ const AvatarUploader: React.FC<AvatarUploaderProps> = ({ onUpload, label = 'Sube
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    setPreview(initialUrl || null);
+  }, [initialUrl]);
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     setError(null);
