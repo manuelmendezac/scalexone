@@ -16,6 +16,7 @@ import SalesHistoryPanel from '../finanzas/SalesHistoryPanel';
 import TransaccionesPanel from '../finanzas/TransaccionesPanel';
 import SQLExecutor from './SQLExecutor';
 import { FiCopy, FiCheck } from 'react-icons/fi';
+import PerfilUsuarioPanel from '../PerfilUsuarioPanel';
 
 const perfilDefault = {
   avatar: '',
@@ -511,6 +512,10 @@ const AdminConfigPanel: React.FC<AdminConfigPanelProps> = ({ selected }) => {
 
   if (selected === 'sql-executor') {
     return <SQLExecutor />;
+  }
+
+  if (!isAdmin) {
+    return <PerfilUsuarioPanel />;
   }
 
   // Para otras opciones, mostrar contenido básico
