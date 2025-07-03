@@ -62,6 +62,7 @@ const Topbar: React.FC<TopbarProps> = ({
   const [isAdminMode, setIsAdminMode] = useState(localStorage.getItem('adminMode') === 'true');
   const location = useLocation();
   const [community, setCommunity] = useState<Community | null>(null);
+  const [affiliateLink, setAffiliateLink] = useState('');
 
   // Cerrar el dropdown de afiliado al hacer clic fuera
   useEffect(() => {
@@ -83,7 +84,7 @@ const Topbar: React.FC<TopbarProps> = ({
 
   // Copiar enlace de afiliado
   const handleCopy = () => {
-    navigator.clipboard.writeText(AFFILIATE_LINK);
+    navigator.clipboard.writeText(affiliateLink);
     setCopied(true);
     setTimeout(() => setCopied(false), 1500);
   };
@@ -171,6 +172,39 @@ const Topbar: React.FC<TopbarProps> = ({
     }
   }, [userInfo?.community_id]);
 
+  useEffect(() => {
+    async function fetchAffiliateLink() {
+      if (!userInfo?.id) {
+        setAffiliateLink('https://scalexone.app/afiliado/default');
+        return;
+      }
+      // Consultar username y comunidad
+      let username = '';
+      let comunidad = '';
+      if (userInfo?.community_id) {
+        comunidad = userInfo.community_id.slice(0, 2).toLowerCase();
+      } else {
+        comunidad = 'sc';
+      }
+      // Consultar username desde la tabla usuarios
+      const { data: usuario } = await supabase
+        .from('usuarios')
+        .select('username, id')
+        .eq('id', userInfo.id)
+        .single();
+      if (usuario?.username) {
+        username = usuario.username;
+        setAffiliateLink(`https://scalexone.app/afiliado/${username}`);
+      } else {
+        // Generar link por defecto: iniciales comunidad + últimos 5 dígitos del id
+        const idStr = usuario?.id || userInfo.id || '';
+        const sufijo = idStr.slice(-5);
+        setAffiliateLink(`https://scalexone.app/afiliado/${comunidad}${sufijo}`);
+      }
+    }
+    fetchAffiliateLink();
+  }, [userInfo?.id, userInfo?.community_id]);
+
   return (
     <header className="w-full text-white font-orbitron px-2 sm:px-4 py-1 sm:py-2 flex items-center justify-between shadow-lg z-50 border-b border-cyan-900 min-h-[44px]" style={{ background: '#000' }}>
       {/* Logo solo imagen */}
@@ -251,7 +285,7 @@ const Topbar: React.FC<TopbarProps> = ({
               >
                 <div className="font-bold text-lg mb-2">{t('Invitar amigos') || 'Invitar amigos'}</div>
                 <div className="flex items-center bg-gray-900 rounded px-2 py-2 mb-3">
-                  <span className="truncate text-sm">{AFFILIATE_LINK}</span>
+                  <span className="truncate text-sm">{affiliateLink}</span>
                   <button
                     className="ml-2 px-2 py-1 bg-yellow-400 rounded hover:bg-yellow-500 transition"
                     onClick={handleCopy}
