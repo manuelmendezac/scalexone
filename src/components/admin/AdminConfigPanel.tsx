@@ -15,6 +15,7 @@ import MetodosCobroPanel from '../finanzas/MetodosCobroPanel';
 import SalesHistoryPanel from '../finanzas/SalesHistoryPanel';
 import TransaccionesPanel from '../finanzas/TransaccionesPanel';
 import SQLExecutor from './SQLExecutor';
+import { FiCopy, FiCheck } from 'react-icons/fi';
 
 const perfilDefault = {
   avatar: '',
@@ -85,6 +86,8 @@ const AdminConfigPanel: React.FC<AdminConfigPanelProps> = ({ selected }) => {
   const [username, setUsername] = useState('');
   const [usernameError, setUsernameError] = useState('');
   const [checkingUsername, setCheckingUsername] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const [avatarAuth, setAvatarAuth] = useState('');
 
   useEffect(() => {
     fetchUserConfig();
@@ -149,6 +152,21 @@ const AdminConfigPanel: React.FC<AdminConfigPanelProps> = ({ selected }) => {
     }
     fetchPerfil();
   }, [selected]);
+
+  // Obtener avatar del autenticador si no hay personalizado
+  useEffect(() => {
+    async function fetchAvatarAuth() {
+      if (!perfil.avatar) {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user?.user_metadata?.avatar_url) {
+          setAvatarAuth(user.user_metadata.avatar_url);
+        } else {
+          setAvatarAuth('/images/silueta-perfil.svg');
+        }
+      }
+    }
+    fetchAvatarAuth();
+  }, [perfil.avatar]);
 
   const handleInput = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setPerfil({ ...perfil, [e.target.name]: e.target.value });
@@ -305,11 +323,15 @@ const AdminConfigPanel: React.FC<AdminConfigPanelProps> = ({ selected }) => {
           <h2 className="text-yellow-500 font-bold text-3xl mb-4">Mi Perfil</h2>
           <div className="grid grid-cols-1 lg:grid-cols-[300px_1fr] gap-8 items-start">
             {/* Columna Izquierda: Avatar, Username y Link de Afiliado */}
-            <div className="flex flex-col items-center gap-4">
-              <AvatarUploader onUpload={handleAvatar} initialUrl={perfil.avatar} label="Foto de perfil" />
+            <div className="flex flex-col items-center gap-4 w-full max-w-xs mx-auto lg:mx-0">
+              <AvatarUploader 
+                onUpload={handleAvatar} 
+                initialUrl={perfil.avatar || avatarAuth || '/images/silueta-perfil.svg'} 
+                label="Foto de perfil" 
+              />
               {/* Campo username */}
               <input
-                className="input-perfil mt-2"
+                className="input-perfil mt-2 text-center w-full"
                 placeholder="Nombre de usuario único"
                 value={username}
                 onChange={async e => {
@@ -317,13 +339,29 @@ const AdminConfigPanel: React.FC<AdminConfigPanelProps> = ({ selected }) => {
                   await validarUsername(e.target.value.toLowerCase().replace(/[^a-z0-9]/g, ''));
                 }}
                 maxLength={32}
-                style={{ borderColor: usernameError ? 'red' : '#FFD700', textAlign: 'center', width: '100%' }}
+                style={{ borderColor: usernameError ? 'red' : '#FFD700' }}
               />
               {usernameError && <span style={{ color: 'red', fontSize: 13 }}>{usernameError}</span>}
-              {/* Link de afiliado */}
-              <div style={{ color: '#FFD700', fontWeight: 500, fontSize: 15, marginTop: 4, textAlign: 'center', wordBreak: 'break-all' }}>
-                Tu link de afiliado:<br />
-                <span style={{ color: '#fff' }}>https://scalexone.app/afiliado/{username || 'usuario'}</span>
+              {/* Link de afiliado con botón copiar */}
+              <div style={{ color: '#FFD700', fontWeight: 500, fontSize: 15, marginTop: 4, textAlign: 'center', wordBreak: 'break-all', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                Tu link de afiliado:
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 2 }}>
+                  <span style={{ color: '#fff', fontSize: 15 }}>
+                    https://scalexone.app/afiliado/{username || 'usuario'}
+                  </span>
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText(`https://scalexone.app/afiliado/${username || 'usuario'}`);
+                      setCopied(true);
+                      setTimeout(() => setCopied(false), 1500);
+                    }}
+                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: copied ? '#0f0' : '#FFD700', fontSize: 20 }}
+                    title="Copiar link"
+                  >
+                    {copied ? <FiCheck /> : <FiCopy />}
+                  </button>
+                </div>
+                {copied && <span style={{ color: '#0f0', fontSize: 13, marginTop: 2 }}>¡Copiado!</span>}
               </div>
               <button
                 className="bg-yellow-500 text-black font-bold py-2 px-4 rounded-lg hover:bg-yellow-600 transition-colors w-full mt-4"
@@ -333,19 +371,19 @@ const AdminConfigPanel: React.FC<AdminConfigPanelProps> = ({ selected }) => {
               </button>
             </div>
             {/* Columna Derecha: Formulario de datos personales */}
-            <div className="flex flex-col gap-4 min-w-0">
+            <div className="flex flex-col gap-4 min-w-0 w-full">
               {/* Campos de Nombre y Apellido */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
                 <input className="input-perfil" placeholder="Nombre" value={perfil.name} onChange={e => setPerfil({ ...perfil, name: e.target.value })} />
                 <input className="input-perfil" placeholder="Apellidos" value={perfil.apellidos} onChange={e => setPerfil({ ...perfil, apellidos: e.target.value })} />
               </div>
               {/* Campos de Contacto */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
                 <input className="input-perfil" placeholder="Correo" value={perfil.correo} readOnly />
                 <input className="input-perfil" placeholder="Celular" value={perfil.celular} onChange={e => setPerfil({ ...perfil, celular: e.target.value })} />
               </div>
               {/* Selectores */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 w-full">
                 <select className="input-perfil" value={perfil.pais} onChange={e => setPerfil({ ...perfil, pais: e.target.value })}>
                   <option>Perú</option>
                   <option>México</option>
@@ -368,14 +406,14 @@ const AdminConfigPanel: React.FC<AdminConfigPanelProps> = ({ selected }) => {
               {/* Wallet */}
               <input className="input-perfil" placeholder="Wallet (opcional)" value={perfil.wallet} onChange={e => setPerfil({ ...perfil, wallet: e.target.value })} />
               {/* Redes Sociales */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 w-full">
                 <input className="input-perfil" placeholder="Facebook" value={perfil.facebook} onChange={e => setPerfil({ ...perfil, facebook: e.target.value })} />
                 <input className="input-perfil" placeholder="Twitter" value={perfil.twitter} onChange={e => setPerfil({ ...perfil, twitter: e.target.value })} />
                 <input className="input-perfil" placeholder="Instagram" value={perfil.instagram} onChange={e => setPerfil({ ...perfil, instagram: e.target.value })} />
                 <input className="input-perfil" placeholder="TikTok" value={perfil.tiktok} onChange={e => setPerfil({ ...perfil, tiktok: e.target.value })} />
               </div>
               {/* Campos de Admin (solo lectura) */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full">
                 <select className="input-perfil" value={perfil.membresia} onChange={e => setPerfil({ ...perfil, membresia: e.target.value })}>
                   <option>Afiliado</option>
                   <option>Premium</option>
@@ -384,7 +422,7 @@ const AdminConfigPanel: React.FC<AdminConfigPanelProps> = ({ selected }) => {
                 <input className="input-perfil" value={perfil.rol} readOnly />
                 <input className="input-perfil" value={perfil.creditos} readOnly />
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full">
                 <input className="input-perfil" value={perfil.nivel} readOnly placeholder="Nivel" />
                 <input className="input-perfil" placeholder="Cursos (IDs separados por coma)" value={perfil.cursos.join(', ')} onChange={e => handleArrayInput(e, 'cursos')} />
                 <input className="input-perfil" placeholder="Servicios (IDs separados por coma)" value={perfil.servicios.join(', ')} onChange={e => handleArrayInput(e, 'servicios')} />
