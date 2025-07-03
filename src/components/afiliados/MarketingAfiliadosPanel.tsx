@@ -18,6 +18,7 @@ interface DashboardMetrics {
   conversionRate: number;
   paymentsGenerated: number;
   paymentsReceived: number;
+  montoRetiro: number;
 }
 
 interface EarningsData {
@@ -63,7 +64,8 @@ const MarketingAfiliadosPanel: React.FC = () => {
     totalLeads: 0,
     conversionRate: 0,
     paymentsGenerated: 0,
-    paymentsReceived: 0
+    paymentsReceived: 0,
+    montoRetiro: 0
   });
   
   // Datos del gráfico de ingresos (últimos 7 días)
@@ -96,9 +98,13 @@ const MarketingAfiliadosPanel: React.FC = () => {
           .select('full_name, avatar_url, created_at')
           .eq('id', user.id)
           .single();
+        let avatarUrl = usuario?.avatar_url || null;
+        if (!avatarUrl && user.user_metadata?.avatar_url) {
+          avatarUrl = user.user_metadata.avatar_url;
+        }
         setProfile({
           full_name: usuario?.full_name || user.email,
-          avatar_url: usuario?.avatar_url || null,
+          avatar_url: avatarUrl,
         });
         setFechaRegistro(usuario?.created_at || null);
         // Obtener código de afiliado principal
@@ -161,8 +167,33 @@ const MarketingAfiliadosPanel: React.FC = () => {
           totalLeads,
           conversionRate,
           paymentsGenerated,
-          paymentsReceived
+          paymentsReceived,
+          montoRetiro: 0 // Inicialmente 0, luego se actualiza abajo
         });
+        // Calcular monto de retiro real
+        let montoRetiro = 0;
+        if (codigoAfiliadoId) {
+          // Comisiones aprobadas y liberadas (ventas con más de 7 días y no reembolsadas)
+          const { data: conversiones } = await supabase
+            .from('conversiones_afiliado')
+            .select('comision_generada, estado, created_at')
+            .eq('codigo_afiliado_id', codigoAfiliadoId)
+            .eq('estado', 'confirmada');
+          const hoy = new Date();
+          montoRetiro = (conversiones || []).filter(c => {
+            const fecha = new Date(c.created_at);
+            const diff = (hoy.getTime() - fecha.getTime()) / (1000 * 60 * 60 * 24);
+            return diff >= 7;
+          }).reduce((acc, c) => acc + (c.comision_generada ?? 0), 0);
+          // Restar retiros realizados
+          const { data: retiros } = await supabase
+            .from('retiros_afiliados')
+            .select('monto, estado')
+            .eq('codigo_afiliado_id', codigoAfiliadoId)
+            .in('estado', ['aprobado', 'pagado']);
+          montoRetiro -= (retiros || []).reduce((acc, r) => acc + (r.monto ?? 0), 0);
+        }
+        setDashboardMetrics(metrics => ({ ...metrics, montoRetiro: montoRetiro > 0 ? montoRetiro : 0 }));
       } catch (error) {
         console.error('Error cargando métricas de afiliado:', error);
       } finally {
@@ -188,6 +219,15 @@ const MarketingAfiliadosPanel: React.FC = () => {
   };
 
   const renderEarningsChart = () => {
+    if (earningsData.length === 0) {
+      return (
+        <div className="bg-white rounded-xl p-4 sm:p-6 border border-gray-200 flex flex-col items-center justify-center min-h-[300px]">
+          <div style={{ color: '#6b7280', fontSize: 18, marginBottom: 12 }}>Sin datos de ventas aún</div>
+          {/* Ejemplo simulado opcional */}
+          {/* <img src="/images/ejemplo-grafica-hotmart.png" alt="Ejemplo" style={{ maxWidth: 320, opacity: 0.3 }} /> */}
+        </div>
+      );
+    }
     return (
       <div className="bg-white rounded-xl p-4 sm:p-6 border border-gray-200">
         <h3 className="text-lg font-semibold text-gray-800 mb-4">Ingresos</h3>
@@ -206,13 +246,13 @@ const MarketingAfiliadosPanel: React.FC = () => {
               <XAxis 
                 dataKey="date" 
                 tickFormatter={(str: string) => new Date(str).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' })}
-                axisLine={false}
-                tickLine={false}
+                axisLine={true}
+                tickLine={true}
                 stroke="#6b7280"
               />
               <YAxis 
-                axisLine={false}
-                tickLine={false}
+                axisLine={true}
+                tickLine={true}
                 stroke="#6b7280"
                 tickFormatter={(value: number) => `$${value}`}
               />
