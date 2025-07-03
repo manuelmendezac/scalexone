@@ -295,7 +295,7 @@ const MarketingAfiliadosPanel: React.FC = () => {
   };
 
   const RightSidebar = ({ profile }: { profile: Profile | null }) => {
-    const availableForWithdrawal = 472.41;
+    const availableForWithdrawal = dashboardMetrics.montoRetiro || 0;
     const achievements = [
         { icon: Award, name: 'Vendedor Iniciante' },
         { icon: Star, name: 'Primera Venta' },
