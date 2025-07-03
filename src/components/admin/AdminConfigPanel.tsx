@@ -89,6 +89,7 @@ const AdminConfigPanel: React.FC<AdminConfigPanelProps> = ({ selected }) => {
   const [checkingUsername, setCheckingUsername] = useState(false);
   const [copied, setCopied] = useState(false);
   const [avatarAuth, setAvatarAuth] = useState('');
+  const [codigoAfiliado, setCodigoAfiliado] = useState('');
 
   useEffect(() => {
     fetchUserConfig();
@@ -168,6 +169,22 @@ const AdminConfigPanel: React.FC<AdminConfigPanelProps> = ({ selected }) => {
     }
     fetchAvatarAuth();
   }, [perfil.avatar]);
+
+  useEffect(() => {
+    async function fetchCodigoAfiliado() {
+      if (!userInfo?.id) return;
+      const { data: codigo } = await supabase
+        .from('codigos_afiliado')
+        .select('codigo')
+        .eq('user_id', userInfo.id)
+        .eq('activo', true)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single();
+      if (codigo) setCodigoAfiliado(codigo.codigo);
+    }
+    fetchCodigoAfiliado();
+  }, [userInfo?.id]);
 
   const handleInput = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setPerfil({ ...perfil, [e.target.name]: e.target.value });
@@ -330,40 +347,29 @@ const AdminConfigPanel: React.FC<AdminConfigPanelProps> = ({ selected }) => {
                 initialUrl={perfil.avatar || avatarAuth || '/images/silueta-perfil.svg'} 
                 label="Foto de perfil" 
               />
-              {/* Campo username */}
-              <input
-                className="input-perfil mt-2 text-center w-full"
-                placeholder="Nombre de usuario único"
-                value={username}
-                onChange={async e => {
-                  setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9]/g, ''));
-                  await validarUsername(e.target.value.toLowerCase().replace(/[^a-z0-9]/g, ''));
-                }}
-                maxLength={32}
-                style={{ borderColor: usernameError ? 'red' : '#FFD700' }}
-              />
-              {usernameError && <span style={{ color: 'red', fontSize: 13 }}>{usernameError}</span>}
               {/* Link de afiliado con botón copiar */}
-              <div style={{ color: '#FFD700', fontWeight: 500, fontSize: 15, marginTop: 4, textAlign: 'center', wordBreak: 'break-all', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                Tu link de afiliado:
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 2 }}>
-                  <span style={{ color: '#fff', fontSize: 15 }}>
-                    https://scalexone.app/afiliado/{username || 'usuario'}
-                  </span>
-                  <button
-                    onClick={() => {
-                      navigator.clipboard.writeText(`https://scalexone.app/afiliado/${username || 'usuario'}`);
-                      setCopied(true);
-                      setTimeout(() => setCopied(false), 1500);
-                    }}
-                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: copied ? '#0f0' : '#FFD700', fontSize: 20 }}
-                    title="Copiar link"
-                  >
-                    {copied ? <FiCheck /> : <FiCopy />}
-                  </button>
+              {codigoAfiliado && (
+                <div style={{ color: '#FFD700', fontWeight: 500, fontSize: 15, marginTop: 4, textAlign: 'center', wordBreak: 'break-all', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                  Tu link de afiliado:
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 2 }}>
+                    <span style={{ color: '#fff', fontSize: 15 }}>
+                      https://scalexone.app/afiliado/{codigoAfiliado}
+                    </span>
+                    <button
+                      onClick={() => {
+                        navigator.clipboard.writeText(`https://scalexone.app/afiliado/${codigoAfiliado}`);
+                        setCopied(true);
+                        setTimeout(() => setCopied(false), 1500);
+                      }}
+                      style={{ background: 'none', border: 'none', cursor: 'pointer', color: copied ? '#0f0' : '#FFD700', fontSize: 20 }}
+                      title="Copiar link"
+                    >
+                      {copied ? <FiCheck /> : <FiCopy />}
+                    </button>
+                  </div>
+                  {copied && <span style={{ color: '#0f0', fontSize: 13, marginTop: 2 }}>¡Copiado!</span>}
                 </div>
-                {copied && <span style={{ color: '#0f0', fontSize: 13, marginTop: 2 }}>¡Copiado!</span>}
-              </div>
+              )}
               <button
                 className="bg-yellow-500 text-black font-bold py-2 px-4 rounded-lg hover:bg-yellow-600 transition-colors w-full mt-4"
                 onClick={() => setShowPasswordModal(true)}

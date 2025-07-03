@@ -11,11 +11,7 @@ const Perfil = () => {
   const [newEmail, setNewEmail] = useState('');
   const [success, setSuccess] = useState('');
   const [error, setError] = useState('');
-  // Username
-  const [username, setUsername] = useState('');
-  const [usernameError, setUsernameError] = useState('');
-  const [checkingUsername, setCheckingUsername] = useState(false);
-  const usernameInputRef = useRef<HTMLInputElement>(null);
+  const [codigoAfiliado, setCodigoAfiliado] = useState('');
 
   // Simulación de tipo de suscripción
   const tipoSuscripcion = 'Free'; // Cambia esto según tu lógica
@@ -52,76 +48,23 @@ const Perfil = () => {
     setNewEmail('');
   };
 
-  // Autogenerar username si está vacío
+  // Al cargar el perfil, obtener el código IB
   useEffect(() => {
-    async function fetchUsername() {
+    async function fetchCodigoAfiliado() {
       if (!userInfo?.id) return;
-      const { data: usuario } = await supabase
-        .from('usuarios')
-        .select('username, name')
-        .eq('id', userInfo.id)
+      const { data: codigo } = await supabase
+        .from('codigos_afiliado')
+        .select('codigo')
+        .eq('user_id', userInfo.id)
+        .eq('activo', true)
+        .order('created_at', { ascending: false })
+        .limit(1)
         .single();
-      if (usuario) {
-        if (!usuario.username) {
-          // Generar username base
-          let base = (usuario.name || '').toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 16);
-          let uname = base;
-          let intento = 0;
-          while (true) {
-            const { data } = await supabase
-              .from('usuarios')
-              .select('id')
-              .eq('username', uname)
-              .single();
-            if (!data || data.id === userInfo.id) break;
-            intento++;
-            uname = base + intento;
-          }
-          setUsername(uname);
-          await supabase.from('usuarios').update({ username: uname }).eq('id', userInfo.id);
-        } else {
-          setUsername(usuario.username);
-        }
-      }
+      if (codigo) setCodigoAfiliado(codigo.codigo);
     }
-    fetchUsername();
-    // eslint-disable-next-line
+    fetchCodigoAfiliado();
+    setAvatarUrl('');
   }, [userInfo?.id]);
-
-  // Validar unicidad de username
-  async function validarUsername(uname: string) {
-    setCheckingUsername(true);
-    setUsernameError('');
-    if (!uname) {
-      setUsernameError('Elige un nombre de usuario');
-      setCheckingUsername(false);
-      return false;
-    }
-    const { data } = await supabase
-      .from('usuarios')
-      .select('id')
-      .eq('username', uname)
-      .single();
-    if (data && data.id !== userInfo.id) {
-      setUsernameError('Este nombre de usuario ya está en uso');
-      setCheckingUsername(false);
-      return false;
-    }
-    setCheckingUsername(false);
-    setUsernameError('');
-    return true;
-  }
-
-  // Guardar username al cambiar
-  async function handleUsernameChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const value = e.target.value.toLowerCase().replace(/[^a-z0-9]/g, '');
-    setUsername(value);
-    await validarUsername(value);
-    // Guardar automáticamente si es válido
-    if (await validarUsername(value)) {
-      await supabase.from('usuarios').update({ username: value }).eq('id', userInfo.id);
-    }
-  }
 
   useEffect(() => {
     setAvatarUrl('');
@@ -135,20 +78,12 @@ const Perfil = () => {
           <div style={{ fontSize: 22, fontWeight: 700, color: '#0ff', marginBottom: 4, textAlign: 'center' }}>{userName}</div>
           <div style={{ fontSize: 15, color: '#b6eaff', marginBottom: 2, textAlign: 'center' }}>{userInfo.email}</div>
           {/* Username editable y link de afiliado */}
-          <input
-            ref={usernameInputRef}
-            className="input-perfil mt-2"
-            placeholder="Nombre de usuario único"
-            value={username}
-            onChange={handleUsernameChange}
-            maxLength={32}
-            style={{ borderColor: usernameError ? 'red' : '#0ff', marginTop: 12, marginBottom: 4, width: '100%', padding: 8, borderRadius: 6, border: '1.5px solid', background: '#23272F', color: '#fff', fontSize: 15 }}
-          />
-          {usernameError && <span style={{ color: 'red', fontSize: 13 }}>{usernameError}</span>}
-          <div style={{ color: '#0ff', fontWeight: 500, fontSize: 15, marginTop: 4 }}>
-            Tu link de afiliado:<br />
-            <span style={{ color: '#fff' }}>https://scalexone.app/afiliado/{username || 'usuario'}</span>
-          </div>
+          {codigoAfiliado && (
+            <div style={{ color: '#0ff', fontWeight: 500, fontSize: 15, marginTop: 4 }}>
+              Tu link de afiliado:<br />
+              <span style={{ color: '#fff' }}>https://scalexone.app/afiliado/{codigoAfiliado}</span>
+            </div>
+          )}
         </div>
         <div style={{ background: '#10131e', borderRadius: 10, padding: 16, marginBottom: 18 }}>
           <div style={{ fontWeight: 600, color: '#9EFFC9', marginBottom: 6 }}>Tipo de suscripción</div>

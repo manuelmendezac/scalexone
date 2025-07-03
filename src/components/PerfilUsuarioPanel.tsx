@@ -15,6 +15,7 @@ const PerfilUsuarioPanel: React.FC = () => {
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [newPassword, setNewPassword] = useState('');
   const [passwordMsg, setPasswordMsg] = useState('');
+  const [codigoAfiliado, setCodigoAfiliado] = useState('');
 
   useEffect(() => {
     async function fetchPerfil() {
@@ -36,6 +37,22 @@ const PerfilUsuarioPanel: React.FC = () => {
     }
     fetchPerfil();
   }, []);
+
+  useEffect(() => {
+    async function fetchCodigoAfiliado() {
+      if (!userInfo?.id) return;
+      const { data: codigo } = await supabase
+        .from('codigos_afiliado')
+        .select('codigo')
+        .eq('user_id', userInfo.id)
+        .eq('activo', true)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single();
+      if (codigo) setCodigoAfiliado(codigo.codigo);
+    }
+    fetchCodigoAfiliado();
+  }, [userInfo?.id]);
 
   async function validarUsername(uname: string) {
     setCheckingUsername(true);
@@ -97,35 +114,28 @@ const PerfilUsuarioPanel: React.FC = () => {
           initialUrl={avatarToShow}
           label="Foto de perfil"
         />
-        <input
-          className="input-perfil mt-2 text-center w-full"
-          placeholder="Nombre de usuario único"
-          value={username}
-          onChange={handleUsernameChange}
-          maxLength={32}
-          style={{ borderColor: usernameError ? 'red' : '#FFD700' }}
-        />
-        {usernameError && <span style={{ color: 'red', fontSize: 13 }}>{usernameError}</span>}
-        <div style={{ color: '#FFD700', fontWeight: 500, fontSize: 15, marginTop: 4, textAlign: 'center', wordBreak: 'break-all', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-          Tu link de afiliado:
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 2 }}>
-            <span style={{ color: '#fff', fontSize: 15 }}>
-              https://scalexone.app/afiliado/{username || 'usuario'}
-            </span>
-            <button
-              onClick={() => {
-                navigator.clipboard.writeText(`https://scalexone.app/afiliado/${username || 'usuario'}`);
-                setCopied(true);
-                setTimeout(() => setCopied(false), 1500);
-              }}
-              style={{ background: 'none', border: 'none', cursor: 'pointer', color: copied ? '#0f0' : '#FFD700', fontSize: 20 }}
-              title="Copiar link"
-            >
-              {copied ? <FiCheck /> : <FiCopy />}
-            </button>
+        {codigoAfiliado && (
+          <div style={{ color: '#FFD700', fontWeight: 500, fontSize: 15, marginTop: 4, textAlign: 'center', wordBreak: 'break-all', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+            Tu link de afiliado:
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 2 }}>
+              <span style={{ color: '#fff', fontSize: 15 }}>
+                https://scalexone.app/afiliado/{codigoAfiliado}
+              </span>
+              <button
+                onClick={() => {
+                  navigator.clipboard.writeText(`https://scalexone.app/afiliado/${codigoAfiliado}`);
+                  setCopied(true);
+                  setTimeout(() => setCopied(false), 1500);
+                }}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: copied ? '#0f0' : '#FFD700', fontSize: 20 }}
+                title="Copiar link"
+              >
+                {copied ? <FiCheck /> : <FiCopy />}
+              </button>
+            </div>
+            {copied && <span style={{ color: '#0f0', fontSize: 13, marginTop: 2 }}>¡Copiado!</span>}
           </div>
-          {copied && <span style={{ color: '#0f0', fontSize: 13, marginTop: 2 }}>¡Copiado!</span>}
-        </div>
+        )}
         <button
           className="bg-yellow-500 text-black font-bold py-2 px-4 rounded-lg hover:bg-yellow-600 transition-colors w-full mt-4"
           onClick={() => setShowPasswordModal(true)}

@@ -178,32 +178,22 @@ const Topbar: React.FC<TopbarProps> = ({
         setAffiliateLink('https://scalexone.app/afiliado/default');
         return;
       }
-      // Consultar username y comunidad
-      let username = '';
-      let comunidad = '';
-      if (userInfo?.community_id) {
-        comunidad = userInfo.community_id.slice(0, 2).toLowerCase();
-      } else {
-        comunidad = 'sc';
-      }
-      // Consultar username desde la tabla usuarios
-      const { data: usuario } = await supabase
-        .from('usuarios')
-        .select('username, id')
-        .eq('id', userInfo.id)
+      const { data: codigo } = await supabase
+        .from('codigos_afiliado')
+        .select('codigo')
+        .eq('user_id', userInfo.id)
+        .eq('activo', true)
+        .order('created_at', { ascending: false })
+        .limit(1)
         .single();
-      if (usuario?.username) {
-        username = usuario.username;
-        setAffiliateLink(`https://scalexone.app/afiliado/${username}`);
+      if (codigo?.codigo) {
+        setAffiliateLink(`https://scalexone.app/afiliado/${codigo.codigo}`);
       } else {
-        // Generar link por defecto: iniciales comunidad + últimos 5 dígitos del id
-        const idStr = usuario?.id || userInfo.id || '';
-        const sufijo = idStr.slice(-5);
-        setAffiliateLink(`https://scalexone.app/afiliado/${comunidad}${sufijo}`);
+        setAffiliateLink('https://scalexone.app/afiliado/default');
       }
     }
     fetchAffiliateLink();
-  }, [userInfo?.id, userInfo?.community_id]);
+  }, [userInfo?.id]);
 
   return (
     <header className="w-full text-white font-orbitron px-2 sm:px-4 py-1 sm:py-2 flex items-center justify-between shadow-lg z-50 border-b border-cyan-900 min-h-[44px]" style={{ background: '#000' }}>

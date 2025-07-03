@@ -94,15 +94,13 @@ const CuentasIBPage = () => {
       <div className="w-full max-w-xl mx-auto bg-white rounded-2xl shadow-md p-8 border border-gray-100">
         <div className="mb-6">
           <div className="text-sm text-gray-500 mb-1">Código de Afiliado</div>
-          <div className="flex items-center gap-2 mb-2">
-            <div className="text-xl font-bold text-blue-800">{codigoAfiliado || 'Sin código'}</div>
-            {codigoAfiliado && (
+          {codigoAfiliado && (
+            <div className="flex items-center gap-2 mb-2">
+              <div className="text-xl font-bold text-blue-800">{codigoAfiliado}</div>
               <button onClick={copiarCodigo} className="text-xs text-blue-600 border border-blue-200 rounded px-2 py-1 hover:bg-blue-50">Copiar</button>
-            )}
-            {!codigoAfiliado && (
-              <span className="text-xs text-gray-400">Solicita tu código en el panel de afiliados</span>
-            )}
-          </div>
+              <div className="text-xs text-gray-500 ml-2">Link: https://scalexone.app/afiliado/{codigoAfiliado}</div>
+            </div>
+          )}
           {fechaRegistro && (
             <div className="text-xs text-gray-400 mb-1">Afiliado desde {new Date(fechaRegistro).toLocaleDateString()}</div>
           )}

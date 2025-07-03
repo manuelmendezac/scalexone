@@ -82,8 +82,23 @@ const AfiliadosComunidadPanel: React.FC = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [dateRange, setDateRange] = useState('7d');
 
+  const [codigoAfiliado, setCodigoAfiliado] = useState('');
+
   useEffect(() => {
     fetchData();
+    async function fetchCodigoAfiliado() {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const { data: codigos } = await supabase
+        .from('codigos_afiliado')
+        .select('codigo')
+        .eq('user_id', user.id)
+        .eq('activo', true)
+        .order('created_at', { ascending: false })
+        .limit(1);
+      if (codigos && codigos.length > 0) setCodigoAfiliado(codigos[0].codigo);
+    }
+    fetchCodigoAfiliado();
   }, []);
 
   const fetchData = async () => {
@@ -518,33 +533,26 @@ const AfiliadosComunidadPanel: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="flex items-center gap-4 mb-4">
-                  <div className="flex-1 px-4 py-2 bg-gray-50 rounded-lg border">
-                    <code className="text-sm text-gray-700 font-mono">
-                      {window.location.origin}/registro?ref={codigo.codigo}
-                    </code>
+                {codigoAfiliado && (
+                  <div className="flex items-center gap-4 mb-4">
+                    <div className="flex-1 px-4 py-2 bg-gray-50 rounded-lg border">
+                      <code className="text-sm text-gray-700 font-mono">
+                        {window.location.origin}/registro?ref={codigoAfiliado}
+                      </code>
+                    </div>
+                    <div className="flex gap-2">
+                      <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => navigator.clipboard.writeText(`${window.location.origin}/registro?ref=${codigoAfiliado}`)}
+                        className="flex items-center gap-2 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                      >
+                        <Copy className="w-4 h-4" />
+                        Copiar
+                      </motion.button>
+                    </div>
                   </div>
-                  <div className="flex gap-2">
-                    <motion.button
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      onClick={() => handleCopyLink(codigo.codigo)}
-                      className="flex items-center gap-2 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                    >
-                      <Copy className="w-4 h-4" />
-                      Copiar
-                    </motion.button>
-                    <motion.button
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      onClick={() => handleShareLink(codigo.codigo)}
-                      className="flex items-center gap-2 px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-                    >
-                      <Share2 className="w-4 h-4" />
-                      Compartir
-                    </motion.button>
-                  </div>
-                </div>
+                )}
 
                 <div className="grid grid-cols-3 gap-4 text-center">
                   <div>
