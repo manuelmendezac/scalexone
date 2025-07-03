@@ -23,7 +23,7 @@ const CuentasIBPage = () => {
       // Datos personales
       const { data: usuarioData } = await supabase
         .from('usuarios')
-        .select('id, full_name, email, telefono, created_at')
+        .select('id, nombre, email, telefono, created_at')
         .eq('id', user.id)
         .single();
       setUsuario(usuarioData);
@@ -126,7 +126,7 @@ const CuentasIBPage = () => {
         </div>
         <div className="mb-2">
           <div className="text-sm text-gray-500 mb-1 font-semibold">Datos Personales</div>
-          <div className="text-base text-blue-900 font-semibold">{usuario?.full_name || usuario?.email || 'Sin nombre'}</div>
+          <div className="text-base text-blue-900 font-semibold">{usuario?.nombre || usuario?.email || 'Sin nombre'}</div>
           <div className="text-sm text-gray-600">{usuario?.email || 'Sin email'}</div>
           <div className="text-sm text-gray-600 flex items-center gap-2">
             {editandoTelefono ? (

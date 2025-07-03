@@ -11,6 +11,8 @@ import {
   Bars3Icon,
   XMarkIcon,
   ShoppingCartIcon,
+  WalletIcon,
+  ArrowPathIcon,
 } from '@heroicons/react/24/outline';
 import SwitchClienteIB from '../SwitchClienteIB';
 
@@ -36,6 +38,8 @@ const AfiliadosLayout: React.FC<AfiliadosLayoutProps> = ({ children }) => {
     { name: 'Multinivel IB', icon: UserGroupIcon, path: '/afiliados/multinivel' },
     { name: 'Cuentas IB', icon: UserGroupIcon, path: '/afiliados/cuentas' },
     { name: 'Historial', icon: ClockIcon, path: '/afiliados/historial' },
+    { name: 'Retirar Fondos', icon: WalletIcon, path: '/afiliados/retiro' },
+    { name: 'Transferencia IB', icon: ArrowPathIcon, path: '/afiliados/transferencia' },
     { name: 'Perfil', icon: UserIcon, path: '/afiliados/perfil' },
     { name: 'Enlaces de Referencia', icon: LinkIcon, path: '/afiliados/enlaces' },
     { name: 'Contáctenos', icon: PhoneIcon, path: '/afiliados/contacto' },
@@ -45,9 +49,12 @@ const AfiliadosLayout: React.FC<AfiliadosLayoutProps> = ({ children }) => {
   const mobileMenu = [
     menuItems[0], // Panel de Control
     menuItems[1], // Marketplace de Productos
-    menuItems[3], // Comisiones ScalexOne
-    menuItems[4], // Multinivel IB
-    menuItems[7], // Perfil
+    menuItems[2], // Comisiones ScalexOne
+    menuItems[3], // Multinivel IB
+    menuItems[5], // Historial
+    menuItems[6], // Retirar Fondos
+    menuItems[7], // Transferencia IB
+    menuItems[8], // Perfil
   ];
 
   return (
