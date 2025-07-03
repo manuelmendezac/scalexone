@@ -36,6 +36,7 @@ const perfilDefault = {
   nivel: 1,
   cursos: [],
   servicios: [],
+  username: '',
 };
 
 function TarjetaResumen({ titulo, valor, subvalor, icono, color }: any) {
@@ -81,6 +82,9 @@ const AdminConfigPanel: React.FC<AdminConfigPanelProps> = ({ selected }) => {
   const community_id = userInfo?.community_id || null;
   const isAdmin = userInfo?.rol === 'admin' || userInfo?.rol === 'superadmin';
   const { menuConfig, loading: menuLoading, error, saveMenuConfig } = useMenuSecundarioConfig(community_id);
+  const [username, setUsername] = useState('');
+  const [usernameError, setUsernameError] = useState('');
+  const [checkingUsername, setCheckingUsername] = useState(false);
 
   useEffect(() => {
     fetchUserConfig();
@@ -124,6 +128,7 @@ const AdminConfigPanel: React.FC<AdminConfigPanelProps> = ({ selected }) => {
             nivel: usuario.nivel || 1,
             cursos: usuario.cursos || [],
             servicios: usuario.servicios || [],
+            username: usuario.username || '',
           });
         }
 
@@ -158,6 +163,12 @@ const AdminConfigPanel: React.FC<AdminConfigPanelProps> = ({ selected }) => {
     setGuardando(true);
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {
+      // Validar username antes de guardar
+      const valido = await validarUsername(username);
+      if (!valido) {
+        setGuardando(false);
+        return;
+      }
       const { error } = await supabase.from('usuarios').update({
         avatar_url: perfil.avatar,
         name: perfil.name,
@@ -174,6 +185,7 @@ const AdminConfigPanel: React.FC<AdminConfigPanelProps> = ({ selected }) => {
         zona_horaria: perfil.zona_horaria,
         cursos: perfil.cursos,
         servicios: perfil.servicios,
+        username: username
       }).eq('id', user.id);
 
       if (error) {
@@ -217,6 +229,74 @@ const AdminConfigPanel: React.FC<AdminConfigPanelProps> = ({ selected }) => {
     else setPasswordMsg('¡Contraseña actualizada!');
   };
 
+  // Función para generar username por defecto
+  function generarUsernameBase(nombre: string) {
+    if (!nombre) return '';
+    return nombre.toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 16);
+  }
+
+  // Validar unicidad de username
+  async function validarUsername(uname: string) {
+    setCheckingUsername(true);
+    setUsernameError('');
+    if (!uname) {
+      setUsernameError('Elige un nombre de usuario');
+      setCheckingUsername(false);
+      return false;
+    }
+    const { data, error } = await supabase
+      .from('usuarios')
+      .select('id')
+      .eq('username', uname)
+      .single();
+    if (error && error.code !== 'PGRST116') {
+      setUsernameError('Error validando username');
+      setCheckingUsername(false);
+      return false;
+    }
+    // Si existe y no es el usuario actual
+    const { data: { user } } = await supabase.auth.getUser();
+    if (data && user && data.id !== user.id) {
+      setUsernameError('Este nombre de usuario ya está en uso');
+      setCheckingUsername(false);
+      return false;
+    }
+    setCheckingUsername(false);
+    setUsernameError('');
+    return true;
+  }
+
+  // Al cargar perfil, autogenerar username si está vacío
+  useEffect(() => {
+    if (perfil && perfil.name !== undefined) {
+      (async () => {
+        if (!username) {
+          let base = generarUsernameBase(perfil.name);
+          let uname = base;
+          let intento = 0;
+          while (true) {
+            const { data, error } = await supabase
+              .from('usuarios')
+              .select('id')
+              .eq('username', uname)
+              .single();
+            if (!data || (userInfo && data.id === userInfo.id)) break;
+            intento++;
+            uname = base + intento;
+          }
+          setUsername(uname);
+          // Guardar automáticamente si no existe
+          if (!perfil.username) {
+            await supabase.from('usuarios').update({ username: uname }).eq('id', userInfo.id);
+          }
+        } else {
+          setUsername(perfil.username || '');
+        }
+      })();
+    }
+    // eslint-disable-next-line
+  }, [perfil.name]);
+
   // Renderizar contenido según la opción seleccionada
   if (selected === 'welcome') {
     return (
@@ -233,6 +313,24 @@ const AdminConfigPanel: React.FC<AdminConfigPanelProps> = ({ selected }) => {
               >
                 Cambiar contraseña
               </button>
+              {/* Campo username */}
+              <input
+                className="input-perfil mt-2"
+                placeholder="Nombre de usuario único"
+                value={username}
+                onChange={async e => {
+                  setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9]/g, ''));
+                  await validarUsername(e.target.value.toLowerCase().replace(/[^a-z0-9]/g, ''));
+                }}
+                maxLength={32}
+                style={{ borderColor: usernameError ? 'red' : '#FFD700' }}
+              />
+              {usernameError && <span style={{ color: 'red', fontSize: 13 }}>{usernameError}</span>}
+              {/* Link de afiliado */}
+              <div style={{ color: '#FFD700', fontWeight: 500, fontSize: 15, marginTop: 4 }}>
+                Tu link de afiliado: <br />
+                <span style={{ color: '#fff' }}>https://scalexone.app/afiliado/{username || 'usuario'}</span>
+              </div>
             </div>
             
             {/* Columna Derecha: Formulario */}
