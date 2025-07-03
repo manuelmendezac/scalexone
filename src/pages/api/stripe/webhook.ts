@@ -50,13 +50,48 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // 1. Buscar usuario
     const { data: usuario, error: userError } = await supabase
       .from('usuarios')
-      .select('id')
+      .select('id, afiliado_referente')
       .eq('email', customerEmail)
       .single();
 
     if (userError || !usuario) {
       console.error('Usuario no encontrado:', customerEmail, userError);
       return res.status(404).json({ error: 'Usuario no encontrado' });
+    }
+
+    // 1.5. Buscar código de afiliado si tiene afiliado_referente
+    if (usuario.afiliado_referente) {
+      // Buscar código de afiliado activo del usuario referente
+      const { data: codigoAfiliado, error: codigoError } = await supabase
+        .from('codigos_afiliado')
+        .select('codigo')
+        .eq('user_id', usuario.afiliado_referente)
+        .eq('activo', true)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single();
+      if (codigoError || !codigoAfiliado) {
+        console.error('Código de afiliado no encontrado para referente:', usuario.afiliado_referente, codigoError);
+      } else {
+        // Determinar tipo de conversión
+        let tipo_conversion = 'suscripcion_premium';
+        if (tipo_producto === 'curso') tipo_conversion = 'compra_curso_marketplace';
+        if (tipo_producto === 'servicio') tipo_conversion = 'compra_servicio_marketplace';
+        // Valor de la venta
+        const valor_conversion = session.amount_total ? session.amount_total / 100 : 0;
+        // Llamar función SQL para registrar conversión
+        const { error: convError } = await supabase.rpc('registrar_conversion_afiliado', {
+          p_codigo: codigoAfiliado.codigo,
+          p_nuevo_usuario_id: usuario.id,
+          p_tipo_conversion: tipo_conversion,
+          p_valor_conversion: valor_conversion
+        });
+        if (convError) {
+          console.error('Error registrando conversión de afiliado:', convError);
+        } else {
+          console.log('Conversión de afiliado registrada correctamente');
+        }
+      }
     }
 
     // 2. Insertar membresía activa

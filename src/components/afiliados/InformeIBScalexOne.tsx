@@ -90,170 +90,188 @@ const InformeIBScalexOne: React.FC = () => {
         return;
       }
 
-      await Promise.all([
-        cargarComisionesScaleXone(user.id),
-        cargarRendimientoProductos(user.id),
-        cargarEstadisticasNiveles(user.id)
-      ]);
+      // 1. Obtener conversiones y comisiones reales con datos de referidos
+      const { data: conversiones, error: convError } = await supabase
+        .from('conversiones_afiliado')
+        .select(`
+          id, created_at, tipo_conversion, valor_conversion, comision_generada, estado, codigo_afiliado_id,
+          codigos_afiliado:codigo_afiliado_id (codigo, user_id),
+          nuevo_usuario:usuarios!nuevo_usuario_id (id, email, raw_user_meta_data)
+        `)
+        .order('created_at', { ascending: false })
+        .or(`codigos_afiliado.user_id.eq.${user.id}`);
+
+      if (convError) {
+        console.error('Error cargando conversiones:', convError);
+        toast.error('Error al cargar conversiones');
+        return;
+      }
+
+      // 2. Obtener detalles de productos/servicios
+      const { data: productosRaw } = await supabase
+        .from('cursos_marketplace')
+        .select('id, nombre, categoria, tipo, precio');
+      const productos = productosRaw || [];
+      
+      const { data: serviciosRaw } = await supabase
+        .from('servicios_marketplace')
+        .select('id, nombre, categoria, tipo, precio');
+      const servicios = serviciosRaw || [];
+
+      // 3. Obtener configuración de comisiones
+      const { data: configComisiones } = await supabase
+        .from('config_comisiones')
+        .select('tipo_evento, monto_fijo, porcentaje');
+
+      // 4. Mapear conversiones a productos reales
+      const productosMap: Record<string, any> = {};
+      productos.forEach((p: any) => { 
+        productosMap[p.id] = { ...p, tipo_producto: 'curso' }; 
+      });
+      servicios.forEach((s: any) => { 
+        productosMap[s.id] = { ...s, tipo_producto: 'servicio' }; 
+      });
+
+      // 5. Crear mapa de configuración de comisiones
+      const configMap: Record<string, any> = {};
+      configComisiones?.forEach((config: any) => {
+        configMap[config.tipo_evento] = config;
+      });
+
+      // 6. Formatear comisiones para la UI
+      const comisionesReal: ComisionScaleXone[] = (conversiones || []).map((conv: any) => {
+        const producto = productosMap[conv.valor_conversion] || {};
+        const config = configMap[conv.tipo_conversion] || {};
+        const referido = conv.nuevo_usuario || {};
+        
+        return {
+          id: conv.id,
+          fecha: conv.created_at,
+          referido_nombre: referido.raw_user_meta_data?.full_name || 'Usuario',
+          referido_email: referido.email || '',
+          producto_id: conv.valor_conversion,
+          producto_nombre: producto.nombre || 'Producto',
+          categoria: producto.categoria || 'General',
+          tipo_producto: producto.tipo_producto || 'otro',
+          nivel: 1, // Por defecto nivel 1, ajustar si tienes niveles
+          monto_venta: producto.precio || conv.valor_conversion || 0,
+          porcentaje_comision: config.porcentaje || 0,
+          monto_comision: conv.comision_generada || 0,
+          estado: conv.estado,
+          fecha_pago: conv.estado === 'pagada' ? conv.created_at : undefined,
+          metodo_pago: conv.estado === 'pagada' ? 'Stripe' : undefined,
+          codigo_afiliado: conv.codigos_afiliado?.codigo || '',
+        };
+      });
+
+      setComisiones(comisionesReal);
+
+      // 7. Calcular rendimiento por productos
+      const rendimientoProductosReal: RendimientoProducto[] = [];
+      const productosStats: Record<string, any> = {};
+
+      conversiones?.forEach((conv: any) => {
+        const producto = productosMap[conv.valor_conversion];
+        if (!producto) return;
+
+        const productoId = conv.valor_conversion;
+        if (!productosStats[productoId]) {
+          productosStats[productoId] = {
+            producto_id: productoId,
+            producto_nombre: producto.nombre,
+            categoria: producto.categoria,
+            total_ventas: 0,
+            total_comisiones: 0,
+            numero_referidos: new Set(),
+            ultimo_venta: conv.created_at
+          };
+        }
+
+        productosStats[productoId].total_ventas += producto.precio || conv.valor_conversion || 0;
+        productosStats[productoId].total_comisiones += conv.comision_generada || 0;
+        productosStats[productoId].numero_referidos.add(conv.nuevo_usuario_id);
+        if (conv.created_at > productosStats[productoId].ultimo_venta) {
+          productosStats[productoId].ultimo_venta = conv.created_at;
+        }
+      });
+
+      Object.values(productosStats).forEach((stats: any) => {
+        const totalClicks = conversiones?.filter((c: any) => c.valor_conversion === stats.producto_id).length || 0;
+        const conversionRate = totalClicks > 0 ? (stats.numero_referidos.size / totalClicks) * 100 : 0;
+
+        rendimientoProductosReal.push({
+          producto_id: stats.producto_id,
+          producto_nombre: stats.producto_nombre,
+          categoria: stats.categoria,
+          total_ventas: stats.total_ventas,
+          total_comisiones: stats.total_comisiones,
+          numero_referidos: stats.numero_referidos.size,
+          conversion_rate: conversionRate,
+          ultimo_venta: stats.ultimo_venta
+        });
+      });
+
+      setRendimientoProductos(rendimientoProductosReal);
+
+      // 8. Calcular estadísticas por niveles
+      const estadisticasNivelesReal: EstadisticasNivel[] = [];
+      const nivelesStats: Record<number, any> = {};
+
+      conversiones?.forEach((conv: any) => {
+        const nivel = 1; // Por defecto nivel 1, ajustar si tienes niveles
+        if (!nivelesStats[nivel]) {
+          nivelesStats[nivel] = {
+            nivel,
+            total_comisiones: 0,
+            numero_ventas: 0,
+            productos: new Set(),
+            porcentajes: []
+          };
+        }
+
+        nivelesStats[nivel].total_comisiones += conv.comision_generada || 0;
+        nivelesStats[nivel].numero_ventas += 1;
+        nivelesStats[nivel].productos.add(conv.valor_conversion);
+        
+        const config = configMap[conv.tipo_conversion];
+        if (config?.porcentaje) {
+          nivelesStats[nivel].porcentajes.push(config.porcentaje);
+        }
+      });
+
+      Object.values(nivelesStats).forEach((stats: any) => {
+        const porcentajePromedio = stats.porcentajes.length > 0 
+          ? stats.porcentajes.reduce((a: number, b: number) => a + b, 0) / stats.porcentajes.length 
+          : 0;
+
+        // Encontrar el mejor producto (el que más comisiones generó)
+        const productosComisiones: Record<string, number> = {};
+        conversiones?.forEach((conv: any) => {
+          if (conv.valor_conversion && conv.comision_generada) {
+            productosComisiones[conv.valor_conversion] = (productosComisiones[conv.valor_conversion] || 0) + conv.comision_generada;
+          }
+        });
+
+        const mejorProductoId = Object.keys(productosComisiones).reduce((a, b) => 
+          productosComisiones[a] > productosComisiones[b] ? a : b, '');
+        const mejorProducto = productosMap[mejorProductoId]?.nombre || 'Producto';
+
+        estadisticasNivelesReal.push({
+          nivel: stats.nivel,
+          total_comisiones: stats.total_comisiones,
+          numero_ventas: stats.numero_ventas,
+          porcentaje_promedio: porcentajePromedio,
+          mejor_producto: mejorProducto
+        });
+      });
+
+      setEstadisticasNiveles(estadisticasNivelesReal);
 
     } catch (error) {
       console.error('Error cargando datos:', error);
       toast.error('Error al cargar los datos');
     } finally {
       setLoading(false);
-    }
-  };
-
-  const cargarComisionesScaleXone = async (userId: string) => {
-    try {
-      // Simular datos de comisiones del marketplace ScaleXone
-      const comisionesSimuladas: ComisionScaleXone[] = [
-        {
-          id: '1',
-          fecha: '2024-12-25',
-          referido_nombre: 'María González',
-          referido_email: 'maria@example.com',
-          producto_id: 'prod_001',
-          producto_nombre: 'Trading Mastery Course',
-          categoria: 'Cursos',
-          tipo_producto: 'curso',
-          nivel: 1,
-          monto_venta: 497,
-          porcentaje_comision: 25,
-          monto_comision: 124.25,
-          estado: 'pagada',
-          fecha_pago: '2024-12-27',
-          metodo_pago: 'PayPal',
-          codigo_afiliado: 'AFF_SCALE_001'
-        },
-        {
-          id: '2',
-          fecha: '2024-12-24',
-          referido_nombre: 'Carlos Mendoza',
-          referido_email: 'carlos@example.com',
-          producto_id: 'prod_002',
-          producto_nombre: 'AI Business Automation',
-          categoria: 'Servicios',
-          tipo_producto: 'servicio',
-          nivel: 2,
-          monto_venta: 299,
-          porcentaje_comision: 15,
-          monto_comision: 44.85,
-          estado: 'pendiente',
-          codigo_afiliado: 'AFF_SCALE_002'
-        },
-        {
-          id: '3',
-          fecha: '2024-12-23',
-          referido_nombre: 'Ana Rivera',
-          referido_email: 'ana@example.com',
-          producto_id: 'prod_003',
-          producto_nombre: 'ScaleXone Pro Monthly',
-          categoria: 'Suscripciones',
-          tipo_producto: 'suscripcion',
-          nivel: 1,
-          monto_venta: 97,
-          porcentaje_comision: 30,
-          monto_comision: 29.1,
-          estado: 'procesando',
-          codigo_afiliado: 'AFF_SCALE_003'
-        },
-        {
-          id: '4',
-          fecha: '2024-12-22',
-          referido_nombre: 'Luis Herrera',
-          referido_email: 'luis@example.com',
-          producto_id: 'prod_004',
-          producto_nombre: 'NeuroLink Training',
-          categoria: 'Cursos',
-          tipo_producto: 'curso',
-          nivel: 3,
-          monto_venta: 799,
-          porcentaje_comision: 10,
-          monto_comision: 79.9,
-          estado: 'pagada',
-          fecha_pago: '2024-12-24',
-          metodo_pago: 'Stripe',
-          codigo_afiliado: 'AFF_SCALE_004'
-        }
-      ];
-
-      setComisiones(comisionesSimuladas);
-    } catch (error) {
-      console.error('Error cargando comisiones:', error);
-    }
-  };
-
-  const cargarRendimientoProductos = async (userId: string) => {
-    try {
-      const rendimientoSimulado: RendimientoProducto[] = [
-        {
-          producto_id: 'prod_001',
-          producto_nombre: 'Trading Mastery Course',
-          categoria: 'Cursos',
-          total_ventas: 1245,
-          total_comisiones: 311.25,
-          numero_referidos: 8,
-          conversion_rate: 15.2,
-          ultimo_venta: '2024-12-25'
-        },
-        {
-          producto_id: 'prod_002',
-          producto_nombre: 'AI Business Automation',
-          categoria: 'Servicios',
-          total_ventas: 897,
-          total_comisiones: 134.55,
-          numero_referidos: 5,
-          conversion_rate: 12.8,
-          ultimo_venta: '2024-12-24'
-        },
-        {
-          producto_id: 'prod_003',
-          producto_nombre: 'ScaleXone Pro Monthly',
-          categoria: 'Suscripciones',
-          total_ventas: 2910,
-          total_comisiones: 873,
-          numero_referidos: 12,
-          conversion_rate: 22.5,
-          ultimo_venta: '2024-12-23'
-        }
-      ];
-
-      setRendimientoProductos(rendimientoSimulado);
-    } catch (error) {
-      console.error('Error cargando rendimiento:', error);
-    }
-  };
-
-  const cargarEstadisticasNiveles = async (userId: string) => {
-    try {
-      const estadisticasSimuladas: EstadisticasNivel[] = [
-        {
-          nivel: 1,
-          total_comisiones: 684.25,
-          numero_ventas: 15,
-          porcentaje_promedio: 27.5,
-          mejor_producto: 'ScaleXone Pro Monthly'
-        },
-        {
-          nivel: 2,
-          total_comisiones: 289.70,
-          numero_ventas: 8,
-          porcentaje_promedio: 15.0,
-          mejor_producto: 'AI Business Automation'
-        },
-        {
-          nivel: 3,
-          total_comisiones: 159.80,
-          numero_ventas: 4,
-          porcentaje_promedio: 10.0,
-          mejor_producto: 'NeuroLink Training'
-        }
-      ];
-
-      setEstadisticasNiveles(estadisticasSimuladas);
-    } catch (error) {
-      console.error('Error cargando estadísticas de niveles:', error);
     }
   };
 

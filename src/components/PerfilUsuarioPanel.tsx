@@ -11,7 +11,7 @@ const PerfilUsuarioPanel: React.FC = () => {
   const [usernameError, setUsernameError] = useState('');
   const [checkingUsername, setCheckingUsername] = useState(false);
   const [copied, setCopied] = useState(false);
-  const [avatarAuth, setAvatarAuth] = useState('');
+  const [userAuthAvatar, setUserAuthAvatar] = useState('');
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [newPassword, setNewPassword] = useState('');
   const [passwordMsg, setPasswordMsg] = useState('');
@@ -28,12 +28,10 @@ const PerfilUsuarioPanel: React.FC = () => {
       setPerfil(usuario || {});
       setUsername(usuario?.username || '');
       // Avatar autenticador
-      if (!usuario?.avatar_url && user.user_metadata?.avatar_url) {
-        setAvatarAuth(user.user_metadata.avatar_url);
-      } else if (usuario?.avatar_url) {
-        setAvatarAuth(usuario.avatar_url);
+      if (user.user_metadata?.avatar_url) {
+        setUserAuthAvatar(user.user_metadata.avatar_url);
       } else {
-        setAvatarAuth('/images/silueta-perfil.svg');
+        setUserAuthAvatar('');
       }
     }
     fetchPerfil();
@@ -87,13 +85,16 @@ const PerfilUsuarioPanel: React.FC = () => {
     else setPasswordMsg('¡Contraseña actualizada!');
   };
 
+  // Determinar el avatar a mostrar
+  const avatarToShow = perfil.avatar_url || userAuthAvatar || '/images/silueta-perfil.svg';
+
   return (
     <div className="w-full bg-black rounded-lg shadow-lg md:p-10 p-6 border-2 border-yellow-500 flex flex-col gap-8">
       <h2 className="text-yellow-500 font-bold text-3xl mb-4">Mi Perfil</h2>
       <div className="flex flex-col items-center gap-4 w-full max-w-xs mx-auto lg:mx-0">
         <AvatarUploader
           onUpload={handleAvatar}
-          initialUrl={perfil.avatar_url || avatarAuth || '/images/silueta-perfil.svg'}
+          initialUrl={avatarToShow}
           label="Foto de perfil"
         />
         <input

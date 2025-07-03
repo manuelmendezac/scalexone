@@ -45,6 +45,7 @@ import { syncUsuarioSupabase } from './utils/syncUsuarioSupabase';
 import ScrollNavbar from './components/ScrollNavbar';
 import { useGlobalLoading } from './store/useGlobalLoading';
 import { useSyncUserProfile } from './hooks/useSyncUserProfile';
+import { useAfiliadoTracking } from './hooks/useAfiliadoTracking';
 
 // Definición de tipos para las vistas
 type ViewType = 'inicio' | 'simulacion' | 'dashboard' | 'perfil' | 'configuracion' | 'panel' | 'uploader' | 'knowledge' | 'nicho' | 'modules' | 'train';
@@ -58,6 +59,7 @@ interface ViewConfig {
 
 function App() {
   useSyncUserProfile();
+  useAfiliadoTracking();
   console.log('RENDER App');
   const isHydrated = useHydration();
   const { t } = useTranslation();

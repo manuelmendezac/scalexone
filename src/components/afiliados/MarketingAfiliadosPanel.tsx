@@ -117,6 +117,12 @@ const MarketingAfiliadosPanel: React.FC = () => {
           .limit(1);
         const codigoAfiliado = codigos?.[0]?.codigo;
         const codigoAfiliadoId = codigos?.[0]?.id;
+        // Si no hay código de afiliado, forzar saldo a 0 y mostrar mensaje
+        if (!codigoAfiliadoId) {
+          setDashboardMetrics(metrics => ({ ...metrics, montoRetiro: 0 }));
+          setLoading(false);
+          return;
+        }
         // Métricas principales
         let totalClicks = 0, totalLeads = 0, totalSales = 0, totalEarnings = 0, pendingEarnings = 0, paymentsGenerated = 0, paymentsReceived = 0;
         // CLICKS

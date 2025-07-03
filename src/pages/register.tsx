@@ -11,10 +11,19 @@ const Register = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
+  // Función para leer cookies
+  function getCookie(name: string) {
+    if (typeof document === 'undefined') return '';
+    return document.cookie.split('; ').reduce((r, v) => {
+      const parts = v.split('=');
+      return parts[0] === name ? decodeURIComponent(parts[1]) : r;
+    }, '');
+  }
+
   // Función para crear el usuario en la tabla 'usuarios' si no existe
   async function ensureUserInUsuariosTable(user: any) {
     if (!user) return;
-    console.log('Intentando insertar usuario (register):', user);
+    const afiliadoRef = getCookie('afiliado_ref');
     const { data: existing, error: selectError } = await supabase
       .from('usuarios')
       .select('id')
@@ -27,12 +36,23 @@ const Register = () => {
           name: user.user_metadata?.nombre || user.user_metadata?.full_name || user.email || '',
           avatar_url: user.user_metadata?.avatar_url || '/images/silueta-perfil.svg',
           created_at: new Date().toISOString(),
+          afiliado_referente: afiliadoRef || null,
         },
       ]);
       if (error) {
         console.error('Error insertando usuario en tabla usuarios (register):', error);
         alert('Error insertando usuario en tabla usuarios (register): ' + error.message);
       } else {
+        // Registrar lead en leads_afiliado si hay referido
+        if (afiliadoRef) {
+          await supabase.from('leads_afiliado').insert([
+            {
+              codigo_afiliado_id: afiliadoRef,
+              usuario_id: user.id,
+              created_at: new Date().toISOString(),
+            },
+          ]);
+        }
         alert('Usuario insertado correctamente en la tabla usuarios (register)');
       }
     } else {
