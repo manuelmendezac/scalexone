@@ -157,7 +157,7 @@ const TransferenciaIBPage = () => {
         <label className="block text-gray-700 mb-1">Monto a transferir</label>
         <input
           type="number"
-          className="w-full border rounded px-3 py-2"
+          className="w-full border rounded px-3 py-2 text-black"
           value={monto}
           onChange={e => setMonto(e.target.value)}
           min={1}

@@ -114,12 +114,11 @@ const RetiroAfiliadoPage = () => {
           <label className="block text-sm font-medium text-gray-700 mb-1">Monto a retirar (mínimo $50 USD)</label>
           <input
             type="number"
-            min={MIN_RETIRO}
-            step="0.01"
+            className="w-full border rounded px-3 py-2 text-black"
             value={monto}
             onChange={e => setMonto(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            placeholder="$0.00"
+            min={MIN_RETIRO}
+            step={0.01}
             disabled={loading}
           />
         </div>
