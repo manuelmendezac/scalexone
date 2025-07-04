@@ -13,6 +13,7 @@ const Login = () => {
   const { userName } = useNeuroState();
   const [remember, setRemember] = useState(false);
   const location = useLocation();
+  const [showRegisterPrompt, setShowRegisterPrompt] = useState(false);
 
   useEffect(() => {
     if (
@@ -33,6 +34,7 @@ const Login = () => {
     setLoading(true);
     setError('');
     setSuccess('');
+    setShowRegisterPrompt(false);
     if (remember) {
       localStorage.setItem('rememberedEmail', email);
     } else {
@@ -56,9 +58,9 @@ const Login = () => {
         .eq('id', user.id)
         .single();
       if (!perfil) {
-        setError('Debes registrarte antes de poder iniciar sesión.');
+        setError('No tienes cuenta registrada. Por favor, regístrate primero.');
+        setShowRegisterPrompt(true);
         await supabase.auth.signOut();
-        window.location.href = '/registro';
         return;
       } else if (perfil.activo === false) {
         setError('Tu cuenta está inactiva. Contacta soporte.');
@@ -166,6 +168,13 @@ const Login = () => {
                 <label htmlFor="remember" style={{ color: '#FFD700', fontSize: 15, cursor: 'pointer', userSelect: 'none' }}>Recordar correo</label>
               </div>
             </form>
+            {showRegisterPrompt && (
+              <div style={{ textAlign: 'center', marginTop: 12 }}>
+                <button onClick={() => window.location.href = '/registro'} style={{ background: '#FFD700', color: '#181828', border: 'none', borderRadius: 8, padding: 10, fontWeight: 700, fontSize: 16, cursor: 'pointer' }}>
+                  Ir a Registro
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>

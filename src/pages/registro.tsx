@@ -33,8 +33,18 @@ const RegistroPage: React.FC = () => {
       registerAffiliateClick(refCode);
     }
     // Detectar sesión activa en Auth
-    supabase.auth.getUser().then(({ data: { user } }) => {
+    supabase.auth.getUser().then(async ({ data: { user } }) => {
       if (user) {
+        // Verificar si ya existe en la tabla usuarios
+        const { data: perfil } = await supabase
+          .from('usuarios')
+          .select('id')
+          .eq('id', user.id)
+          .single();
+        if (perfil) {
+          navigate('/home', { replace: true });
+          return;
+        }
         setSessionUser(user);
         setFormData(prev => ({
           ...prev,
@@ -43,7 +53,7 @@ const RegistroPage: React.FC = () => {
         }));
       }
     });
-  }, [searchParams]);
+  }, [searchParams, navigate]);
 
   const registerAffiliateClick = async (codigo: string) => {
     try {
@@ -180,8 +190,8 @@ const RegistroPage: React.FC = () => {
       
       // Redirigir después de un momento
       setTimeout(() => {
-        navigate('/login');
-      }, 3000);
+        navigate('/home');
+      }, 2000);
     } catch (error: any) {
       console.error('Registration error:', error);
       toast.error(error.message || 'Error al registrar usuario');
