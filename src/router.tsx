@@ -1,4 +1,4 @@
-import { createBrowserRouter } from 'react-router-dom';
+import { createBrowserRouter, Navigate, useParams } from 'react-router-dom';
 import React, { Suspense, lazy } from 'react';
 import App from './App';
 import Error404 from './components/Error404';
@@ -61,6 +61,12 @@ const SuspenseWrapper = ({ children }: { children: React.ReactNode }) => (
     {children}
   </Suspense>
 );
+
+// Componente para redirigir /afiliado/:ib a /registro?ref=IB
+const AfiliadoRedirect = () => {
+  const { ib } = useParams();
+  return <Navigate to={`/registro?ref=${ib}`} replace />;
+};
 
 export const router = createBrowserRouter([
   {
@@ -144,5 +150,9 @@ export const router = createBrowserRouter([
       { path: 'contacto', element: <ContactoIBPage /> },
       { path: 'marketplace', element: <SuspenseWrapper><MarketplaceAfiliados /></SuspenseWrapper> },
     ]
-  }
+  },
+  {
+    path: '/afiliado/:ib',
+    element: <AfiliadoRedirect />,
+  },
 ]); 
