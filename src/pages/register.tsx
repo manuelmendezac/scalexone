@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { supabase } from '../supabase';
 
 const Register = () => {
@@ -20,10 +20,18 @@ const Register = () => {
     }, '');
   }
 
+  // Obtener ref de la URL
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const ref = urlParams.get('ref');
+    if (ref) {
+      document.cookie = `afiliado_ref=${ref}; path=/; max-age=86400`;
+    }
+  }, []);
+
   // Función para crear el usuario en la tabla 'usuarios' si no existe
-  async function ensureUserInUsuariosTable(user: any) {
+  async function ensureUserInUsuariosTable(user: any, communityId: string, refIB: string | null) {
     if (!user) return;
-    const afiliadoRef = getCookie('afiliado_ref');
     const { data: existing, error: selectError } = await supabase
       .from('usuarios')
       .select('id')
@@ -34,9 +42,11 @@ const Register = () => {
         {
           id: user.id,
           name: user.user_metadata?.nombre || user.user_metadata?.full_name || user.email || '',
+          email: user.email,
           avatar_url: user.user_metadata?.avatar_url || '/images/silueta-perfil.svg',
           created_at: new Date().toISOString(),
-          afiliado_referente: afiliadoRef || null,
+          afiliado_referente: refIB || null,
+          community_id: communityId,
         },
       ]);
       if (error) {
@@ -44,10 +54,10 @@ const Register = () => {
         alert('Error insertando usuario en tabla usuarios (register): ' + error.message);
       } else {
         // Registrar lead en leads_afiliado si hay referido
-        if (afiliadoRef) {
+        if (refIB) {
           await supabase.from('leads_afiliado').insert([
             {
-              codigo_afiliado_id: afiliadoRef,
+              codigo_afiliado_id: refIB,
               usuario_id: user.id,
               created_at: new Date().toISOString(),
             },
@@ -71,18 +81,55 @@ const Register = () => {
       setLoading(false);
       return;
     }
+    // 1. Obtener IB de referido de la URL o cookie
+    const urlParams = new URLSearchParams(window.location.search);
+    const refIB = urlParams.get('ref') || getCookie('afiliado_ref') || null;
+    // 2. Buscar usuario por email
+    const { data: existingUser } = await supabase
+      .from('usuarios')
+      .select('*')
+      .eq('email', email)
+      .single();
+    let communityId = '8fb70d6e-3237-465e-8669-979461cf2bc1'; // Scalexone por defecto
+    if (existingUser) {
+      communityId = existingUser.community_id || communityId;
+    } else if (refIB) {
+      const { data: refData } = await supabase
+        .from('codigos_afiliado')
+        .select('community_id')
+        .eq('codigo', refIB)
+        .single();
+      if (refData?.community_id) communityId = refData.community_id;
+    }
+    // 3. Registrar usuario en Supabase Auth
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
-      options: { data: { nombre }, emailRedirectTo: undefined }
+      options: { data: { nombre, community_id: communityId }, emailRedirectTo: undefined }
     });
     setLoading(false);
     if (error) {
       setError(error.message);
     } else {
-      // Esperar a que el usuario esté disponible (puede estar en data.user o data.session.user)
       const user = data.user || data.session?.user;
-      await ensureUserInUsuariosTable(user);
+      await ensureUserInUsuariosTable(user, communityId, refIB);
+      // 5. Buscar si ya tiene IB
+      const { data: ibExistente } = await supabase
+        .from('codigos_afiliado')
+        .select('codigo')
+        .eq('user_id', user.id)
+        .single();
+      if (!ibExistente) {
+        // Crear IB único
+        const nuevoIB = 'IB' + (Math.floor(100000 + Math.random() * 900000));
+        await supabase.from('codigos_afiliado').insert([{
+          user_id: user.id,
+          codigo: nuevoIB,
+          community_id: communityId,
+          activo: true,
+          created_at: new Date().toISOString(),
+        }]);
+      }
       window.location.href = 'https://www.scalexone.app/home';
     }
   };

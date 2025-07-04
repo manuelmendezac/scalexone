@@ -73,7 +73,21 @@ const Login = () => {
     else {
       // Obtener el usuario autenticado
       const { data: userData } = await supabase.auth.getUser();
-      await ensureUserInUsuariosTable(userData.user);
+      const user = userData.user;
+      // Refrescar community_id en metadata si hace falta
+      if (!user.user_metadata?.community_id) {
+        const { data: userDb } = await supabase
+          .from('usuarios')
+          .select('community_id')
+          .eq('id', user.id)
+          .single();
+        if (userDb?.community_id) {
+          await supabase.auth.updateUser({
+            data: { ...user.user_metadata, community_id: userDb.community_id }
+          });
+        }
+      }
+      // Nunca crear IB ni usuario nuevo aquí
       window.location.href = 'https://www.scalexone.app/home';
     }
   };

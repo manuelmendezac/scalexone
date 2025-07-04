@@ -63,10 +63,11 @@ const SuspenseWrapper = ({ children }: { children: React.ReactNode }) => (
 );
 
 // Componente para redirigir /afiliado/:ib a /registro?ref=IB
-const AfiliadoRedirect = () => {
+function AfiliadoRedirect() {
   const { ib } = useParams();
+  if (!ib) return <Navigate to="/registro" replace />;
   return <Navigate to={`/registro?ref=${ib}`} replace />;
-};
+}
 
 export const router = createBrowserRouter([
   {
