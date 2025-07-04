@@ -59,14 +59,17 @@ const TransferenciaIBPage = () => {
       return;
     }
     setUserIdDestino(cod.user_id);
-    // Traer nombre del usuario destino
+    // Traer nombre del usuario destino (usar 'name' y fallback a email)
     const { data: usuario } = await supabase
       .from('usuarios')
-      .select('nombre')
+      .select('name, email')
       .eq('id', cod.user_id)
       .single();
-    if (usuario?.nombre) {
-      setNombreDestino(usuario.nombre);
+    if (usuario?.name) {
+      setNombreDestino(usuario.name);
+      setConfirmado(true);
+    } else if (usuario?.email) {
+      setNombreDestino(usuario.email);
       setConfirmado(true);
     } else {
       toast.error('No se pudo confirmar el nombre del IB destino');
@@ -126,6 +129,9 @@ const TransferenciaIBPage = () => {
         <div className="font-bold text-blue-700 text-lg mb-2">{ibOrigen}</div>
         <div className="text-sm text-gray-600">Saldo disponible:</div>
         <div className="font-bold text-green-600 text-lg mb-2">${saldo.toFixed(2)}</div>
+        {saldo === 0 && (
+          <div className="text-xs text-yellow-600 mb-2">¿No ves tu saldo? Asegúrate de tener comisiones confirmadas y que no haya retiros pendientes.</div>
+        )}
       </div>
       <div className="mb-4">
         <label className="block text-gray-700 mb-1">IB destino</label>
