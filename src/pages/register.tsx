@@ -32,7 +32,9 @@ const Register = () => {
   // Función para crear el usuario en la tabla 'usuarios' si no existe
   async function ensureUserInUsuariosTable(user: any, communityId: string, refIB: string | null) {
     if (!user) return;
-    const userEmail = user.email || user.user_metadata?.email || '';
+    const userEmail = user?.email || user?.user_metadata?.email || '';
+    console.log('Intentando insertar usuario:', user);
+    console.log('Email detectado:', userEmail);
     if (!userEmail) {
       alert('No se pudo obtener el email del usuario. Intenta con otro método de registro.');
       return;
@@ -148,22 +150,29 @@ const Register = () => {
   // Registro con Google
   const handleGoogle = async () => {
     await supabase.auth.signInWithOAuth({ provider: 'google' });
-    // Esperar a que la sesión esté lista y el usuario tenga email
-    setTimeout(async () => {
+    // Reintentos para obtener el email tras login con Google
+    let attempts = 0;
+    const maxAttempts = 5;
+    const interval = setInterval(async () => {
       const { data: { user } } = await supabase.auth.getUser();
-      const urlParams = new URLSearchParams(window.location.search);
-      const refIB = urlParams.get('ref') || getCookie('afiliado_ref') || null;
-      let communityId = '8fb70d6e-3237-465e-8669-979461cf2bc1';
-      if (refIB) {
-        const { data: refData } = await supabase
-          .from('codigos_afiliado')
-          .select('community_id')
-          .eq('codigo', refIB)
-          .single();
-        if (refData?.community_id) communityId = refData.community_id;
+      const userEmail = user?.email || user?.user_metadata?.email || '';
+      if (userEmail || attempts >= maxAttempts) {
+        clearInterval(interval);
+        const urlParams = new URLSearchParams(window.location.search);
+        const refIB = urlParams.get('ref') || getCookie('afiliado_ref') || null;
+        let communityId = '8fb70d6e-3237-465e-8669-979461cf2bc1';
+        if (refIB) {
+          const { data: refData } = await supabase
+            .from('codigos_afiliado')
+            .select('community_id')
+            .eq('codigo', refIB)
+            .single();
+          if (refData?.community_id) communityId = refData.community_id;
+        }
+        await ensureUserInUsuariosTable(user, communityId, refIB);
       }
-      await ensureUserInUsuariosTable(user, communityId, refIB);
-    }, 2000); // Espera 2 segundos para asegurar que la sesión esté lista
+      attempts++;
+    }, 1000); // Reintenta cada 1 segundo hasta 5 veces
   };
 
   return (
