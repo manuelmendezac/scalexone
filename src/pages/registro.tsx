@@ -12,6 +12,7 @@ const RegistroPage: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [step, setStep] = useState(1);
   const [affiliateCode, setAffiliateCode] = useState<string | null>(null);
+  const [sessionUser, setSessionUser] = useState<any>(null);
   const [clickRegistered, setClickRegistered] = useState(false);
 
   const [formData, setFormData] = useState({
@@ -31,6 +32,17 @@ const RegistroPage: React.FC = () => {
       setAffiliateCode(refCode);
       registerAffiliateClick(refCode);
     }
+    // Detectar sesión activa en Auth
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user) {
+        setSessionUser(user);
+        setFormData(prev => ({
+          ...prev,
+          email: user.email || user.user_metadata?.email || '',
+          fullName: user.user_metadata?.full_name || user.user_metadata?.name || ''
+        }));
+      }
+    });
   }, [searchParams]);
 
   const registerAffiliateClick = async (codigo: string) => {
@@ -83,14 +95,16 @@ const RegistroPage: React.FC = () => {
       newErrors.email = 'El email no es válido';
     }
 
-    if (!formData.password) {
-      newErrors.password = 'La contraseña es requerida';
-    } else if (formData.password.length < 6) {
-      newErrors.password = 'La contraseña debe tener al menos 6 caracteres';
-    }
+    if (!sessionUser) {
+      if (!formData.password) {
+        newErrors.password = 'La contraseña es requerida';
+      } else if (formData.password.length < 6) {
+        newErrors.password = 'La contraseña debe tener al menos 6 caracteres';
+      }
 
-    if (formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword = 'Las contraseñas no coinciden';
+      if (formData.password !== formData.confirmPassword) {
+        newErrors.confirmPassword = 'Las contraseñas no coinciden';
+      }
     }
 
     if (!formData.acceptTerms) {
@@ -106,78 +120,68 @@ const RegistroPage: React.FC = () => {
 
     setLoading(true);
     try {
-      // Registrar usuario en Supabase Auth
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: formData.email,
-        password: formData.password,
-        options: {
-          data: {
-            full_name: formData.fullName,
-            affiliate_code: affiliateCode
-          }
-        }
-      });
-
-      if (authError) throw authError;
-
-      if (authData.user) {
-        // Registrar conversión si hay código de afiliado
-        if (affiliateCode) {
-          try {
-            const { error: conversionError } = await supabase.rpc('registrar_conversion_afiliado', {
-              p_codigo: affiliateCode,
-              p_nuevo_usuario_id: authData.user.id,
-              p_tipo_conversion: 'registro_comunidad',
-              p_valor_conversion: 0
-            });
-
-            if (conversionError) {
-              console.error('Error registering conversion:', conversionError);
-            } else {
-              console.log('Conversion registered successfully');
+      let userId = null;
+      let userEmail = formData.email;
+      // Si ya hay sesión, solo crear en tabla usuarios
+      if (sessionUser) {
+        userId = sessionUser.id;
+        userEmail = sessionUser.email || sessionUser.user_metadata?.email || '';
+      } else {
+        // Registrar usuario en Supabase Auth
+        const { data: authData, error: authError } = await supabase.auth.signUp({
+          email: formData.email,
+          password: formData.password,
+          options: {
+            data: {
+              full_name: formData.fullName,
+              affiliate_code: affiliateCode
             }
-          } catch (conversionErr) {
-            console.error('Error in conversion registration:', conversionErr);
           }
-        }
+        });
 
-        // Crear perfil de usuario en la tabla usuarios
-        const { error: profileError } = await supabase
-          .from('usuarios')
-          .insert([
-            {
-              id: authData.user.id,
-              email: authData.user.email || authData.user.user_metadata?.email || '',
-              nombre: formData.fullName,
-              avatar_url: null,
-              fecha_creacion: new Date().toISOString(),
-              activo: true,
-              community_id: '8fb70d6e-3237-465e-8669-979461cf2bc1' // Valor por defecto
-            }
-          ]);
-        if (profileError) {
-          console.error('Error creating user profile:', profileError);
-          toast.error('Error creando perfil de usuario: ' + profileError.message);
-          setLoading(false);
-          return;
-        }
-        // Crear IB único usando la función RPC robusta
-        const { error: ibError } = await supabase.rpc('crear_codigo_afiliado_para_usuario', { p_user_id: authData.user.id });
-        if (ibError) {
-          console.error('Error creando IB:', ibError);
-          toast.error('Error creando código IB: ' + ibError.message);
-          setLoading(false);
-          return;
-        }
+        if (authError) throw authError;
 
-        setStep(3);
-        toast.success('¡Registro exitoso! Revisa tu email para confirmar tu cuenta.');
-        
-        // Redirigir después de un momento
-        setTimeout(() => {
-          navigate('/login');
-        }, 3000);
+        if (!authData.user) throw new Error('No se pudo crear el usuario en Auth.');
+        userId = authData.user.id;
+        userEmail = authData.user.email || authData.user.user_metadata?.email || '';
       }
+
+      // Crear perfil de usuario en la tabla usuarios
+      const { error: profileError } = await supabase
+        .from('usuarios')
+        .insert([
+          {
+            id: userId,
+            email: userEmail,
+            nombre: formData.fullName,
+            avatar_url: null,
+            fecha_creacion: new Date().toISOString(),
+            activo: true,
+            community_id: '8fb70d6e-3237-465e-8669-979461cf2bc1'
+          }
+        ]);
+      if (profileError) {
+        console.error('Error creating user profile:', profileError);
+        toast.error('Error creando perfil de usuario: ' + profileError.message);
+        setLoading(false);
+        return;
+      }
+      // Crear IB único usando la función RPC robusta
+      const { error: ibError } = await supabase.rpc('crear_codigo_afiliado_para_usuario', { p_user_id: userId });
+      if (ibError) {
+        console.error('Error creando IB:', ibError);
+        toast.error('Error creando código IB: ' + ibError.message);
+        setLoading(false);
+        return;
+      }
+
+      setStep(3);
+      toast.success('¡Registro exitoso! Revisa tu email para confirmar tu cuenta.');
+      
+      // Redirigir después de un momento
+      setTimeout(() => {
+        navigate('/login');
+      }, 3000);
     } catch (error: any) {
       console.error('Registration error:', error);
       toast.error(error.message || 'Error al registrar usuario');
@@ -212,10 +216,10 @@ const RegistroPage: React.FC = () => {
               <UserPlus className="h-8 w-8 text-blue-600" />
             </motion.div>
             <h2 className="text-3xl font-bold text-gray-900">
-              Únete a ScaleXone
+              {sessionUser ? 'Completa tu perfil' : 'Únete a ScaleXone'}
             </h2>
             <p className="mt-2 text-gray-600">
-              Crea tu cuenta y forma parte de nuestra comunidad
+              {sessionUser ? 'Completa los datos para finalizar tu registro en Scalexone.' : 'Crea tu cuenta y forma parte de nuestra comunidad'}
             </p>
             {affiliateCode && (
               <div className="mt-3 px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm inline-block">
@@ -261,10 +265,11 @@ const RegistroPage: React.FC = () => {
                   <input
                     type="email"
                     value={formData.email}
+                    disabled={!!sessionUser}
                     onChange={(e) => handleInputChange('email', e.target.value)}
                     className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
                       errors.email ? 'border-red-500' : 'border-gray-300'
-                    }`}
+                    } ${sessionUser ? 'bg-gray-100' : ''}`}
                     placeholder="tu@email.com"
                   />
                 </div>
@@ -373,7 +378,7 @@ const RegistroPage: React.FC = () => {
                   disabled={loading}
                   className="flex-1 py-3 px-4 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:opacity-50"
                 >
-                  {loading ? 'Registrando...' : 'Crear Cuenta'}
+                  {loading ? 'Registrando...' : 'Registrarse'}
                 </motion.button>
               </div>
             </motion.div>
