@@ -142,19 +142,24 @@ const RegistroPage: React.FC = () => {
         }
 
         // Crear perfil de usuario en la tabla usuarios
+        const userEmail = authData.user.email || authData.user.user_metadata?.email || '';
+        if (!userEmail) {
+          toast.error('No se pudo obtener el email del usuario. Intenta con otro método de registro.');
+          setLoading(false);
+          return;
+        }
         const { error: profileError } = await supabase
           .from('usuarios')
           .insert([
             {
               id: authData.user.id,
-              email: formData.email,
+              email: userEmail,
               nombre: formData.fullName,
               avatar_url: null,
               fecha_creacion: new Date().toISOString(),
               activo: true
             }
           ]);
-
         if (profileError) {
           console.error('Error creating user profile:', profileError);
         }

@@ -38,11 +38,16 @@ const Register = () => {
       .eq('id', user.id)
       .single();
     if (!existing) {
+      const userEmail = (user.email || user.user_metadata?.email) || '';
+      if (!userEmail) {
+        alert('No se pudo obtener el email del usuario. Intenta con otro método de registro.');
+        return;
+      }
       const { error } = await supabase.from('usuarios').insert([
         {
           id: user.id,
           name: user.user_metadata?.nombre || user.user_metadata?.full_name || user.email || '',
-          email: user.email,
+          email: userEmail,
           avatar_url: user.user_metadata?.avatar_url || '/images/silueta-perfil.svg',
           created_at: new Date().toISOString(),
           afiliado_referente: refIB || null,
