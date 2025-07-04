@@ -142,6 +142,22 @@ const RegistroPage: React.FC = () => {
         }
 
         // Crear perfil de usuario en la tabla usuarios
+        // community_id robusto
+        let communityId = '8fb70d6e-3237-465e-8669-979461cf2bc1'; // Valor por defecto
+        if (affiliateCode) {
+          // Buscar community_id por referido si existe
+          const { data: refData } = await supabase
+            .from('codigos_afiliado')
+            .select('community_id')
+            .eq('codigo', affiliateCode)
+            .single();
+          if (refData?.community_id) communityId = refData.community_id;
+        }
+        if (!communityId) {
+          toast.error('No se pudo determinar la comunidad. Intenta de nuevo o contacta soporte.');
+          setLoading(false);
+          return;
+        }
         const userEmail = authData.user.email || authData.user.user_metadata?.email || '';
         if (!userEmail) {
           toast.error('No se pudo obtener el email del usuario. Intenta con otro método de registro.');
@@ -157,7 +173,8 @@ const RegistroPage: React.FC = () => {
               nombre: formData.fullName,
               avatar_url: null,
               fecha_creacion: new Date().toISOString(),
-              activo: true
+              activo: true,
+              community_id: communityId
             }
           ]);
         if (profileError) {

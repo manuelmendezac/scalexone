@@ -106,6 +106,12 @@ const Register = () => {
         .single();
       if (refData?.community_id) communityId = refData.community_id;
     }
+    // Validar que communityId nunca sea undefined ni vacío
+    if (!communityId) {
+      setError('No se pudo determinar la comunidad. Intenta de nuevo o contacta soporte.');
+      setLoading(false);
+      return;
+    }
     // 3. Registrar usuario en Supabase Auth
     const { data, error } = await supabase.auth.signUp({
       email,
