@@ -123,59 +123,22 @@ const MarketingAfiliadosPanel: React.FC = () => {
           setLoading(false);
           return;
         }
-        // Métricas principales
-        let totalClicks = 0, totalLeads = 0, totalSales = 0, totalEarnings = 0, pendingEarnings = 0, paymentsGenerated = 0, paymentsReceived = 0;
-        // CLICKS
-        if (codigoAfiliadoId) {
-          const { count: clicksCount } = await supabase
-            .from('clicks_afiliado')
-            .select('id', { count: 'exact', head: true })
-            .eq('codigo_afiliado_id', codigoAfiliadoId);
-          totalClicks = clicksCount || 0;
+        // Obtener ganancias y ventas reales desde comisiones_afiliado
+        let totalEarnings = 0, totalSales = 0;
+        if (user.id) {
+          const { data: comisiones } = await supabase
+            .from('comisiones_afiliado')
+            .select('monto')
+            .eq('user_id', user.id)
+            .eq('estado', 'aprobada');
+          totalEarnings = (comisiones && comisiones.length > 0) ? comisiones.reduce((acc, c) => acc + (c.monto ?? 0), 0) : 0;
+          totalSales = comisiones?.length || 0;
         }
-        // LEADS
-        if (codigoAfiliadoId) {
-          const { count: leadsCount } = await supabase
-            .from('leads_afiliado')
-            .select('id', { count: 'exact', head: true })
-            .eq('codigo_afiliado_id', codigoAfiliadoId);
-          totalLeads = leadsCount || 0;
-        }
-        // CONVERSIONES/VENTAS
-        if (codigoAfiliadoId) {
-          const { data: conversiones } = await supabase
-            .from('conversiones_afiliado')
-            .select('id, valor_conversion, comision_generada, estado, created_at')
-            .eq('codigo_afiliado_id', codigoAfiliadoId);
-          totalSales = conversiones?.length || 0;
-          totalEarnings = (conversiones && conversiones.length > 0) ? conversiones.reduce((acc, c) => acc + (c.comision_generada ?? 0), 0) : 0;
-          pendingEarnings = (conversiones && conversiones.length > 0) ? conversiones.filter(c => c.estado === 'pendiente').reduce((acc, c) => acc + (c.comision_generada ?? 0), 0) : 0;
-          paymentsGenerated = conversiones?.filter(c => c.estado === 'confirmada').length || 0;
-          paymentsReceived = conversiones?.filter(c => c.estado === 'pagada').length || 0;
-          // Gráfica de ingresos por fecha
-          const ingresosPorFecha: { [fecha: string]: number } = {};
-          conversiones?.forEach(c => {
-            const fecha = c.created_at?.slice(0, 10);
-            if (!fecha) return;
-            ingresosPorFecha[fecha] = (ingresosPorFecha[fecha] || 0) + (c.comision_generada ?? 0);
-          });
-          setEarningsData(Object.entries(ingresosPorFecha).map(([date, earnings]) => ({ date, earnings })));
-        }
-        // Calcular tasa de conversión
-        const conversionRate = totalClicks > 0 ? (totalSales / totalClicks) * 100 : 0;
-        setDashboardMetrics({
+        setDashboardMetrics(metrics => ({
+          ...metrics,
           totalEarnings,
-          pendingEarnings,
-          refunds: 0, // Implementar si tienes reembolsos
-          refundPercentage: 0, // Implementar si tienes reembolsos
-          totalSales,
-          totalClicks,
-          totalLeads,
-          conversionRate,
-          paymentsGenerated,
-          paymentsReceived,
-          montoRetiro: 0 // Inicialmente 0, luego se actualiza abajo
-        });
+          totalSales
+        }));
         // Obtener saldo disponible real usando la función obtener_saldo_ib
         let montoRetiro = 0;
         if (codigoAfiliado) {
