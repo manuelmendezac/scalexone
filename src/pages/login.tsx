@@ -157,7 +157,7 @@ const Login = () => {
             padding: 0,
             borderRadius: 18,
             background: '#000',
-            boxShadow: '0 0 32px #0ff2',
+            boxShadow: '0 0 32px #FFD700',
             overflow: 'hidden',
             display: 'flex',
             flexDirection: 'column',
@@ -180,30 +180,27 @@ const Login = () => {
             }}
           />
           <div style={{ padding: 32, paddingTop: 24, width: '100%' }}>
-            <div style={{ textAlign: 'center', color: '#00ffe0', fontWeight: 700, fontSize: 22, marginBottom: 18 }}>
-              ¡Bienvenido a ScalexOne! Plataforma para escalar ventas, comunidad y automatización con IA 🚀
-            </div>
-            <button onClick={handleGoogle} style={{ width: '100%', background: '#00ffe0', color: '#181828', border: 'none', borderRadius: 8, padding: 12, fontWeight: 700, fontSize: 16, marginBottom: 18, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, boxShadow: '0 2px 8px #0002', cursor: 'pointer' }}>
-              <img src="/images/google.svg" alt="Google" style={{ width: 22, height: 22 }} /> Registrarse o ingresar con Google
+            <button onClick={handleGoogle} style={{ width: '100%', background: '#FFD700', color: '#181828', border: 'none', borderRadius: 8, padding: 12, fontWeight: 700, fontSize: 16, marginBottom: 18, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, boxShadow: '0 2px 8px #0002', cursor: 'pointer' }}>
+              <img src="/images/google.svg" alt="Google" style={{ width: 22, height: 22 }} /> INGRESAR CON GOOGLE
             </button>
-            <div style={{ textAlign: 'center', color: '#b6eaff', margin: '18px 0 10px 0', fontWeight: 600 }}>o ingresa con tu correo</div>
+            <div style={{ textAlign: 'center', color: '#FFD700', margin: '18px 0 10px 0', fontWeight: 600 }}>o ingresa con tu correo</div>
             <form onSubmit={handleLogin} style={{ width: '100%' }}>
-              <input type="email" placeholder="Correo electrónico" value={email} onChange={e => setEmail(e.target.value)} style={{ width: '100%', marginBottom: 12, padding: 12, borderRadius: 7, border: 'none', background: '#181828', color: '#fff', fontSize: 16 }} required />
+              <input type="email" placeholder="Correo electrónico" value={email} onChange={e => setEmail(e.target.value)} style={{ width: '100%', marginBottom: 12, padding: 12, borderRadius: 7, border: 'none', background: '#181828', color: '#fff', fontSize: 16, borderColor: '#FFD700', borderWidth: 2 }} required />
               <div style={{ position: 'relative', marginBottom: 12 }}>
-                <input type={showPassword ? 'text' : 'password'} placeholder="Contraseña" value={password} onChange={e => setPassword(e.target.value)} style={{ width: '100%', padding: 12, borderRadius: 7, border: 'none', background: '#181828', color: '#fff', fontSize: 16 }} required />
-                <span onClick={() => setShowPassword(v => !v)} style={{ position: 'absolute', right: 12, top: 14, cursor: 'pointer', color: '#0ff', fontSize: 18 }}>{showPassword ? '🙈' : '👁️'}</span>
+                <input type={showPassword ? 'text' : 'password'} placeholder="Contraseña" value={password} onChange={e => setPassword(e.target.value)} style={{ width: '100%', padding: 12, borderRadius: 7, border: 'none', background: '#181828', color: '#fff', fontSize: 16, borderColor: '#FFD700', borderWidth: 2 }} required />
+                <span onClick={() => setShowPassword(v => !v)} style={{ position: 'absolute', right: 12, top: 14, cursor: 'pointer', color: '#FFD700', fontSize: 18 }}>{showPassword ? '🙈' : '👁️'}</span>
               </div>
               <div style={{ textAlign: 'right', marginBottom: 12 }}>
-                <span onClick={handleForgotPassword} style={{ color: '#0ff', cursor: 'pointer', fontSize: 13 }}>¿Olvidaste tu contraseña?</span>
+                <span onClick={handleForgotPassword} style={{ color: '#FFD700', cursor: 'pointer', fontSize: 13 }}>¿Olvidaste tu contraseña?</span>
               </div>
               {error && <div style={{ color: 'red', marginBottom: 8, textAlign: 'center', fontWeight: 600 }}>{error}</div>}
               {success && <div style={{ color: '#0f0', marginBottom: 8, textAlign: 'center', fontWeight: 600 }}>{success}</div>}
-              <button type="submit" disabled={loading} style={{ width: '100%', background: '#0ff', color: '#000', border: 'none', borderRadius: 7, padding: 12, fontWeight: 700, fontSize: 22, marginBottom: 12, marginTop: 8, cursor: 'pointer' }}>
-                {loading ? 'Ingresando...' : 'ACTIVA TU CLON'}
+              <button type="submit" disabled={loading} style={{ width: '100%', background: '#FFD700', color: '#000', border: 'none', borderRadius: 7, padding: 12, fontWeight: 700, fontSize: 22, marginBottom: 12, marginTop: 8, cursor: 'pointer' }}>
+                {loading ? 'Ingresando...' : 'INGRESAR'}
               </button>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 18 }}>
-                <input type="checkbox" id="remember" checked={remember} onChange={e => setRemember(e.target.checked)} style={{ accentColor: '#0ff', width: 18, height: 18 }} />
-                <label htmlFor="remember" style={{ color: '#b6eaff', fontSize: 15, cursor: 'pointer', userSelect: 'none' }}>Recordar correo</label>
+                <input type="checkbox" id="remember" checked={remember} onChange={e => setRemember(e.target.checked)} style={{ accentColor: '#FFD700', width: 18, height: 18 }} />
+                <label htmlFor="remember" style={{ color: '#FFD700', fontSize: 15, cursor: 'pointer', userSelect: 'none' }}>Recordar correo</label>
               </div>
             </form>
           </div>
