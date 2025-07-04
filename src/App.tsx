@@ -116,29 +116,24 @@ function App() {
           .single();
 
         if (usuarioError) {
-          console.error('Error consultando datos de usuario:', usuarioError);
-          // Si hay error, usar valores por defecto
+          await supabase.auth.signOut();
+          navigate('/registro', { replace: true });
+          return;
+        }
+
+        // Solo actualiza si hay cambios reales
+        if (
+          usuarioData?.rol !== userInfo.rol ||
+          usuarioData?.community_id !== userInfo.community_id ||
+          nombre !== userInfo.name ||
+          user.email !== userInfo.email
+        ) {
           updateUserInfo({
             name: nombre,
             email: user.email,
-            rol: user.user_metadata?.rol || 'user',
-            community_id: 'default'
+            rol: usuarioData?.rol || user.user_metadata?.rol || 'user',
+            community_id: usuarioData?.community_id || 'default'
           });
-        } else {
-          // Solo actualiza si hay cambios reales
-          if (
-            usuarioData?.rol !== userInfo.rol ||
-            usuarioData?.community_id !== userInfo.community_id ||
-            nombre !== userInfo.name ||
-            user.email !== userInfo.email
-          ) {
-            updateUserInfo({
-              name: nombre,
-              email: user.email,
-              rol: usuarioData?.rol || user.user_metadata?.rol || 'user',
-              community_id: usuarioData?.community_id || 'default'
-            });
-          }
         }
 
         syncUsuarioSupabase(user);

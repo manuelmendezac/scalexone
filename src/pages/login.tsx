@@ -27,42 +27,6 @@ const Login = () => {
     if (savedEmail) setEmail(savedEmail);
   }, [userName, location.pathname]);
 
-  // Función para crear el usuario en la tabla 'usuarios' si no existe
-  async function ensureUserInUsuariosTable(user: any) {
-    if (!user) return;
-    const userEmail = user?.email || user?.user_metadata?.email || '';
-    console.log('Intentando insertar usuario (login):', user);
-    console.log('Email detectado (login):', userEmail);
-    if (!userEmail) {
-      alert('No se pudo obtener el email del usuario. Intenta con otro método de login.');
-      return;
-    }
-    const { data: existing, error: selectError } = await supabase
-      .from('usuarios')
-      .select('id')
-      .eq('id', user.id)
-      .single();
-    if (!existing) {
-      const { error } = await supabase.from('usuarios').insert([
-        {
-          id: user.id,
-          name: user.user_metadata?.nombre || user.user_metadata?.full_name || user.email || '',
-          email: userEmail,
-          avatar_url: user.user_metadata?.avatar_url || '/images/silueta-perfil.svg',
-          created_at: new Date().toISOString(),
-        },
-      ]);
-      if (error) {
-        console.error('Error insertando usuario en tabla usuarios (login):', error);
-        alert('Error insertando usuario en tabla usuarios (login): ' + error.message);
-      } else {
-        alert('Usuario insertado correctamente en la tabla usuarios (login)');
-      }
-    } else {
-      console.log('El usuario ya existe en la tabla usuarios (login)');
-    }
-  }
-
   // Login con email/contraseña
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -92,7 +56,6 @@ const Login = () => {
         .eq('id', user.id)
         .single();
       if (!perfil) {
-        // Si no existe, redirige a registro y cierra sesión
         setError('Debes registrarte antes de poder iniciar sesión.');
         await supabase.auth.signOut();
         window.location.href = '/registro';

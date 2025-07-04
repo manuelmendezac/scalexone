@@ -79,26 +79,14 @@ const OnboardingMentor: React.FC = () => {
     async function checkAndInsertUser() {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
-        // Reutiliza la función ya definida en login/register
-        if (typeof ensureUserInUsuariosTable === 'function') {
-          await ensureUserInUsuariosTable(user);
-        } else {
-          // Lógica directa si la función no está disponible
-          const { data: existing } = await supabase
-            .from('usuarios')
-            .select('id')
-            .eq('id', user.id)
-            .single();
-          if (!existing) {
-            await supabase.from('usuarios').insert([
-              {
-                id: user.id,
-                name: user.user_metadata?.nombre || user.user_metadata?.full_name || '',
-                avatar_url: user.user_metadata?.avatar_url || '',
-                created_at: new Date().toISOString(),
-              },
-            ]);
-          }
+        const { data: existing } = await supabase
+          .from('usuarios')
+          .select('id')
+          .eq('id', user.id)
+          .single();
+        if (!existing) {
+          window.location.href = '/registro';
+          return;
         }
       }
     }
