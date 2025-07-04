@@ -326,7 +326,7 @@ const MarketingAfiliadosPanel: React.FC = () => {
             <div className="bg-white rounded-xl p-6 border border-gray-200">
                 <p className="text-gray-500 text-sm mb-2">Monto disponible para retiro</p>
                 <p className="text-3xl font-bold text-green-600 mb-4">${availableForWithdrawal.toFixed(2)}</p>
-                <Link to="/afiliados/retiros" className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg text-center inline-block transition-colors">
+                <Link to="/afiliados/retiro" className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg text-center inline-block transition-colors">
                     Retirar Saldo
                 </Link>
             </div>
