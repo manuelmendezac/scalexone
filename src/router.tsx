@@ -14,6 +14,7 @@ import EnlacesAfiliadosPage from './pages/afiliados/enlaces';
 import ContactoIBPage from './pages/afiliados/contacto';
 import RetiroAfiliadoPage from './pages/afiliados/retiro';
 import TransferenciaIBPage from './pages/afiliados/transferencia';
+import RegistroPage from './pages/registro';
 
 // Implementación de Lazy Loading para todos los componentes de página
 const Hero = lazy(() => import('./components/Hero'));
@@ -46,7 +47,6 @@ const Launchpad = lazy(() => import('./pages/Launchpad'));
 const ComunidadPage = lazy(() => import('./pages/comunidad'));
 const AfiliadosPage = lazy(() => import('./pages/afiliados/index'));
 const Login = lazy(() => import('./pages/login'));
-const Register = lazy(() => import('./pages/register'));
 const ResetPassword = lazy(() => import('./pages/ResetPassword'));
 const ConfiguracionProyecto = lazy(() => import('./components/ConfiguracionProyecto'));
 const CursoDetalle = lazy(() => import('./pages/cursos/id'));
@@ -128,9 +128,9 @@ export const router = createBrowserRouter([
       { path: 'export', element: <SuspenseWrapper><ExportCenter /></SuspenseWrapper> },
       { path: 'store', element: <SuspenseWrapper><NeuroCloneStore /></SuspenseWrapper> },
       { path: 'login', element: <SuspenseWrapper><Login /></SuspenseWrapper> },
-      { path: 'register', element: <SuspenseWrapper><Register /></SuspenseWrapper> },
+      { path: 'register', element: <SuspenseWrapper><RegistroPage /></SuspenseWrapper> },
       { path: 'reset-password', element: <SuspenseWrapper><ResetPassword /></SuspenseWrapper> },
-      { path: 'registro', element: <SuspenseWrapper><Register /></SuspenseWrapper> },
+      { path: 'registro', element: <SuspenseWrapper><RegistroPage /></SuspenseWrapper> },
       { path: '*', element: <Error404 /> }
     ]
   },
