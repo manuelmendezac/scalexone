@@ -32,7 +32,8 @@ const TransferenciaIBPage = () => {
       if (codigo) setIbOrigen(codigo.codigo);
       // Obtener saldo disponible (solo comisiones liberadas)
       const { data: saldoData } = await supabase.rpc('obtener_saldo_ib', { p_ib: codigo?.codigo });
-      setSaldo(saldoData?.saldo || 0);
+      const saldoReal = Array.isArray(saldoData) ? (saldoData[0]?.saldo || 0) : (saldoData?.saldo || 0);
+      setSaldo(saldoReal);
     };
     fetchDatos();
   }, []);

@@ -29,15 +29,11 @@ const RetiroAfiliadoPage = () => {
           .order('created_at', { ascending: false })
           .limit(1);
         if (codigos && codigos.length > 0) setIb(codigos[0].codigo);
-        // Obtener saldo disponible (puedes ajustar la lógica según tu sistema)
-        const { data: stats } = await supabase
-          .from('estadisticas_afiliado')
-          .select('total_comisiones, comisiones_pendientes, comisiones_pagadas')
-          .eq('user_id', user.id)
-          .single();
-        if (stats) {
-          // Saldo = comisiones totales - pagadas - pendientes de retiro
-          setSaldo((stats.total_comisiones || 0) - (stats.comisiones_pagadas || 0) - (stats.comisiones_pendientes || 0));
+        // Obtener saldo disponible real usando la función obtener_saldo_ib
+        if (codigos && codigos.length > 0) {
+          const { data: saldoData } = await supabase.rpc('obtener_saldo_ib', { p_ib: codigos[0].codigo });
+          const saldoReal = Array.isArray(saldoData) ? (saldoData[0]?.saldo || 0) : (saldoData?.saldo || 0);
+          setSaldo(saldoReal);
         }
       } catch (e) {
         toast.error('Error al cargar datos');

@@ -180,7 +180,7 @@ const MarketingAfiliadosPanel: React.FC = () => {
         let montoRetiro = 0;
         if (codigoAfiliado) {
           const { data: saldoData } = await supabase.rpc('obtener_saldo_ib', { p_ib: codigoAfiliado });
-          montoRetiro = saldoData?.saldo || 0;
+          montoRetiro = Array.isArray(saldoData) ? (saldoData[0]?.saldo || 0) : (saldoData?.saldo || 0);
         }
         setDashboardMetrics(metrics => ({ ...metrics, montoRetiro: montoRetiro > 0 ? montoRetiro : 0 }));
       } catch (error) {
