@@ -176,29 +176,11 @@ const MarketingAfiliadosPanel: React.FC = () => {
           paymentsReceived,
           montoRetiro: 0 // Inicialmente 0, luego se actualiza abajo
         });
-        // Calcular monto de retiro real
+        // Obtener saldo disponible real usando la función obtener_saldo_ib
         let montoRetiro = 0;
-        if (codigoAfiliadoId) {
-          // Comisiones confirmadas y liberadas (ventas con más de 7 días, no reembolsadas)
-          const { data: conversiones } = await supabase
-            .from('conversiones_afiliado')
-            .select('comision_generada, estado, created_at')
-            .eq('codigo_afiliado_id', codigoAfiliadoId)
-            .eq('estado', 'confirmada');
-          const hoy = new Date();
-          const comisionesLiberadas = (conversiones || []).filter(c => {
-            const fecha = new Date(c.created_at);
-            const diff = (hoy.getTime() - fecha.getTime()) / (1000 * 60 * 60 * 24);
-            return diff >= 7 && (c.comision_generada ?? 0) > 0;
-          });
-          montoRetiro = comisionesLiberadas.reduce((acc, c) => acc + (c.comision_generada ?? 0), 0);
-          // Restar retiros realizados
-          const { data: retiros } = await supabase
-            .from('retiros_afiliados')
-            .select('monto, estado')
-            .eq('codigo_afiliado_id', codigoAfiliadoId)
-            .in('estado', ['aprobado', 'pagado']);
-          montoRetiro -= (retiros || []).reduce((acc, r) => acc + (r.monto ?? 0), 0);
+        if (codigoAfiliado) {
+          const { data: saldoData } = await supabase.rpc('obtener_saldo_ib', { p_ib: codigoAfiliado });
+          montoRetiro = saldoData?.saldo || 0;
         }
         setDashboardMetrics(metrics => ({ ...metrics, montoRetiro: montoRetiro > 0 ? montoRetiro : 0 }));
       } catch (error) {
