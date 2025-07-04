@@ -127,21 +127,15 @@ const Register = () => {
       const user = data.user || data.session?.user;
       await ensureUserInUsuariosTable(user, communityId, refIB);
       // 5. Buscar si ya tiene IB
+      if (!user) return;
       const { data: ibExistente } = await supabase
         .from('codigos_afiliado')
         .select('codigo')
         .eq('user_id', user.id)
         .single();
       if (!ibExistente) {
-        // Crear IB único
-        const nuevoIB = 'IB' + (Math.floor(100000 + Math.random() * 900000));
-        await supabase.from('codigos_afiliado').insert([{
-          user_id: user.id,
-          codigo: nuevoIB,
-          community_id: communityId,
-          activo: true,
-          created_at: new Date().toISOString(),
-        }]);
+        // Crear IB único usando la función RPC robusta
+        await supabase.rpc('crear_codigo_afiliado_para_usuario', { p_user_id: user.id });
       }
       window.location.href = 'https://www.scalexone.app/home';
     }
