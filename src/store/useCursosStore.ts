@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { supabase } from '../supabase';
+import useNeuroState from './useNeuroState';
 
 interface Curso {
   id: string;
@@ -7,6 +8,7 @@ interface Curso {
   descripcion: string;
   imagen: string;
   orden: number;
+  community_id?: string;
 }
 
 interface CursosStore {
@@ -31,6 +33,8 @@ const useCursosStore = create<CursosStore>((set, get) => ({
   fetchCursos: async () => {
     const now = Date.now();
     const lastFetch = get().lastFetch;
+    const { userInfo } = useNeuroState.getState();
+    const communityId = userInfo?.community_id || '8fb70d6e-3237-465e-8669-979461cf2bc1';
 
     // Si tenemos datos en caché y no ha pasado 1 minuto, usamos el caché
     if (lastFetch && now - lastFetch < CACHE_DURATION && get().cursos.length > 0) {
@@ -43,6 +47,7 @@ const useCursosStore = create<CursosStore>((set, get) => ({
       const { data, error } = await supabase
         .from('cursos')
         .select('*')
+        .eq('community_id', communityId)
         .order('orden', { ascending: true });
 
       if (error) throw error;

@@ -4,6 +4,7 @@ import { Calendar, Share2, MessageSquare, Info, ChevronLeft, ChevronRight, Maxim
 import LaunchCalendar from '../components/launchpad/LaunchCalendar';
 import { supabase } from '../supabase';
 import { useHydration } from '../store/useNeuroState';
+import useNeuroState from '../store/useNeuroState';
 import LoadingScreen from '../components/LoadingScreen';
 
 interface LaunchEvent {
@@ -65,6 +66,12 @@ function getYouTubeId(url: string): string | null {
 
 const Launchpad: React.FC = () => {
   console.log('Render Launchpad');
+  const { userInfo } = useNeuroState();
+  const isHydrated = useHydration();
+  
+  // Obtener el community_id del usuario activo
+  const communityId = userInfo?.community_id || '8fb70d6e-3237-465e-8669-979461cf2bc1';
+  
   const [isMenuOpen, setIsMenuOpen] = useState(true);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<LaunchEvent | null>(null);
@@ -131,7 +138,6 @@ const Launchpad: React.FC = () => {
   // Estado para mostrar el menú de compartir
   const [shareMenuOpen, setShareMenuOpen] = useState(false);
   const videoRef = useRef<HTMLDivElement>(null);
-  const isHydrated = useHydration();
 
   // Ajustar barra lateral según el ancho de pantalla después del primer render
   useEffect(() => {
@@ -167,6 +173,7 @@ const Launchpad: React.FC = () => {
     const { data, error } = await supabase
       .from('launchpad_events')
       .select('*')
+      .eq('community_id', communityId)
       .order('date', { ascending: false })
       .limit(1)
       .single();
@@ -182,7 +189,11 @@ const Launchpad: React.FC = () => {
     }
     setLoadingFeatured(false);
   }
-  useEffect(() => { fetchFeatured(); }, []);
+  useEffect(() => { 
+    if (isHydrated) {
+      fetchFeatured(); 
+    }
+  }, [isHydrated, communityId]);
 
   function getCountdown(targetDate: string) {
     const now = new Date();
@@ -205,12 +216,13 @@ const Launchpad: React.FC = () => {
 
   // Cargar datos del evento destacado desde Supabase al abrir el drawer
   useEffect(() => {
-    if (!drawerOpen) return;
+    if (!drawerOpen || !isHydrated) return;
     async function fetchEvent() {
       setLoadingEvent(true);
       const { data, error } = await supabase
         .from('launchpad_events')
         .select('*')
+        .eq('community_id', communityId)
         .order('date', { ascending: false })
         .limit(1)
         .single();
@@ -227,29 +239,33 @@ const Launchpad: React.FC = () => {
       setLoadingEvent(false);
     }
     fetchEvent();
-  }, [drawerOpen]);
+  }, [drawerOpen, isHydrated, communityId]);
 
   // Cargar enlaces rápidos desde Supabase al iniciar la página
   useEffect(() => {
+    if (!isHydrated) return;
     async function fetchLinks() {
       setLoadingLinks(true);
       const { data, error } = await supabase
         .from('launchpad_links')
         .select('*')
+        .eq('community_id', communityId)
         .order('order_index', { ascending: true });
       if (data) setLinks(data);
       setLoadingLinks(false);
     }
     fetchLinks();
-  }, []);
+  }, [isHydrated, communityId]);
 
   // Cargar configuración al montar
   useEffect(() => {
+    if (!isHydrated) return;
     async function fetchSettings() {
       setLoadingSettings(true);
       const { data } = await supabase
         .from('launchpad_settings')
         .select('*')
+        .eq('community_id', communityId)
         .order('updated_at', { ascending: false })
         .limit(1)
         .single();
@@ -260,28 +276,34 @@ const Launchpad: React.FC = () => {
       setLoadingSettings(false);
     }
     fetchSettings();
-  }, []);
+  }, [isHydrated, communityId]);
 
   // Cargar videos desde Supabase
   useEffect(() => {
+    if (!isHydrated) return;
     async function fetchVideos() {
       setLoadingVideos(true);
-      const { data } = await supabase.from('launchpad_videos').select('*').order('date', { ascending: true });
+      const { data } = await supabase
+        .from('launchpad_videos')
+        .select('*')
+        .eq('community_id', communityId)
+        .order('date', { ascending: true });
       if (data) setVideos(data);
       setLoadingVideos(false);
     }
     fetchVideos();
-  }, []);
+  }, [isHydrated, communityId]);
 
   // Cargar calificaciones y comentarios cuando cambia el video seleccionado
   useEffect(() => {
-    if (!selectedEvent) return;
+    if (!selectedEvent || !isHydrated) return;
     // Calificaciones
     async function fetchRatings() {
       const { data, error } = await supabase
         .from('launchpad_video_ratings')
         .select('rating')
-        .eq('video_id', selectedEvent.id);
+        .eq('video_id', selectedEvent.id)
+        .eq('community_id', communityId);
       if (data) {
         const ratings = data.map((r: any) => r.rating);
         setAvgRating(ratings.length ? ratings.reduce((a: number, b: number) => a + b, 0) / ratings.length : 0);
@@ -295,13 +317,14 @@ const Launchpad: React.FC = () => {
         .from('launchpad_video_comments')
         .select('*')
         .eq('video_id', selectedEvent.id)
+        .eq('community_id', communityId)
         .order('created_at', { ascending: false });
       if (data) setComments(data);
       setLoadingComments(false);
     }
     fetchRatings();
     fetchComments();
-  }, [selectedEvent]);
+  }, [selectedEvent, isHydrated, communityId]);
 
   // Guardar cambios en Supabase
   async function handleSaveEvent(e: React.FormEvent) {
@@ -311,6 +334,7 @@ const Launchpad: React.FC = () => {
     const { data: existing } = await supabase
       .from('launchpad_events')
       .select('id')
+      .eq('community_id', communityId)
       .order('date', { ascending: false })
       .limit(1)
       .single();
@@ -338,6 +362,7 @@ const Launchpad: React.FC = () => {
             date: editEvent.date,
             start_date: editEvent.start_date,
             end_date: editEvent.end_date,
+            community_id: communityId,
           },
         ]);
     }
@@ -353,13 +378,14 @@ const Launchpad: React.FC = () => {
     setSavingLinks(true);
     const { data, error } = await supabase
       .from('launchpad_links')
-      .insert([{ ...newLink, order_index: links.length }]);
+      .insert([{ ...newLink, order_index: links.length, community_id: communityId }]);
     setSavingLinks(false);
     setNewLink({ label: '', url: '', icon: '', icon_img: '' });
     // Refrescar lista
     const { data: updated } = await supabase
       .from('launchpad_links')
       .select('*')
+      .eq('community_id', communityId)
       .order('order_index', { ascending: true });
     if (updated) setLinks(updated);
   }
@@ -385,6 +411,7 @@ const Launchpad: React.FC = () => {
     const { data: existing } = await supabase
       .from('launchpad_settings')
       .select('id')
+      .eq('community_id', communityId)
       .order('updated_at', { ascending: false })
       .limit(1)
       .single();
@@ -405,6 +432,7 @@ const Launchpad: React.FC = () => {
           {
             sidebar_title: sidebarSettings.sidebar_title,
             sidebar_logo: sidebarSettings.sidebar_logo,
+            community_id: communityId,
           },
         ]);
     }
@@ -433,15 +461,23 @@ const Launchpad: React.FC = () => {
     setSavingVideo(true);
     // Si es destacado, desmarcar otros
     if (newVideo.destacado) {
-      await supabase.from('launchpad_videos').update({ destacado: false }).eq('destacado', true);
+      await supabase
+        .from('launchpad_videos')
+        .update({ destacado: false })
+        .eq('destacado', true)
+        .eq('community_id', communityId);
     }
     // Transformar la URL antes de guardar
-    const videoToSave = { ...newVideo, video_url: toEmbedUrl(newVideo.video_url) };
+    const videoToSave = { ...newVideo, video_url: toEmbedUrl(newVideo.video_url), community_id: communityId };
     const { error } = await supabase.from('launchpad_videos').insert([videoToSave]);
     setSavingVideo(false);
     setNewVideo({ title: '', description: '', video_url: '', thumbnail: '', type: 'Directo', date: '', destacado: false });
     // Refrescar lista
-    const { data } = await supabase.from('launchpad_videos').select('*').order('date', { ascending: true });
+    const { data } = await supabase
+      .from('launchpad_videos')
+      .select('*')
+      .eq('community_id', communityId)
+      .order('date', { ascending: true });
     if (data) setVideos(data);
     if (error) alert('Error guardando video: ' + error.message);
   }
@@ -451,7 +487,11 @@ const Launchpad: React.FC = () => {
     e.preventDefault();
     setSavingVideo(true);
     if (editVideo.destacado) {
-      await supabase.from('launchpad_videos').update({ destacado: false }).eq('destacado', true);
+      await supabase
+        .from('launchpad_videos')
+        .update({ destacado: false })
+        .eq('destacado', true)
+        .eq('community_id', communityId);
     }
     // Transformar la URL antes de guardar
     const videoToUpdate = { ...editVideo, video_url: toEmbedUrl(editVideo.video_url) };
@@ -459,7 +499,11 @@ const Launchpad: React.FC = () => {
     setSavingVideo(false);
     setEditVideo(null);
     // Refrescar lista
-    const { data } = await supabase.from('launchpad_videos').select('*').order('date', { ascending: true });
+    const { data } = await supabase
+      .from('launchpad_videos')
+      .select('*')
+      .eq('community_id', communityId)
+      .order('date', { ascending: true });
     if (data) setVideos(data);
     if (error) alert('Error actualizando video: ' + error.message);
   }
@@ -475,13 +519,16 @@ const Launchpad: React.FC = () => {
     if (!selectedEvent || !rating) return;
     const videoId = selectedEvent.id;
     setSavingRating(true);
-    await supabase.from('launchpad_video_ratings').insert({ video_id: videoId, rating });
+    await supabase
+      .from('launchpad_video_ratings')
+      .insert({ video_id: videoId, rating, community_id: communityId });
     setRating(0);
     // Refrescar promedio
     const { data } = await supabase
       .from('launchpad_video_ratings')
       .select('rating')
-      .eq('video_id', videoId);
+      .eq('video_id', videoId)
+      .eq('community_id', communityId);
     if (data) {
       const ratings = data.map((r: any) => r.rating);
       setAvgRating(ratings.length ? ratings.reduce((a: number, b: number) => a + b, 0) / ratings.length : 0);
@@ -489,17 +536,21 @@ const Launchpad: React.FC = () => {
     }
     setSavingRating(false);
   }
+  
   // Enviar comentario
   async function handleSendComment(e: React.FormEvent) {
     e.preventDefault();
     if (!selectedEvent || !comment.trim()) return;
     const videoId = selectedEvent.id;
     setSavingComment(true);
-    await supabase.from('launchpad_video_comments').insert({
-      video_id: videoId,
-      nombre: commentName,
-      comentario: comment,
-    });
+    await supabase
+      .from('launchpad_video_comments')
+      .insert({
+        video_id: videoId,
+        nombre: commentName,
+        comentario: comment,
+        community_id: communityId,
+      });
     setComment('');
     setCommentName('');
     // Refrescar comentarios
@@ -507,6 +558,7 @@ const Launchpad: React.FC = () => {
       .from('launchpad_video_comments')
       .select('*')
       .eq('video_id', videoId)
+      .eq('community_id', communityId)
       .order('created_at', { ascending: false });
     if (data) setComments(data);
     setSavingComment(false);
@@ -553,6 +605,11 @@ const Launchpad: React.FC = () => {
 
   // Determinar si está cargando datos principales
   const loadingMain = loadingFeatured || loadingLinks || loadingSettings || loadingVideos;
+
+  // Mostrar loading screen mientras se hidrata
+  if (!isHydrated) {
+    return <LoadingScreen />;
+  }
 
   return (
     <div className="w-full min-h-screen" style={{ background: '#000' }}>

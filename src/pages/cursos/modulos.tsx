@@ -9,6 +9,7 @@ const ModulosCurso = () => {
   const { id } = useParams(); // id del curso
   const navigate = useNavigate();
   const neuro = useNeuroState();
+  const communityId = neuro.userInfo?.community_id || '8fb70d6e-3237-465e-8669-979461cf2bc1';
   const [modulos, setModulos] = useState<any[]>([]);
   const [progreso, setProgreso] = useState<Record<string, string[]>>({}); // { moduloId: [videoIds] }
   const [loading, setLoading] = useState(true);
@@ -18,11 +19,12 @@ const ModulosCurso = () => {
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
-      // 1. Obtener módulos del curso
+      // 1. Obtener módulos del curso filtrando por community_id
       const { data: modulosData } = await supabase
         .from('modulos_curso')
         .select('*')
         .eq('curso_id', id)
+        .eq('community_id', communityId)
         .order('orden', { ascending: true });
       setModulos(modulosData || []);
 
@@ -48,7 +50,7 @@ const ModulosCurso = () => {
       setLoading(false);
     };
     fetchData();
-  }, [id, userId, neuro.userInfo?.rol]);
+  }, [id, userId, neuro.userInfo?.rol, communityId]);
 
   const handleEditModulo = (moduloId: string) => {
     navigate(`/classroom/editar-videos?modulo_id=${moduloId}`);

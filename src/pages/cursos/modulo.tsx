@@ -13,11 +13,13 @@ import RewardToast from '../../components/RewardToast';
 import NeonSpinner from '../../components/NeonSpinner';
 
 const ModuloDetalle = () => {
-  const { id, moduloIdx } = useParams();
+  const { id: cursoId, moduloIdx } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
   const neuro = useNeuroState();
   const { user } = useAuth();
+  const { userInfo } = useNeuroState();
+  const communityId = userInfo?.community_id || '8fb70d6e-3237-465e-8669-979461cf2bc1';
   const [modulo, setModulo] = useState<any>(null);
   const [clases, setClases] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -78,13 +80,13 @@ const ModuloDetalle = () => {
   // Inicialización
   useEffect(() => {
     const initialize = async () => {
-      if (!id || moduloIdx === undefined) return;
+      if (!cursoId || moduloIdx === undefined) return;
       
       setLoading(true);
       setUserId(user?.id || null);
 
       // Obtener módulo y progreso
-      await fetchModuloYProgreso(id, moduloIdx, user?.id || null);
+      await fetchModuloYProgreso(cursoId, moduloIdx, user?.id || null);
       
       // Obtener recursos globales
       await fetchRecursosGlobales();
@@ -93,11 +95,11 @@ const ModuloDetalle = () => {
     };
 
     initialize();
-  }, [id, moduloIdx, user?.id]);
+  }, [cursoId, moduloIdx, user?.id]);
 
   const fetchModuloYProgreso = async (cursoId: string, moduloIdx: string, currentUserId: string | null) => {
     // 1. Obtener la portada y los módulos embebidos
-    const { data: portada } = await supabase.from('cursos_portada').select('*').eq('curso_id', cursoId).single();
+    const { data: portada } = await supabase.from('cursos_portada').select('*').eq('curso_id', cursoId).eq('community_id', communityId).single();
     let modArr = (portada && portada.modulos) ? portada.modulos : [];
     if (!Array.isArray(modArr)) modArr = [];
     const idx = parseInt(moduloIdx || '0', 10);
@@ -110,6 +112,7 @@ const ModuloDetalle = () => {
         .from('modulos_curso')
         .select('*')
         .eq('curso_id', cursoId)
+        .eq('community_id', communityId)
         .eq('titulo', mod.titulo)
         .maybeSingle();
       
@@ -117,6 +120,7 @@ const ModuloDetalle = () => {
         // Crear el módulo si no existe
         const moduloToInsert: any = {
           curso_id: cursoId,
+          community_id: communityId,
           titulo: mod.titulo,
           descripcion: mod.descripcion || '',
           nivel: mod.nivel || '',
@@ -142,6 +146,7 @@ const ModuloDetalle = () => {
         .from('videos_classroom_modulo')
         .select('*')
         .eq('modulo_id', moduloReal.id)
+        .eq('community_id', communityId)
         .order('orden', { ascending: true });
       setClases(vids || []);
     } else {
@@ -183,20 +188,20 @@ const ModuloDetalle = () => {
   const navegarSiguienteModulo = async () => {
     try {
       // Buscar siguiente módulo en el mismo curso
-      const { data: portada } = await supabase.from('cursos_portada').select('modulos').eq('curso_id', id).single();
+      const { data: portada } = await supabase.from('cursos_portada').select('modulos').eq('curso_id', cursoId).single();
       let modArr = (portada && portada.modulos) ? portada.modulos : [];
       if (!Array.isArray(modArr)) modArr = [];
       
       const siguienteIdx = parseInt(moduloIdx || '0') + 1;
       if (siguienteIdx < modArr.length) {
-        navigate(`/cursos/${id}/modulo/${siguienteIdx}`);
+        navigate(`/cursos/${cursoId}/modulo/${siguienteIdx}`);
       } else {
         // Volver a la página de módulos del curso
-        navigate(`/cursos/${id}/modulos`);
+        navigate(`/cursos/${cursoId}/modulos`);
       }
     } catch (error) {
       console.error('Error al buscar siguiente módulo:', error);
-      navigate(`/cursos/${id}/modulos`);
+      navigate(`/cursos/${cursoId}/modulos`);
     }
   };
 
@@ -470,7 +475,7 @@ const ModuloDetalle = () => {
       </div>
       {!fullscreen && (
         <div className="w-full md:w-[380px] bg-gradient-to-br from-neutral-950 to-black p-4 flex flex-col gap-4 rounded-3xl border-l-4 border-yellow-900/50 shadow-2xl min-h-[220px] md:min-h-screen">
-          {isAdmin && <button className="mb-4 px-4 py-2 rounded-full bg-yellow-700 hover:bg-yellow-600 text-white font-bold" onClick={() => navigate(`/cursos/${id}/modulos`)}>Volver a módulos</button>}
+          {isAdmin && <button className="mb-4 px-4 py-2 rounded-full bg-yellow-700 hover:bg-yellow-600 text-white font-bold" onClick={() => navigate(`/cursos/${cursoId}/modulos`)}>Volver a módulos</button>}
           <h3 className="text-xl font-bold text-yellow-400 uppercase text-center tracking-wider">Clases del módulo</h3>
           <div className="flex flex-col space-y-2 overflow-y-auto">
             {clasesOrdenadas.map((clase, index) => (
