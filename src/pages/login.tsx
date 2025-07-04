@@ -92,28 +92,10 @@ const Login = () => {
         .eq('id', user.id)
         .single();
       if (!perfil) {
-        // 2. Si no existe, intenta crearlo (solo si hay email)
-        if (!user.email) {
-          setError('No se pudo obtener el email. No se puede crear el perfil.');
-          await supabase.auth.signOut();
-          return;
-        }
-        const { error: insertError } = await supabase.from('usuarios').insert([
-          {
-            id: user.id,
-            email: user.email,
-            name: user.user_metadata?.full_name || user.email,
-            activo: true,
-            created_at: new Date().toISOString(),
-          },
-        ]);
-        if (insertError) {
-          setError('Error creando perfil de usuario: ' + insertError.message);
-          await supabase.auth.signOut();
-          return;
-        }
-        // Vuelve a consultar el perfil
-        window.location.href = 'https://www.scalexone.app/home';
+        // Si no existe, redirige a registro y cierra sesión
+        setError('Debes registrarte antes de poder iniciar sesión.');
+        await supabase.auth.signOut();
+        window.location.href = '/registro';
         return;
       } else if (perfil.activo === false) {
         setError('Tu cuenta está inactiva. Contacta soporte.');
