@@ -1,4 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { supabase } from '../../supabase';
 
 const mockHistorial: { fecha: string; rango: string; cantidad: string; status: string }[] = [];
 
@@ -6,6 +8,30 @@ const HistorialTransaccionesPage = () => {
   const [tab, setTab] = useState('comision');
   const [fechaInicio, setFechaInicio] = useState('2025-06-01');
   const [fechaFin, setFechaFin] = useState('2025-06-10');
+  const [ib, setIb] = useState('');
+  const [saldo, setSaldo] = useState(0);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const fetchDatos = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      // Obtener IB
+      const { data: codigo } = await supabase
+        .from('codigos_afiliado')
+        .select('codigo')
+        .eq('user_id', user.id)
+        .eq('activo', true)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single();
+      if (codigo) setIb(codigo.codigo);
+      // Obtener saldo disponible
+      const { data: saldoData } = await supabase.rpc('obtener_saldo_ib', { p_ib: codigo?.codigo });
+      setSaldo(saldoData?.saldo || 0);
+    };
+    fetchDatos();
+  }, []);
 
   return (
     <div className="min-h-screen bg-[#f7f9fb] flex flex-col items-center py-8">
@@ -14,8 +40,8 @@ const HistorialTransaccionesPage = () => {
         <div className="flex-1 bg-white rounded-2xl shadow-md p-6 border border-gray-100 flex flex-col justify-between">
           <div className="text-sm text-gray-500 mb-1">Número de cuenta de COMISIÓN</div>
           <div className="flex items-center gap-4">
-            <span className="text-2xl font-bold text-blue-800">880914</span>
-            <button className="ml-auto px-4 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition">SOLICITAR COMISIÓN</button>
+            <span className="text-2xl font-bold text-blue-800">{ib || '---'}</span>
+            <button className="ml-auto px-4 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition" onClick={() => navigate('/afiliados/retiro')}>SOLICITAR COMISIÓN</button>
           </div>
           <div className="mt-4 text-gray-500 text-sm">Comisión total</div>
           <div className="text-2xl font-bold text-blue-900">$0.08</div>
@@ -24,11 +50,11 @@ const HistorialTransaccionesPage = () => {
           <div className="flex items-center justify-between mb-4">
             <span className="text-gray-500 text-sm">Saldo disponible</span>
             <div className="flex gap-2">
-              <button className="px-4 py-2 bg-blue-50 text-blue-700 rounded-lg font-semibold border border-blue-600 hover:bg-blue-100 transition">RETIROS</button>
-              <button className="px-4 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition">TRANSFERIR</button>
+              <button className="px-4 py-2 bg-blue-50 text-blue-700 rounded-lg font-semibold border border-blue-600 hover:bg-blue-100 transition" onClick={() => navigate('/afiliados/retiro')}>RETIROS</button>
+              <button className="px-4 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition" onClick={() => navigate('/afiliados/transferencia')}>TRANSFERIR</button>
             </div>
           </div>
-          <div className="text-2xl font-bold text-blue-900">$0.00</div>
+          <div className="text-2xl font-bold text-blue-900">${saldo.toFixed(2)}</div>
         </div>
       </div>
       <div className="w-full max-w-4xl mx-auto">
