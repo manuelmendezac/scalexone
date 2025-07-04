@@ -9,6 +9,7 @@ export type Modulo = {
   descripcion: string;
   icono?: string;
   imagen_url?: string;
+  imagen_url_mobile?: string;
   orden?: number;
   color?: string;
   badge_url?: string;
@@ -19,6 +20,10 @@ export type Modulo = {
   videos_completados?: number;
   recompensa_xp?: number;
   recompensa_monedas?: number;
+  // Campo para comunidad
+  community_id?: string;
+  // Campo para origen
+  origen?: string;
 };
 
 interface EditModulo extends Partial<Modulo> {}
@@ -35,14 +40,14 @@ interface ClassroomStore {
   saveMsg: string | null;
   orderMsg: string | null;
   
-  fetchModulos: () => Promise<void>;
+  fetchModulos: (communityId?: string) => Promise<void>;
   setPagina: (pagina: number) => void;
   setEditIdx: (idx: number | null) => void;
   setShowEditModal: (show: boolean) => void;
   setEditModulo: (modulo: EditModulo) => void;
   setSaveMsg: (msg: string | null) => void;
   setOrderMsg: (msg: string | null) => void;
-  handleSaveEdit: (currentEditModulo?: Modulo) => Promise<void>;
+  handleSaveEdit: (currentEditModulo?: Modulo, communityId?: string) => Promise<void>;
   handleDragEnd: (sourceIdx: number, destIdx: number) => Promise<void>;
   handleDelete: (idx: number) => Promise<void>;
   marcarVideoCompletado: (videoId: string) => Promise<void>;
@@ -63,7 +68,7 @@ const useClassroomStore = create<ClassroomStore>((set, get) => ({
   saveMsg: null,
   orderMsg: null,
 
-  fetchModulos: async () => {
+  fetchModulos: async (communityId?: string) => {
     set({ loading: true, error: null });
 
     try {
@@ -71,10 +76,29 @@ const useClassroomStore = create<ClassroomStore>((set, get) => ({
       const { data: { session } } = await supabase.auth.getSession();
       const userId = session?.user?.id;
       
-      // 2. Fetch todos los módulos y todos los videos en paralelo
+      // 2. Obtener el community_id del usuario si no se proporciona
+      let userCommunityId = communityId;
+      if (!userCommunityId && userId) {
+        const { data: userData } = await supabase
+          .from('usuarios')
+          .select('community_id')
+          .eq('id', userId)
+          .single();
+        userCommunityId = userData?.community_id || '8fb70d6e-3237-465e-8669-979461cf2bc1'; // Fallback a Scalexone
+      }
+      
+      // 3. Fetch todos los módulos y todos los videos en paralelo, filtrados por community_id
       const [modulosRes, videosRes, progresoRes] = await Promise.all([
-        supabase.from('classroom_modulos').select('*').eq('origen', 'classroom').order('orden', { ascending: true }),
-        supabase.from('videos_classroom_modulo').select('id, modulo_id'),
+        supabase
+          .from('classroom_modulos')
+          .select('*')
+          .eq('origen', 'classroom')
+          .eq('community_id', userCommunityId)
+          .order('orden', { ascending: true }),
+        supabase
+          .from('videos_classroom_modulo')
+          .select('id, modulo_id')
+          .eq('community_id', userCommunityId),
         userId ? supabase.from('progreso_academico_usuario').select('videos_ids').eq('usuario_id', userId).single() : Promise.resolve({ data: null, error: null })
       ]);
 
@@ -86,7 +110,7 @@ const useClassroomStore = create<ClassroomStore>((set, get) => ({
       const todosLosVideos = videosRes.data || [];
       const videosCompletadosSet = new Set((progresoRes.data?.videos_ids as string[] | null) || []);
 
-      // 3. Procesar y enriquecer los datos
+      // 4. Procesar y enriquecer los datos
       const videosPorModulo = todosLosVideos.reduce((acc, video) => {
         if (!acc[video.modulo_id]) {
           acc[video.modulo_id] = [];
@@ -147,18 +171,33 @@ const useClassroomStore = create<ClassroomStore>((set, get) => ({
     setTimeout(() => set({ orderMsg: null }), 3000);
   },
 
-  handleSaveEdit: async (currentEditModulo) => {
+  handleSaveEdit: async (currentEditModulo, communityId?: string) => {
     const { editIdx, modulos } = get();
     const finalEditModulo = { ...get().editModulo, ...currentEditModulo };
     set({ saveMsg: null });
 
     try {
+      // Obtener el community_id del usuario si no se proporciona
+      let userCommunityId = communityId;
+      if (!userCommunityId) {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user?.id) {
+          const { data: userData } = await supabase
+            .from('usuarios')
+            .select('community_id')
+            .eq('id', session.user.id)
+            .single();
+          userCommunityId = userData?.community_id || '8fb70d6e-3237-465e-8669-979461cf2bc1';
+        }
+      }
+
       const dataToSave = {
         titulo: finalEditModulo.titulo,
         descripcion: finalEditModulo.descripcion,
         imagen_url: finalEditModulo.imagen_url,
         cover_type: finalEditModulo.cover_type,
         cover_video_url: finalEditModulo.cover_video_url,
+        community_id: userCommunityId,
       };
 
       if (editIdx === null) {
@@ -179,7 +218,7 @@ const useClassroomStore = create<ClassroomStore>((set, get) => ({
           get().setSaveMsg('¡Módulo actualizado con éxito!');
         }
       }
-      await get().fetchModulos();
+      await get().fetchModulos(userCommunityId);
       set({ showEditModal: false, editIdx: null, editModulo: {} });
     } catch (error) {
       console.error('Error saving módulo:', error);

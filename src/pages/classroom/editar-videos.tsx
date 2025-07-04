@@ -3,15 +3,20 @@ import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '../../supabase';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import { GripVertical } from 'lucide-react';
+import useNeuroState from '../../store/useNeuroState';
 
 const EditarVideosClassroom = () => {
     const { modulo_id: paramId } = useParams();
     const location = useLocation();
     const navigate = useNavigate();
+    const { userInfo } = useNeuroState();
     
     const queryParams = new URLSearchParams(location.search);
     const queryId = queryParams.get('modulo_id');
     const modulo_id = paramId || queryId;
+
+    // Obtener el community_id del usuario
+    const communityId = userInfo?.community_id || '8fb70d6e-3237-465e-8669-979461cf2bc1';
 
     const [modulo, setModulo] = useState<any>(null);
     const [videos, setVideos] = useState<any[]>([]);
@@ -39,7 +44,12 @@ const EditarVideosClassroom = () => {
 
             if (mod) setModulo(mod);
 
-            const { data: vids, error: vidError } = await supabase.from('videos_classroom_modulo').select('*').eq('modulo_id', modulo_id).order('orden', { ascending: true });
+            const { data: vids, error: vidError } = await supabase 
+                .from('videos_classroom_modulo')
+                .select('*')
+                .eq('modulo_id', modulo_id)
+                .eq('community_id', communityId)
+                .order('orden', { ascending: true });
             
             if(vidError) {
                 setError("Error al cargar los videos: " + vidError.message);
@@ -100,7 +110,12 @@ const EditarVideosClassroom = () => {
         
         const { data, error } = await supabase
             .from('videos_classroom_modulo')
-            .insert([{ ...videoData, modulo_id: modulo_id, orden }])
+            .insert([{ 
+                ...videoData, 
+                modulo_id: modulo_id, 
+                community_id: communityId,
+                orden 
+            }])
             .select();
 
         if (error) {

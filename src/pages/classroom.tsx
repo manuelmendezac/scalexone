@@ -5,6 +5,7 @@ import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import type { DropResult } from 'react-beautiful-dnd';
 import useClassroomStore from '../store/useClassroomStore';
 import { useHydration } from '../store/useNeuroState';
+import useNeuroState from '../store/useNeuroState';
 import LoadingScreen from '../components/LoadingScreen';
 import GlobalLoader from '../components/GlobalLoader';
 import { supabase } from '../supabase';
@@ -30,6 +31,7 @@ export type Modulo = {
   recompensa_xp?: number;
   recompensa_monedas?: number;
   origen?: string;
+  community_id?: string;
 };
 
 const MODULOS_MODELO: Modulo[] = [
@@ -269,6 +271,10 @@ const Classroom = () => {
   const [isUploading, setIsUploading] = React.useState(false);
   const isHydrated = useHydration();
   const [previewImage, setPreviewImage] = React.useState<string | null>(null);
+  const { userInfo } = useNeuroState();
+
+  // Obtener el community_id del usuario
+  const communityId = userInfo?.community_id || '8fb70d6e-3237-465e-8669-979461cf2bc1';
 
   const {
     modulos,
@@ -293,8 +299,8 @@ const Classroom = () => {
   useEffect(() => {
     if (!isHydrated) return;
     setIsAdmin(localStorage.getItem('adminMode') === 'true');
-    fetchModulos();
-  }, [isHydrated, fetchModulos]);
+    fetchModulos(communityId);
+  }, [isHydrated, fetchModulos, communityId]);
 
   const getProgreso = (mod: Modulo) => {
     if (!mod.total_videos || mod.total_videos === 0) return 0;
@@ -606,7 +612,7 @@ const Classroom = () => {
 
         {/* Modal de edición */}
         {showEditModal && (
-          <Suspense fallback={<NeonSpinner size={64} />}>
+          <Suspense fallback={<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80"><NeonSpinner /></div>}>
             <EditModuleModal
               editIdx={editIdx}
               editModulo={editModulo}
@@ -614,7 +620,7 @@ const Classroom = () => {
               setEditModulo={setEditModulo}
               isUploading={isUploading}
               handleCoverImageUpload={handleCoverImageUpload}
-              handleSaveEdit={handleSaveEdit}
+              handleSaveEdit={(modulo: Modulo) => handleSaveEdit(modulo, communityId)}
               setIsUploading={setIsUploading}
               previewImage={previewImage}
               setPreviewImage={setPreviewImage}

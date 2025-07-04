@@ -27,9 +27,12 @@ const Inicio: React.FC = () => {
   const today = new Date();
   const dateStr = today.toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 
+  // Usar SIEMPRE el community_id del usuario, o el de Scalexone como fallback
+  const communityId = userInfo?.community_id || '8fb70d6e-3237-465e-8669-979461cf2bc1';
+
   useEffect(() => {
     const fetchCommunityName = async () => {
-      if (!userInfo.id) {
+      if (!communityId) {
         setLoading(false);
         return;
       }
@@ -37,7 +40,7 @@ const Inicio: React.FC = () => {
         const { data, error } = await supabase
           .from('comunidades')
           .select('nombre')
-          .eq('owner_id', userInfo.id)
+          .eq('id', communityId)
           .single();
         if (error && error.code !== 'PGRST116') throw error;
         if (data) {
@@ -53,7 +56,7 @@ const Inicio: React.FC = () => {
     if (isHydrated) {
       fetchCommunityName();
     }
-  }, [isHydrated, userInfo.id]);
+  }, [isHydrated, communityId]);
 
   if (loading) {
     return <LoadingScreen />;
