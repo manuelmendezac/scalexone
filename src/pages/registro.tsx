@@ -142,43 +142,32 @@ const RegistroPage: React.FC = () => {
         }
 
         // Crear perfil de usuario en la tabla usuarios
-        // community_id robusto
-        let communityId = '8fb70d6e-3237-465e-8669-979461cf2bc1'; // Valor por defecto
-        if (affiliateCode) {
-          // Buscar community_id por referido si existe
-          const { data: refData } = await supabase
-            .from('codigos_afiliado')
-            .select('community_id')
-            .eq('codigo', affiliateCode)
-            .single();
-          if (refData?.community_id) communityId = refData.community_id;
-        }
-        if (!communityId) {
-          toast.error('No se pudo determinar la comunidad. Intenta de nuevo o contacta soporte.');
-          setLoading(false);
-          return;
-        }
-        const userEmail = authData.user.email || authData.user.user_metadata?.email || '';
-        if (!userEmail) {
-          toast.error('No se pudo obtener el email del usuario. Intenta con otro método de registro.');
-          setLoading(false);
-          return;
-        }
         const { error: profileError } = await supabase
           .from('usuarios')
           .insert([
             {
               id: authData.user.id,
-              email: userEmail,
+              email: authData.user.email || authData.user.user_metadata?.email || '',
               nombre: formData.fullName,
               avatar_url: null,
               fecha_creacion: new Date().toISOString(),
               activo: true,
-              community_id: communityId
+              community_id: '8fb70d6e-3237-465e-8669-979461cf2bc1' // Valor por defecto
             }
           ]);
         if (profileError) {
           console.error('Error creating user profile:', profileError);
+          toast.error('Error creando perfil de usuario: ' + profileError.message);
+          setLoading(false);
+          return;
+        }
+        // Crear IB único usando la función RPC robusta
+        const { error: ibError } = await supabase.rpc('crear_codigo_afiliado_para_usuario', { p_user_id: authData.user.id });
+        if (ibError) {
+          console.error('Error creando IB:', ibError);
+          toast.error('Error creando código IB: ' + ibError.message);
+          setLoading(false);
+          return;
         }
 
         setStep(3);
