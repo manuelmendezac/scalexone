@@ -81,20 +81,46 @@ const Login = () => {
       // Obtener el usuario autenticado
       const { data: userData } = await supabase.auth.getUser();
       const user = userData.user;
-      // Refrescar community_id en metadata si hace falta
-      if (!user.user_metadata?.community_id) {
-        const { data: userDb } = await supabase
-          .from('usuarios')
-          .select('community_id')
-          .eq('id', user.id)
-          .single();
-        if (userDb?.community_id) {
-          await supabase.auth.updateUser({
-            data: { ...user.user_metadata, community_id: userDb.community_id }
-          });
-        }
+      if (!user) {
+        setError('No se pudo autenticar el usuario.');
+        return;
       }
-      // Nunca crear IB ni usuario nuevo aquí
+      // 1. Busca el perfil en la tabla usuarios
+      const { data: perfil, error: perfilError } = await supabase
+        .from('usuarios')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+      if (!perfil) {
+        // 2. Si no existe, intenta crearlo (solo si hay email)
+        if (!user.email) {
+          setError('No se pudo obtener el email. No se puede crear el perfil.');
+          await supabase.auth.signOut();
+          return;
+        }
+        const { error: insertError } = await supabase.from('usuarios').insert([
+          {
+            id: user.id,
+            email: user.email,
+            name: user.user_metadata?.full_name || user.email,
+            activo: true,
+            created_at: new Date().toISOString(),
+          },
+        ]);
+        if (insertError) {
+          setError('Error creando perfil de usuario: ' + insertError.message);
+          await supabase.auth.signOut();
+          return;
+        }
+        // Vuelve a consultar el perfil
+        window.location.href = 'https://www.scalexone.app/home';
+        return;
+      } else if (perfil.activo === false) {
+        setError('Tu cuenta está inactiva. Contacta soporte.');
+        await supabase.auth.signOut();
+        return;
+      }
+      // Si todo está bien, permite el acceso normal
       window.location.href = 'https://www.scalexone.app/home';
     }
   };
