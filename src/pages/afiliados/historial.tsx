@@ -2,7 +2,29 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../supabase';
 
-const mockHistorial: { fecha: string; rango: string; cantidad: string; status: string }[] = [];
+// Definir tipos para los historiales
+interface ComisionHistorial {
+  id: string;
+  tipo_comision: string;
+  monto: number;
+  estado: string;
+  created_at: string;
+}
+interface RetiroHistorial {
+  id: string;
+  monto: number;
+  estado: string;
+  fecha_solicitud: string;
+  metodo_pago: string;
+}
+interface TransferenciaHistorial {
+  id: string;
+  ib_origen: string;
+  ib_destino: string;
+  monto: number;
+  fecha: string;
+  estado: string;
+}
 
 const HistorialTransaccionesPage = () => {
   const [tab, setTab] = useState('comision');
@@ -10,12 +32,17 @@ const HistorialTransaccionesPage = () => {
   const [fechaFin, setFechaFin] = useState('2025-06-10');
   const [ib, setIb] = useState('');
   const [saldo, setSaldo] = useState(0);
+  const [userId, setUserId] = useState('');
+  const [historialComision, setHistorialComision] = useState<ComisionHistorial[]>([]);
+  const [historialRetiros, setHistorialRetiros] = useState<RetiroHistorial[]>([]);
+  const [historialTransferencias, setHistorialTransferencias] = useState<TransferenciaHistorial[]>([]);
   const navigate = useNavigate();
 
   useEffect(() => {
     const fetchDatos = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
+      setUserId(user.id);
       // Obtener IB
       const { data: codigo } = await supabase
         .from('codigos_afiliado')
@@ -29,9 +56,103 @@ const HistorialTransaccionesPage = () => {
       // Obtener saldo disponible
       const { data: saldoData } = await supabase.rpc('obtener_saldo_ib', { p_ib: codigo?.codigo });
       setSaldo(saldoData?.saldo || 0);
+      // Historial de comisiones
+      const { data: comisiones } = await supabase
+        .from('comisiones_afiliado')
+        .select('id, tipo_comision, monto, estado, created_at')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+      setHistorialComision(comisiones || []);
+      // Historial de retiros
+      const { data: retiros } = await supabase
+        .from('retiros_afiliados')
+        .select('id, monto, estado, fecha_solicitud, metodo_pago')
+        .eq('afiliado_id', user.id)
+        .order('fecha_solicitud', { ascending: false });
+      setHistorialRetiros(retiros || []);
+      // Historial de transferencias
+      const { data: transferencias } = await supabase
+        .from('transferencias_ib')
+        .select('id, ib_origen, ib_destino, monto, fecha, estado')
+        .or(`user_id_origen.eq.${user.id},user_id_destino.eq.${user.id}`)
+        .order('fecha', { ascending: false });
+      setHistorialTransferencias(transferencias || []);
     };
     fetchDatos();
   }, []);
+
+  // Render helpers para cada tab
+  const renderComisiones = () => (
+    <tbody>
+      {historialComision.length === 0 ? (
+        <tr>
+          <td colSpan={4} className="text-center p-12 text-gray-400">
+            <div className="flex flex-col items-center justify-center">
+              <svg width="64" height="64" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="#cbd5e1" strokeWidth="2"/><path d="M9 12l2 2 4-4" stroke="#cbd5e1" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+              <div className="mt-4">Sin datos</div>
+            </div>
+          </td>
+        </tr>
+      ) : (
+        historialComision.map((item, idx) => (
+          <tr key={item.id} className="border-t hover:bg-blue-50 transition">
+            <td className="p-3">{new Date(item.created_at).toLocaleDateString()}</td>
+            <td className="p-3">-</td>
+            <td className="p-3">${item.monto.toFixed(2)}</td>
+            <td className="p-3">{item.estado}</td>
+          </tr>
+        ))
+      )}
+    </tbody>
+  );
+
+  const renderRetiros = () => (
+    <tbody>
+      {historialRetiros.length === 0 ? (
+        <tr>
+          <td colSpan={4} className="text-center p-12 text-gray-400">
+            <div className="flex flex-col items-center justify-center">
+              <svg width="64" height="64" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="#cbd5e1" strokeWidth="2"/><path d="M9 12l2 2 4-4" stroke="#cbd5e1" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+              <div className="mt-4">Sin datos</div>
+            </div>
+          </td>
+        </tr>
+      ) : (
+        historialRetiros.map((item, idx) => (
+          <tr key={item.id} className="border-t hover:bg-blue-50 transition">
+            <td className="p-3">{new Date(item.fecha_solicitud).toLocaleDateString()}</td>
+            <td className="p-3">-</td>
+            <td className="p-3">${item.monto.toFixed(2)}</td>
+            <td className="p-3">{item.estado}</td>
+          </tr>
+        ))
+      )}
+    </tbody>
+  );
+
+  const renderTransferencias = () => (
+    <tbody>
+      {historialTransferencias.length === 0 ? (
+        <tr>
+          <td colSpan={4} className="text-center p-12 text-gray-400">
+            <div className="flex flex-col items-center justify-center">
+              <svg width="64" height="64" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="#cbd5e1" strokeWidth="2"/><path d="M9 12l2 2 4-4" stroke="#cbd5e1" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+              <div className="mt-4">Sin datos</div>
+            </div>
+          </td>
+        </tr>
+      ) : (
+        historialTransferencias.map((item, idx) => (
+          <tr key={item.id} className="border-t hover:bg-blue-50 transition">
+            <td className="p-3">{new Date(item.fecha).toLocaleDateString()}</td>
+            <td className="p-3">{item.ib_origen} → {item.ib_destino}</td>
+            <td className="p-3">${item.monto.toFixed(2)}</td>
+            <td className="p-3">{item.estado}</td>
+          </tr>
+        ))
+      )}
+    </tbody>
+  );
 
   return (
     <div className="min-h-screen bg-[#f7f9fb] flex flex-col items-center py-8">
@@ -100,27 +221,9 @@ const HistorialTransaccionesPage = () => {
                 <th className="p-3 text-left font-semibold">Status</th>
               </tr>
             </thead>
-            <tbody>
-              {mockHistorial.length === 0 ? (
-                <tr>
-                  <td colSpan={4} className="text-center p-12 text-gray-400">
-                    <div className="flex flex-col items-center justify-center">
-                      <svg width="64" height="64" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="#cbd5e1" strokeWidth="2"/><path d="M9 12l2 2 4-4" stroke="#cbd5e1" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                      <div className="mt-4">Sin datos</div>
-                    </div>
-                  </td>
-                </tr>
-              ) : (
-                mockHistorial.map((item, idx) => (
-                  <tr key={idx} className="border-t hover:bg-blue-50 transition">
-                    <td className="p-3">{item.fecha}</td>
-                    <td className="p-3">{item.rango}</td>
-                    <td className="p-3">{item.cantidad}</td>
-                    <td className="p-3">{item.status}</td>
-                  </tr>
-                ))
-              )}
-            </tbody>
+            {tab === 'comision' && renderComisiones()}
+            {tab === 'retiros' && renderRetiros()}
+            {tab === 'transferencias' && renderTransferencias()}
           </table>
           <div className="flex justify-end gap-2 p-4">
             <span className="px-2">1</span>
