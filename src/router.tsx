@@ -13,6 +13,7 @@ import PerfilIBPage from './pages/afiliados/perfil';
 import EnlacesAfiliadosPage from './pages/afiliados/enlaces';
 import ContactoIBPage from './pages/afiliados/contacto';
 import RetiroAfiliadoPage from './pages/afiliados/retiro';
+import TransferenciaIBPage from './pages/afiliados/transferencia';
 
 // Implementación de Lazy Loading para todos los componentes de página
 const Hero = lazy(() => import('./components/Hero'));
@@ -137,6 +138,7 @@ export const router = createBrowserRouter([
       { path: 'cuentas', element: <CuentasIBPage /> },
       { path: 'historial', element: <HistorialTransaccionesPage /> },
       { path: 'retiro', element: <RetiroAfiliadoPage /> },
+      { path: 'transferencia', element: <TransferenciaIBPage /> },
       { path: 'perfil', element: <PerfilIBPage /> },
       { path: 'enlaces', element: <EnlacesAfiliadosPage /> },
       { path: 'contacto', element: <ContactoIBPage /> },
