@@ -12,6 +12,7 @@ const RetiroAfiliadoPage = () => {
   const [wallet, setWallet] = useState('');
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [errorWallet, setErrorWallet] = useState('');
 
   useEffect(() => {
     const fetchDatos = async () => {
@@ -63,6 +64,7 @@ const RetiroAfiliadoPage = () => {
       return;
     }
     if (!validarWalletTRC20(wallet)) {
+      setErrorWallet('Wallet TRC20 inválida. Verifica la dirección.');
       toast.error('Wallet TRC20 inválida');
       return;
     }
@@ -125,12 +127,15 @@ const RetiroAfiliadoPage = () => {
           <label className="block text-sm font-medium text-gray-700 mb-1">Wallet USDT (TRC20)</label>
           <input
             type="text"
+            className="w-full border rounded px-3 py-2 text-black"
             value={wallet}
-            onChange={e => setWallet(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            onChange={e => { setWallet(e.target.value); setErrorWallet(''); }}
             placeholder="Ej: T..."
             disabled={loading}
           />
+          {errorWallet && (
+            <div className="mt-1 text-red-600 text-sm">{errorWallet}</div>
+          )}
           <div className="text-xs text-gray-400 mt-1">Solo se aceptan retiros a wallets USDT en red TRC20. Fee: 3%.</div>
         </div>
         <div className="mb-4 flex justify-between items-center">

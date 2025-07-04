@@ -13,6 +13,7 @@ const TransferenciaIBPage = () => {
   const [confirmado, setConfirmado] = useState(false);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [errorIbDestino, setErrorIbDestino] = useState('');
 
   useEffect(() => {
     const fetchDatos = async () => {
@@ -40,7 +41,9 @@ const TransferenciaIBPage = () => {
   const handleValidarDestino = async () => {
     setNombreDestino('');
     setUserIdDestino('');
+    setErrorIbDestino('');
     if (!ibDestino || ibDestino === ibOrigen) {
+      setErrorIbDestino('El IB destino no es válido.');
       toast.error('El IB destino no es válido');
       return;
     }
@@ -51,6 +54,7 @@ const TransferenciaIBPage = () => {
       .eq('activo', true)
       .single();
     if (!cod) {
+      setErrorIbDestino('El IB destino no existe. Verifica el código e inténtalo de nuevo.');
       toast.error('El IB destino no existe');
       return;
     }
@@ -128,9 +132,9 @@ const TransferenciaIBPage = () => {
         <div className="flex gap-2">
           <input
             type="text"
-            className="w-full border rounded px-3 py-2"
+            className="w-full border rounded px-3 py-2 text-black"
             value={ibDestino}
-            onChange={e => { setIbDestino(e.target.value.toUpperCase()); setConfirmado(false); }}
+            onChange={e => { setIbDestino(e.target.value.toUpperCase()); setConfirmado(false); setErrorIbDestino(''); }}
             placeholder="Ej: IB973005"
             disabled={loading}
           />
@@ -144,6 +148,9 @@ const TransferenciaIBPage = () => {
         </div>
         {confirmado && nombreDestino && (
           <div className="mt-2 text-green-700 text-sm">Titular: <b>{nombreDestino}</b></div>
+        )}
+        {errorIbDestino && (
+          <div className="mt-1 text-red-600 text-sm">{errorIbDestino}</div>
         )}
       </div>
       <div className="mb-4">
