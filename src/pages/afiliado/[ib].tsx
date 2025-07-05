@@ -30,6 +30,9 @@ const AfiliadoRedirect: React.FC = () => {
           communityId = usuario.community_id;
         }
       }
+      // Guardar en localStorage para respaldo
+      localStorage.setItem('affiliate_ref', ib);
+      localStorage.setItem('affiliate_community_id', communityId);
       // Redirigir a registro con ref y community_id
       navigate(`/registro?ref=${ib}&community_id=${communityId}`, { replace: true });
     };

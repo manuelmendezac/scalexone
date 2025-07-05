@@ -148,8 +148,11 @@ const RegistroPage: React.FC = () => {
   };
 
   const getParams = () => {
-    const refCode = searchParams.get('ref');
-    const commId = searchParams.get('community_id');
+    let refCode = searchParams.get('ref');
+    let commId = searchParams.get('community_id');
+    // Si no hay en la URL, buscar en localStorage
+    if (!refCode) refCode = localStorage.getItem('affiliate_ref');
+    if (!commId) commId = localStorage.getItem('affiliate_community_id');
     return {
       affiliateCode: refCode,
       communityId: commId || 'default',
@@ -233,6 +236,9 @@ const RegistroPage: React.FC = () => {
       });
       // Crear IB único usando la función RPC robusta
       await supabase.rpc('crear_codigo_afiliado_para_usuario', { p_user_id: userId });
+      // Limpiar localStorage tras registro exitoso
+      localStorage.removeItem('affiliate_ref');
+      localStorage.removeItem('affiliate_community_id');
       setStep(3);
       toast.success('¡Registro exitoso! Revisa tu email para confirmar tu cuenta.');
       // Redirigir solo a /home
@@ -299,6 +305,9 @@ const RegistroPage: React.FC = () => {
         });
         // Crear IB único usando la función RPC robusta
         await supabase.rpc('crear_codigo_afiliado_para_usuario', { p_user_id: user.id });
+        // Limpiar localStorage tras registro exitoso
+        localStorage.removeItem('affiliate_ref');
+        localStorage.removeItem('affiliate_community_id');
         // Redirigir a home
         navigate('/home');
         setLoading(false);
