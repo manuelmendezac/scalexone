@@ -186,13 +186,7 @@ const RegistroPage: React.FC = () => {
         return;
       }
       // Crear IB único usando la función RPC robusta
-      const { error: ibError } = await supabase.rpc('crear_codigo_afiliado_para_usuario', { p_user_id: userId });
-      if (ibError) {
-        console.error('Error creando IB:', ibError);
-        toast.error('Error creando código IB: ' + ibError.message);
-        setLoading(false);
-        return;
-      }
+      await supabase.rpc('crear_codigo_afiliado_para_usuario', { p_user_id: userId });
 
       setStep(3);
       toast.success('¡Registro exitoso! Revisa tu email para confirmar tu cuenta.');
@@ -256,6 +250,8 @@ const RegistroPage: React.FC = () => {
             community_id: '8fb70d6e-3237-465e-8669-979461cf2bc1'
           }
         ]);
+        // Crear IB único usando la función RPC robusta
+        await supabase.rpc('crear_codigo_afiliado_para_usuario', { p_user_id: user.id });
         setSuccess('¡Registro exitoso! Revisa tu email para confirmar tu cuenta.');
         setTimeout(() => {
           navigate('/login');
