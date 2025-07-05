@@ -172,7 +172,7 @@ const RegistroPage: React.FC = () => {
           {
             id: userId,
             email: userEmail,
-            nombre: formData.fullName,
+            name: formData.fullName,
             avatar_url: null,
             fecha_creacion: new Date().toISOString(),
             activo: true,
@@ -237,7 +237,7 @@ const RegistroPage: React.FC = () => {
             {
               id: user.id,
               email: user.email,
-              nombre: user.user_metadata?.nombre || user.user_metadata?.full_name || user.email,
+              name: user.user_metadata?.nombre || user.user_metadata?.full_name || user.email,
               avatar_url: user.user_metadata?.avatar_url || null,
               fecha_creacion: new Date().toISOString(),
               activo: true,
