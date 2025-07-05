@@ -90,37 +90,37 @@ function App() {
   }, []);
 
   useEffect(() => {
+    let attempts = 0;
+    let cancelled = false;
     async function checkAndSyncUser() {
       try {
         const { data: { user } } = await supabase.auth.getUser();
-        
-        // Validación estricta del usuario y email
         if (!user || !user.email || typeof user.email !== 'string' || user.email.trim() === '') {
-          console.log('Usuario no válido en checkAndSyncUser:', { 
-            userExists: !!user, 
-            email: user?.email,
-            emailType: typeof user?.email 
-          });
+          console.log('Usuario no válido en checkAndSyncUser:', { userExists: !!user, email: user?.email, emailType: typeof user?.email });
           return;
         }
-
         const nombre = user.user_metadata?.name || user.user_metadata?.full_name || user.email;
         if (nombre !== userName) setUserName(nombre);
-
-        // Obtener datos completos del usuario desde la tabla usuarios con validación
-        console.log('Consultando datos de usuario para:', user.email);
-        const { data: usuarioData, error: usuarioError } = await supabase
-          .from('usuarios')
-          .select('rol, community_id')
-          .eq('email', user.email.trim())
-          .single();
-
-        if (usuarioError) {
+        let usuarioData = null;
+        let usuarioError = null;
+        while (attempts < 5 && !cancelled) {
+          const res = await supabase
+            .from('usuarios')
+            .select('rol, community_id')
+            .eq('email', user.email.trim())
+            .single();
+          usuarioData = res.data;
+          usuarioError = res.error;
+          if (usuarioData && usuarioData.community_id) break;
+          attempts++;
+          await new Promise(r => setTimeout(r, 700));
+        }
+        if (!usuarioData || !usuarioData.community_id) {
+          console.warn('No se encontró perfil de usuario tras varios intentos, forzando logout/redirección.');
           await supabase.auth.signOut();
           navigate('/registro', { replace: true });
           return;
         }
-
         // Solo actualiza si hay cambios reales
         if (
           usuarioData?.rol !== userInfo.rol ||
@@ -135,9 +135,7 @@ function App() {
             community_id: usuarioData?.community_id || 'default'
           });
         }
-
         syncUsuarioSupabase(user);
-        
         // Redirige solo si está en login, registro o raíz
         if (["/login", "/registro", "/"].includes(location.pathname)) {
           navigate("/home", { replace: true });
@@ -146,15 +144,9 @@ function App() {
         console.error('Error inesperado en checkAndSyncUser:', error);
       }
     }
-    
     checkAndSyncUser();
-    const { data: listener } = supabase.auth.onAuthStateChange(() => {
-      checkAndSyncUser();
-    });
-    return () => {
-      listener?.subscription.unsubscribe();
-    };
-  }, [location.pathname, setUserName, updateUserInfo, navigate, userInfo, userName]);
+    return () => { cancelled = true; };
+  }, [userName, userInfo, location.pathname, navigate]);
 
   const handleOnboardingClose = () => {
     setShowOnboarding(false);
