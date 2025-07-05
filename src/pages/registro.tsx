@@ -40,7 +40,7 @@ const RegistroPage: React.FC = () => {
     const commId = searchParams.get('community_id');
     if (refCode) {
       setAffiliateCode(refCode);
-      registerAffiliateClick(refCode);
+      // El tracking solo se hace en /afiliado/[ib], aquí no se debe intentar registrar click
       // Buscar el user_id del IB referente
       supabase
         .from('codigos_afiliado')
@@ -78,44 +78,14 @@ const RegistroPage: React.FC = () => {
         }));
       }
     });
-  }, [searchParams, navigate]);
-
-  const registerAffiliateClick = async (codigo: string) => {
-    try {
-      // Obtener información del navegador y ubicación
-      const userAgent = navigator.userAgent;
-      const referrer = document.referrer;
-      
-      // Detectar dispositivo
-      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent);
-      const dispositivo = isMobile ? 'mobile' : 'desktop';
-
-      // Obtener parámetros UTM
-      const utmSource = searchParams.get('utm_source');
-      const utmMedium = searchParams.get('utm_medium');
-      const utmCampaign = searchParams.get('utm_campaign');
-
-      // Registrar click usando la función SQL
-      const { data, error } = await supabase.rpc('registrar_click_afiliado', {
-        p_codigo: codigo,
-        p_ip_address: null, // Se obtiene del servidor
-        p_user_agent: userAgent,
-        p_referrer: referrer,
-        p_utm_source: utmSource,
-        p_utm_medium: utmMedium,
-        p_utm_campaign: utmCampaign
-      });
-
-      if (error) {
-        console.error('Error registering affiliate click:', error);
-      } else {
-        setClickRegistered(true);
-        console.log('Affiliate click registered:', data);
-      }
-    } catch (error) {
-      console.error('Error in registerAffiliateClick:', error);
+    // Refuerzo: si no hay tracking_id, mostrar mensaje y bloquear
+    const trackingId = localStorage.getItem('affiliate_tracking_id');
+    if (!trackingId) {
+      setTrackingError('Debes acceder desde un link de invitación para registrarte en una comunidad.');
+    } else {
+      setTrackingError(null);
     }
-  };
+  }, [searchParams, navigate]);
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
@@ -166,8 +136,8 @@ const RegistroPage: React.FC = () => {
     // Validar tracking_id antes de continuar
     const trackingId = localStorage.getItem('affiliate_tracking_id');
     if (!trackingId) {
-      setTrackingError('No se detectó el tracking de afiliado. Por favor, accede desde el link de invitación o recarga la página.');
-      toast.error('No se detectó el tracking de afiliado. Usa el link de invitación.');
+      setTrackingError('Debes acceder desde un link de invitación para registrarte en una comunidad.');
+      toast.error('Debes acceder desde un link de invitación para registrarte en una comunidad.');
       return;
     }
     setTrackingError(null);
