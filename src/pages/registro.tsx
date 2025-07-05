@@ -193,10 +193,33 @@ const RegistroPage: React.FC = () => {
           ]);
         console.log('Resultado del insert (forzado):', { error: profileError, data: insertData });
         if (profileError) {
-          console.error('Error creando perfil de usuario:', profileError);
-          toast.error('Error creando perfil de usuario: ' + profileError.message);
-          setLoading(false);
-          return;
+          // Si el insert falla por duplicado, intenta upsert
+          if (profileError.code === '23505' || profileError.message?.toLowerCase().includes('duplicate')) {
+            console.log('Insert falló por duplicado, intentando upsert...');
+            const { error: upsertError, data: upsertData } = await supabase
+              .from('usuarios')
+              .upsert([
+                {
+                  id: userId,
+                  email: userEmail,
+                  name: formData.fullName,
+                  avatar_url: null,
+                  rol: 'user'
+                }
+              ]);
+            console.log('Resultado del upsert tras registro:', { error: upsertError, data: upsertData });
+            if (upsertError) {
+              toast.error('Error actualizando perfil de usuario: ' + upsertError.message);
+              setLoading(false);
+              console.log('Abortando registro por error en upsert:', upsertError);
+              return;
+            }
+          } else {
+            toast.error('Error creando perfil de usuario: ' + profileError.message);
+            setLoading(false);
+            console.log('Abortando registro por error en insert:', profileError);
+            return;
+          }
         }
       }
 
