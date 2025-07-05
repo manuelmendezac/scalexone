@@ -55,8 +55,10 @@ const Login = () => {
     // Obtener el usuario autenticado
     const { data: userData } = await supabase.auth.getUser();
     const user = userData.user;
+    console.log('Intentando login, user:', user);
     if (!user) {
       setError('No se pudo autenticar el usuario.');
+      console.log('NO USER, abortando login');
       return;
     }
     // 1. Busca el perfil en la tabla usuarios
@@ -81,10 +83,33 @@ const Login = () => {
         ]);
       console.log('Resultado del insert tras login:', { error: profileError, data: insertData });
       if (profileError) {
-        setError('Error creando perfil de usuario: ' + profileError.message);
-        setLoading(false);
-        // No redirigir a registro, mostrar el error real
-        return;
+        // Si el insert falla por duplicado, intenta upsert
+        if (profileError.code === '23505' || profileError.message?.toLowerCase().includes('duplicate')) {
+          console.log('Insert falló por duplicado, intentando upsert...');
+          const { error: upsertError, data: upsertData } = await supabase
+            .from('usuarios')
+            .upsert([
+              {
+                id: user.id,
+                email: user.email,
+                name: user.user_metadata?.nombre || user.user_metadata?.full_name || user.email,
+                avatar_url: user.user_metadata?.avatar_url || null,
+                rol: 'user'
+              }
+            ]);
+          console.log('Resultado del upsert tras login:', { error: upsertError, data: upsertData });
+          if (upsertError) {
+            setError('Error actualizando perfil de usuario: ' + upsertError.message);
+            setLoading(false);
+            console.log('Abortando login por error en upsert:', upsertError);
+            return;
+          }
+        } else {
+          setError('Error creando perfil de usuario: ' + profileError.message);
+          setLoading(false);
+          console.log('Abortando login por error en insert:', profileError);
+          return;
+        }
       }
       // Volver a buscar el perfil
       ({ data: perfil, error: perfilError } = await supabase
@@ -95,11 +120,13 @@ const Login = () => {
       if (!perfil) {
         setError('No se pudo crear el perfil de usuario tras login. Revisa la consola para más detalles.');
         setLoading(false);
+        console.log('Abortando login, no se pudo crear perfil tras insert/upsert:', { user });
         return;
       }
     } else if (perfil.activo === false) {
       setError('Tu cuenta está inactiva. Contacta soporte.');
       await supabase.auth.signOut();
+      console.log('Abortando login, cuenta inactiva:', perfil);
       return;
     }
     // Si todo está bien, permite el acceso normal
