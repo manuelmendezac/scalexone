@@ -78,10 +78,13 @@ const RegistroPage: React.FC = () => {
         }));
       }
     });
-    // Refuerzo: si no hay tracking_id, mostrar mensaje y bloquear
+    // Refuerzo: si no hay tracking_id, NO mostrar mensaje rojo, solo deshabilitar registro
     const trackingId = localStorage.getItem('affiliate_tracking_id');
     if (!trackingId) {
-      setTrackingError('Debes acceder desde un link de invitación para registrarte en una comunidad.');
+      setTrackingError(null); // No mostrar mensaje
+      // (Opcional: redirigir a /afiliado/${ref} si quieres forzar el flujo)
+      // const refCode = searchParams.get('ref');
+      // if (refCode) navigate(`/afiliado/${refCode}`);
     } else {
       setTrackingError(null);
     }
@@ -396,11 +399,6 @@ const RegistroPage: React.FC = () => {
               {errors.password && <div style={{ color: 'red', marginBottom: 8, textAlign: 'center', fontWeight: 600 }}>{errors.password}</div>}
               {errors.confirmPassword && <div style={{ color: 'red', marginBottom: 8, textAlign: 'center', fontWeight: 600 }}>{errors.confirmPassword}</div>}
               {errors.acceptTerms && <div style={{ color: 'red', marginBottom: 8, textAlign: 'center', fontWeight: 600 }}>{errors.acceptTerms}</div>}
-              {trackingError && (
-                <div style={{ color: 'red', marginBottom: 12, textAlign: 'center', fontWeight: 600 }}>
-                  {trackingError}
-                </div>
-              )}
               {syncing && (
                 <div style={{ color: '#FFD700', marginBottom: 12, textAlign: 'center', fontWeight: 600 }}>
                   Sincronizando afiliación...
