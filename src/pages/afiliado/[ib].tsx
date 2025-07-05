@@ -24,6 +24,7 @@ const AfiliadoRedirect: React.FC = () => {
 
     const trackClick = async (ib: string, communityId: string) => {
       try {
+        console.log('TRACKING: Iniciando tracking para IB:', ib, 'communityId:', communityId);
         const userAgent = navigator.userAgent;
         const referrer = document.referrer;
         const urlParams = new URLSearchParams(window.location.search);
@@ -39,6 +40,7 @@ const AfiliadoRedirect: React.FC = () => {
           user_agent: userAgent,
           referrer
         });
+        console.log('TRACKING: Respuesta de /track-click:', res.data);
         if (res.data?.tracking_id) {
           localStorage.setItem('affiliate_tracking_id', res.data.tracking_id);
           return true;
@@ -85,7 +87,16 @@ const AfiliadoRedirect: React.FC = () => {
       localStorage.setItem('affiliate_community_id', communityId);
       // Tracking de clics
       const trackingOk = await trackClick(ib, communityId);
-      if (!trackingOk) return; // Si falla el tracking, no redirigir
+      if (!trackingOk) {
+        setError('No se pudo generar el tracking. Intenta de nuevo o contacta soporte.');
+        return;
+      }
+      // Protección anti-bucle: verifica tracking_id
+      const trackingId = localStorage.getItem('affiliate_tracking_id');
+      if (!trackingId) {
+        setError('No se pudo generar el tracking. Intenta de nuevo o contacta soporte.');
+        return;
+      }
       // Redirigir a registro con ref y community_id
       navigate(`/registro?ref=${ib}&community_id=${communityId}`, { replace: true });
     };
