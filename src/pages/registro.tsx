@@ -191,7 +191,7 @@ const RegistroPage: React.FC = () => {
       setStep(3);
       toast.success('¡Registro exitoso! Revisa tu email para confirmar tu cuenta.');
       
-      // Redirigir después de un momento
+      // Redirigir solo a /home
       setTimeout(() => {
         navigate('/home');
       }, 2000);
@@ -254,7 +254,7 @@ const RegistroPage: React.FC = () => {
         await supabase.rpc('crear_codigo_afiliado_para_usuario', { p_user_id: user.id });
         setSuccess('¡Registro exitoso! Revisa tu email para confirmar tu cuenta.');
         setTimeout(() => {
-          navigate('/login');
+          navigate('/home');
         }, 2000);
         setLoading(false);
       }, 1500);
