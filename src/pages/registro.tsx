@@ -147,10 +147,37 @@ const RegistroPage: React.FC = () => {
     return Object.keys(newErrors).length === 0;
   };
 
+  const getParams = () => {
+    const refCode = searchParams.get('ref');
+    const commId = searchParams.get('community_id');
+    return {
+      affiliateCode: refCode,
+      communityId: commId || 'default',
+    };
+  };
+
   const handleRegister = async () => {
     if (!validateForm()) return;
     setLoading(true);
     setShowLoginLink(false);
+    // Tomar los parámetros directamente de la URL
+    const { affiliateCode: refCode, communityId: commId } = getParams();
+    let referenteId = afiliadoReferente;
+    if (refCode && !referenteId) {
+      // Buscar el user_id del IB referente si no está en estado
+      const { data } = await supabase
+        .from('codigos_afiliado')
+        .select('user_id')
+        .eq('codigo', refCode)
+        .eq('activo', true)
+        .single();
+      if (data?.user_id) referenteId = data.user_id;
+    }
+    if (!commId) {
+      toast.error('No se detectó la comunidad. Intenta de nuevo desde el link de afiliado.');
+      setLoading(false);
+      return;
+    }
     try {
       let userId = null;
       let userEmail = formData.email;
@@ -167,9 +194,9 @@ const RegistroPage: React.FC = () => {
           options: {
             data: {
               full_name: formData.fullName,
-              affiliate_code: affiliateCode,
-              community_id: communityId,
-              afiliado_referente: afiliadoReferente
+              affiliate_code: refCode,
+              community_id: commId,
+              afiliado_referente: referenteId
             }
           }
         });
@@ -198,11 +225,11 @@ const RegistroPage: React.FC = () => {
         user_metadata: {
           ...userObj.user_metadata,
           full_name: formData.fullName,
-          community_id: communityId,
-          afiliado_referente: afiliadoReferente
+          community_id: commId,
+          afiliado_referente: referenteId
         },
-        community_id: communityId,
-        afiliado_referente: afiliadoReferente
+        community_id: commId,
+        afiliado_referente: referenteId
       });
       // Crear IB único usando la función RPC robusta
       await supabase.rpc('crear_codigo_afiliado_para_usuario', { p_user_id: userId });
@@ -232,6 +259,23 @@ const RegistroPage: React.FC = () => {
     setSuccess('');
     setShowLoginLink(false);
     setLoading(true);
+    // Tomar los parámetros directamente de la URL
+    const { affiliateCode: refCode, communityId: commId } = getParams();
+    let referenteId = afiliadoReferente;
+    if (refCode && !referenteId) {
+      const { data } = await supabase
+        .from('codigos_afiliado')
+        .select('user_id')
+        .eq('codigo', refCode)
+        .eq('activo', true)
+        .single();
+      if (data?.user_id) referenteId = data.user_id;
+    }
+    if (!commId) {
+      setError('No se detectó la comunidad. Intenta de nuevo desde el link de afiliado.');
+      setLoading(false);
+      return;
+    }
     try {
       const { data, error: authError } = await supabase.auth.signInWithOAuth({ provider: 'google' });
       setTimeout(async () => {
@@ -245,12 +289,12 @@ const RegistroPage: React.FC = () => {
         // Sincronizar usuario en tabla usuarios
         await syncUsuarioSupabase({
           ...user,
-          community_id: communityId,
-          afiliado_referente: afiliadoReferente,
+          community_id: commId,
+          afiliado_referente: referenteId,
           user_metadata: {
             ...user.user_metadata,
-            community_id: communityId,
-            afiliado_referente: afiliadoReferente
+            community_id: commId,
+            afiliado_referente: referenteId
           }
         });
         // Crear IB único usando la función RPC robusta
