@@ -78,11 +78,12 @@ const RegistroPage: React.FC = () => {
         }));
       }
     });
-    // Refuerzo: si no hay tracking_id pero sí hay ref, redirigir automáticamente a /afiliado/[ref]
+    // Si no hay tracking_id, solo mostrar advertencia, NO redirigir
     const trackingId = localStorage.getItem('affiliate_tracking_id');
-    if (!trackingId && refCode) {
-      navigate(`/afiliado/${refCode}`);
-      return;
+    if (!trackingId) {
+      setTrackingError('Debes acceder desde un link de invitación para registrarte en una comunidad.');
+    } else {
+      setTrackingError(null);
     }
   }, [searchParams, navigate]);
 
@@ -425,6 +426,9 @@ const RegistroPage: React.FC = () => {
                 </div>
               )}
             </form>
+            {trackingError && (
+              <div className="text-red-600 font-bold text-center mt-4">{trackingError}</div>
+            )}
           </div>
         </div>
       </div>
