@@ -32,21 +32,5 @@ export function useAfiliadoTracking() {
     // Info de dispositivo/navegador básica
     const dispositivo = navigator.platform || '';
     const navegador = navigator.userAgent || '';
-
-    // Llama al endpoint para registrar el clic
-    fetch('/api/afiliados/track-click', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        ib: ref,
-        community_id: '', // Si tienes forma de obtener el community_id aquí, pásalo, si no, déjalo vacío
-        utm_source,
-        utm_medium,
-        utm_campaign,
-        user_agent: navegador,
-        referrer: document.referrer || '',
-        ip_address: '', // Si tienes forma de obtener la IP, pásala, si no, déjalo vacío
-      })
-    });
   }, []);
 } 
