@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '../supabase';
 import useNeuroState from '../store/useNeuroState';
 import { useLocation } from 'react-router-dom';
+import { syncUsuarioSupabase } from '../utils/syncUsuarioSupabase';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -55,81 +56,13 @@ const Login = () => {
     // Obtener el usuario autenticado
     const { data: userData } = await supabase.auth.getUser();
     const user = userData.user;
-    console.log('Intentando login, user:', user);
     if (!user) {
       setError('No se pudo autenticar el usuario.');
-      console.log('NO USER, abortando login');
       return;
     }
-    // 1. Busca el perfil en la tabla usuarios
-    let { data: perfil, error: perfilError } = await supabase
-      .from('usuarios')
-      .select('*')
-      .eq('id', user.id)
-      .single();
-    if (!perfil) {
-      // Forzar insert de perfil si no existe
-      console.log('Perfil no encontrado tras login, forzando insert:', { id: user.id, email: user.email });
-      const { error: profileError, data: insertData } = await supabase
-        .from('usuarios')
-        .insert([
-          {
-            id: user.id,
-            email: user.email,
-            name: user.user_metadata?.nombre || user.user_metadata?.full_name || user.email,
-            avatar_url: user.user_metadata?.avatar_url || null,
-            rol: 'user'
-          }
-        ]);
-      console.log('Resultado del insert tras login:', { error: profileError, data: insertData });
-      if (profileError) {
-        // Si el insert falla por duplicado, intenta upsert
-        if (profileError.code === '23505' || profileError.message?.toLowerCase().includes('duplicate')) {
-          console.log('Insert falló por duplicado, intentando upsert...');
-          const { error: upsertError, data: upsertData } = await supabase
-            .from('usuarios')
-            .upsert([
-              {
-                id: user.id,
-                email: user.email,
-                name: user.user_metadata?.nombre || user.user_metadata?.full_name || user.email,
-                avatar_url: user.user_metadata?.avatar_url || null,
-                rol: 'user'
-              }
-            ]);
-          console.log('Resultado del upsert tras login:', { error: upsertError, data: upsertData });
-          if (upsertError) {
-            setError('Error actualizando perfil de usuario: ' + upsertError.message);
-            setLoading(false);
-            console.log('Abortando login por error en upsert:', upsertError);
-            return;
-          }
-        } else {
-          setError('Error creando perfil de usuario: ' + profileError.message);
-          setLoading(false);
-          console.log('Abortando login por error en insert:', profileError);
-          return;
-        }
-      }
-      // Volver a buscar el perfil
-      ({ data: perfil, error: perfilError } = await supabase
-        .from('usuarios')
-        .select('*')
-        .eq('id', user.id)
-        .single());
-      if (!perfil) {
-        setError('No se pudo crear el perfil de usuario tras login. Revisa la consola para más detalles.');
-        setLoading(false);
-        console.log('Abortando login, no se pudo crear perfil tras insert/upsert:', { user });
-        return;
-      }
-    } else if (perfil.activo === false) {
-      setError('Tu cuenta está inactiva. Contacta soporte.');
-      await supabase.auth.signOut();
-      console.log('Abortando login, cuenta inactiva:', perfil);
-      return;
-    }
-    // Si todo está bien, permite el acceso normal
+    // Sincronizar usuario en tabla usuarios
+    await syncUsuarioSupabase(user);
+    // Redirigir a home
     window.location.href = '/home';
   };
 
@@ -160,43 +93,8 @@ const Login = () => {
           setLoading(false);
           return;
         }
-        // Buscar el perfil en la tabla usuarios
-        const { data: perfil } = await supabase
-          .from('usuarios')
-          .select('id')
-          .eq('id', user.id)
-          .single();
-        if (!perfil) {
-          // Validar que user.id es un UUID válido y user.email no es null
-          const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-          if (!user.id || !uuidRegex.test(user.id)) {
-            setError('Error: el id del usuario no es un UUID válido.');
-            setLoading(false);
-            return;
-          }
-          if (!user.email || typeof user.email !== 'string' || user.email.trim() === '') {
-            setError('Error: el email del usuario es inválido.');
-            setLoading(false);
-            return;
-          }
-          console.log('Insertando usuario en tabla usuarios:', { id: user.id, email: user.email });
-          // Crear perfil en la tabla usuarios
-          const { error: profileError, data: insertData } = await supabase.from('usuarios').insert([
-            {
-              id: user.id,
-              email: user.email,
-              name: user.user_metadata?.nombre || user.user_metadata?.full_name || user.email,
-              avatar_url: user.user_metadata?.avatar_url || null,
-              rol: 'user'
-            }
-          ]);
-          console.log('Resultado del insert:', { error: profileError, data: insertData });
-          if (profileError) {
-            setError('Error creando perfil de usuario: ' + profileError.message);
-            setLoading(false);
-            return;
-          }
-        }
+        // Sincronizar usuario en tabla usuarios
+        await syncUsuarioSupabase(user);
         // Redirigir a home
         window.location.href = '/home';
         setLoading(false);

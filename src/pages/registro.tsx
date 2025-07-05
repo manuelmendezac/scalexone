@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { UserPlus, Mail, Lock, User, Eye, EyeOff, CheckCircle } from 'lucide-react';
 import { supabase } from '../supabase';
 import { toast } from 'react-hot-toast';
+import { syncUsuarioSupabase } from '../utils/syncUsuarioSupabase';
 
 const RegistroPage: React.FC = () => {
   const [searchParams] = useSearchParams();
@@ -135,9 +136,11 @@ const RegistroPage: React.FC = () => {
     try {
       let userId = null;
       let userEmail = formData.email;
+      let userObj = null;
       if (sessionUser) {
         userId = sessionUser.id;
         userEmail = sessionUser.email || sessionUser.user_metadata?.email || '';
+        userObj = sessionUser;
       } else {
         // Registrar usuario en Supabase Auth
         const { data: authData, error: authError } = await supabase.auth.signUp({
@@ -167,68 +170,20 @@ const RegistroPage: React.FC = () => {
         }
         userId = authData.user.id;
         userEmail = authData.user.email || authData.user.user_metadata?.email || '';
-        // Forzar insert en la tabla usuarios aunque la sesión no esté activa
-        const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-        if (!userId || !uuidRegex.test(userId)) {
-          toast.error('Error: el id del usuario no es un UUID válido.');
-          setLoading(false);
-          return;
-        }
-        if (!userEmail || typeof userEmail !== 'string' || userEmail.trim() === '') {
-          toast.error('Error: el email del usuario es inválido.');
-          setLoading(false);
-          return;
-        }
-        console.log('Forzando insert en tabla usuarios tras signUp:', { id: userId, email: userEmail });
-        const { error: profileError, data: insertData } = await supabase
-          .from('usuarios')
-          .insert([
-            {
-              id: userId,
-              email: userEmail,
-              name: formData.fullName,
-              avatar_url: null,
-              rol: 'user'
-            }
-          ]);
-        console.log('Resultado del insert (forzado):', { error: profileError, data: insertData });
-        if (profileError) {
-          // Si el insert falla por duplicado, intenta upsert
-          if (profileError.code === '23505' || profileError.message?.toLowerCase().includes('duplicate')) {
-            console.log('Insert falló por duplicado, intentando upsert...');
-            const { error: upsertError, data: upsertData } = await supabase
-              .from('usuarios')
-              .upsert([
-                {
-                  id: userId,
-                  email: userEmail,
-                  name: formData.fullName,
-                  avatar_url: null,
-                  rol: 'user'
-                }
-              ]);
-            console.log('Resultado del upsert tras registro:', { error: upsertError, data: upsertData });
-            if (upsertError) {
-              toast.error('Error actualizando perfil de usuario: ' + upsertError.message);
-              setLoading(false);
-              console.log('Abortando registro por error en upsert:', upsertError);
-              return;
-            }
-          } else {
-            toast.error('Error creando perfil de usuario: ' + profileError.message);
-            setLoading(false);
-            console.log('Abortando registro por error en insert:', profileError);
-            return;
-          }
-        }
+        userObj = authData.user;
       }
-
+      // Sincronizar usuario en tabla usuarios
+      await syncUsuarioSupabase({
+        ...userObj,
+        user_metadata: {
+          ...userObj.user_metadata,
+          full_name: formData.fullName
+        }
+      });
       // Crear IB único usando la función RPC robusta
       await supabase.rpc('crear_codigo_afiliado_para_usuario', { p_user_id: userId });
-
       setStep(3);
       toast.success('¡Registro exitoso! Revisa tu email para confirmar tu cuenta.');
-      
       // Redirigir solo a /home
       setTimeout(() => {
         navigate('/home');
@@ -263,26 +218,10 @@ const RegistroPage: React.FC = () => {
           setLoading(false);
           return;
         }
-        // Buscar el perfil en la tabla usuarios
-        const { data: perfil } = await supabase
-          .from('usuarios')
-          .select('id')
-          .eq('id', user.id)
-          .single();
-        if (!perfil) {
-          // Crear perfil en la tabla usuarios
-          await supabase.from('usuarios').insert([
-            {
-              id: user.id,
-              email: user.email,
-              name: user.user_metadata?.nombre || user.user_metadata?.full_name || user.email,
-              avatar_url: user.user_metadata?.avatar_url || null,
-              rol: 'user'
-            }
-          ]);
-          // Crear IB único usando la función RPC robusta
-          await supabase.rpc('crear_codigo_afiliado_para_usuario', { p_user_id: user.id });
-        }
+        // Sincronizar usuario en tabla usuarios
+        await syncUsuarioSupabase(user);
+        // Crear IB único usando la función RPC robusta
+        await supabase.rpc('crear_codigo_afiliado_para_usuario', { p_user_id: user.id });
         // Redirigir a home
         navigate('/home');
         setLoading(false);

@@ -115,11 +115,22 @@ function App() {
           attempts++;
           await new Promise(r => setTimeout(r, 700));
         }
+        // Si no existe el perfil, intentar sincronizar antes de forzar logout
         if (!usuarioData || !usuarioData.community_id) {
-          console.warn('No se encontró perfil de usuario tras varios intentos, forzando logout/redirección.');
-          await supabase.auth.signOut();
-          navigate('/registro', { replace: true });
-          return;
+          console.warn('No se encontró perfil de usuario tras varios intentos. Intentando sincronizar antes de logout/redirección.');
+          await syncUsuarioSupabase(user);
+          // Reintentar buscar el perfil una vez más
+          const res = await supabase
+            .from('usuarios')
+            .select('rol, community_id')
+            .eq('email', user.email.trim())
+            .single();
+          usuarioData = res.data;
+          if (!usuarioData || !usuarioData.community_id) {
+            await supabase.auth.signOut();
+            navigate('/registro', { replace: true });
+            return;
+          }
         }
         // Solo actualiza si hay cambios reales
         if (
