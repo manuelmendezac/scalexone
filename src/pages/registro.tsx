@@ -21,6 +21,7 @@ const RegistroPage: React.FC = () => {
   const [success, setSuccess] = useState('');
   const [communityId, setCommunityId] = useState<string>('default');
   const [afiliadoReferente, setAfiliadoReferente] = useState<string | null>(null);
+  const [trackingError, setTrackingError] = useState<string | null>(null);
 
   const [formData, setFormData] = useState({
     email: '',
@@ -161,6 +162,14 @@ const RegistroPage: React.FC = () => {
   };
 
   const handleRegister = async () => {
+    // Validar tracking_id antes de continuar
+    const trackingId = localStorage.getItem('affiliate_tracking_id');
+    if (!trackingId) {
+      setTrackingError('No se detectó el tracking de afiliado. Por favor, accede desde el link de invitación o recarga la página.');
+      toast.error('No se detectó el tracking de afiliado. Usa el link de invitación.');
+      return;
+    }
+    setTrackingError(null);
     if (!validateForm()) return;
     setLoading(true);
     setShowLoginLink(false);
@@ -236,7 +245,6 @@ const RegistroPage: React.FC = () => {
         afiliado_referente: referenteId
       });
       // Tracking de lead/conversión
-      const trackingId = localStorage.getItem('affiliate_tracking_id');
       if (trackingId) {
         try {
           await axios.post('/api/afiliados/registro', {
@@ -252,9 +260,6 @@ const RegistroPage: React.FC = () => {
       }
       // Crear IB único usando la función RPC robusta
       await supabase.rpc('crear_codigo_afiliado_para_usuario', { p_user_id: userId });
-      // Limpiar localStorage tras registro exitoso
-      localStorage.removeItem('affiliate_ref');
-      localStorage.removeItem('affiliate_community_id');
       setStep(3);
       toast.success('¡Registro exitoso! Revisa tu email para confirmar tu cuenta.');
       // Redirigir solo a /home
@@ -431,6 +436,11 @@ const RegistroPage: React.FC = () => {
               {errors.password && <div style={{ color: 'red', marginBottom: 8, textAlign: 'center', fontWeight: 600 }}>{errors.password}</div>}
               {errors.confirmPassword && <div style={{ color: 'red', marginBottom: 8, textAlign: 'center', fontWeight: 600 }}>{errors.confirmPassword}</div>}
               {errors.acceptTerms && <div style={{ color: 'red', marginBottom: 8, textAlign: 'center', fontWeight: 600 }}>{errors.acceptTerms}</div>}
+              {trackingError && (
+                <div style={{ color: 'red', marginBottom: 12, textAlign: 'center', fontWeight: 600 }}>
+                  {trackingError}
+                </div>
+              )}
               <button type="submit" disabled={loading} style={{ width: '100%', background: '#FFD700', color: '#000', border: 'none', borderRadius: 7, padding: 12, fontWeight: 700, fontSize: 22, marginBottom: 12, marginTop: 8, cursor: 'pointer' }}>
                 {loading ? 'Registrando...' : 'REGISTRARSE'}
               </button>
