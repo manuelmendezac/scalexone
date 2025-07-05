@@ -231,35 +231,28 @@ const RegistroPage: React.FC = () => {
           .select('id')
           .eq('id', user.id)
           .single();
-        if (perfil) {
-          setError('Este correo ya está registrado.');
-          setShowLoginLink(true);
-          await supabase.auth.signOut();
-          setLoading(false);
-          return;
+        if (!perfil) {
+          // Crear perfil en la tabla usuarios
+          await supabase.from('usuarios').insert([
+            {
+              id: user.id,
+              email: user.email,
+              nombre: user.user_metadata?.nombre || user.user_metadata?.full_name || user.email,
+              avatar_url: user.user_metadata?.avatar_url || null,
+              fecha_creacion: new Date().toISOString(),
+              activo: true,
+              community_id: '8fb70d6e-3237-465e-8669-979461cf2bc1'
+            }
+          ]);
+          // Crear IB único usando la función RPC robusta
+          await supabase.rpc('crear_codigo_afiliado_para_usuario', { p_user_id: user.id });
         }
-        // Crear perfil en la tabla usuarios
-        await supabase.from('usuarios').insert([
-          {
-            id: user.id,
-            email: user.email,
-            nombre: user.user_metadata?.nombre || user.user_metadata?.full_name || user.email,
-            avatar_url: user.user_metadata?.avatar_url || null,
-            fecha_creacion: new Date().toISOString(),
-            activo: true,
-            community_id: '8fb70d6e-3237-465e-8669-979461cf2bc1'
-          }
-        ]);
-        // Crear IB único usando la función RPC robusta
-        await supabase.rpc('crear_codigo_afiliado_para_usuario', { p_user_id: user.id });
-        setSuccess('¡Registro exitoso! Revisa tu email para confirmar tu cuenta.');
-        setTimeout(() => {
-          navigate('/home');
-        }, 2000);
+        // Redirigir a home
+        navigate('/home');
         setLoading(false);
       }, 1500);
-    } catch (err: any) {
-      setError(err.message || 'Error al registrar con Google');
+    } catch (err) {
+      setError('Error al registrar con Google.');
       setLoading(false);
     }
   };

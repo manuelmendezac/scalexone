@@ -68,7 +68,6 @@ const Login = () => {
     if (!perfil) {
       setError('No tienes cuenta registrada. Por favor, regístrate primero.');
       setShowRegisterPrompt(true);
-      await supabase.auth.signOut();
       return;
     } else if (perfil.activo === false) {
       setError('Tu cuenta está inactiva. Contacta soporte.');
@@ -76,7 +75,7 @@ const Login = () => {
       return;
     }
     // Si todo está bien, permite el acceso normal
-    window.location.href = 'https://www.scalexone.app/home';
+    window.location.href = '/home';
   };
 
   // Recuperar contraseña
@@ -92,7 +91,50 @@ const Login = () => {
 
   // Login con Google
   const handleGoogle = async () => {
-    await supabase.auth.signInWithOAuth({ provider: 'google' });
+    setError('');
+    setSuccess('');
+    setShowRegisterLink(false);
+    setLoading(true);
+    try {
+      const { data, error: authError } = await supabase.auth.signInWithOAuth({ provider: 'google' });
+      setTimeout(async () => {
+        const { data: userData } = await supabase.auth.getUser();
+        const user = userData.user;
+        if (!user) {
+          setError('No se pudo autenticar con Google.');
+          setLoading(false);
+          return;
+        }
+        // Buscar el perfil en la tabla usuarios
+        const { data: perfil } = await supabase
+          .from('usuarios')
+          .select('id')
+          .eq('id', user.id)
+          .single();
+        if (!perfil) {
+          // Crear perfil en la tabla usuarios
+          await supabase.from('usuarios').insert([
+            {
+              id: user.id,
+              email: user.email,
+              nombre: user.user_metadata?.nombre || user.user_metadata?.full_name || user.email,
+              avatar_url: user.user_metadata?.avatar_url || null,
+              fecha_creacion: new Date().toISOString(),
+              activo: true,
+              community_id: '8fb70d6e-3237-465e-8669-979461cf2bc1'
+            }
+          ]);
+          // Crear IB único usando la función RPC robusta
+          await supabase.rpc('crear_codigo_afiliado_para_usuario', { p_user_id: user.id });
+        }
+        // Redirigir a home
+        window.location.href = '/home';
+        setLoading(false);
+      }, 1500);
+    } catch (err) {
+      setError('Error al autenticar con Google.');
+      setLoading(false);
+    }
   };
 
   return (
