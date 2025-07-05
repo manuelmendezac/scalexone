@@ -160,43 +160,46 @@ const RegistroPage: React.FC = () => {
           setLoading(false);
           return;
         }
-        if (!authData.user) throw new Error('No se pudo crear el usuario en Auth.');
+        if (!authData.user) {
+          toast.error('No se pudo crear el usuario en Auth.');
+          setLoading(false);
+          return;
+        }
         userId = authData.user.id;
         userEmail = authData.user.email || authData.user.user_metadata?.email || '';
+        // Forzar insert en la tabla usuarios aunque la sesión no esté activa
+        const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+        if (!userId || !uuidRegex.test(userId)) {
+          toast.error('Error: el id del usuario no es un UUID válido.');
+          setLoading(false);
+          return;
+        }
+        if (!userEmail || typeof userEmail !== 'string' || userEmail.trim() === '') {
+          toast.error('Error: el email del usuario es inválido.');
+          setLoading(false);
+          return;
+        }
+        console.log('Forzando insert en tabla usuarios tras signUp:', { id: userId, email: userEmail });
+        const { error: profileError, data: insertData } = await supabase
+          .from('usuarios')
+          .insert([
+            {
+              id: userId,
+              email: userEmail,
+              name: formData.fullName,
+              avatar_url: null,
+              rol: 'user'
+            }
+          ]);
+        console.log('Resultado del insert (forzado):', { error: profileError, data: insertData });
+        if (profileError) {
+          console.error('Error creando perfil de usuario:', profileError);
+          toast.error('Error creando perfil de usuario: ' + profileError.message);
+          setLoading(false);
+          return;
+        }
       }
 
-      // Validar que userId es un UUID válido y userEmail no es null
-      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-      if (!userId || !uuidRegex.test(userId)) {
-        toast.error('Error: el id del usuario no es un UUID válido.');
-        setLoading(false);
-        return;
-      }
-      if (!userEmail || typeof userEmail !== 'string' || userEmail.trim() === '') {
-        toast.error('Error: el email del usuario es inválido.');
-        setLoading(false);
-        return;
-      }
-      console.log('Insertando usuario en tabla usuarios:', { id: userId, email: userEmail });
-      // Crear perfil de usuario en la tabla usuarios
-      const { error: profileError, data: insertData } = await supabase
-        .from('usuarios')
-        .insert([
-          {
-            id: userId,
-            email: userEmail,
-            name: formData.fullName,
-            avatar_url: null,
-            rol: 'user'
-          }
-        ]);
-      console.log('Resultado del insert:', { error: profileError, data: insertData });
-      if (profileError) {
-        console.error('Error creating user profile:', profileError);
-        toast.error('Error creando perfil de usuario: ' + profileError.message);
-        setLoading(false);
-        return;
-      }
       // Crear IB único usando la función RPC robusta
       await supabase.rpc('crear_codigo_afiliado_para_usuario', { p_user_id: userId });
 
