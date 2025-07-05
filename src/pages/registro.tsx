@@ -78,15 +78,11 @@ const RegistroPage: React.FC = () => {
         }));
       }
     });
-    // Refuerzo: si no hay tracking_id, NO mostrar mensaje rojo, solo deshabilitar registro
+    // Refuerzo: si no hay tracking_id pero sí hay ref, redirigir automáticamente a /afiliado/[ref]
     const trackingId = localStorage.getItem('affiliate_tracking_id');
-    if (!trackingId) {
-      setTrackingError(null); // No mostrar mensaje
-      // (Opcional: redirigir a /afiliado/${ref} si quieres forzar el flujo)
-      // const refCode = searchParams.get('ref');
-      // if (refCode) navigate(`/afiliado/${refCode}`);
-    } else {
-      setTrackingError(null);
+    if (!trackingId && refCode) {
+      navigate(`/afiliado/${refCode}`);
+      return;
     }
   }, [searchParams, navigate]);
 
