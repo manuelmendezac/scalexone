@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { supabase } from '../../supabase';
 import axios from 'axios';
@@ -8,8 +8,20 @@ const DEFAULT_COMMUNITY_ID = '8fb70d6e-3237-465e-8669-979461cf2bc1'; // ScaleXon
 const AfiliadoRedirect: React.FC = () => {
   const navigate = useNavigate();
   const { ib } = useParams<{ ib: string }>();
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    const checkSessionAndRedirect = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        // Si ya está logueado, siempre redirigir a /home
+        navigate('/home', { replace: true });
+        return;
+      }
+      // Si no está logueado, sigue el flujo normal de tracking
+      redirect();
+    };
+
     const trackClick = async (ib: string, communityId: string) => {
       try {
         const userAgent = navigator.userAgent;
@@ -18,8 +30,6 @@ const AfiliadoRedirect: React.FC = () => {
         const utm_source = urlParams.get('utm_source');
         const utm_medium = urlParams.get('utm_medium');
         const utm_campaign = urlParams.get('utm_campaign');
-        // Obtener IP pública (opcional, puede omitirse si el backend la detecta)
-        // const ip_address = await fetch('https://api.ipify.org?format=json').then(res => res.json()).then(data => data.ip);
         const res = await axios.post('/api/afiliados/track-click', {
           ib,
           community_id: communityId,
@@ -33,11 +43,16 @@ const AfiliadoRedirect: React.FC = () => {
           localStorage.setItem('affiliate_tracking_id', res.data.tracking_id);
         }
       } catch (err) {
+        setError('Error registrando el tracking de afiliado. Intenta de nuevo o contacta soporte.');
         console.error('Error tracking click:', err);
       }
     };
+
     const redirect = async () => {
-      if (!ib) return;
+      if (!ib) {
+        setError('Código de afiliado no válido.');
+        return;
+      }
       // Buscar el user_id del IB
       const { data: codigo } = await supabase
         .from('codigos_afiliado')
@@ -45,18 +60,21 @@ const AfiliadoRedirect: React.FC = () => {
         .eq('codigo', ib)
         .eq('activo', true)
         .single();
-      let communityId = DEFAULT_COMMUNITY_ID;
-      if (codigo?.user_id) {
-        // Buscar el community_id del usuario dueño del IB
-        const { data: usuario } = await supabase
-          .from('usuarios')
-          .select('community_id')
-          .eq('id', codigo.user_id)
-          .single();
-        if (usuario?.community_id) {
-          communityId = usuario.community_id;
-        }
+      if (!codigo?.user_id) {
+        setError('El código de afiliado no existe o está inactivo.');
+        return;
       }
+      // Buscar el community_id del usuario dueño del IB
+      const { data: usuario } = await supabase
+        .from('usuarios')
+        .select('community_id')
+        .eq('id', codigo.user_id)
+        .single();
+      if (!usuario?.community_id || usuario.community_id === 'default') {
+        setError('No se pudo determinar la comunidad del afiliado. Contacta soporte.');
+        return;
+      }
+      const communityId = usuario.community_id;
       // Guardar en localStorage para respaldo
       localStorage.setItem('affiliate_ref', ib);
       localStorage.setItem('affiliate_community_id', communityId);
@@ -65,12 +83,17 @@ const AfiliadoRedirect: React.FC = () => {
       // Redirigir a registro con ref y community_id
       navigate(`/registro?ref=${ib}&community_id=${communityId}`, { replace: true });
     };
-    redirect();
+
+    checkSessionAndRedirect();
   }, [ib, navigate]);
 
   return (
     <div className="min-h-screen flex items-center justify-center text-blue-900 text-xl">
-      Redirigiendo al registro de afiliado...
+      {error ? (
+        <div className="text-red-600 font-bold text-center">{error}</div>
+      ) : (
+        'Redirigiendo al registro de afiliado...'
+      )}
     </div>
   );
 };
