@@ -12,11 +12,7 @@ const RegistroPage: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [step, setStep] = useState(1);
   const [affiliateCode, setAffiliateCode] = useState<string | null>(null);
-  const [sessionUser, setSessionUser] = useState<any>(null);
   const [clickRegistered, setClickRegistered] = useState(false);
-  const [showLoginLink, setShowLoginLink] = useState(false);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
 
   const [formData, setFormData] = useState({
     email: '',
@@ -35,28 +31,7 @@ const RegistroPage: React.FC = () => {
       setAffiliateCode(refCode);
       registerAffiliateClick(refCode);
     }
-    // Detectar sesión activa en Auth
-    supabase.auth.getUser().then(async ({ data: { user } }) => {
-      if (user) {
-        // Verificar si ya existe en la tabla usuarios
-        const { data: perfil } = await supabase
-          .from('usuarios')
-          .select('id')
-          .eq('id', user.id)
-          .single();
-        if (perfil) {
-          navigate('/home', { replace: true });
-          return;
-        }
-        setSessionUser(user);
-        setFormData(prev => ({
-          ...prev,
-          email: user.email || user.user_metadata?.email || '',
-          fullName: user.user_metadata?.full_name || user.user_metadata?.name || ''
-        }));
-      }
-    });
-  }, [searchParams, navigate]);
+  }, [searchParams]);
 
   const registerAffiliateClick = async (codigo: string) => {
     try {
@@ -108,16 +83,14 @@ const RegistroPage: React.FC = () => {
       newErrors.email = 'El email no es válido';
     }
 
-    if (!sessionUser) {
-      if (!formData.password) {
-        newErrors.password = 'La contraseña es requerida';
-      } else if (formData.password.length < 6) {
-        newErrors.password = 'La contraseña debe tener al menos 6 caracteres';
-      }
+    if (!formData.password) {
+      newErrors.password = 'La contraseña es requerida';
+    } else if (formData.password.length < 6) {
+      newErrors.password = 'La contraseña debe tener al menos 6 caracteres';
+    }
 
-      if (formData.password !== formData.confirmPassword) {
-        newErrors.confirmPassword = 'Las contraseñas no coinciden';
-      }
+    if (formData.password !== formData.confirmPassword) {
+      newErrors.confirmPassword = 'Las contraseñas no coinciden';
     }
 
     if (!formData.acceptTerms) {
@@ -130,71 +103,70 @@ const RegistroPage: React.FC = () => {
 
   const handleRegister = async () => {
     if (!validateForm()) return;
+
     setLoading(true);
-    setShowLoginLink(false);
     try {
-      let userId = null;
-      let userEmail = formData.email;
-      if (sessionUser) {
-        userId = sessionUser.id;
-        userEmail = sessionUser.email || sessionUser.user_metadata?.email || '';
-      } else {
-        // Registrar usuario en Supabase Auth
-        const { data: authData, error: authError } = await supabase.auth.signUp({
-          email: formData.email,
-          password: formData.password,
-          options: {
-            data: {
-              full_name: formData.fullName,
-              affiliate_code: affiliateCode
-            }
+      // Registrar usuario en Supabase Auth
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email: formData.email,
+        password: formData.password,
+        options: {
+          data: {
+            full_name: formData.fullName,
+            affiliate_code: affiliateCode
           }
-        });
-        if (authError) {
-          if (authError.message.toLowerCase().includes('already registered')) {
-            toast.error('Este correo ya está registrado. Inicia sesión aquí.');
-            setShowLoginLink(true);
-          } else {
-            toast.error(authError.message);
-          }
-          setLoading(false);
-          return;
         }
-        if (!authData.user) throw new Error('No se pudo crear el usuario en Auth.');
-        userId = authData.user.id;
-        userEmail = authData.user.email || authData.user.user_metadata?.email || '';
-      }
+      });
 
-      // Crear perfil de usuario en la tabla usuarios
-      const { error: profileError } = await supabase
-        .from('usuarios')
-        .insert([
-          {
-            id: userId,
-            email: userEmail,
-            name: formData.fullName,
-            avatar_url: null,
-            fecha_creacion: new Date().toISOString(),
-            activo: true,
-            community_id: '8fb70d6e-3237-465e-8669-979461cf2bc1'
+      if (authError) throw authError;
+
+      if (authData.user) {
+        // Registrar conversión si hay código de afiliado
+        if (affiliateCode) {
+          try {
+            const { error: conversionError } = await supabase.rpc('registrar_conversion_afiliado', {
+              p_codigo: affiliateCode,
+              p_nuevo_usuario_id: authData.user.id,
+              p_tipo_conversion: 'registro_comunidad',
+              p_valor_conversion: 0
+            });
+
+            if (conversionError) {
+              console.error('Error registering conversion:', conversionError);
+            } else {
+              console.log('Conversion registered successfully');
+            }
+          } catch (conversionErr) {
+            console.error('Error in conversion registration:', conversionErr);
           }
-        ]);
-      if (profileError) {
-        console.error('Error creating user profile:', profileError);
-        toast.error('Error creando perfil de usuario: ' + profileError.message);
-        setLoading(false);
-        return;
-      }
-      // Crear IB único usando la función RPC robusta
-      await supabase.rpc('crear_codigo_afiliado_para_usuario', { p_user_id: userId });
+        }
 
-      setStep(3);
-      toast.success('¡Registro exitoso! Revisa tu email para confirmar tu cuenta.');
-      
-      // Redirigir solo a /home
-      setTimeout(() => {
-        navigate('/home');
-      }, 2000);
+        // Crear perfil de usuario en la tabla usuarios
+        const { error: profileError } = await supabase
+          .from('usuarios')
+          .insert([
+            {
+              id: authData.user.id,
+              email: formData.email,
+              nombre: formData.fullName,
+              avatar_url: null,
+              fecha_creacion: new Date().toISOString(),
+              activo: true
+            }
+          ]);
+
+        if (profileError) {
+          console.error('Error creating user profile:', profileError);
+        }
+
+        setStep(3);
+        toast.success('¡Registro exitoso! Revisa tu email para confirmar tu cuenta.');
+        
+        // Redirigir después de un momento
+        setTimeout(() => {
+          navigate('/login');
+        }, 3000);
+      }
     } catch (error: any) {
       console.error('Registration error:', error);
       toast.error(error.message || 'Error al registrar usuario');
@@ -210,190 +182,256 @@ const RegistroPage: React.FC = () => {
     }
   };
 
-  const handleGoogle = async () => {
-    setError('');
-    setSuccess('');
-    setShowLoginLink(false);
-    setLoading(true);
-    try {
-      const { data, error: authError } = await supabase.auth.signInWithOAuth({ provider: 'google' });
-      setTimeout(async () => {
-        const { data: userData } = await supabase.auth.getUser();
-        const user = userData.user;
-        if (!user) {
-          setError('No se pudo autenticar con Google.');
-          setLoading(false);
-          return;
-        }
-        // Buscar el perfil en la tabla usuarios
-        const { data: perfil } = await supabase
-          .from('usuarios')
-          .select('id')
-          .eq('id', user.id)
-          .single();
-        if (!perfil) {
-          // Crear perfil en la tabla usuarios
-          await supabase.from('usuarios').insert([
-            {
-              id: user.id,
-              email: user.email,
-              name: user.user_metadata?.nombre || user.user_metadata?.full_name || user.email,
-              avatar_url: user.user_metadata?.avatar_url || null,
-              fecha_creacion: new Date().toISOString(),
-              activo: true,
-              community_id: '8fb70d6e-3237-465e-8669-979461cf2bc1'
-            }
-          ]);
-          // Crear IB único usando la función RPC robusta
-          await supabase.rpc('crear_codigo_afiliado_para_usuario', { p_user_id: user.id });
-        }
-        // Redirigir a home
-        navigate('/home');
-        setLoading(false);
-      }, 1500);
-    } catch (err) {
-      setError('Error al registrar con Google.');
-      setLoading(false);
-    }
-  };
-
   return (
-    <div
-      className="login-main-container"
-      style={{
-        minHeight: '100vh',
-        width: '100vw',
-        display: 'flex',
-        flexDirection: 'row',
-        background: '#0a1a2f',
-      }}
-    >
-      {/* Columna izquierda: formulario */}
-      <div
-        className="login-form-col"
-        style={{
-          flex: 1,
-          minWidth: 350,
-          maxWidth: 480,
-          background: 'rgba(10,20,40,0.92)',
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'center',
-          alignItems: 'center',
-          zIndex: 2,
-        }}
-      >
-        <div
-          style={{
-            width: '100%',
-            maxWidth: 340,
-            margin: '0 auto',
-            padding: 0,
-            borderRadius: 18,
-            background: '#000',
-            boxShadow: '0 0 32px #FFD700',
-            overflow: 'hidden',
-            display: 'flex',
-            flexDirection: 'column',
-          }}
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-md w-full space-y-8">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-white rounded-2xl shadow-xl p-8"
         >
-          <video
-            src="/videos/introneuroclon.mp4"
-            autoPlay
-            muted
-            playsInline
-            style={{
-              width: '100%',
-              height: '180px',
-              minHeight: '120px',
-              maxHeight: '220px',
-              objectFit: 'cover',
-              background: '#000',
-              display: 'block',
-              borderRadius: 0,
-            }}
-          />
-          <div style={{ padding: 32, paddingTop: 24, width: '100%' }}>
-            <button onClick={handleGoogle} style={{ width: '100%', background: '#FFD700', color: '#181828', border: 'none', borderRadius: 8, padding: 12, fontWeight: 700, fontSize: 16, marginBottom: 18, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, boxShadow: '0 2px 8px #0002', cursor: 'pointer' }}>
-              <img src="/images/google.svg" alt="Google" style={{ width: 22, height: 22 }} /> REGISTRARSE CON GOOGLE
-            </button>
-            <div style={{ textAlign: 'center', color: '#FFD700', margin: '18px 0 10px 0', fontWeight: 600 }}>o regístrate con tu correo</div>
-            <form onSubmit={handleRegister} style={{ width: '100%' }}>
-              <input type="text" placeholder="Nombre completo" value={formData.fullName} onChange={(e) => handleInputChange('fullName', e.target.value)} style={{ width: '100%', marginBottom: 12, padding: 12, borderRadius: 7, border: 'none', background: '#181828', color: '#fff', fontSize: 16, borderColor: '#FFD700', borderWidth: 2 }} required />
-              <input type="email" placeholder="Correo electrónico" value={formData.email} onChange={(e) => handleInputChange('email', e.target.value)} style={{ width: '100%', marginBottom: 12, padding: 12, borderRadius: 7, border: 'none', background: '#181828', color: '#fff', fontSize: 16, borderColor: '#FFD700', borderWidth: 2 }} required />
-              <div style={{ position: 'relative', marginBottom: 12 }}>
-                <input type={showPassword ? 'text' : 'password'} placeholder="Contraseña" value={formData.password} onChange={(e) => handleInputChange('password', e.target.value)} style={{ width: '100%', padding: 12, borderRadius: 7, border: 'none', background: '#181828', color: '#fff', fontSize: 16, borderColor: '#FFD700', borderWidth: 2 }} required />
-                <span onClick={() => setShowPassword(v => !v)} style={{ position: 'absolute', right: 12, top: 14, cursor: 'pointer', color: '#FFD700', fontSize: 18 }}>{showPassword ? '🙈' : '👁️'}</span>
+          {/* Header */}
+          <div className="text-center mb-8">
+            <motion.div
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ delay: 0.2 }}
+              className="mx-auto h-16 w-16 bg-blue-100 rounded-full flex items-center justify-center mb-4"
+            >
+              <UserPlus className="h-8 w-8 text-blue-600" />
+            </motion.div>
+            <h2 className="text-3xl font-bold text-gray-900">
+              Únete a ScaleXone
+            </h2>
+            <p className="mt-2 text-gray-600">
+              Crea tu cuenta y forma parte de nuestra comunidad
+            </p>
+            {affiliateCode && (
+              <div className="mt-3 px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm inline-block">
+                Invitado por: {affiliateCode}
               </div>
-              <div style={{ position: 'relative', marginBottom: 12 }}>
-                <input type="password" placeholder="Confirmar contraseña" value={formData.confirmPassword} onChange={(e) => handleInputChange('confirmPassword', e.target.value)} style={{ width: '100%', padding: 12, borderRadius: 7, border: 'none', background: '#181828', color: '#fff', fontSize: 16, borderColor: '#FFD700', borderWidth: 2 }} required />
+            )}
+          </div>
+
+          {/* Step 1: User Info */}
+          {step === 1 && (
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              className="space-y-6"
+            >
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Nombre Completo
+                </label>
+                <div className="relative">
+                  <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                  <input
+                    type="text"
+                    value={formData.fullName}
+                    onChange={(e) => handleInputChange('fullName', e.target.value)}
+                    className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                      errors.fullName ? 'border-red-500' : 'border-gray-300'
+                    }`}
+                    placeholder="Tu nombre completo"
+                  />
+                </div>
+                {errors.fullName && (
+                  <p className="mt-1 text-sm text-red-600">{errors.fullName}</p>
+                )}
               </div>
-              <div style={{ textAlign: 'left', marginBottom: 12 }}>
-                <input type="checkbox" id="acceptTerms" checked={formData.acceptTerms} onChange={(e) => handleInputChange('acceptTerms', e.target.checked)} style={{ accentColor: '#FFD700', width: 18, height: 18, marginRight: 8 }} />
-                <label htmlFor="acceptTerms" style={{ color: '#FFD700', fontSize: 15, cursor: 'pointer', userSelect: 'none' }}>
-                  Acepto los <a href="/terminos" style={{ color: '#FFD700', textDecoration: 'underline' }}>términos y condiciones</a>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Email
+                </label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                  <input
+                    type="email"
+                    value={formData.email}
+                    onChange={(e) => handleInputChange('email', e.target.value)}
+                    className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                      errors.email ? 'border-red-500' : 'border-gray-300'
+                    }`}
+                    placeholder="tu@email.com"
+                  />
+                </div>
+                {errors.email && (
+                  <p className="mt-1 text-sm text-red-600">{errors.email}</p>
+                )}
+              </div>
+
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => setStep(2)}
+                className="w-full py-3 px-4 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors"
+              >
+                Continuar
+              </motion.button>
+            </motion.div>
+          )}
+
+          {/* Step 2: Password */}
+          {step === 2 && (
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              className="space-y-6"
+            >
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Contraseña
+                </label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    value={formData.password}
+                    onChange={(e) => handleInputChange('password', e.target.value)}
+                    className={`w-full pl-10 pr-12 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                      errors.password ? 'border-red-500' : 'border-gray-300'
+                    }`}
+                    placeholder="Mínimo 6 caracteres"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  >
+                    {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                  </button>
+                </div>
+                {errors.password && (
+                  <p className="mt-1 text-sm text-red-600">{errors.password}</p>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Confirmar Contraseña
+                </label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                  <input
+                    type="password"
+                    value={formData.confirmPassword}
+                    onChange={(e) => handleInputChange('confirmPassword', e.target.value)}
+                    className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                      errors.confirmPassword ? 'border-red-500' : 'border-gray-300'
+                    }`}
+                    placeholder="Repite tu contraseña"
+                  />
+                </div>
+                {errors.confirmPassword && (
+                  <p className="mt-1 text-sm text-red-600">{errors.confirmPassword}</p>
+                )}
+              </div>
+
+              <div className="flex items-center">
+                <input
+                  type="checkbox"
+                  id="acceptTerms"
+                  checked={formData.acceptTerms}
+                  onChange={(e) => handleInputChange('acceptTerms', e.target.checked)}
+                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                />
+                <label htmlFor="acceptTerms" className="ml-2 block text-sm text-gray-700">
+                  Acepto los{' '}
+                  <a href="/terminos" className="text-blue-600 hover:text-blue-500">
+                    términos y condiciones
+                  </a>
                 </label>
               </div>
-              {errors.fullName && <div style={{ color: 'red', marginBottom: 8, textAlign: 'center', fontWeight: 600 }}>{errors.fullName}</div>}
-              {errors.email && <div style={{ color: 'red', marginBottom: 8, textAlign: 'center', fontWeight: 600 }}>{errors.email}</div>}
-              {errors.password && <div style={{ color: 'red', marginBottom: 8, textAlign: 'center', fontWeight: 600 }}>{errors.password}</div>}
-              {errors.confirmPassword && <div style={{ color: 'red', marginBottom: 8, textAlign: 'center', fontWeight: 600 }}>{errors.confirmPassword}</div>}
-              {errors.acceptTerms && <div style={{ color: 'red', marginBottom: 8, textAlign: 'center', fontWeight: 600 }}>{errors.acceptTerms}</div>}
-              <button type="submit" disabled={loading} style={{ width: '100%', background: '#FFD700', color: '#000', border: 'none', borderRadius: 7, padding: 12, fontWeight: 700, fontSize: 22, marginBottom: 12, marginTop: 8, cursor: 'pointer' }}>
-                {loading ? 'Registrando...' : 'REGISTRARSE'}
-              </button>
-              {showLoginLink && (
-                <div style={{ textAlign: 'center', marginTop: 8 }}>
-                  <span style={{ fontSize: 13, color: '#FFD700' }}>
-                    ¿Ya tienes cuenta?{' '}
-                    <a href="/login" style={{ color: '#FFD700', textDecoration: 'underline', cursor: 'pointer' }}>Inicia sesión aquí</a>
-                  </span>
-                </div>
+              {errors.acceptTerms && (
+                <p className="text-sm text-red-600">{errors.acceptTerms}</p>
               )}
-            </form>
-          </div>
-        </div>
-      </div>
-      {/* Columna derecha: video */}
-      <div
-        className="login-video-col"
-        style={{
-          flex: 2,
-          position: 'relative',
-          height: '100vh',
-          overflow: 'hidden',
-          minWidth: 0,
-        }}
-      >
-        <video
-          src="/videos/videologinactual.mp4"
-          autoPlay
-          loop
-          muted
-          playsInline
-          style={{
-            width: '100%',
-            height: '100%',
-            objectFit: 'cover',
-            objectPosition: 'center top',
-            position: 'absolute',
-            top: 0,
-            left: 0,
-          }}
-        />
-        {/* Overlay para oscurecer el video y tapar el logo */}
-        <div
-          style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            width: '100%',
-            height: '100%',
-            background:
-              'linear-gradient(90deg, #0a1a2f 0%, #0a1a2f88 40%, #0000 100%), linear-gradient(0deg, #0a1a2f 0%, #0000 80%)',
-            pointerEvents: 'none',
-          }}
-        />
+
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setStep(1)}
+                  className="flex-1 py-3 px-4 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors"
+                >
+                  Atrás
+                </button>
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={handleRegister}
+                  disabled={loading}
+                  className="flex-1 py-3 px-4 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:opacity-50"
+                >
+                  {loading ? 'Registrando...' : 'Crear Cuenta'}
+                </motion.button>
+              </div>
+            </motion.div>
+          )}
+
+          {/* Step 3: Success */}
+          {step === 3 && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="text-center space-y-6"
+            >
+              <div className="mx-auto h-16 w-16 bg-green-100 rounded-full flex items-center justify-center">
+                <CheckCircle className="h-8 w-8 text-green-600" />
+              </div>
+              <div>
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                  ¡Cuenta Creada Exitosamente!
+                </h3>
+                <p className="text-gray-600">
+                  Hemos enviado un email de confirmación a <strong>{formData.email}</strong>
+                </p>
+                <p className="text-sm text-gray-500 mt-2">
+                  Revisa tu bandeja de entrada y confirma tu cuenta para continuar.
+                </p>
+              </div>
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => navigate('/login')}
+                className="w-full py-3 px-4 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors"
+              >
+                Ir al Login
+              </motion.button>
+            </motion.div>
+          )}
+
+          {/* Login Link */}
+          {step < 3 && (
+            <div className="text-center mt-6">
+              <p className="text-sm text-gray-600">
+                ¿Ya tienes cuenta?{' '}
+                <button
+                  onClick={() => navigate('/login')}
+                  className="text-blue-600 hover:text-blue-500 font-medium"
+                >
+                  Inicia sesión
+                </button>
+              </p>
+            </div>
+          )}
+        </motion.div>
+
+        {/* Affiliate Info */}
+        {affiliateCode && clickRegistered && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5 }}
+            className="bg-white rounded-lg p-4 shadow-md text-center"
+          >
+            <p className="text-sm text-gray-600">
+              🎉 ¡Fuiste invitado por un miembro de nuestra comunidad!
+            </p>
+            <p className="text-xs text-gray-500 mt-1">
+              Al registrarte, tu invitador recibirá una comisión por referirte.
+            </p>
+          </motion.div>
+        )}
       </div>
     </div>
   );
