@@ -18,6 +18,8 @@ const RegistroPage: React.FC = () => {
   const [showLoginLink, setShowLoginLink] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [communityId, setCommunityId] = useState<string>('default');
+  const [afiliadoReferente, setAfiliadoReferente] = useState<string | null>(null);
 
   const [formData, setFormData] = useState({
     email: '',
@@ -32,9 +34,25 @@ const RegistroPage: React.FC = () => {
   useEffect(() => {
     // Capturar código de afiliado de la URL
     const refCode = searchParams.get('ref');
+    const commId = searchParams.get('community_id');
     if (refCode) {
       setAffiliateCode(refCode);
       registerAffiliateClick(refCode);
+      // Buscar el user_id del IB referente
+      supabase
+        .from('codigos_afiliado')
+        .select('user_id')
+        .eq('codigo', refCode)
+        .eq('activo', true)
+        .single()
+        .then(({ data }) => {
+          if (data?.user_id) setAfiliadoReferente(data.user_id);
+        });
+    }
+    if (commId) {
+      setCommunityId(commId);
+    } else {
+      setCommunityId('default');
     }
     // Detectar sesión activa en Auth
     supabase.auth.getUser().then(async ({ data: { user } }) => {
@@ -149,7 +167,9 @@ const RegistroPage: React.FC = () => {
           options: {
             data: {
               full_name: formData.fullName,
-              affiliate_code: affiliateCode
+              affiliate_code: affiliateCode,
+              community_id: communityId,
+              afiliado_referente: afiliadoReferente
             }
           }
         });
@@ -177,8 +197,12 @@ const RegistroPage: React.FC = () => {
         ...userObj,
         user_metadata: {
           ...userObj.user_metadata,
-          full_name: formData.fullName
-        }
+          full_name: formData.fullName,
+          community_id: communityId,
+          afiliado_referente: afiliadoReferente
+        },
+        community_id: communityId,
+        afiliado_referente: afiliadoReferente
       });
       // Crear IB único usando la función RPC robusta
       await supabase.rpc('crear_codigo_afiliado_para_usuario', { p_user_id: userId });
@@ -219,7 +243,16 @@ const RegistroPage: React.FC = () => {
           return;
         }
         // Sincronizar usuario en tabla usuarios
-        await syncUsuarioSupabase(user);
+        await syncUsuarioSupabase({
+          ...user,
+          community_id: communityId,
+          afiliado_referente: afiliadoReferente,
+          user_metadata: {
+            ...user.user_metadata,
+            community_id: communityId,
+            afiliado_referente: afiliadoReferente
+          }
+        });
         // Crear IB único usando la función RPC robusta
         await supabase.rpc('crear_codigo_afiliado_para_usuario', { p_user_id: user.id });
         // Redirigir a home
