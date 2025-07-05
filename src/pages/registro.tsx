@@ -202,6 +202,19 @@ const RegistroPage: React.FC = () => {
           setLoading(false);
           return;
         }
+        // Esperar a que la sesión esté activa
+        let session = null;
+        for (let i = 0; i < 10; i++) {
+          const { data: sessionData } = await supabase.auth.getSession();
+          session = sessionData.session;
+          if (session) break;
+          await new Promise(res => setTimeout(res, 300));
+        }
+        if (!session) {
+          toast.success('¡Registro exitoso! Revisa tu email para confirmar tu cuenta antes de continuar.');
+          setLoading(false);
+          return;
+        }
         userId = authData.user.id;
         userEmail = authData.user.email || authData.user.user_metadata?.email || '';
         userObj = authData.user;
