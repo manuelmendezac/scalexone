@@ -174,9 +174,7 @@ const RegistroPage: React.FC = () => {
             email: userEmail,
             name: formData.fullName,
             avatar_url: null,
-            fecha_creacion: new Date().toISOString(),
-            activo: true,
-            community_id: '8fb70d6e-3237-465e-8669-979461cf2bc1'
+            rol: 'user'
           }
         ]);
       if (profileError) {
@@ -239,9 +237,7 @@ const RegistroPage: React.FC = () => {
               email: user.email,
               name: user.user_metadata?.nombre || user.user_metadata?.full_name || user.email,
               avatar_url: user.user_metadata?.avatar_url || null,
-              fecha_creacion: new Date().toISOString(),
-              activo: true,
-              community_id: '8fb70d6e-3237-465e-8669-979461cf2bc1'
+              rol: 'user'
             }
           ]);
           // Crear IB único usando la función RPC robusta
