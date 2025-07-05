@@ -22,6 +22,7 @@ const RegistroPage: React.FC = () => {
   const [communityId, setCommunityId] = useState<string>('default');
   const [afiliadoReferente, setAfiliadoReferente] = useState<string | null>(null);
   const [trackingError, setTrackingError] = useState<string | null>(null);
+  const [syncing, setSyncing] = useState(false);
 
   const [formData, setFormData] = useState({
     email: '',
@@ -232,34 +233,23 @@ const RegistroPage: React.FC = () => {
         userEmail = authData.user.email || authData.user.user_metadata?.email || '';
         userObj = authData.user;
       }
-      // Sincronizar usuario en tabla usuarios
-      await syncUsuarioSupabase({
-        ...userObj,
-        user_metadata: {
-          ...userObj.user_metadata,
-          full_name: formData.fullName,
-          community_id: commId,
-          afiliado_referente: referenteId
-        },
-        community_id: commId,
-        afiliado_referente: referenteId
-      });
-      // Tracking de lead/conversión
-      if (trackingId) {
-        try {
-          await axios.post('/api/afiliados/registro', {
-            user_id: userId,
-            email: userEmail,
-            nombre: formData.fullName,
-            tracking_id: trackingId
-          });
-          localStorage.removeItem('affiliate_tracking_id');
-        } catch (err) {
-          console.error('Error registrando lead/conversión:', err);
-        }
+      // Sincronizar usuario SOLO vía backend
+      setSyncing(true);
+      try {
+        await axios.post('/api/afiliados/registro', {
+          user_id: userId,
+          email: userEmail,
+          nombre: formData.fullName,
+          tracking_id: trackingId
+        });
+        localStorage.removeItem('affiliate_tracking_id');
+      } catch (err) {
+        setSyncing(false);
+        setLoading(false);
+        toast.error('Error al sincronizar afiliación. Intenta de nuevo.');
+        return;
       }
-      // Crear IB único usando la función RPC robusta
-      await supabase.rpc('crear_codigo_afiliado_para_usuario', { p_user_id: userId });
+      setSyncing(false);
       setStep(3);
       toast.success('¡Registro exitoso! Revisa tu email para confirmar tu cuenta.');
       // Redirigir solo a /home
@@ -439,6 +429,11 @@ const RegistroPage: React.FC = () => {
               {trackingError && (
                 <div style={{ color: 'red', marginBottom: 12, textAlign: 'center', fontWeight: 600 }}>
                   {trackingError}
+                </div>
+              )}
+              {syncing && (
+                <div style={{ color: '#FFD700', marginBottom: 12, textAlign: 'center', fontWeight: 600 }}>
+                  Sincronizando afiliación...
                 </div>
               )}
               <button type="submit" disabled={loading} style={{ width: '100%', background: '#FFD700', color: '#000', border: 'none', borderRadius: 7, padding: 12, fontWeight: 700, fontSize: 22, marginBottom: 12, marginTop: 8, cursor: 'pointer' }}>
