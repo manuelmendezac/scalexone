@@ -14,6 +14,7 @@ const RegistroPage: React.FC = () => {
   const [affiliateCode, setAffiliateCode] = useState<string | null>(null);
   const [sessionUser, setSessionUser] = useState<any>(null);
   const [clickRegistered, setClickRegistered] = useState(false);
+  const [showLoginLink, setShowLoginLink] = useState(false);
 
   const [formData, setFormData] = useState({
     email: '',
@@ -127,12 +128,11 @@ const RegistroPage: React.FC = () => {
 
   const handleRegister = async () => {
     if (!validateForm()) return;
-
     setLoading(true);
+    setShowLoginLink(false);
     try {
       let userId = null;
       let userEmail = formData.email;
-      // Si ya hay sesión, solo crear en tabla usuarios
       if (sessionUser) {
         userId = sessionUser.id;
         userEmail = sessionUser.email || sessionUser.user_metadata?.email || '';
@@ -148,9 +148,16 @@ const RegistroPage: React.FC = () => {
             }
           }
         });
-
-        if (authError) throw authError;
-
+        if (authError) {
+          if (authError.message.toLowerCase().includes('already registered')) {
+            toast.error('Este correo ya está registrado. Inicia sesión aquí.');
+            setShowLoginLink(true);
+          } else {
+            toast.error(authError.message);
+          }
+          setLoading(false);
+          return;
+        }
         if (!authData.user) throw new Error('No se pudo crear el usuario en Auth.');
         userId = authData.user.id;
         userEmail = authData.user.email || authData.user.user_metadata?.email || '';
@@ -427,17 +434,12 @@ const RegistroPage: React.FC = () => {
           )}
 
           {/* Login Link */}
-          {step < 3 && (
-            <div className="text-center mt-6">
-              <p className="text-sm text-gray-600">
+          {step < 3 && showLoginLink && (
+            <div style={{ textAlign: 'center', marginTop: 8 }}>
+              <span style={{ fontSize: 13, color: '#1976d2' }}>
                 ¿Ya tienes cuenta?{' '}
-                <button
-                  onClick={() => navigate('/login')}
-                  className="text-blue-600 hover:text-blue-500 font-medium"
-                >
-                  Inicia sesión
-                </button>
-              </p>
+                <a href="/login" style={{ color: '#1976d2', textDecoration: 'underline', cursor: 'pointer' }}>Inicia sesión aquí</a>
+              </span>
             </div>
           )}
         </motion.div>

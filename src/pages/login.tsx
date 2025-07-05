@@ -14,6 +14,7 @@ const Login = () => {
   const [remember, setRemember] = useState(false);
   const location = useLocation();
   const [showRegisterPrompt, setShowRegisterPrompt] = useState(false);
+  const [showRegisterLink, setShowRegisterLink] = useState(false);
 
   useEffect(() => {
     if (
@@ -34,7 +35,7 @@ const Login = () => {
     setLoading(true);
     setError('');
     setSuccess('');
-    setShowRegisterPrompt(false);
+    setShowRegisterLink(false);
     if (remember) {
       localStorage.setItem('rememberedEmail', email);
     } else {
@@ -42,34 +43,40 @@ const Login = () => {
     }
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     setLoading(false);
-    if (error) setError(error.message);
-    else {
-      // Obtener el usuario autenticado
-      const { data: userData } = await supabase.auth.getUser();
-      const user = userData.user;
-      if (!user) {
-        setError('No se pudo autenticar el usuario.');
-        return;
+    if (error) {
+      if (error.message.toLowerCase().includes('invalid login credentials')) {
+        setError('Usuario o contraseña incorrectos. ¿Olvidaste tu contraseña? Recuperar o Regístrate aquí.');
+        setShowRegisterLink(true);
+      } else {
+        setError(error.message);
       }
-      // 1. Busca el perfil en la tabla usuarios
-      const { data: perfil, error: perfilError } = await supabase
-        .from('usuarios')
-        .select('*')
-        .eq('id', user.id)
-        .single();
-      if (!perfil) {
-        setError('No tienes cuenta registrada. Por favor, regístrate primero.');
-        setShowRegisterPrompt(true);
-        await supabase.auth.signOut();
-        return;
-      } else if (perfil.activo === false) {
-        setError('Tu cuenta está inactiva. Contacta soporte.');
-        await supabase.auth.signOut();
-        return;
-      }
-      // Si todo está bien, permite el acceso normal
-      window.location.href = 'https://www.scalexone.app/home';
+      return;
     }
+    // Obtener el usuario autenticado
+    const { data: userData } = await supabase.auth.getUser();
+    const user = userData.user;
+    if (!user) {
+      setError('No se pudo autenticar el usuario.');
+      return;
+    }
+    // 1. Busca el perfil en la tabla usuarios
+    const { data: perfil, error: perfilError } = await supabase
+      .from('usuarios')
+      .select('*')
+      .eq('id', user.id)
+      .single();
+    if (!perfil) {
+      setError('No tienes cuenta registrada. Por favor, regístrate primero.');
+      setShowRegisterPrompt(true);
+      await supabase.auth.signOut();
+      return;
+    } else if (perfil.activo === false) {
+      setError('Tu cuenta está inactiva. Contacta soporte.');
+      await supabase.auth.signOut();
+      return;
+    }
+    // Si todo está bien, permite el acceso normal
+    window.location.href = 'https://www.scalexone.app/home';
   };
 
   // Recuperar contraseña
@@ -167,6 +174,14 @@ const Login = () => {
                 <input type="checkbox" id="remember" checked={remember} onChange={e => setRemember(e.target.checked)} style={{ accentColor: '#FFD700', width: 18, height: 18 }} />
                 <label htmlFor="remember" style={{ color: '#FFD700', fontSize: 15, cursor: 'pointer', userSelect: 'none' }}>Recordar correo</label>
               </div>
+              {showRegisterLink && (
+                <div style={{ textAlign: 'center', marginTop: 8 }}>
+                  <span style={{ fontSize: 13, color: '#FFD700' }}>
+                    ¿No tienes cuenta?{' '}
+                    <a href="/registro" style={{ color: '#FFD700', textDecoration: 'underline', cursor: 'pointer' }}>Regístrate aquí</a>
+                  </span>
+                </div>
+              )}
             </form>
             {showRegisterPrompt && (
               <div style={{ textAlign: 'center', marginTop: 12 }}>
