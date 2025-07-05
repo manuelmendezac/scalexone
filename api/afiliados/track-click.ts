@@ -16,22 +16,23 @@ export default async function handler(req, res) {
     ip_address
   } = req.body;
 
-  // Log de los datos recibidos
-  console.log('TRACK-CLICK: Datos recibidos:', {
-    ib,
-    community_id,
-    utm_source,
-    utm_medium,
-    utm_campaign,
-    user_agent,
-    referrer,
-    ip_address
-  });
+  // Validación robusta
+  if (!ib || !community_id || community_id === 'default') {
+    console.error('TRACK-CLICK: Faltan datos obligatorios o community_id inválido', { ib, community_id });
+    return res.status(400).json({ error: 'Faltan datos obligatorios o community_id inválido' });
+  }
 
-  // Validación básica
-  if (!ib || !community_id) {
-    console.error('TRACK-CLICK: Faltan campos obligatorios', { ib, community_id });
-    return res.status(400).json({ error: 'Faltan campos obligatorios (ib, community_id)' });
+  // Verifica que el IB existe y está activo
+  const { data: codigo, error: errorCodigo } = await supabase
+    .from('codigos_afiliado')
+    .select('user_id')
+    .eq('codigo', ib)
+    .eq('activo', true)
+    .single();
+
+  if (errorCodigo || !codigo?.user_id) {
+    console.error('TRACK-CLICK: Código de afiliado inválido o inactivo', { ib });
+    return res.status(400).json({ error: 'Código de afiliado inválido o inactivo' });
   }
 
   const tracking_id = uuidv4();
