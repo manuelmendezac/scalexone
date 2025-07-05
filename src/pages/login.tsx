@@ -60,15 +60,42 @@ const Login = () => {
       return;
     }
     // 1. Busca el perfil en la tabla usuarios
-    const { data: perfil, error: perfilError } = await supabase
+    let { data: perfil, error: perfilError } = await supabase
       .from('usuarios')
       .select('*')
       .eq('id', user.id)
       .single();
     if (!perfil) {
-      setError('No tienes cuenta registrada. Por favor, regístrate primero.');
-      setShowRegisterPrompt(true);
-      return;
+      // Forzar insert de perfil si no existe
+      console.log('Perfil no encontrado tras login, forzando insert:', { id: user.id, email: user.email });
+      const { error: profileError, data: insertData } = await supabase
+        .from('usuarios')
+        .insert([
+          {
+            id: user.id,
+            email: user.email,
+            name: user.user_metadata?.nombre || user.user_metadata?.full_name || user.email,
+            avatar_url: user.user_metadata?.avatar_url || null,
+            rol: 'user'
+          }
+        ]);
+      console.log('Resultado del insert tras login:', { error: profileError, data: insertData });
+      if (profileError) {
+        setError('Error creando perfil de usuario: ' + profileError.message);
+        setLoading(false);
+        return;
+      }
+      // Volver a buscar el perfil
+      ({ data: perfil, error: perfilError } = await supabase
+        .from('usuarios')
+        .select('*')
+        .eq('id', user.id)
+        .single());
+      if (!perfil) {
+        setError('No tienes cuenta registrada. Por favor, regístrate primero.');
+        setShowRegisterPrompt(true);
+        return;
+      }
     } else if (perfil.activo === false) {
       setError('Tu cuenta está inactiva. Contacta soporte.');
       await supabase.auth.signOut();
