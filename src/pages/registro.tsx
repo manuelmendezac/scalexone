@@ -165,6 +165,19 @@ const RegistroPage: React.FC = () => {
         userEmail = authData.user.email || authData.user.user_metadata?.email || '';
       }
 
+      // Validar que userId es un UUID válido y userEmail no es null
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+      if (!userId || !uuidRegex.test(userId)) {
+        toast.error('Error: el id del usuario no es un UUID válido.');
+        setLoading(false);
+        return;
+      }
+      if (!userEmail || typeof userEmail !== 'string' || userEmail.trim() === '') {
+        toast.error('Error: el email del usuario es inválido.');
+        setLoading(false);
+        return;
+      }
+      console.log('Insertando usuario en tabla usuarios:', { id: userId, email: userEmail });
       // Crear perfil de usuario en la tabla usuarios
       const { error: profileError } = await supabase
         .from('usuarios')
