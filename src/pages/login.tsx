@@ -83,6 +83,7 @@ const Login = () => {
       if (profileError) {
         setError('Error creando perfil de usuario: ' + profileError.message);
         setLoading(false);
+        // No redirigir a registro, mostrar el error real
         return;
       }
       // Volver a buscar el perfil
@@ -92,8 +93,8 @@ const Login = () => {
         .eq('id', user.id)
         .single());
       if (!perfil) {
-        setError('No tienes cuenta registrada. Por favor, regístrate primero.');
-        setShowRegisterPrompt(true);
+        setError('No se pudo crear el perfil de usuario tras login. Revisa la consola para más detalles.');
+        setLoading(false);
         return;
       }
     } else if (perfil.activo === false) {
