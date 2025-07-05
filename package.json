@@ -21,6 +21,7 @@
     "@types/react-beautiful-dnd": "^13.1.8",
     "@types/react-router-dom": "^5.3.3",
     "@types/recharts": "^1.8.29",
+    "axios": "^1.10.0",
     "browser-image-compression": "^2.0.2",
     "canvas-confetti": "^1.9.3",
     "chart.js": "^4.4.9",

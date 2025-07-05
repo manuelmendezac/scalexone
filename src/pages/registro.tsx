@@ -5,6 +5,7 @@ import { UserPlus, Mail, Lock, User, Eye, EyeOff, CheckCircle } from 'lucide-rea
 import { supabase } from '../supabase';
 import { toast } from 'react-hot-toast';
 import { syncUsuarioSupabase } from '../utils/syncUsuarioSupabase';
+import axios from 'axios';
 
 const RegistroPage: React.FC = () => {
   const [searchParams] = useSearchParams();
@@ -234,6 +235,21 @@ const RegistroPage: React.FC = () => {
         community_id: commId,
         afiliado_referente: referenteId
       });
+      // Tracking de lead/conversión
+      const trackingId = localStorage.getItem('affiliate_tracking_id');
+      if (trackingId) {
+        try {
+          await axios.post('/api/afiliados/registro', {
+            user_id: userId,
+            email: userEmail,
+            nombre: formData.fullName,
+            tracking_id: trackingId
+          });
+          localStorage.removeItem('affiliate_tracking_id');
+        } catch (err) {
+          console.error('Error registrando lead/conversión:', err);
+        }
+      }
       // Crear IB único usando la función RPC robusta
       await supabase.rpc('crear_codigo_afiliado_para_usuario', { p_user_id: userId });
       // Limpiar localStorage tras registro exitoso
@@ -303,6 +319,21 @@ const RegistroPage: React.FC = () => {
             afiliado_referente: referenteId
           }
         });
+        // Tracking de lead/conversión
+        const trackingId = localStorage.getItem('affiliate_tracking_id');
+        if (trackingId) {
+          try {
+            await axios.post('/api/afiliados/registro', {
+              user_id: user.id,
+              email: user.email,
+              nombre: user.user_metadata?.full_name || user.user_metadata?.name || '',
+              tracking_id: trackingId
+            });
+            localStorage.removeItem('affiliate_tracking_id');
+          } catch (err) {
+            console.error('Error registrando lead/conversión:', err);
+          }
+        }
         // Crear IB único usando la función RPC robusta
         await supabase.rpc('crear_codigo_afiliado_para_usuario', { p_user_id: user.id });
         // Limpiar localStorage tras registro exitoso
