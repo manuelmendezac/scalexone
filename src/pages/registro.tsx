@@ -230,7 +230,7 @@ const RegistroPage: React.FC = () => {
           .eq('id', user.id)
           .single();
         if (!perfil) {
-          // Crear perfil en la tabla usuarios
+          // Crear perfil en la tabla usuarios SOLO con los campos válidos
           await supabase.from('usuarios').insert([
             {
               id: user.id,
