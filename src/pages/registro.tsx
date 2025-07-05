@@ -174,7 +174,9 @@ const RegistroPage: React.FC = () => {
             email: userEmail,
             name: formData.fullName,
             avatar_url: null,
-            rol: 'user'
+            fecha_creacion: new Date().toISOString(),
+            activo: true,
+            community_id: '8fb70d6e-3237-465e-8669-979461cf2bc1'
           }
         ]);
       if (profileError) {
@@ -230,14 +232,16 @@ const RegistroPage: React.FC = () => {
           .eq('id', user.id)
           .single();
         if (!perfil) {
-          // Crear perfil en la tabla usuarios SOLO con los campos válidos
+          // Crear perfil en la tabla usuarios
           await supabase.from('usuarios').insert([
             {
               id: user.id,
               email: user.email,
               name: user.user_metadata?.nombre || user.user_metadata?.full_name || user.email,
               avatar_url: user.user_metadata?.avatar_url || null,
-              rol: 'user'
+              fecha_creacion: new Date().toISOString(),
+              activo: true,
+              community_id: '8fb70d6e-3237-465e-8669-979461cf2bc1'
             }
           ]);
           // Crear IB único usando la función RPC robusta
