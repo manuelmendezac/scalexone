@@ -179,7 +179,7 @@ const RegistroPage: React.FC = () => {
       }
       console.log('Insertando usuario en tabla usuarios:', { id: userId, email: userEmail });
       // Crear perfil de usuario en la tabla usuarios
-      const { error: profileError } = await supabase
+      const { error: profileError, data: insertData } = await supabase
         .from('usuarios')
         .insert([
           {
@@ -190,6 +190,7 @@ const RegistroPage: React.FC = () => {
             rol: 'user'
           }
         ]);
+      console.log('Resultado del insert:', { error: profileError, data: insertData });
       if (profileError) {
         console.error('Error creating user profile:', profileError);
         toast.error('Error creando perfil de usuario: ' + profileError.message);

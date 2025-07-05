@@ -126,7 +126,7 @@ const Login = () => {
           }
           console.log('Insertando usuario en tabla usuarios:', { id: user.id, email: user.email });
           // Crear perfil en la tabla usuarios
-          await supabase.from('usuarios').insert([
+          const { error: profileError, data: insertData } = await supabase.from('usuarios').insert([
             {
               id: user.id,
               email: user.email,
@@ -135,8 +135,12 @@ const Login = () => {
               rol: 'user'
             }
           ]);
-          // Crear IB único usando la función RPC robusta
-          await supabase.rpc('crear_codigo_afiliado_para_usuario', { p_user_id: user.id });
+          console.log('Resultado del insert:', { error: profileError, data: insertData });
+          if (profileError) {
+            setError('Error creando perfil de usuario: ' + profileError.message);
+            setLoading(false);
+            return;
+          }
         }
         // Redirigir a home
         window.location.href = '/home';
