@@ -41,10 +41,15 @@ const AfiliadoRedirect: React.FC = () => {
         });
         if (res.data?.tracking_id) {
           localStorage.setItem('affiliate_tracking_id', res.data.tracking_id);
+          return true;
+        } else {
+          setError('No se pudo generar el tracking de afiliado. Intenta de nuevo o contacta soporte.');
+          return false;
         }
       } catch (err) {
         setError('Error registrando el tracking de afiliado. Intenta de nuevo o contacta soporte.');
         console.error('Error tracking click:', err);
+        return false;
       }
     };
 
@@ -79,7 +84,8 @@ const AfiliadoRedirect: React.FC = () => {
       localStorage.setItem('affiliate_ref', ib);
       localStorage.setItem('affiliate_community_id', communityId);
       // Tracking de clics
-      await trackClick(ib, communityId);
+      const trackingOk = await trackClick(ib, communityId);
+      if (!trackingOk) return; // Si falla el tracking, no redirigir
       // Redirigir a registro con ref y community_id
       navigate(`/registro?ref=${ib}&community_id=${communityId}`, { replace: true });
     };
